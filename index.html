@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light only">
+  <meta name="supported-color-schemes" content="light">
+  <title>네크로멘서 십이장기 프로토타입</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app">
+    <section class="campaign-map" id="mapScreen" aria-label="원정 지도">
+      <header class="map-header">
+        <div>
+          <p class="eyebrow">Necromancer Expedition</p>
+          <h1>망자의 원정</h1>
+          <p id="mapProgress">첫 전투를 선택하세요.</p>
+        </div>
+        <button type="button" id="newCampaignBtn">새 원정</button>
+      </header>
+      <div class="campaign-roster" id="campaignRoster" aria-label="보유 유닛"></div>
+      <div class="map-route" id="mapRoute" aria-label="전투 경로"></div>
+    </section>
+
+    <section class="play-area" id="battleScreen" aria-label="5x5 전장" hidden>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Necromancer Dice Board</p>
+          <h1>시체 소환 전장</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-button" id="musicBtn" type="button" title="게임 소리 끄기" aria-label="게임 소리 끄기">♪</button>
+          <button class="icon-button" id="soundSettingsBtn" type="button" title="음향 설정" aria-label="음향 설정">⚙</button>
+          <button class="icon-button" id="resetBtn" type="button" title="새 원정">↻</button>
+        </div>
+      </header>
+
+      <div class="status-strip">
+        <article id="playerLegionCard" class="status-card is-clickable" role="button" tabindex="0" aria-label="내 군단 정보 보기">
+          <span>내 군단</span>
+          <strong id="phaseText">-</strong>
+        </article>
+        <article>
+          <span>턴</span>
+          <strong id="turnText">플레이어</strong>
+        </article>
+        <article>
+          <span>상대 군단</span>
+          <strong id="diceText">-</strong>
+        </article>
+      </div>
+
+      <div class="board-wrap">
+        <div class="setup-book is-hidden" id="setupBook" aria-label="배치 후보"></div>
+        <div class="board" id="board" aria-label="게임판"></div>
+      </div>
+
+      <div class="controls">
+        <button type="button" id="attackBtn" hidden>공격</button>
+        <button type="button" id="skipAttackBtn" hidden>공격 생략</button>
+        <button type="button" id="endTurnBtn">턴 종료</button>
+      </div>
+    </section>
+
+    <aside class="side-panel" id="battleSidePanel" hidden>
+      <section class="panel" id="actionPanel">
+        <h2>행동</h2>
+        <div class="reserve" id="reserve"></div>
+        <div class="dice-box side-dice" id="diceBox" aria-live="polite" hidden>
+          <span id="diceLabel">대기</span>
+          <strong id="diceFace">-</strong>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>유닛 정보</h2>
+        <div class="unit-info-panel is-hidden" id="unitInfo" aria-label="유닛 정보"></div>
+        <ol class="log hidden-log" id="log"></ol>
+      </section>
+
+      <section class="panel rules">
+        <h2>현재 규칙</h2>
+        <p>소환사는 자기 영역 2줄 안에서만 이동합니다. 중립 지역에는 들어갈 수 없습니다.</p>
+        <p>상대는 소환사가 없습니다. 적 유닛을 모두 쓰러뜨리면 전투에서 승리합니다.</p>
+        <p>시체 소환은 시체마다 최대 2회 도전할 수 있으며, 두 번 실패하면 시체가 사라집니다.</p>
+        <p>적 시체를 되살린 유닛이 승리할 때 생존하면 다음 전투부터 배치 후보에 합류합니다.</p>
+      </section>
+    </aside>
+  </main>
+
+  <dialog id="choiceDialog">
+    <form method="dialog" class="dialog-card">
+      <h2 id="dialogTitle">선택</h2>
+      <p id="dialogText"></p>
+      <div class="dialog-actions" id="dialogActions"></div>
+    </form>
+  </dialog>
+
+  <dialog id="soundDialog" class="sound-dialog">
+    <form method="dialog" class="sound-card">
+      <header>
+        <h2>음향 설정</h2>
+        <button class="sound-close" type="submit" aria-label="닫기">×</button>
+      </header>
+      <label class="sound-setting" for="musicVolumeRange">
+        <span>음악 <output id="musicVolumeValue">32</output></span>
+        <input id="musicVolumeRange" type="range" min="0" max="100" step="1" value="32">
+      </label>
+      <label class="sound-setting" for="sfxVolumeRange">
+        <span>효과음 <output id="sfxVolumeValue">75</output></span>
+        <input id="sfxVolumeRange" type="range" min="0" max="100" step="1" value="75">
+      </label>
+      <label class="vibration-setting" for="vibrationToggle">
+        <span>전투 진동</span>
+        <input id="vibrationToggle" type="checkbox" checked>
+      </label>
+    </form>
+  </dialog>
+
+  <dialog id="rewardDialog" class="reward-dialog">
+    <section class="reward-card" aria-labelledby="rewardTitle">
+      <header class="reward-header">
+        <span>전투 완료</span>
+        <h2 id="rewardTitle">승리</h2>
+        <p id="rewardSubtitle"></p>
+      </header>
+      <div class="reward-survivors" id="rewardSurvivors"></div>
+      <div class="reward-captures" id="rewardCaptures"></div>
+      <div class="reward-options" id="rewardOptions" aria-label="승리 보상"></div>
+      <p class="reward-result" id="rewardResult" aria-live="polite"></p>
+      <button class="reward-continue" id="rewardContinueBtn" type="button" hidden>지도로</button>
+    </section>
+  </dialog>
+
+  <audio id="battleMusic" src="assets/battle-theme.mp3" preload="metadata" loop></audio>
+
+  <script src="game.js"></script>
+</body>
+</html>
