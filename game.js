@@ -1187,8 +1187,15 @@ function loadCampaignSave() {
 
     if (data.version !== CAMPAIGN_SAVE_VERSION) return null;
 
-    if (typeof data.depth !== "number" || !Number.isInteger(data.depth) || data.depth < 0 || data.depth > 4) {
+    const isFinished = Boolean(data.finished);
+    const depthVal = data.depth;
+    if (typeof depthVal !== "number" || !Number.isInteger(depthVal)) {
       return null;
+    }
+    if (isFinished) {
+      if (depthVal !== 5) return null;
+    } else {
+      if (depthVal < 0 || depthVal > 4) return null;
     }
 
     if (!Array.isArray(data.completed)) return null;
@@ -3054,8 +3061,8 @@ function initGameApp() {
   state.winnerAnnounced = false;
   state.selectedTotem = null;
   
-  const hasSave = hasSavedCampaign();
-  continueCampaignBtn.disabled = !hasSave;
+  const validSave = loadCampaignSave();
+  continueCampaignBtn.disabled = (validSave === null);
   
   render();
 }
