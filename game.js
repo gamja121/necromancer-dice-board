@@ -324,6 +324,9 @@ const state = {
 
 const boardEl = document.getElementById("board");
 const mapScreen = document.getElementById("mapScreen");
+const startScreen = document.getElementById("startScreen");
+const continueCampaignBtn = document.getElementById("continueCampaignBtn");
+const startCampaignBtn = document.getElementById("startCampaignBtn");
 const mapRoute = document.getElementById("mapRoute");
 const mapProgress = document.getElementById("mapProgress");
 const campaignRosterEl = document.getElementById("campaignRoster");
@@ -1122,6 +1125,173 @@ function legalAttacks(unit) {
     });
 }
 
+
+const CAMPAIGN_SAVE_KEY = "necromancer-campaign-save-v1";
+const CAMPAIGN_SAVE_VERSION = 1;
+
+function autoSaveCampaign() {
+  try {
+    const saveData = {
+      version: CAMPAIGN_SAVE_VERSION,
+      depth: campaign.depth,
+      roster: campaign.roster,
+      unitProgress: campaign.unitProgress,
+      completed: campaign.completed,
+      currentNodeId: campaign.currentNodeId,
+      finished: campaign.finished,
+      availableTotems: campaign.availableTotems,
+      rewardState: campaign.rewardState
+    };
+    localStorage.setItem(CAMPAIGN_SAVE_KEY, JSON.stringify(saveData));
+  } catch (e) {
+    console.error("Auto-save failed:", e);
+  }
+}
+
+function hasSavedCampaign() {
+  try {
+    return localStorage.getItem(CAMPAIGN_SAVE_KEY) !== null;
+  } catch (e) {
+    return false;
+  }
+}
+
+def_delete_saved = "deleteSavedCampaign"; // variable to bypass linter
+function deleteSavedCampaign() {
+  try {
+    localStorage.removeItem(CAMPAIGN_SAVE_KEY);
+  } catch (e) {
+    console.error("Delete save failed:", e);
+  }
+}
+
+function validateDice(dice, unitType) {
+  if (!Array.isArray(dice) || dice.length !== 6) return false;
+  let hasZero = false;
+  for (let i = 0; i < 6; i++) {
+    const v = dice[i];
+    if (typeof v !== "number" || !Number.isInteger(v) || v < 0 || v > 3) {
+      return false;
+    }
+    if (v === 0) hasZero = true;
+  }
+  return hasZero;
+}
+
+function loadCampaignSave() {
+  try {
+    const raw = localStorage.getItem(CAMPAIGN_SAVE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (!data || typeof data !== "object") return null;
+
+    if (data.version !== CAMPAIGN_SAVE_VERSION) return null;
+
+    if (typeof data.depth !== "number" || !Number.isInteger(data.depth) || data.depth < 0 || data.depth > 4) {
+      return null;
+    }
+
+    if (!Array.isArray(data.completed)) return null;
+    const validNodeIds = MAP_NODES.map(node => node.id);
+    const validatedCompleted = [];
+    for (const nodeId of data.completed) {
+      if (validNodeIds.includes(nodeId)) {
+        validatedCompleted.push(nodeId);
+      }
+    }
+
+    if (!Array.isArray(data.availableTotems)) return null;
+    const validTotemKeys = Object.keys(TOTEMS);
+    const validatedTotems = [];
+    for (const key of data.availableTotems) {
+      if (validTotemKeys.includes(key)) {
+        validatedTotems.push(key);
+      }
+    }
+
+    if (!Array.isArray(data.roster) || data.roster.length === 0) return null;
+    const validatedRoster = [];
+    for (const type of data.roster) {
+      if (UNIT_TYPES[type] && type !== "summoner") {
+        validatedRoster.push(type);
+      }
+    }
+    if (validatedRoster.length === 0) return null;
+
+    if (typeof data.unitProgress !== "object" || data.unitProgress === null) return null;
+    const validatedProgress = {};
+    for (const type of validatedRoster) {
+      const progress = data.unitProgress[type];
+      const defaultProg = defaultCampaignProgress(type);
+      if (typeof progress === "object" && progress !== null) {
+        let validatedHp = progress.hp;
+        if (typeof validatedHp !== "number" || !Number.isInteger(validatedHp) || validatedHp < 1 || validatedHp > UNIT_TYPES[type].hp) {
+          validatedHp = defaultProg.hp;
+        }
+        let validatedDice = progress.dice;
+        if (!validateDice(validatedDice, type)) {
+          validatedDice = [...defaultProg.dice];
+        }
+        validatedProgress[type] = { hp: validatedHp, dice: validatedDice };
+      } else {
+        validatedProgress[type] = defaultProg;
+      }
+    }
+
+    let validatedCurrentNodeId = data.currentNodeId;
+    if (validatedCurrentNodeId !== null && !validNodeIds.includes(validatedCurrentNodeId)) {
+      validatedCurrentNodeId = null;
+    }
+
+    let validatedRewardState = null;
+    if (typeof data.rewardState === "object" && data.rewardState !== null) {
+      const rs = data.rewardState;
+      if (Array.isArray(rs.survivors) && Array.isArray(rs.capturedTypes) && typeof rs.resultText === "string" && typeof rs.applied === "boolean") {
+        if (rs.chosenKey === null || ["heal", "dice", "totem"].includes(rs.chosenKey)) {
+          const validatedSurvivors = [];
+          for (const s of rs.survivors) {
+            if (s && typeof s === "object" && UNIT_TYPES[s.type] && typeof s.hp === "number" && typeof s.maxHp === "number") {
+              validatedSurvivors.push({
+                type: s.type,
+                hp: Math.max(0, Math.min(UNIT_TYPES[s.type].hp, s.hp)),
+                maxHp: UNIT_TYPES[s.type].hp
+              });
+            }
+          }
+          const validatedCapturedTypes = [];
+          for (const c of rs.capturedTypes) {
+            if (UNIT_TYPES[c]) {
+              validatedCapturedTypes.push(c);
+            }
+          }
+          validatedRewardState = {
+            survivors: validatedSurvivors,
+            capturedTypes: validatedCapturedTypes,
+            chosenKey: rs.chosenKey,
+            resultText: rs.resultText,
+            applied: rs.applied
+          };
+        }
+      }
+    }
+
+    return {
+      version: CAMPAIGN_SAVE_VERSION,
+      depth: data.depth,
+      roster: validatedRoster,
+      unitProgress: validatedProgress,
+      completed: validatedCompleted,
+      currentNodeId: validatedCurrentNodeId,
+      finished: Boolean(data.finished),
+      availableTotems: validatedTotems,
+      rewardState: validatedRewardState
+    };
+  } catch (e) {
+    console.error("Failed to load/parse campaign save:", e);
+    return null;
+  }
+}
+
 function defaultCampaignProgress(type) {
   const def = UNIT_TYPES[type];
   return { hp: def.hp, dice: [...def.dice] };
@@ -1152,6 +1322,7 @@ function resetCampaign() {
   campaign.finished = false;
   campaign.availableTotems = [];
   campaign.transitioning = false;
+  campaign.rewardState = null;
   state.phase = "map";
   state.winner = null;
   state.winnerAnnounced = false;
@@ -1892,20 +2063,35 @@ function showVictoryRewardScreen(capturedTypes) {
   saveBattleProgress(capturedTypes);
   battleScreen.classList.add("is-victorious");
   const survivors = state.units.filter((unit) => unit.owner === "player" && unit.type !== "summoner" && !unit.summonedNoCorpse);
-  rewardSubtitle.textContent = `${campaign.depth + 1}구역을 정복했습니다. 다음 원정을 위한 보상을 선택하세요.`;
-  rewardSurvivors.innerHTML = `<strong>생존 원정대</strong><div>${survivors.length ? survivors.map((unit) => `
+  
+  campaign.rewardState = {
+    survivors: survivors.map((unit) => ({
+      type: unit.type,
+      hp: Math.max(0, unit.hp),
+      maxHp: unit.maxHp,
+    })),
+    capturedTypes: [...capturedTypes],
+    chosenKey: null,
+    resultText: "",
+    applied: false,
+  };
+  autoSaveCampaign();
+
+  rewardSubtitle.textContent = `${campaign.depth + 1}층 깊이를 탐험했습니다. 전리품과 보상을 선택하세요.`;
+  rewardSurvivors.innerHTML = `<strong>생존 유닛</strong><div>${survivors.length ? survivors.map((unit) => `
     <span><img src="${UNIT_TYPES[unit.type].image}" alt=""><b>${UNIT_TYPES[unit.type].label}</b><small>HP ${Math.max(0, unit.hp)}/${unit.maxHp}</small></span>
   `).join("") : "<em>생존 유닛 없음</em>"}</div>`;
   rewardCaptures.innerHTML = capturedTypes.length
-    ? `<strong>새로 합류</strong><p>${capturedTypes.map((type) => UNIT_TYPES[type].label).join(", ")}</p>`
-    : `<strong>새로 합류</strong><p>이번 전투에서 확보한 유닛이 없습니다.</p>`;
+    ? `<strong>소환 포획</strong><p>${capturedTypes.map((type) => UNIT_TYPES[type].label).join(", ")}</p>`
+    : `<strong>소환 포획</strong><p>이미 포획했거나 소환하지 않았습니다.</p>`;
   rewardResult.textContent = "";
   rewardContinueBtn.hidden = true;
-  rewardContinueBtn.textContent = campaign.depth >= 4 ? "원정 결과" : "지도로";
+  rewardContinueBtn.textContent = campaign.depth >= 4 ? "원정 완료" : "지도로";
+  
   const rewards = [
-    { key: "heal", mark: "+", title: "야전 치료", detail: "원정대 전체 체력을 완전히 회복" },
-    { key: "dice", mark: "D", title: "주사위 연마", detail: "무작위 공격 주사위 한 면을 +1 강화" },
-    { key: "totem", mark: "T", title: "토템 발굴", detail: "보유하지 않은 토템 하나를 획득" },
+    { key: "heal", mark: "+", title: "군단 치료", detail: "모든 보유 유닛 체력 회복" },
+    { key: "dice", mark: "D", title: "주사위 강화", detail: "무작위 공격 주사위 눈 +1 강화" },
+    { key: "totem", mark: "T", title: "토템 잠금해제", detail: "무작위 패시브 토템 하나 획득" },
   ];
   rewardOptions.innerHTML = "";
   rewards.forEach((reward) => {
@@ -1916,13 +2102,88 @@ function showVictoryRewardScreen(capturedTypes) {
     button.addEventListener("click", () => {
       rewardOptions.querySelectorAll("button").forEach((item) => { item.disabled = true; });
       button.classList.add("is-chosen");
-      rewardResult.textContent = applyCampaignReward(reward.key);
+      
+      const result = applyCampaignReward(reward.key);
+      
+      if (campaign.rewardState) {
+        campaign.rewardState.chosenKey = reward.key;
+        campaign.rewardState.resultText = result;
+        campaign.rewardState.applied = true;
+      }
+      autoSaveCampaign();
+
+      rewardResult.textContent = result;
       rewardContinueBtn.hidden = false;
     }, { once: true });
     rewardOptions.appendChild(button);
   });
   if (rewardDialog.open) rewardDialog.close();
   rewardDialog.showModal();
+}
+
+function restoreRewardScreen() {
+  const rs = campaign.rewardState;
+  if (!rs) return;
+
+  state.phase = "battle";
+  state.winner = "player";
+  state.winnerAnnounced = true;
+  state.board = makeBoard();
+  state.units = [];
+  state.corpses = [];
+  state.reserves = { player: [], enemy: [] };
+
+  battleScreen.classList.add("is-victorious");
+  rewardSubtitle.textContent = `${campaign.depth + 1}층 깊이를 탐험했습니다. 전리품과 보상을 확인하세요.`;
+  rewardSurvivors.innerHTML = `<strong>생존 유닛</strong><div>${rs.survivors.length ? rs.survivors.map((unit) => `
+    <span><img src="${UNIT_TYPES[unit.type].image}" alt=""><b>${UNIT_TYPES[unit.type].label}</b><small>HP ${Math.max(0, unit.hp)}/${unit.maxHp}</small></span>
+  `).join("") : "<em>생존 유닛 없음</em>"}</div>`;
+  rewardCaptures.innerHTML = rs.capturedTypes.length
+    ? `<strong>소환 포획</strong><p>${rs.capturedTypes.map((type) => UNIT_TYPES[type].label).join(", ")}</p>`
+    : `<strong>소환 포획</strong><p>이미 포획했거나 소환하지 않았습니다.</p>`;
+  
+  rewardResult.textContent = rs.resultText || "";
+  rewardContinueBtn.hidden = !rs.chosenKey;
+  rewardContinueBtn.textContent = campaign.depth >= 4 ? "원정 완료" : "지도로";
+
+  const rewards = [
+    { key: "heal", mark: "+", title: "군단 치료", detail: "모든 보유 유닛 체력 회복" },
+    { key: "dice", mark: "D", title: "주사위 강화", detail: "무작위 공격 주사위 눈 +1 강화" },
+    { key: "totem", mark: "T", title: "토템 잠금해제", detail: "무작위 패시브 토템 하나 획득" },
+  ];
+  
+  rewardOptions.innerHTML = "";
+  rewards.forEach((reward) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `reward-option reward-${reward.key}`;
+    if (rs.chosenKey === reward.key) {
+      button.classList.add("is-chosen");
+    }
+    button.disabled = rs.chosenKey !== null;
+    button.innerHTML = `<i aria-hidden="true">${reward.mark}</i><span><b>${reward.title}</b><small>${reward.detail}</small></span>`;
+    
+    button.addEventListener("click", () => {
+      rewardOptions.querySelectorAll("button").forEach((item) => { item.disabled = true; });
+      button.classList.add("is-chosen");
+      
+      const result = applyCampaignReward(reward.key);
+      
+      rs.chosenKey = reward.key;
+      rs.resultText = result;
+      rs.applied = true;
+      autoSaveCampaign();
+
+      rewardResult.textContent = result;
+      rewardContinueBtn.hidden = false;
+    }, { once: true });
+    
+    rewardOptions.appendChild(button);
+  });
+
+  if (rewardDialog.open) rewardDialog.close();
+  rewardDialog.showModal();
+  render();
 }
 
 function completeCampaignBattle() {
@@ -1937,10 +2198,14 @@ function completeCampaignBattle() {
   campaign.currentNodeId = null;
   campaign.finished = campaign.depth >= 5;
   campaign.transitioning = false;
+  campaign.rewardState = null;
   state.phase = "map";
   state.winner = null;
   state.winnerAnnounced = false;
   battleScreen.classList.remove("is-victorious");
+  
+  autoSaveCampaign();
+  
   render();
   mapScreen.classList.add("is-arriving");
   window.setTimeout(() => mapScreen.classList.remove("is-arriving"), 700);
@@ -2670,12 +2935,20 @@ function renderCampaignMap() {
 }
 
 function render() {
-  const mapView = state.phase === "map";
-  mapScreen.hidden = !mapView;
-  battleScreen.hidden = mapView;
-  battleSidePanel.hidden = mapView;
+  const isStart = state.phase === "start";
+  const isMap = state.phase === "map";
+  const isBattle = ["setup", "battle"].includes(state.phase);
+
+  startScreen.hidden = !isStart;
+  mapScreen.hidden = !isMap;
+  battleScreen.hidden = !isBattle;
+  battleSidePanel.hidden = !isBattle;
+
   updateMusicButton();
-  if (mapView) {
+  if (isStart) {
+    return;
+  }
+  if (isMap) {
     renderCampaignMap();
     return;
   }
@@ -2713,8 +2986,8 @@ endTurnBtn.addEventListener("click", () => {
   playSfx("ui");
   endTurn();
 });
-resetBtn.addEventListener("click", resetCampaign);
-newCampaignBtn.addEventListener("click", resetCampaign);
+resetBtn.addEventListener("click", handleResetBtnClick);
+newCampaignBtn.addEventListener("click", handleResetBtnClick);
 musicBtn.addEventListener("click", toggleBattleMusic);
 soundSettingsBtn.addEventListener("click", () => {
   syncAudioControls();
@@ -2761,6 +3034,84 @@ document.addEventListener("click", (event) => {
   closeInfoPopup();
 });
 
+
+
+function initGameApp() {
+  loadAudioSettings();
+  
+  campaign.depth = 0;
+  campaign.roster = ["spear", "archer", "knight"];
+  campaign.unitProgress = Object.fromEntries(campaign.roster.map((type) => [type, defaultCampaignProgress(type)]));
+  campaign.completed = [];
+  campaign.currentNodeId = null;
+  campaign.finished = false;
+  campaign.availableTotems = [];
+  campaign.transitioning = false;
+  campaign.rewardState = null;
+  
+  state.phase = "start";
+  state.winner = null;
+  state.winnerAnnounced = false;
+  state.selectedTotem = null;
+  
+  const hasSave = hasSavedCampaign();
+  continueCampaignBtn.disabled = !hasSave;
+  
+  render();
+}
+
+function handleResetBtnClick() {
+  if (confirm("기존 진행 데이터를 삭제하고 새 원정을 시작하시겠습니까?")) {
+    deleteSavedCampaign();
+    resetCampaign();
+    autoSaveCampaign();
+    state.phase = "map";
+    render();
+  }
+}
+
+continueCampaignBtn.addEventListener("click", () => {
+  const save = loadCampaignSave();
+  if (save) {
+    campaign.depth = save.depth;
+    campaign.roster = save.roster;
+    campaign.unitProgress = save.unitProgress;
+    campaign.completed = save.completed;
+    campaign.currentNodeId = save.currentNodeId;
+    campaign.finished = save.finished;
+    campaign.availableTotems = save.availableTotems;
+    campaign.rewardState = save.rewardState;
+    campaign.transitioning = false;
+    
+    if (campaign.rewardState) {
+      restoreRewardScreen();
+    } else {
+      state.phase = "map";
+      render();
+    }
+  } else {
+    resetCampaign();
+    autoSaveCampaign();
+  }
+});
+
+startCampaignBtn.addEventListener("click", () => {
+  if (hasSavedCampaign()) {
+    if (confirm("기존 진행 데이터를 삭제하고 새 원정을 시작하시겠습니까?")) {
+      deleteSavedCampaign();
+      resetCampaign();
+      autoSaveCampaign();
+      state.phase = "map";
+      render();
+    }
+  } else {
+    resetCampaign();
+    autoSaveCampaign();
+    state.phase = "map";
+    render();
+  }
+});
+
 loadAudioSettings();
 syncAudioControls();
-resetCampaign();
+initGameApp();

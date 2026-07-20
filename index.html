@@ -10,7 +10,19 @@
 </head>
 <body>
   <main class="app">
-    <section class="campaign-map" id="mapScreen" aria-label="원정 지도">
+    <section class="start-screen" id="startScreen" aria-label="시작 화면">
+      <div class="start-content">
+        <p class="eyebrow">Necromancer Dice Board</p>
+        <h1 class="start-title">네크로멘서 십이장기</h1>
+        <p class="start-subtitle">망자의 원정</p>
+        <div class="start-actions">
+          <button type="button" id="continueCampaignBtn" disabled>계속하기</button>
+          <button type="button" id="startCampaignBtn">새 원정</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="campaign-map" id="mapScreen" aria-label="원정 지도" hidden>
       <header class="map-header">
         <div>
           <p class="eyebrow">Necromancer Expedition</p>

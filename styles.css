@@ -2656,3 +2656,58 @@ dialog::backdrop {
 .hidden-log {
   display: none;
 }
+
+/* 시작 화면 (Start Screen) */
+.start-screen {
+  grid-column: 1 / -1;
+  min-height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 18px;
+  border: 3px solid #111;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, .12);
+  text-align: center;
+}
+
+.start-content {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.start-title {
+  font-size: clamp(2rem, 8vw, 3rem);
+  margin: 8px 0 0;
+  line-height: 1.15;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  word-break: keep-all;
+}
+
+.start-subtitle {
+  font-size: clamp(1.2rem, 5vw, 1.6rem);
+  color: var(--muted);
+  margin: 0 0 16px 0;
+  font-weight: 700;
+}
+
+.start-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.start-actions button {
+  width: 100%;
+  font-size: 1.1rem;
+  height: 52px;
+  padding: 0 24px;
+}
