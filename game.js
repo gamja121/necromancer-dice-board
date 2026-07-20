@@ -1187,7 +1187,8 @@ function loadCampaignSave() {
 
     if (data.version !== CAMPAIGN_SAVE_VERSION) return null;
 
-    const isFinished = Boolean(data.finished);
+    if (typeof data.finished !== "boolean") return null;
+    const isFinished = data.finished;
     const depthVal = data.depth;
     if (typeof depthVal !== "number" || !Number.isInteger(depthVal)) {
       return null;
