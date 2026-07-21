@@ -3026,6 +3026,62 @@ function renderLegionInfo(owner) {
   unitInfoEl.classList.remove("is-hidden");
 }
 
+function effectiveDiceMarkup(unit) {
+  const effective = effectiveAttackDice(unit);
+  return effective.map((value, index) => {
+    const base = unit.dice[index];
+    const bonus = value - base;
+    return bonus > 0
+      ? `<span class="stat-boost" title="${base} → ${value}">${value}<small>+${bonus}</small></span>`
+      : `<span>${value}</span>`;
+  }).join("<i>,</i>");
+}
+
+function appliedUnitEffects(unit) {
+  const def = UNIT_TYPES[unit.type];
+  const effects = [];
+  if (isLegionActive(unit.owner, "skeleton") && def.grade !== "hero") {
+    effects.push({ source: "언데드", detail: "공격 주사위 0 한 면 → 1" });
+  }
+  if (hasLegion(unit, "corpse") && isLegionActive(unit.owner, "corpse")) {
+    effects.push({ source: "시체", detail: "시체 소환 주사위 +1" });
+  }
+  if (hasLegion(unit, "beast") && isLegionActive(unit.owner, "beast")) {
+    effects.push({ source: "야수", detail: "반격 확률 +30%" });
+  }
+  if (hasLegion(unit, "plague") && isLegionActive(unit.owner, "plague")) {
+    effects.push({ source: "역병", detail: "공격 후 1턴 중독" });
+  }
+  if (hasLegion(unit, "ice") && isLegionActive(unit.owner, "ice")) {
+    effects.push({ source: "얼음", detail: "공격 후 1턴 빙결" });
+  }
+  if (isSummonedUnit(unit) && !def.fixedHp && isLegionActive(unit.owner, "summon")) {
+    effects.push({ source: "소환", detail: "최대 체력 +3" });
+  }
+  if (hasLegion(unit, "demon") && isLegionActive(unit.owner, "demon")) {
+    effects.push({ source: "악마", detail: "30% 확률 공격 피해 2배" });
+  }
+  if (hasLegion(unit, "insect") && isLegionActive(unit.owner, "insect")) {
+    effects.push({ source: "벌레", detail: "공격 주사위 2 한 면 → 3" });
+  }
+  if (hasLegion(unit, "plant") && !def.fixedHp && isLegionActive(unit.owner, "plant")) {
+    effects.push({ source: "식물", detail: "최대 체력 +1" });
+  }
+  if (hasLegion(unit, "element") && isLegionActive(unit.owner, "element")) {
+    effects.push({ source: "원소", detail: "상태이상 면역 50%" });
+  }
+  if (state.selectedTotem === "beast") {
+    effects.push({ source: "야수 토템", detail: "반격 확률 +10%" });
+  }
+  if (state.selectedTotem === "ice") {
+    effects.push({ source: "얼음 토템", detail: "빙결될 때 피해 1" });
+  }
+  if (state.selectedTotem === "undead") {
+    effects.push({ source: "언데드 토템", detail: "공격·반격 주사위 1이면 체력 +1" });
+  }
+  return effects;
+}
+
 function renderUnitInfo() {
   if (!unitInfoEl) return;
   if (state.inspectedLegionOwner) {
@@ -3071,16 +3127,28 @@ function renderUnitInfo() {
       .map((legion) => `${legionNames[legion]} ${legionCount(unit.owner, legion)}/${legionTargets[legion]}${isLegionActive(unit.owner, legion) ? " 활성" : ""}`)
       .join(" / ")
     : "없음";
+  const baseMaxHp = unit.baseMaxHp ?? def.hp;
+  const maxHpBonus = Math.max(0, unit.maxHp - baseMaxHp);
+  const counter = counterChance(unit);
+  const effects = appliedUnitEffects(unit);
   unitInfoEl.innerHTML = `
-    <h2 class="unit-info-title"><span>${def.label}</span><b>${gradeLabel} HP ${unit.hp}/${unit.maxHp}</b></h2>
+    <h2 class="unit-info-title"><span>${def.label}</span><b>${gradeLabel}</b></h2>
     <div class="unit-info-card compact-info">
       <dl>
         <div><dt>군단</dt><dd>${legionLabel}</dd></div>
+        <div><dt>체력</dt><dd>${unit.hp} / ${maxHpBonus > 0 ? `<span class="stat-boost">${unit.maxHp}<small>+${maxHpBonus}</small></span>` : unit.maxHp}</dd></div>
         ${unit.poisoned ? "<div><dt>상태</dt><dd>중독</dd></div>" : ""}
         ${unit.frozen ? "<div><dt>상태</dt><dd>빙결</dd></div>" : ""}
         <div><dt>공격</dt><dd>${describeAttack(unit)}</dd></div>
-        <div><dt>주사위</dt><dd>${diceNumbers(effectiveAttackDice(unit))}</dd></div>
+        <div><dt>주사위</dt><dd class="effective-dice">${effectiveDiceMarkup(unit)}</dd></div>
+        ${counter > 0 ? `<div><dt>반격</dt><dd><span class="stat-boost">${Math.round(counter * 100)}%<small>적용</small></span></dd></div>` : ""}
       </dl>
+      ${effects.length ? `
+        <div class="applied-effects">
+          <strong>적용 중</strong>
+          <ul>${effects.map((effect) => `<li><b>${effect.source}</b><span>${effect.detail}</span></li>`).join("")}</ul>
+        </div>
+      ` : ""}
       <div class="pattern-section">
         ${patternBoard(unit, "move")}
         ${patternBoard(unit, "attack")}
