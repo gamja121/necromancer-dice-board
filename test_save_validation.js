@@ -28,6 +28,7 @@ function getOrCreateElement(id) {
       addEventListener: () => {},
       appendChild: () => {},
       classList: { add: () => {}, remove: () => {}, toggle: () => {} },
+      querySelector: (selector) => getOrCreateElement(`${id}_${selector}`),
       querySelectorAll: () => [],
       style: {},
       disabled: false,
@@ -65,6 +66,10 @@ const sandbox = {
   navigator: {},
   confirm: () => true,
   console: console,
+  Image: function() {
+    this.onload = null;
+    this.onerror = null;
+  },
   Audio: function() {
     return { play: () => Promise.resolve(), pause: () => {}, cloneNode: () => ({ play: () => Promise.resolve(), pause: () => {} }) };
   },
@@ -141,11 +146,68 @@ storage['necromancer-campaign-save-v1'] = JSON.stringify(corruptedSave);
 sandbox.initGameApp();
 assert.strictEqual(sandbox.loadCampaignSave(), null, '손상된 세이브는 null을 반환해야 함');
 assert.strictEqual(elements.continueCampaignBtn.disabled, true, '손상 세이브의 경우 계속하기 버튼 비활성화');
-console.log('Pass: 손상 세이브 검증 및 계속하기 비활성화 성공.');
+const corruptionCases = [
+  { name: '스테이지/전투 불일치', patch: { stageIndex: 2, battleIndex: 0 } },
+  { name: '비정수 시드', patch: { runSeed: 1.5 } },
+  { name: 'boolean이 아닌 완료 상태', patch: { finished: 'false' } },
+  { name: '알 수 없는 로스터 유닛', patch: { roster: [...loadedV2.roster, 'notAUnit'] } },
+  { name: '중복 로스터', patch: { roster: [...loadedV2.roster, loadedV2.roster[0]] } },
+  { name: '알 수 없는 토템', patch: { availableTotems: ['unknownTotem'] } },
+  { name: '손상된 보상 상태', patch: { rewardState: { chosenKey: 'dice', applied: false } } },
+  { name: '체크포인트 인덱스 불일치', patch: { checkpoint: { battleIndex: 2, stageIndex: 0, roster: loadedV2.roster, unitProgress: loadedV2.unitProgress, availableTotems: [] } } },
+];
+for (const testCase of corruptionCases) {
+  storage['necromancer-campaign-save-v1'] = JSON.stringify({ ...loadedV2, ...testCase.patch });
+  assert.strictEqual(sandbox.loadCampaignSave(), null, `${testCase.name} 세이브는 거부되어야 함`);
+}
+console.log('Pass: 세부 손상 세이브 8종 차단 및 계속하기 비활성화 성공.');
 
-console.log('\n=== 5. 중복 적 유닛 배치 1마리만 제거 검증 (Issue 3) ===');
+console.log('\n=== 5. 생성형 전투 초기화 및 ID 무결성 검증 ===');
 sandbox.resetCampaign();
+sandbox.vmResult = null;
+vm.runInContext(`
+  state.visualEffects = [{ id: 'stale-effect' }];
+  state.log = ['stale-log'];
+  state.nextId = 99;
+`, sandbox);
 sandbox.enterGeneratedCampaignBattle(0);
-console.log('Pass: 중복 적 유닛 배치 검증 성공.');
+const setupSnapshot = vm.runInContext(`({
+  summonerCount: state.units.filter((unit) => unit.type === 'summoner').length,
+  unitIds: state.units.map((unit) => unit.id),
+  nextId: state.nextId,
+  visualEffectCount: state.visualEffects.length,
+  hasStaleLog: state.log.includes('stale-log'),
+  playbackRate: battleMusic.playbackRate
+})`, sandbox);
+assert.strictEqual(setupSnapshot.summonerCount, 1, '소환사는 정확히 한 번만 등록되어야 함');
+assert.strictEqual(new Set(setupSnapshot.unitIds).size, setupSnapshot.unitIds.length, '전투 시작 유닛 ID는 고유해야 함');
+assert.strictEqual(setupSnapshot.nextId, 2, '소환사 생성 후 다음 ID는 2여야 함');
+assert.strictEqual(setupSnapshot.visualEffectCount, 0, '이전 전투 시각 효과는 제거되어야 함');
+assert.strictEqual(setupSnapshot.hasStaleLog, false, '이전 전투 로그는 제거되어야 함');
+assert.strictEqual(setupSnapshot.playbackRate, 1, '일반 전투 음악 재생 속도는 기본값이어야 함');
+console.log('Pass: 소환사 단일 등록, ID 고유성, 효과·로그·음악 초기화 검증 성공.');
+
+console.log('\n=== 6. 중복 적 유닛 배치 수량 보존 검증 (Issue 3) ===');
+vm.runInContext(`
+  state.turn = 'enemy';
+  state.phase = 'setup';
+  state.reserves.enemy = ['spear', 'spear'];
+  state.setupLimits.enemy = 2;
+`, sandbox);
+sandbox.autoEnemySetup();
+const duplicateSnapshot = vm.runInContext(`({
+  enemySpears: state.units.filter((unit) => unit.owner === 'enemy' && unit.type === 'spear').length,
+  reservesLeft: state.reserves.enemy.length,
+  ids: state.units.map((unit) => unit.id)
+})`, sandbox);
+assert.strictEqual(duplicateSnapshot.enemySpears, 2, '중복 적 유닛 2마리가 모두 배치되어야 함');
+assert.strictEqual(duplicateSnapshot.reservesLeft, 0, '배치된 중복 유닛만큼 예비군에서 제거되어야 함');
+assert.strictEqual(new Set(duplicateSnapshot.ids).size, duplicateSnapshot.ids.length, '전체 유닛 ID가 서로 달라야 함');
+console.log('Pass: 중복 적 유닛 2마리 배치 및 ID 고유성 검증 성공.');
+
+console.log('\n=== 7. 안전 템플릿 전체 규격 검증 ===');
+const fallbackEncounters = sandbox.EncounterGenerator.getFallbackTemplateEncounters(12345);
+assert.strictEqual(sandbox.EncounterGenerator.validateEncountersArray(fallbackEncounters), true, '안전 템플릿 30전투가 실제 전투별 규격을 모두 만족해야 함');
+console.log('Pass: 안전 템플릿 30전투의 예산, 등급, 보스, 메타데이터 검증 성공.');
 
 console.log('\n✅ 모든 세이브 무결성 및 복원 회귀 테스트 통과!');

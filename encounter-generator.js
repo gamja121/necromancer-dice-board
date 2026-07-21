@@ -1,6 +1,6 @@
 /**
  * encounter-generator.js
- * 네크로멘서 십이장기 - WFC 기반 3스테이지 30전투 결정적 자동 생성기
+ * 네크로멘서 십이장기 - WFC 원리를 응용한 3스테이지 30전투 제약 생성기
  */
 
 (function (root, factory) {
@@ -408,41 +408,42 @@
   function getFallbackTemplateEncounters(seed) {
     const templates = [];
     const baseList = [
-      ["spear", "archer", "spear"],
-      ["worm", "ghoul", "spear"],
-      ["spear", "ghoul", "archer"],
-      ["plagueFrog", "spear", "ghoul"],
-      ["yeti", "seaWolf", "spear"],
-      ["knight", "spear", "archer"],
-      ["spear", "archer", "seaWolf"],
-      ["worm", "ghoul", "plagueFrog"],
-      ["knight", "spear", "archer", "ghoul"],
-      ["ogre", "spear", "archer", "worm"], // S1 Boss
-      ["goblinSoldier", "yeti", "knight"],
-      ["plagueFrog", "plague", "spear", "archer"],
-      ["minotaur", "goblinSoldier", "yeti", "seaWolf"],
-      ["iceLord", "seaWolf", "yeti", "spear"],
-      ["golem", "worm", "ghoul", "spear"],
-      ["spiderQueen", "ghoul", "spear", "archer"],
-      ["ogre", "goblinSoldier", "yeti", "seaWolf"],
-      ["doomExecutor", "abyssEye", "spear", "archer"],
-      ["skeletonSummoner", "spear", "archer", "knight"],
-      ["spiderQueen", "spear", "archer", "knight"], // S2 Boss
-      ["demonDeathKnight", "abyssEye", "doomExecutor", "spear"],
-      ["iceLord", "minotaur", "abyssEye", "yeti"],
-      ["doomExecutor", "golem", "plagueFrog", "spear"],
-      ["demonDeathKnight", "knight", "ogre", "archer"],
-      ["skeletonSummoner", "golem", "knight", "plagueFrog", "spear"],
-      ["demonDeathKnight", "doomExecutor", "abyssEye", "iceLord"],
-      ["ogre", "minotaur", "yeti", "seaWolf"],
-      ["demonDeathKnight", "doomExecutor", "golem", "abyssEye", "spear"],
-      ["iceLord", "minotaur", "abyssEye", "spear", "spear"],
-      ["demonDeathKnight", "doomExecutor", "abyssEye", "knight", "spear"], // S3 Boss
+      ["archer", "archer", "worm"],
+      ["archer", "seaWolf", "goblinSoldier"],
+      ["yeti", "seaWolf", "goblinSoldier"],
+      ["worm", "ghoul", "ghoul"],
+      ["spear", "archer", "seaWolf", "goblinSoldier"],
+      ["worm", "plagueFrog", "knight"],
+      ["spear", "ghoul", "knight"],
+      ["spear", "worm", "worm", "seaWolf"],
+      ["archer", "ghoul", "plagueFrog", "plagueFrog"],
+      ["archer", "worm", "ghoul", "knight"],
+      ["plagueFrog", "seaWolf", "ogre"],
+      ["spear", "abyssEye", "doomExecutor"],
+      ["worm", "ghoul", "seaWolf", "plague"],
+      ["spear", "yeti", "abyssEye", "iceLord"],
+      ["worm", "goblinSoldier", "goblinSoldier", "minotaur"],
+      ["ghoul", "plagueFrog", "seaWolf", "golem"],
+      ["worm", "goblinSoldier", "goblinSoldier", "golem"],
+      ["plagueFrog", "seaWolf", "plague", "golem"],
+      ["spear", "abyssEye", "abyssEye", "spiderQueen"],
+      ["archer", "worm", "iceLord", "goblinChief"],
+      ["worm", "ghoul", "seaWolf", "skeletonSummoner"],
+      ["spear", "yeti", "iceLord", "golem"],
+      ["ghoul", "yeti", "plague", "doomExecutor"],
+      ["archer", "ghoul", "doomExecutor", "golem"],
+      ["archer", "seaWolf", "seaWolf", "plague", "iceLord"],
+      ["worm", "worm", "minotaur", "goblinChief"],
+      ["plagueFrog", "plague", "minotaur", "skeletonSummoner"],
+      ["spear", "yeti", "goblinSoldier", "iceLord", "ogre"],
+      ["seaWolf", "abyssEye", "abyssEye", "knight", "demonDeathKnight"],
+      ["ghoul", "goblinSoldier", "doomExecutor", "golem", "demonDeathKnight"],
     ];
 
     for (let i = 0; i < 30; i++) {
       const stageIndex = Math.floor(i / 10);
       const battleInStage = i % 10;
+      const spec = STAGE_SPECS[stageIndex][battleInStage];
       const cellId = `S${stageIndex + 1}-B${String(battleInStage + 1).padStart(2, "0")}`;
       const enemies = baseList[i];
       templates.push({
@@ -451,7 +452,7 @@
         battle: battleInStage + 1,
         seed: seed + i,
         theme: getPrimaryTheme(enemies),
-        targetPower: calculateEncounterCost(enemies),
+        targetPower: (spec.minCost + spec.maxCost) / 2,
         actualPower: calculateEncounterCost(enemies),
         enemies: [...enemies],
         enemyCount: enemies.length,
@@ -486,31 +487,17 @@
       if (enc.id !== expectedId || enc.stage !== expectedStage || enc.battle !== expectedBattle) return false;
       if (!Array.isArray(enc.enemies) || enc.enemies.length < spec.minEnemies || enc.enemies.length > spec.maxEnemies) return false;
       if (typeof enc.boss !== "boolean" || enc.boss !== Boolean(spec.boss)) return false;
+      if (typeof enc.isPacing !== "boolean" || enc.isPacing !== Boolean(spec.isPacing)) return false;
+      if (!Number.isInteger(enc.seed) || enc.seed < 0) return false;
+      if (!Number.isInteger(enc.attempts) || enc.attempts < 0 || typeof enc.cleared !== "boolean") return false;
+      if (enc.enemyCount !== enc.enemies.length) return false;
 
-      // Frontline check
-      if (!hasFrontline(enc.enemies)) return false;
-
-      // No direct spawn check
-      for (const u of enc.enemies) {
-        if (!UNIT_TYPES[u] || u === "summoner" || u === "spiderling" || u === "goblinCommoner") return false;
-      }
-
-      // Stage cost range check
       const cost = calculateEncounterCost(enc.enemies);
-      const stageMinCost = [4.5, 7.5, 10.5][stageIndex];
-      const stageMaxCost = [16.0, 20.0, 25.0][stageIndex];
-      if (cost < stageMinCost || cost > stageMaxCost) return false;
-
-      // Grade limits (non-boss encounters)
-      const { hero, advanced } = countGrades(enc.enemies);
-      if (!spec.boss && (hero > spec.maxHero || advanced > spec.maxAdvanced)) return false;
-
-      // Boss anchor check
-      if (expectedBattle === 10) {
-        if (stageIndex === 0 && (!enc.enemies.includes("knight") && !enc.enemies.includes("ogre") && !enc.enemies.includes("spiderQueen"))) return false;
-        if (stageIndex === 1 && (!enc.enemies.includes("spiderQueen") && !enc.enemies.includes("goblinChief") && !enc.enemies.includes("iceLord"))) return false;
-        if (stageIndex === 2 && !enc.enemies.includes("demonDeathKnight")) return false;
-      }
+      const compKey = [...enc.enemies].sort().join(",");
+      const theme = getPrimaryTheme(enc.enemies);
+      if (!isValidEncounterCandidate(enc.enemies, spec, expectedStage)) return false;
+      if (enc.actualPower !== cost || enc.targetPower !== (spec.minCost + spec.maxCost) / 2) return false;
+      if (enc.compKey !== compKey || enc.theme !== theme) return false;
 
       // Theme consecutive check
       if (i >= 2) {
@@ -520,7 +507,6 @@
       }
 
       // Combination duplicate check
-      const compKey = [...enc.enemies].sort().join(",");
       if (usedCompKeys.has(compKey)) return false;
       usedCompKeys.add(compKey);
 

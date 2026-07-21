@@ -1015,6 +1015,69 @@ function validateDice(dice, unitType) {
   return hasZero;
 }
 
+function isPlainRecord(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function isValidCampaignUnitType(type) {
+  const def = UNIT_TYPES[type];
+  return Boolean(def) && type !== "summoner" && def.grade !== "special";
+}
+
+function validateRoster(roster) {
+  if (!Array.isArray(roster) || roster.length === 0) return null;
+  if (!roster.every(isValidCampaignUnitType)) return null;
+  if (new Set(roster).size !== roster.length) return null;
+  return [...roster];
+}
+
+function validateTotemList(totems) {
+  if (!Array.isArray(totems)) return null;
+  if (!totems.every((key) => Object.prototype.hasOwnProperty.call(TOTEMS, key))) return null;
+  if (new Set(totems).size !== totems.length) return null;
+  return [...totems];
+}
+
+function validateRewardState(rewardState) {
+  if (rewardState === null || rewardState === undefined) return null;
+  if (!isPlainRecord(rewardState)) return false;
+  if (!Array.isArray(rewardState.survivors) || !Array.isArray(rewardState.capturedTypes)) return false;
+  if (typeof rewardState.resultText !== "string" || typeof rewardState.applied !== "boolean") return false;
+  if (![null, "heal", "dice", "totem"].includes(rewardState.chosenKey)) return false;
+  if ((rewardState.chosenKey === null) !== (rewardState.applied === false)) return false;
+
+  const survivorsValid = rewardState.survivors.every((unit) => {
+    if (!isPlainRecord(unit) || !isValidCampaignUnitType(unit.type)) return false;
+    if (!Number.isInteger(unit.maxHp) || unit.maxHp < UNIT_TYPES[unit.type].hp || unit.maxHp > UNIT_TYPES[unit.type].hp + 3) return false;
+    return Number.isInteger(unit.hp) && unit.hp >= 0 && unit.hp <= unit.maxHp;
+  });
+  if (!survivorsValid || !rewardState.capturedTypes.every(isValidCampaignUnitType)) return false;
+
+  return {
+    survivors: rewardState.survivors.map((unit) => ({ ...unit })),
+    capturedTypes: [...rewardState.capturedTypes],
+    chosenKey: rewardState.chosenKey,
+    resultText: rewardState.resultText,
+    applied: rewardState.applied,
+  };
+}
+
+function validateCheckpoint(checkpoint, battleIndex, stageIndex) {
+  if (checkpoint === null || checkpoint === undefined) return null;
+  if (!isPlainRecord(checkpoint)) return false;
+  if (checkpoint.battleIndex !== battleIndex || checkpoint.stageIndex !== stageIndex) return false;
+  const checkpointRoster = validateRoster(checkpoint.roster);
+  if (!checkpointRoster || !isPlainRecord(checkpoint.unitProgress)) return false;
+  if (!validateTotemList(checkpoint.availableTotems)) return false;
+  for (const type of checkpointRoster) {
+    const progress = checkpoint.unitProgress[type];
+    if (!isPlainRecord(progress)) return false;
+    if (!Number.isInteger(progress.hp) || progress.hp < 1 || progress.hp > UNIT_TYPES[type].hp) return false;
+    if (!validateDice(progress.dice, type)) return false;
+  }
+  return JSON.parse(JSON.stringify(checkpoint));
+}
+
 function loadLegacyCampaignSave(data) {
   if (typeof data.finished !== "boolean") return null;
   const isFinished = data.finished;
@@ -1075,11 +1138,14 @@ function loadCampaignSave() {
 
     if (data.version !== 2) return null;
     if (data.generatorVersion !== 1) return null;
-    if (typeof data.runSeed !== "number") return null;
+    if (!Number.isInteger(data.runSeed) || data.runSeed < 0 || data.runSeed > 0xffffffff) return null;
+    if (typeof data.finished !== "boolean") return null;
 
     if (typeof data.stageIndex !== "number" || !Number.isInteger(data.stageIndex) || data.stageIndex < 0 || data.stageIndex > 2) return null;
     if (typeof data.battleIndex !== "number" || !Number.isInteger(data.battleIndex) || data.battleIndex < 0 || data.battleIndex > 30) return null;
 
+    const expectedStageIndex = data.battleIndex >= 30 ? 2 : Math.floor(data.battleIndex / 10);
+    if (data.stageIndex !== expectedStageIndex) return null;
     if (!EncounterGenerator.validateEncountersArray(data.encounters)) return null;
 
     if (data.finished) {
@@ -1088,9 +1154,24 @@ function loadCampaignSave() {
       if (data.battleIndex < 0 || data.battleIndex >= 30) return null;
     }
 
-    if (!Array.isArray(data.roster) || data.roster.length === 0) return null;
-    const validatedRoster = data.roster.filter(type => UNIT_TYPES[type] && type !== "summoner");
-    if (validatedRoster.length === 0) return null;
+    const validatedRoster = validateRoster(data.roster);
+    if (!validatedRoster) return null;
+
+    const validatedTotems = validateTotemList(data.availableTotems);
+    if (!validatedTotems) return null;
+
+    if (!Array.isArray(data.completed)) return null;
+    const encounterIds = new Set(data.encounters.map((encounter) => encounter.id));
+    if (!data.completed.every((id) => encounterIds.has(id)) || new Set(data.completed).size !== data.completed.length) return null;
+
+    const expectedCurrentNodeId = data.battleIndex < 30 ? data.encounters[data.battleIndex].id : null;
+    if (data.currentNodeId !== null && data.currentNodeId !== expectedCurrentNodeId) return null;
+    if (data.finished && data.currentNodeId !== null) return null;
+
+    const validatedRewardState = validateRewardState(data.rewardState);
+    if (validatedRewardState === false) return null;
+    const validatedCheckpoint = validateCheckpoint(data.checkpoint, data.battleIndex, data.stageIndex);
+    if (validatedCheckpoint === false) return null;
 
     const validatedProgress = {};
     for (const type of validatedRoster) {
@@ -1120,12 +1201,12 @@ function loadCampaignSave() {
       encounters: data.encounters,
       roster: validatedRoster,
       unitProgress: validatedProgress,
-      completed: Array.isArray(data.completed) ? data.completed : [],
-      currentNodeId: data.currentNodeId || null,
-      finished: Boolean(data.finished),
-      availableTotems: Array.isArray(data.availableTotems) ? data.availableTotems : [],
-      rewardState: data.rewardState || null,
-      checkpoint: data.checkpoint || null
+      completed: [...data.completed],
+      currentNodeId: data.currentNodeId,
+      finished: data.finished,
+      availableTotems: validatedTotems,
+      rewardState: validatedRewardState,
+      checkpoint: validatedCheckpoint
     };
   } catch (e) {
     console.error("Failed to load/parse campaign save:", e);
@@ -2995,13 +3076,9 @@ function setupBattleBoardState(encounter) {
   state.board = makeBoard();
   state.units = [];
   state.corpses = [];
-
-  // Create player summoner at (4, 2)
-  const summonerProg = campaignProgressFor("summoner") || defaultCampaignProgress("summoner");
-  const playerSummoner = createUnit("summoner", "player", 4, 2, summonerProg.dice);
-  playerSummoner.hp = Math.max(1, Math.min(5, summonerProg.hp));
-  state.board[4][2] = playerSummoner;
-  state.units.push(playerSummoner);
+  state.visualEffects = [];
+  state.log = [];
+  state.nextId = 1;
 
   // Setup limits & reserves (Player uses campaign.roster ONLY)
   state.setupLimits = {
@@ -3041,7 +3118,13 @@ function setupBattleBoardState(encounter) {
     attackOwner: null
   };
 
-  state.nextId = 2;
+  const summonerProg = campaignProgressFor("summoner");
+  const playerSummoner = createUnit("summoner", "player", 4, 2, summonerProg.dice);
+  playerSummoner.hp = Math.max(1, Math.min(playerSummoner.maxHp, summonerProg.hp));
+
+  battleMusic.playbackRate = isBoss ? 0.92 : 1;
+  addLog(`${encounter.id} 진입. 보유 유닛 중 ${state.setupLimits.player}마리를 배치하세요.`);
+  startBattleMusic();
 }
 
 function enterGeneratedCampaignBattle(bIdx) {
