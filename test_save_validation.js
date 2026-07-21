@@ -210,4 +210,60 @@ const fallbackEncounters = sandbox.EncounterGenerator.getFallbackTemplateEncount
 assert.strictEqual(sandbox.EncounterGenerator.validateEncountersArray(fallbackEncounters), true, '안전 템플릿 30전투가 실제 전투별 규격을 모두 만족해야 함');
 console.log('Pass: 안전 템플릿 30전투의 예산, 등급, 보스, 메타데이터 검증 성공.');
 
+console.log('\n=== 8. 신규 군단 효과 및 유닛 범위 검증 ===');
+const legionSnapshot = vm.runInContext(`(() => {
+  state.board = makeBoard();
+  state.units = [];
+  state.nextId = 1;
+  const mantisA = createUnit('hellMantis', 'player', 3, 0);
+  createUnit('hellMantis', 'player', 3, 1);
+  const insectDice = effectiveAttackDice(mantisA);
+
+  state.board = makeBoard();
+  state.units = [];
+  state.nextId = 1;
+  const treantA = createUnit('ancientTreant', 'player', 3, 0);
+  const treantB = createUnit('ancientTreant', 'player', 3, 1);
+  const plantMaxHp = [treantA.maxHp, treantB.maxHp];
+  state.units = state.units.filter((unit) => unit.id !== treantB.id);
+  state.board[treantB.row][treantB.col] = null;
+  reconcileUnitHealthBonuses();
+  const plantMaxHpAfterDisable = treantA.maxHp;
+
+  state.board = makeBoard();
+  state.units = [];
+  state.nextId = 1;
+  const treant = createUnit('ancientTreant', 'player', 3, 0);
+  createUnit('stoneGolem', 'player', 3, 1);
+  const originalRandom = Math.random;
+  Math.random = () => 0.49;
+  const resisted = resistsStatusEffect(treant, '빙결');
+  Math.random = () => 0.5;
+  const notResisted = resistsStatusEffect(treant, '빙결');
+  Math.random = originalRandom;
+
+  const kraken = createUnit('kraken', 'player', 4, 0);
+  return {
+    insectDice,
+    plantMaxHp,
+    plantMaxHpAfterDisable,
+    resisted,
+    notResisted,
+    mantisMoves: movementDeltas({ ...mantisA, row: 4, col: 2 }).length,
+    mantisAttacks: attackDeltas(mantisA).length,
+    krakenMoves: movementDeltas(kraken).length,
+    krakenAttacks: attackDeltas(kraken).length,
+  };
+})()`, sandbox);
+assert.deepStrictEqual(Array.from(legionSnapshot.insectDice), [0, 0, 1, 1, 3, 2], '벌레 군단은 2 한 면만 3으로 변경해야 함');
+assert.deepStrictEqual(Array.from(legionSnapshot.plantMaxHp), [6, 6], '식물 군단은 식물 유닛 최대 체력을 1 높여야 함');
+assert.strictEqual(legionSnapshot.plantMaxHpAfterDisable, 5, '식물 군단 해제 시 최대 체력이 원래대로 돌아와야 함');
+assert.strictEqual(legionSnapshot.resisted, true, '원소 면역은 50% 미만 난수에서 발동해야 함');
+assert.strictEqual(legionSnapshot.notResisted, false, '원소 면역은 50% 이상 난수에서 발동하지 않아야 함');
+assert.strictEqual(legionSnapshot.mantisMoves, 4, '지옥 사마귀 이동 범위 검증');
+assert.strictEqual(legionSnapshot.mantisAttacks, 3, '지옥 사마귀 공격 범위 검증');
+assert.strictEqual(legionSnapshot.krakenMoves, 8, '크라켄 이동 범위 검증');
+assert.strictEqual(legionSnapshot.krakenAttacks, 16, '크라켄 공격 범위 검증');
+console.log('Pass: 벌레 주사위 강화, 식물 HP, 원소 면역, 신규 이동·공격 범위 검증 성공.');
+
 console.log('\n✅ 모든 세이브 무결성 및 복원 회귀 테스트 통과!');

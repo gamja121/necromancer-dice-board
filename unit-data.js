@@ -188,6 +188,46 @@ var UNIT_TYPES = {
     dice: [0, 1, 2, 2, 3, 3],
     image: "assets/demon-death-knight.jpg",
   },
+  hellMantis: {
+    label: "지옥 사마귀",
+    legion: "insect",
+    grade: "normal",
+    hp: 2,
+    dice: [0, 0, 1, 1, 2, 2],
+    image: "assets/hell-mantis.jpg",
+  },
+  scorpionKnight: {
+    label: "전갈 기사",
+    legion: "insect",
+    grade: "advanced",
+    hp: 4,
+    dice: [0, 1, 1, 2, 2, 3],
+    image: "assets/scorpion-knight.jpg",
+  },
+  ancientTreant: {
+    label: "고목 정령",
+    legion: ["plant", "element"],
+    grade: "advanced",
+    hp: 5,
+    dice: [0, 0, 1, 1, 2, 3],
+    image: "assets/ancient-treant.jpg",
+  },
+  stoneGolem: {
+    label: "암석 골렘",
+    legion: "element",
+    grade: "advanced",
+    hp: 6,
+    dice: [0, 0, 1, 2, 2, 3],
+    image: "assets/stone-golem.jpg",
+  },
+  kraken: {
+    label: "크라켄",
+    legion: "ice",
+    grade: "hero",
+    hp: 5,
+    dice: [0, 1, 2, 2, 3, 3],
+    image: "assets/kraken.jpg",
+  },
 };
 
 var ENCOUNTER_UNIT_META = {
@@ -378,6 +418,51 @@ var ENCOUNTER_UNIT_META = {
     directSpawn: true,
     bossAnchor: true,
   },
+  hellMantis: {
+    cost: 2.0,
+    minStage: 1,
+    roles: ["frontline"],
+    themes: ["insect"],
+    maxCopies: 2,
+    weight: 100,
+    directSpawn: true,
+  },
+  scorpionKnight: {
+    cost: 4.0,
+    minStage: 2,
+    roles: ["frontline", "heavy"],
+    themes: ["insect"],
+    maxCopies: 1,
+    weight: 45,
+    directSpawn: true,
+  },
+  ancientTreant: {
+    cost: 4.5,
+    minStage: 2,
+    roles: ["frontline", "tank"],
+    themes: ["plant", "element"],
+    maxCopies: 1,
+    weight: 45,
+    directSpawn: true,
+  },
+  stoneGolem: {
+    cost: 5.0,
+    minStage: 2,
+    roles: ["frontline", "tank", "heavy"],
+    themes: ["element"],
+    maxCopies: 1,
+    weight: 40,
+    directSpawn: true,
+  },
+  kraken: {
+    cost: 5.5,
+    minStage: 2,
+    roles: ["ranged", "status"],
+    themes: ["ice"],
+    maxCopies: 1,
+    weight: 15,
+    directSpawn: true,
+  },
   spiderling: {
     cost: 1.0,
     minStage: 99,
@@ -406,6 +491,7 @@ function validateUnitRegistry(unitTypes, metaData) {
   const meta = metaData || (typeof ENCOUNTER_UNIT_META !== "undefined" ? ENCOUNTER_UNIT_META : {});
 
   const errors = [];
+  const validLegions = new Set(["skeleton", "corpse", "beast", "plague", "ice", "summon", "demon", "insect", "plant", "element"]);
 
   for (const key of Object.keys(meta)) {
     if (!types[key]) {
@@ -417,6 +503,17 @@ function validateUnitRegistry(unitTypes, metaData) {
     if (key === "summoner") continue;
     if (!meta[key]) {
       errors.push(`UNIT_TYPES key '${key}' missing from ENCOUNTER_UNIT_META.`);
+    }
+    const unit = types[key];
+    const legions = Array.isArray(unit.legion) ? unit.legion : [unit.legion];
+    if (!legions.length || legions.some((legion) => !validLegions.has(legion))) {
+      errors.push(`UNIT_TYPES key '${key}' has an invalid legion.`);
+    }
+    if (!Number.isInteger(unit.hp) || unit.hp < 1) {
+      errors.push(`UNIT_TYPES key '${key}' must have positive integer hp.`);
+    }
+    if (!Array.isArray(unit.dice) || unit.dice.length !== 6 || unit.dice.some((face) => !Number.isInteger(face) || face < 0 || face > 3) || !unit.dice.includes(0)) {
+      errors.push(`UNIT_TYPES key '${key}' must have six 0-3 dice faces including zero.`);
     }
   }
 

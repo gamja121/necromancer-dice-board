@@ -103,7 +103,7 @@ if (typeof UNIT_TYPES === "undefined") {
   }
 }
 
-const SETUP_RESERVE_TYPES = ["spear", "archer", "knight", "worm", "golem", "ghoul", "ogre", "plague", "plagueFrog", "minotaur", "yeti", "iceLord", "seaWolf", "spiderQueen", "goblinChief", "goblinSoldier", "skeletonSummoner", "doomExecutor", "abyssEye", "demonDeathKnight"];
+const SETUP_RESERVE_TYPES = ["spear", "archer", "knight", "worm", "golem", "ghoul", "ogre", "plague", "plagueFrog", "minotaur", "yeti", "iceLord", "seaWolf", "spiderQueen", "goblinChief", "goblinSoldier", "skeletonSummoner", "doomExecutor", "abyssEye", "demonDeathKnight", "hellMantis", "scorpionKnight", "ancientTreant", "stoneGolem", "kraken"];
 
 const state = {
   phase: "setup",
@@ -682,6 +682,9 @@ function isLegionActive(owner, legion) {
   if (legion === "ice") return legionCount(owner, "ice") >= 2;
   if (legion === "summon") return legionCount(owner, "summon") >= 2;
   if (legion === "demon") return legionCount(owner, "demon") >= 2;
+  if (legion === "insect") return legionCount(owner, "insect") >= 2;
+  if (legion === "plant") return legionCount(owner, "plant") >= 2;
+  if (legion === "element") return legionCount(owner, "element") >= 2;
   return false;
 }
 
@@ -689,11 +692,17 @@ function summonHealthBonus(owner) {
   return isLegionActive(owner, "summon") ? 3 : 0;
 }
 
+function plantHealthBonus(unit) {
+  return hasLegion(unit, "plant") && isLegionActive(unit.owner, "plant") ? 1 : 0;
+}
+
 function reconcileUnitHealthBonuses() {
   state.units.forEach((unit) => {
     const def = UNIT_TYPES[unit.type];
     const baseMaxHp = unit.baseMaxHp ?? def.hp;
-    const bonus = isSummonedUnit(unit) ? summonHealthBonus(unit.owner) : 0;
+    const summonBonus = isSummonedUnit(unit) ? summonHealthBonus(unit.owner) : 0;
+    const plantBonus = plantHealthBonus(unit);
+    const bonus = summonBonus + plantBonus;
     const nextMaxHp = baseMaxHp + bonus;
     if (unit.maxHp === nextMaxHp) return;
     const diff = nextMaxHp - unit.maxHp;
@@ -701,7 +710,9 @@ function reconcileUnitHealthBonuses() {
     unit.maxHp = nextMaxHp;
     unit.hp = diff > 0 ? Math.min(unit.maxHp, unit.hp + diff) : Math.min(unit.hp, unit.maxHp);
     if (diff > 0 && bonus > 0) {
-      triggerStatusVisual(unit, "summonBuff", "소환 강화", `HP +${diff}`, 980);
+      const title = plantBonus > 0 ? "식물 생명력" : "소환 강화";
+      const effect = plantBonus > 0 ? "plantBuff" : "summonBuff";
+      triggerStatusVisual(unit, effect, title, `HP +${diff}`, 980);
     }
   });
 }
@@ -711,6 +722,10 @@ function effectiveAttackDice(unit) {
   if (isLegionActive(unit.owner, "skeleton") && UNIT_TYPES[unit.type]?.grade !== "hero") {
     const zeroIndex = dice.indexOf(0);
     if (zeroIndex !== -1) dice[zeroIndex] = 1;
+  }
+  if (hasLegion(unit, "insect") && isLegionActive(unit.owner, "insect")) {
+    const twoIndex = dice.indexOf(2);
+    if (twoIndex !== -1) dice[twoIndex] = 3;
   }
   return dice;
 }
@@ -746,6 +761,9 @@ function activeLegionSummary(owner) {
   if (isLegionActive(owner, "ice")) active.push("얼음");
   if (isLegionActive(owner, "summon")) active.push("소환");
   if (isLegionActive(owner, "demon")) active.push("악마");
+  if (isLegionActive(owner, "insect")) active.push("벌레");
+  if (isLegionActive(owner, "plant")) active.push("식물");
+  if (isLegionActive(owner, "element")) active.push("원소");
   return active.length ? active.join(" ") : "없음";
 }
 
@@ -854,6 +872,19 @@ function movementDeltas(unit) {
   if (unit.type === "demonDeathKnight") {
     return [[forward, 0], [forward * 2, 0], [0, -1], [0, -2], [0, 1], [0, 2], [-forward, 0]];
   }
+  if (unit.type === "hellMantis") {
+    return [[forward, 0], [forward * 2, 0], [forward, -1], [forward, 1]];
+  }
+  if (["scorpionKnight", "ancientTreant", "stoneGolem"].includes(unit.type)) {
+    return [[forward, 0], [0, -1], [0, 1], [-forward, 0]];
+  }
+  if (unit.type === "kraken") {
+    return [
+      [-1, -1], [-1, 0], [-1, 1],
+      [0, -1], [0, 1],
+      [1, -1], [1, 0], [1, 1],
+    ];
+  }
   return [];
 }
 
@@ -931,6 +962,20 @@ function attackDeltas(unit) {
   }
   if (unit.type === "demonDeathKnight") {
     return [[forward, -1], [forward, 0], [forward, 1], [0, -1], [0, 1]];
+  }
+  if (unit.type === "hellMantis") return [[forward, -1], [forward, 0], [forward, 1]];
+  if (unit.type === "scorpionKnight") return [[forward, 0], [0, -1], [0, 1], [-forward, 0]];
+  if (unit.type === "ancientTreant") return [[forward, 0], [0, -1], [0, 1]];
+  if (unit.type === "stoneGolem") return [[forward, 0]];
+  if (unit.type === "kraken") {
+    return [
+      [-1, -1], [-1, 0], [-1, 1],
+      [0, -1], [0, 1],
+      [1, -1], [1, 0], [1, 1],
+      [-2, -2], [-2, 0], [-2, 2],
+      [0, -2], [0, 2],
+      [2, -2], [2, 0], [2, 2],
+    ];
   }
   return [];
 }
@@ -1675,9 +1720,19 @@ function placeUndeadSummon(row, col) {
   return true;
 }
 
+function resistsStatusEffect(unit, statusLabel) {
+  if (!hasLegion(unit, "element") || !isLegionActive(unit.owner, "element")) return false;
+  if (Math.random() >= 0.5) return false;
+  triggerStatusVisual(unit, "elementGuard", "원소 면역", statusLabel, 900);
+  playSfx("magic");
+  addLog(`${UNIT_TYPES[unit.type].label} 원소 군단 발동. ${statusLabel} 면역.`);
+  return true;
+}
+
 function applyPoison(attacker, targets) {
   if (!hasLegion(attacker, "plague") || !isLegionActive(attacker.owner, "plague")) return;
-  const affected = targets.filter((unit) => state.units.includes(unit) && unit.hp > 0);
+  const candidates = targets.filter((unit) => state.units.includes(unit) && unit.hp > 0);
+  const affected = candidates.filter((unit) => !resistsStatusEffect(unit, "중독"));
   if (affected.length) playSfx("poison");
   affected
     .forEach((unit) => {
@@ -1685,12 +1740,13 @@ function applyPoison(attacker, targets) {
       triggerStatusVisual(unit, "poisonBurst", "중독", "다음 턴 -1", 900);
       addLog(`${UNIT_TYPES[unit.type].label} 중독. 다음 자기 턴에 1 피해.`);
     });
-  if (affected.length) render();
+  if (candidates.length) render();
 }
 
 function applyFreeze(attacker, targets) {
   if (!hasLegion(attacker, "ice") || !isLegionActive(attacker.owner, "ice")) return;
-  const affected = targets.filter((unit) => state.units.includes(unit) && unit.hp > 0);
+  const candidates = targets.filter((unit) => state.units.includes(unit) && unit.hp > 0);
+  const affected = candidates.filter((unit) => !resistsStatusEffect(unit, "빙결"));
   if (affected.length) playSfx("freeze");
   affected
     .forEach((unit) => {
@@ -1704,7 +1760,7 @@ function applyFreeze(attacker, targets) {
         triggerStatusVisual(unit, "freezeBurst", "빙결", "이동·공격 금지", 980);
       }
     });
-  if (affected.length) render();
+  if (candidates.length) render();
 }
 
 function clearFrozenUnits(owner) {
@@ -1749,9 +1805,9 @@ async function applyTurnStartPoison(owner) {
 
 function attackStyleFor(unit) {
   if (["archer"].includes(unit.type)) return "ranged";
-  if (["summoner", "plague", "iceLord", "skeletonSummoner", "abyssEye", "spiderQueen", "goblinChief"].includes(unit.type)) return "magic";
-  if (["knight", "golem", "ogre", "minotaur", "doomExecutor", "demonDeathKnight"].includes(unit.type)) return "heavy";
-  if (["worm", "ghoul", "plagueFrog", "yeti", "seaWolf", "spiderling"].includes(unit.type)) return "claw";
+  if (["summoner", "plague", "iceLord", "skeletonSummoner", "abyssEye", "spiderQueen", "goblinChief", "ancientTreant", "kraken"].includes(unit.type)) return "magic";
+  if (["knight", "golem", "ogre", "minotaur", "doomExecutor", "demonDeathKnight", "stoneGolem"].includes(unit.type)) return "heavy";
+  if (["worm", "ghoul", "plagueFrog", "yeti", "seaWolf", "spiderling", "hellMantis", "scorpionKnight"].includes(unit.type)) return "claw";
   return "melee";
 }
 
@@ -2731,6 +2787,11 @@ function renderLog() {
 }
 
 function describeMovement(unit) {
+  if (unit.type === "hellMantis") return "앞 1~2칸, 앞대각 1칸, 뒤로 불가";
+  if (unit.type === "scorpionKnight") return "상하좌우 1칸";
+  if (unit.type === "ancientTreant") return "상하좌우 1칸";
+  if (unit.type === "stoneGolem") return "상하좌우 1칸";
+  if (unit.type === "kraken") return "주변 8방향 1칸";
   if (unit.type === "spiderQueen") return "앞/앞대각/좌우/뒤 1칸";
   if (unit.type === "spiderling") return "앞/앞대각/좌우 1칸";
   if (unit.type === "goblinChief") return "앞/앞대각/좌우/뒤 1칸";
@@ -2758,6 +2819,11 @@ function describeMovement(unit) {
 }
 
 function describeAttack(unit) {
+  if (unit.type === "hellMantis") return "전방 3칸";
+  if (unit.type === "scorpionKnight") return "상하좌우 1칸";
+  if (unit.type === "ancientTreant") return "정면과 좌우 1칸";
+  if (unit.type === "stoneGolem") return "정면 1칸";
+  if (unit.type === "kraken") return "8방향 1~2칸";
   if (unit.type === "spiderQueen") return "전방 3칸, 좌우 1칸";
   if (unit.type === "spiderling") return "정면 1칸";
   if (unit.type === "goblinChief") return "전방 3칸, 좌우 1칸";
@@ -2817,6 +2883,9 @@ function legionInfoRows(owner) {
     { key: "ice", name: "얼음", target: 2, effect: "얼음 유닛 공격 후 생존 대상에게 1턴 빙결" },
     { key: "summon", name: "소환", target: 2, effect: "소환물 최대 체력 +3" },
     { key: "demon", name: "악마", target: 2, effect: "악마 유닛 공격 시 30% 확률 최종 피해 2배" },
+    { key: "insect", name: "벌레", target: 2, effect: "벌레 유닛 공격 주사위 2 한 면을 3으로 변경" },
+    { key: "plant", name: "식물", target: 2, effect: "식물 유닛 최대 체력 +1" },
+    { key: "element", name: "원소", target: 2, effect: "원소 유닛이 50% 확률로 상태이상 면역" },
   ];
   return rows.map((row) => ({ ...row, count: legionCount(owner, row.key), active: isLegionActive(owner, row.key) }));
 }
@@ -2879,8 +2948,8 @@ function renderUnitInfo() {
     special: "소환물",
   };
   const gradeLabel = unit.summonedNoCorpse ? "소환물" : gradeLabels[def.grade] || "왕";
-  const legionNames = { skeleton: "언데드", corpse: "시체", beast: "야수", plague: "역병", ice: "얼음", summon: "소환", demon: "악마" };
-  const legionTargets = { skeleton: 3, corpse: 2, beast: 2, plague: 2, ice: 2, summon: 2, demon: 2 };
+  const legionNames = { skeleton: "언데드", corpse: "시체", beast: "야수", plague: "역병", ice: "얼음", summon: "소환", demon: "악마", insect: "벌레", plant: "식물", element: "원소" };
+  const legionTargets = { skeleton: 3, corpse: 2, beast: 2, plague: 2, ice: 2, summon: 2, demon: 2, insect: 2, plant: 2, element: 2 };
   const legionLabel = legionsOf(unit).length
     ? legionsOf(unit)
       .map((legion) => `${legionNames[legion]} ${legionCount(unit.owner, legion)}/${legionTargets[legion]}${isLegionActive(unit.owner, legion) ? " 활성" : ""}`)
@@ -2894,7 +2963,7 @@ function renderUnitInfo() {
         ${unit.poisoned ? "<div><dt>상태</dt><dd>중독</dd></div>" : ""}
         ${unit.frozen ? "<div><dt>상태</dt><dd>빙결</dd></div>" : ""}
         <div><dt>공격</dt><dd>${describeAttack(unit)}</dd></div>
-        <div><dt>주사위</dt><dd>${diceNumbers(unit.dice)}</dd></div>
+        <div><dt>주사위</dt><dd>${diceNumbers(effectiveAttackDice(unit))}</dd></div>
       </dl>
       <div class="pattern-section">
         ${patternBoard(unit, "move")}

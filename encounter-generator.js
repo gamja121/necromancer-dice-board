@@ -79,7 +79,7 @@
     ],
   ];
 
-  const THEMES = ["undead", "corpse", "beast", "plague", "ice", "summon", "demon"];
+  const THEMES = ["undead", "corpse", "beast", "plague", "ice", "summon", "demon", "insect", "plant", "element"];
 
   function getAvailableUnitsForStage(stageNum) {
     const available = [];
@@ -259,10 +259,9 @@
         const battleInStage = cellIndex % 10;
         const spec = STAGE_SPECS[stageIndex][battleInStage];
 
-        let candidates = generateCandidatesForSpec(spec, stageIndex + 1);
+        const candidates = generateCandidatesForSpec(spec, stageIndex + 1);
 
-        // Filter candidates against global constraints
-        candidates = candidates.filter((cand) => {
+        const candidateAllowed = (cand) => {
           if (usedCompKeys.has(cand.compKey)) return false;
 
           // Theme 3 consecutive constraint
@@ -284,9 +283,44 @@
           }
 
           return true;
-        });
+        };
 
-        if (candidates.length === 0) {
+        const candidateWeight = (cand) => {
+          if (!encounters.length) return 1;
+          const prev = encounters[encounters.length - 1];
+          let weight = 1;
+          for (const unit of cand.enemies) {
+            if (prev.enemies.includes(unit)) weight *= 0.7;
+          }
+          return weight;
+        };
+
+        // Most candidates satisfy the cross-battle rules. Probe deterministic random
+        // candidates first so large stage-three domains do not need a full scan.
+        let chosenCandidate = null;
+        const probeCount = Math.min(256, candidates.length);
+        for (let probe = 0; probe < probeCount; probe++) {
+          const candidate = candidates[Math.floor(rng() * candidates.length)];
+          if (!candidateAllowed(candidate)) continue;
+          if (rng() <= candidateWeight(candidate)) {
+            chosenCandidate = candidate;
+            break;
+          }
+        }
+
+        // A full scan is a rare deterministic safety path before backtracking.
+        if (!chosenCandidate) {
+          const start = candidates.length ? Math.floor(rng() * candidates.length) : 0;
+          for (let offset = 0; offset < candidates.length; offset++) {
+            const candidate = candidates[(start + offset) % candidates.length];
+            if (candidateAllowed(candidate)) {
+              chosenCandidate = candidate;
+              break;
+            }
+          }
+        }
+
+        if (!chosenCandidate) {
           backtrackCount++;
           if (backtrackCount > MAX_BACKTRACKS) {
             failed = true;
@@ -306,29 +340,6 @@
             continue;
           } else {
             failed = true;
-            break;
-          }
-        }
-
-        // Weighted selection
-        const weightedCandidates = candidates.map((cand) => {
-          let weight = 100;
-          if (encounters.length > 0) {
-            const prev = encounters[encounters.length - 1];
-            for (const u of cand.enemies) {
-              if (prev.enemies.includes(u)) weight *= 0.7;
-            }
-          }
-          return { candidate: cand, weight };
-        });
-
-        const totalWeight = weightedCandidates.reduce((sum, item) => sum + item.weight, 0);
-        let randVal = rng() * totalWeight;
-        let chosenCandidate = weightedCandidates[0].candidate;
-        for (const item of weightedCandidates) {
-          randVal -= item.weight;
-          if (randVal <= 0) {
-            chosenCandidate = item.candidate;
             break;
           }
         }

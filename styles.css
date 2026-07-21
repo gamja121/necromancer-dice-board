@@ -1069,6 +1069,8 @@ h2 {
 .visual-demonBurst { --status-color: #ff526d; --status-dark: #68142d; }
 .visual-heal { --status-color: #62db91; --status-dark: #176b43; }
 .visual-summonBuff { --status-color: #c39afa; --status-dark: #563282; }
+.visual-plantBuff { --status-color: #77d96b; --status-dark: #245f2b; }
+.visual-elementGuard { --status-color: #8fd8e8; --status-dark: #255b78; }
 
 .visual-freezeBurst::before,
 .visual-iceShatter::before,
@@ -2845,4 +2847,3 @@ dialog::backdrop {
   border: 1px solid #111;
   border-radius: 4px;
 }
-
