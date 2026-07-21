@@ -37,7 +37,7 @@ for (const enc of singleRun.encounters) {
 }
 console.log("Pass: 전열 역할 보유, 특수 소환물 직출 금지, 소환사 제외 규칙 검증 완료.");
 
-console.log("\n=== 4. 10,000회 대량 생성 시뮬레이션 스트레스 테스트 ===");
+console.log("\n=== 4. 10,000회 대량 생성 시뮬레이션 스트레스 및 제약 Assertion 테스트 ===");
 const SIMULATION_COUNT = 10000;
 let fallbackCount = 0;
 let totalRestarts = 0;
@@ -50,6 +50,9 @@ const startTime = Date.now();
 for (let i = 1; i <= SIMULATION_COUNT; i++) {
   const seed = i * 7919; // 소수 곱 시드
   const res = generator.generate30Encounters(seed);
+
+  // 시드당 30전투 제약 무결성 검증
+  assert.strictEqual(generator.validateEncountersArray(res.encounters), true, `시드 ${seed}의 30전투 전체가 모든 제약 조건을 통과해야 함`);
 
   if (res.usedFallback) {
     fallbackCount++;
@@ -93,4 +96,10 @@ assert.ok(
   fallbackCount < 10,
   `안전 템플릿 강하 비율이 0.1% 미만이어야 함 (실제 강하: ${fallbackCount}/${SIMULATION_COUNT})`
 );
+
+console.log("\n=== 5. Fallback 템플릿 제약 검증 ===");
+const fallbackEncounters = generator.getFallbackTemplateEncounters(9999);
+assert.strictEqual(generator.validateEncountersArray(fallbackEncounters), true, "Fallback 템플릿도 모든 제약 조건을 100% 통과해야 함");
+console.log("Pass: Fallback 템플릿의 전열, 직출 금지, 비용, 등급, 테마 다양성, 보스 앵커 검증 성공.");
+
 console.log("\n✅ 모든 단위, 규칙, 10,000회 대량 시뮬레이션 테스트가 통과하였습니다!");

@@ -96,192 +96,11 @@ const PLAYERS = {
 };
 
 if (typeof UNIT_TYPES === "undefined") {
-  UNIT_TYPES = {
-  summoner: {
-    label: "소환사",
-    hp: 5,
-    dice: [0, 1, 1, 1, 2, 2],
-    image: "assets/summoner.jpg",
-  },
-  spear: {
-    label: "해골 창병",
-    legion: "skeleton",
-    grade: "normal",
-    hp: 2,
-    dice: [0, 1, 1, 1, 1, 2],
-    image: "assets/skeleton-spear.jpg",
-  },
-  archer: {
-    label: "해골 궁수",
-    legion: "skeleton",
-    grade: "normal",
-    hp: 2,
-    dice: [0, 0, 1, 1, 2, 2],
-    image: "assets/skeleton-archer.jpg",
-  },
-  knight: {
-    label: "죽음의 기사",
-    legion: "skeleton",
-    grade: "advanced",
-    hp: 4,
-    dice: [0, 1, 2, 2, 2, 3],
-    image: "assets/death-knight.jpg",
-  },
-  worm: {
-    label: "묘지 벌레",
-    legion: "corpse",
-    grade: "normal",
-    hp: 3,
-    dice: [0, 1, 1, 1, 2, 2],
-    image: "assets/grave-worm.jpg",
-  },
-  golem: {
-    label: "시체 골렘",
-    legion: "corpse",
-    grade: "advanced",
-    hp: 6,
-    dice: [0, 1, 2, 2, 3, 3],
-    image: "assets/flesh-golem.jpg",
-  },
-  ghoul: {
-    label: "구울",
-    legion: "corpse",
-    grade: "normal",
-    hp: 3,
-    dice: [0, 1, 1, 2, 2, 2],
-    image: "assets/ghoul.jpg",
-  },
-  ogre: {
-    label: "오우거",
-    legion: "beast",
-    grade: "advanced",
-    hp: 7,
-    dice: [0, 1, 2, 2, 3, 3],
-    image: "assets/ogre.jpg",
-  },
-  plague: {
-    label: "역병술사",
-    legion: "plague",
-    grade: "advanced",
-    hp: 3,
-    dice: [0, 0, 1, 2, 2, 3],
-    image: "assets/plague-doctor.jpg",
-  },
-  plagueFrog: {
-    label: "역병 개구리",
-    legion: "plague",
-    grade: "normal",
-    hp: 2,
-    dice: [0, 0, 1, 1, 1, 2],
-    image: "assets/plague-frog.jpg",
-  },
-  minotaur: {
-    label: "미노타우르스",
-    legion: "beast",
-    grade: "advanced",
-    hp: 5,
-    dice: [0, 1, 2, 2, 3, 3],
-    image: "assets/minotaur.jpg",
-  },
-  yeti: {
-    label: "설인",
-    legion: ["beast", "ice"],
-    grade: "normal",
-    hp: 3,
-    dice: [0, 0, 1, 1, 1, 2],
-    image: "assets/yeti.jpg",
-  },
-  iceLord: {
-    label: "얼음 군주",
-    legion: "ice",
-    grade: "advanced",
-    hp: 4,
-    dice: [0, 1, 2, 2, 3, 3],
-    image: "assets/ice-lord.jpg",
-  },
-  seaWolf: {
-    label: "바다늑대",
-    legion: "ice",
-    grade: "normal",
-    hp: 2,
-    dice: [0, 0, 1, 1, 1, 2],
-    image: "assets/sea-wolf.jpg",
-  },
-  spiderQueen: {
-    label: "거미여왕",
-    legion: "summon",
-    grade: "hero",
-    hp: 5,
-    dice: [0, 1, 1, 2, 2, 3],
-    image: "assets/spider-queen.jpg",
-  },
-  spiderling: {
-    label: "새끼거미",
-    legion: "summon",
-    grade: "special",
-    hp: 1,
-    dice: [0, 0, 1, 1, 1, 2],
-    image: "assets/spiderling.jpg",
-    noCorpse: true,
-  },
-  goblinChief: {
-    label: "고블린족장",
-    legion: ["beast", "summon"],
-    grade: "hero",
-    hp: 5,
-    dice: [0, 1, 1, 2, 2, 3],
-    image: "assets/goblin-chief.jpg",
-  },
-  goblinCommoner: {
-    label: "평민고블린",
-    legion: "summon",
-    grade: "special",
-    hp: 2,
-    dice: [0, 0, 1, 1, 1, 2],
-    image: "assets/goblin-commoner.jpg",
-    noCorpse: true,
-  },
-  goblinSoldier: {
-    label: "고블린 병사",
-    legion: "beast",
-    grade: "normal",
-    hp: 2,
-    dice: [0, 0, 1, 1, 1, 2],
-    image: "assets/goblin-soldier.jpg",
-  },
-  skeletonSummoner: {
-    label: "해골소환술사",
-    legion: ["skeleton", "summon"],
-    grade: "hero",
-    hp: 2,
-    dice: [0, 0, 1, 1, 1, 2],
-    image: "assets/skeleton-summoner.jpg",
-  },
-  doomExecutor: {
-    label: "파멸의 집행자",
-    legion: "demon",
-    grade: "advanced",
-    hp: 5,
-    dice: [0, 1, 2, 2, 3, 3],
-    image: "assets/doom-executor.jpg",
-  },
-  abyssEye: {
-    label: "심연의 눈",
-    legion: ["ice", "demon"],
-    grade: "normal",
-    hp: 2,
-    dice: [0, 0, 1, 1, 1, 2],
-    image: "assets/abyss-eye.jpg",
-  },
-  demonDeathKnight: {
-    label: "데스 나이트",
-    legion: "demon",
-    grade: "hero",
-    hp: 5,
-    dice: [0, 1, 2, 2, 3, 3],
-    image: "assets/demon-death-knight.jpg",
+  throw new Error("Unit Registry Error: unit-data.js가 먼저 로드되지 않았습니다.");
+} else {
+  if (typeof validateUnitRegistry === "function") {
+    validateUnitRegistry();
   }
-};
 }
 
 const SETUP_RESERVE_TYPES = ["spear", "archer", "knight", "worm", "golem", "ghoul", "ogre", "plague", "plagueFrog", "minotaur", "yeti", "iceLord", "seaWolf", "spiderQueen", "goblinChief", "goblinSoldier", "skeletonSummoner", "doomExecutor", "abyssEye", "demonDeathKnight"];
@@ -1474,7 +1293,8 @@ function autoEnemySetup() {
     });
     const picked = cells[Math.floor(Math.random() * cells.length)];
     createUnit(type, "enemy", picked.row, picked.col);
-    state.reserves.enemy = state.reserves.enemy.filter((item) => item !== type);
+    const eIdx = state.reserves.enemy.indexOf(type);
+    if (eIdx !== -1) state.reserves.enemy.splice(eIdx, 1);
     addLog(`상대 ${UNIT_TYPES[type].label} 자동 배치.`);
   }
   advanceSetupIfNeeded();
@@ -2100,6 +1920,57 @@ function applyCampaignReward(key) {
   return `${TOTEMS[totemKey].label}을 획득했습니다. 다음 전투 배치에서 선택할 수 있습니다.`;
 }
 
+function getRewardConfig() {
+  const isV2 = campaign.version === 2;
+  const battleNum = isV2 ? campaign.battleIndex + 1 : campaign.depth + 1;
+  const stageNum = isV2 ? Math.min(3, Math.floor(campaign.battleIndex / 10) + 1) : Math.min(5, campaign.depth + 1);
+
+  const isBoss = isV2 ? (battleNum % 10 === 0) : (campaign.depth >= 4);
+  const isMid = isV2 ? (battleNum % 10 === 5) : false;
+
+  let subtitle = "";
+  let btnText = "지도로";
+
+  if (isV2) {
+    if (battleNum >= 30) {
+      subtitle = "최종 30전투 원정 완결 승리! 전리품을 확인하세요.";
+      btnText = "원정 완결";
+    } else if (isBoss) {
+      subtitle = `스테이지 ${stageNum} 보스 정복! 대형 전리품을 선택하세요.`;
+      btnText = "다음 스테이지로";
+    } else if (isMid) {
+      subtitle = `스테이지 ${stageNum} 중간 탐험 완료 (${battleNum}/30전투). 보상을 선택하세요.`;
+      btnText = "지도로";
+    } else {
+      subtitle = `스테이지 ${stageNum} · 전투 ${battleNum}/30 완료.`;
+      btnText = "지도로";
+    }
+  } else {
+    subtitle = `${stageNum}층 깊이를 탐험했습니다. 전리품과 보상을 확인하세요.`;
+    btnText = campaign.depth >= 4 ? "원정 완료" : "지도로";
+  }
+
+  let optionsList = [];
+  if (isBoss) {
+    optionsList = [
+      { key: "heal", mark: "+", title: "군단 치료", detail: "모든 보유 유닛 체력 회복" },
+      { key: "dice", mark: "D", title: "주사위 강화", detail: "무작위 공격 주사위 눈 +1 강화" },
+      { key: "totem", mark: "T", title: "토템 잠금해제", detail: "무작위 패시브 토템 하나 획득" }
+    ];
+  } else if (isMid) {
+    optionsList = [
+      { key: "heal", mark: "+", title: "군단 치료", detail: "모든 보유 유닛 체력 회복" },
+      { key: "dice", mark: "D", title: "주사위 강화", detail: "무작위 공격 주사위 눈 +1 강화" }
+    ];
+  } else {
+    optionsList = [
+      { key: "heal", mark: "+", title: "군단 소폭 치료", detail: "보유 유닛 체력 정비" }
+    ];
+  }
+
+  return { isV2, battleNum, stageNum, isBoss, isMid, subtitle, btnText, optionsList };
+}
+
 function showVictoryRewardScreen(capturedTypes) {
   saveBattleProgress(capturedTypes);
   battleScreen.classList.add("is-victorious");
@@ -2116,48 +1987,59 @@ function showVictoryRewardScreen(capturedTypes) {
     resultText: "",
     applied: false,
   };
-  autoSaveCampaign();
 
-  rewardSubtitle.textContent = `${campaign.depth + 1}층 깊이를 탐험했습니다. 전리품과 보상을 선택하세요.`;
+  const cfg = getRewardConfig();
+
+  rewardSubtitle.textContent = cfg.subtitle;
   rewardSurvivors.innerHTML = `<strong>생존 유닛</strong><div>${survivors.length ? survivors.map((unit) => `
     <span><img src="${UNIT_TYPES[unit.type].image}" alt=""><b>${UNIT_TYPES[unit.type].label}</b><small>HP ${Math.max(0, unit.hp)}/${unit.maxHp}</small></span>
   `).join("") : "<em>생존 유닛 없음</em>"}</div>`;
   rewardCaptures.innerHTML = capturedTypes.length
     ? `<strong>소환 포획</strong><p>${capturedTypes.map((type) => UNIT_TYPES[type].label).join(", ")}</p>`
     : `<strong>소환 포획</strong><p>이미 포획했거나 소환하지 않았습니다.</p>`;
-  rewardResult.textContent = "";
-  rewardContinueBtn.hidden = true;
-  rewardContinueBtn.textContent = campaign.depth >= 4 ? "원정 완료" : "지도로";
   
-  const rewards = [
-    { key: "heal", mark: "+", title: "군단 치료", detail: "모든 보유 유닛 체력 회복" },
-    { key: "dice", mark: "D", title: "주사위 강화", detail: "무작위 공격 주사위 눈 +1 강화" },
-    { key: "totem", mark: "T", title: "토템 잠금해제", detail: "무작위 패시브 토템 하나 획득" },
-  ];
-  rewardOptions.innerHTML = "";
-  rewards.forEach((reward) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = `reward-option reward-${reward.key}`;
-    button.innerHTML = `<i aria-hidden="true">${reward.mark}</i><span><b>${reward.title}</b><small>${reward.detail}</small></span>`;
-    button.addEventListener("click", () => {
-      rewardOptions.querySelectorAll("button").forEach((item) => { item.disabled = true; });
-      button.classList.add("is-chosen");
-      
-      const result = applyCampaignReward(reward.key);
-      
-      if (campaign.rewardState) {
-        campaign.rewardState.chosenKey = reward.key;
-        campaign.rewardState.resultText = result;
-        campaign.rewardState.applied = true;
-      }
-      autoSaveCampaign();
+  rewardResult.textContent = "";
+  rewardContinueBtn.textContent = cfg.btnText;
 
-      rewardResult.textContent = result;
-      rewardContinueBtn.hidden = false;
-    }, { once: true });
-    rewardOptions.appendChild(button);
-  });
+  if (!cfg.isBoss && !cfg.isMid && cfg.isV2) {
+    // Normal battle: auto-apply small heal and show continue directly
+    const result = applyCampaignReward("heal");
+    campaign.rewardState.chosenKey = "heal";
+    campaign.rewardState.resultText = result;
+    campaign.rewardState.applied = true;
+    autoSaveCampaign();
+
+    rewardResult.textContent = result;
+    rewardOptions.innerHTML = "<p class='reward-auto-text'>일반 전투 승리 보상이 적용되었습니다.</p>";
+    rewardContinueBtn.hidden = false;
+  } else {
+    rewardContinueBtn.hidden = true;
+    rewardOptions.innerHTML = "";
+    cfg.optionsList.forEach((reward) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `reward-option reward-${reward.key}`;
+      button.innerHTML = `<i aria-hidden="true">${reward.mark}</i><span><b>${reward.title}</b><small>${reward.detail}</small></span>`;
+      button.addEventListener("click", () => {
+        rewardOptions.querySelectorAll("button").forEach((item) => { item.disabled = true; });
+        button.classList.add("is-chosen");
+        
+        const result = applyCampaignReward(reward.key);
+        
+        if (campaign.rewardState) {
+          campaign.rewardState.chosenKey = reward.key;
+          campaign.rewardState.resultText = result;
+          campaign.rewardState.applied = true;
+        }
+        autoSaveCampaign();
+
+        rewardResult.textContent = result;
+        rewardContinueBtn.hidden = false;
+      }, { once: true });
+      rewardOptions.appendChild(button);
+    });
+  }
+
   if (rewardDialog.open) rewardDialog.close();
   rewardDialog.showModal();
 }
@@ -2175,7 +2057,10 @@ function restoreRewardScreen() {
   state.reserves = { player: [], enemy: [] };
 
   battleScreen.classList.add("is-victorious");
-  rewardSubtitle.textContent = `${campaign.depth + 1}층 깊이를 탐험했습니다. 전리품과 보상을 확인하세요.`;
+
+  const cfg = getRewardConfig();
+
+  rewardSubtitle.textContent = cfg.subtitle;
   rewardSurvivors.innerHTML = `<strong>생존 유닛</strong><div>${rs.survivors.length ? rs.survivors.map((unit) => `
     <span><img src="${UNIT_TYPES[unit.type].image}" alt=""><b>${UNIT_TYPES[unit.type].label}</b><small>HP ${Math.max(0, unit.hp)}/${unit.maxHp}</small></span>
   `).join("") : "<em>생존 유닛 없음</em>"}</div>`;
@@ -2185,42 +2070,40 @@ function restoreRewardScreen() {
   
   rewardResult.textContent = rs.resultText || "";
   rewardContinueBtn.hidden = !rs.chosenKey;
-  rewardContinueBtn.textContent = campaign.depth >= 4 ? "원정 완료" : "지도로";
+  rewardContinueBtn.textContent = cfg.btnText;
 
-  const rewards = [
-    { key: "heal", mark: "+", title: "군단 치료", detail: "모든 보유 유닛 체력 회복" },
-    { key: "dice", mark: "D", title: "주사위 강화", detail: "무작위 공격 주사위 눈 +1 강화" },
-    { key: "totem", mark: "T", title: "토템 잠금해제", detail: "무작위 패시브 토템 하나 획득" },
-  ];
-  
-  rewardOptions.innerHTML = "";
-  rewards.forEach((reward) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = `reward-option reward-${reward.key}`;
-    if (rs.chosenKey === reward.key) {
-      button.classList.add("is-chosen");
-    }
-    button.disabled = rs.chosenKey !== null;
-    button.innerHTML = `<i aria-hidden="true">${reward.mark}</i><span><b>${reward.title}</b><small>${reward.detail}</small></span>`;
-    
-    button.addEventListener("click", () => {
-      rewardOptions.querySelectorAll("button").forEach((item) => { item.disabled = true; });
-      button.classList.add("is-chosen");
+  if (!cfg.isBoss && !cfg.isMid && cfg.isV2) {
+    rewardOptions.innerHTML = "<p class='reward-auto-text'>일반 전투 승리 보상이 적용되었습니다.</p>";
+  } else {
+    rewardOptions.innerHTML = "";
+    cfg.optionsList.forEach((reward) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `reward-option reward-${reward.key}`;
+      if (rs.chosenKey === reward.key) {
+        button.classList.add("is-chosen");
+      }
+      button.disabled = rs.chosenKey !== null;
+      button.innerHTML = `<i aria-hidden="true">${reward.mark}</i><span><b>${reward.title}</b><small>${reward.detail}</small></span>`;
       
-      const result = applyCampaignReward(reward.key);
-      
-      rs.chosenKey = reward.key;
-      rs.resultText = result;
-      rs.applied = true;
-      autoSaveCampaign();
+      button.addEventListener("click", () => {
+        rewardOptions.querySelectorAll("button").forEach((item) => { item.disabled = true; });
+        button.classList.add("is-chosen");
+        
+        const result = applyCampaignReward(reward.key);
+        
+        rs.chosenKey = reward.key;
+        rs.resultText = result;
+        rs.applied = true;
+        autoSaveCampaign();
 
-      rewardResult.textContent = result;
-      rewardContinueBtn.hidden = false;
-    }, { once: true });
-    
-    rewardOptions.appendChild(button);
-  });
+        rewardResult.textContent = result;
+        rewardContinueBtn.hidden = false;
+      }, { once: true });
+      
+      rewardOptions.appendChild(button);
+    });
+  }
 
   if (rewardDialog.open) rewardDialog.close();
   rewardDialog.showModal();
@@ -2258,8 +2141,8 @@ function completeCampaignBattle() {
     campaign.encounters[bIdx].cleared = true;
   }
   campaign.battleIndex = Math.min(30, bIdx + 1);
-  campaign.stageIndex = Math.floor(campaign.battleIndex / 10);
-  campaign.viewStageIndex = Math.min(2, campaign.stageIndex);
+  campaign.stageIndex = Math.min(2, Math.floor(campaign.battleIndex / 10));
+  campaign.viewStageIndex = campaign.stageIndex;
   if (campaign.battleIndex >= 30) {
     campaign.finished = true;
   }
@@ -2525,7 +2408,8 @@ function handleSetupCell(row, col) {
   } else {
     createUnit(type, state.turn, row, col);
   }
-  state.reserves[state.turn] = state.reserves[state.turn].filter((item) => item !== type);
+  const rIdx = state.reserves[state.turn].indexOf(type);
+  if (rIdx !== -1) state.reserves[state.turn].splice(rIdx, 1);
   state.selectedReserve = null;
   addLog(`${ownerLabel(state.turn)} ${UNIT_TYPES[type].label} 배치.`);
   advanceSetupIfNeeded();
@@ -3099,11 +2983,71 @@ function renderLegacyCampaignMap() {
   });
 }
 
+function setupBattleBoardState(encounter) {
+  ensureAudioContext();
+  playSfx("ui");
+
+  const isBoss = Boolean(encounter.boss);
+  battleScreen.classList.toggle("is-boss-battle", isBoss);
+
+  state.phase = "setup";
+  state.turn = "player";
+  state.board = makeBoard();
+  state.units = [];
+  state.corpses = [];
+
+  // Create player summoner at (4, 2)
+  const summonerProg = campaignProgressFor("summoner") || defaultCampaignProgress("summoner");
+  const playerSummoner = createUnit("summoner", "player", 4, 2, summonerProg.dice);
+  playerSummoner.hp = Math.max(1, Math.min(5, summonerProg.hp));
+  state.board[4][2] = playerSummoner;
+  state.units.push(playerSummoner);
+
+  // Setup limits & reserves (Player uses campaign.roster ONLY)
+  state.setupLimits = {
+    player: Math.min(SETUP_UNIT_LIMIT, campaign.roster.length),
+    enemy: encounter.enemies.length
+  };
+  state.reserves = {
+    player: [...campaign.roster],
+    enemy: [...encounter.enemies]
+  };
+
+  state.deployedTypes = [];
+  state.selectedReserve = null;
+  state.selectedUnitId = null;
+  state.inspectedUnitId = null;
+  state.inspectedCorpseId = null;
+  state.inspectedLegionOwner = null;
+  state.selectedTotem = null;
+  state.mode = "move";
+  state.validMoves = [];
+  state.validAttacks = [];
+  state.pendingRespawnUnitId = null;
+  state.pendingSummon = null;
+  state.pendingSpiderSummon = null;
+  state.pendingGoblinSummon = null;
+  state.pendingUndeadSummon = null;
+  state.winner = null;
+  state.winnerAnnounced = false;
+  state.lastDice = "-";
+  state.isRolling = false;
+  state.effects = {
+    attackerId: null,
+    hitIds: [],
+    blastCells: [],
+    damages: [],
+    attackStyle: null,
+    attackOwner: null
+  };
+
+  state.nextId = 2;
+}
+
 function enterGeneratedCampaignBattle(bIdx) {
   const enc = campaign.encounters[bIdx];
   if (!enc) return;
 
-  playSfx("ui");
   enc.attempts = (enc.attempts || 0) + 1;
   campaign.currentNodeId = enc.id;
   campaign.battleIndex = bIdx;
@@ -3120,11 +3064,7 @@ function enterGeneratedCampaignBattle(bIdx) {
 
   autoSaveCampaign();
 
-  state.reserves.enemy = [...enc.enemies];
-  state.reserves.player = [...SETUP_RESERVE_TYPES];
-
-  resetBoardState();
-  state.phase = "setup";
+  setupBattleBoardState(enc);
   render();
 }
 

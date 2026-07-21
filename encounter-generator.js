@@ -4,10 +4,18 @@
  */
 
 (function (root, factory) {
-  const getUnitTypes = () => (typeof UNIT_TYPES !== "undefined" ? UNIT_TYPES : (root && root.UNIT_TYPES));
-  const getMeta = () => (typeof ENCOUNTER_UNIT_META !== "undefined" ? ENCOUNTER_UNIT_META : (root && root.ENCOUNTER_UNIT_META));
+  let unitTypes = typeof UNIT_TYPES !== "undefined" ? UNIT_TYPES : (root && root.UNIT_TYPES);
+  let meta = typeof ENCOUNTER_UNIT_META !== "undefined" ? ENCOUNTER_UNIT_META : (root && root.ENCOUNTER_UNIT_META);
 
-  const instance = factory(getUnitTypes(), getMeta());
+  if ((!unitTypes || !meta) && typeof require === "function") {
+    try {
+      const unitData = require("./unit-data.js");
+      unitTypes = unitTypes || unitData.UNIT_TYPES;
+      meta = meta || unitData.ENCOUNTER_UNIT_META;
+    } catch (e) {}
+  }
+
+  const instance = factory(unitTypes, meta);
 
   if (root) root.EncounterGenerator = instance;
   if (typeof globalThis !== "undefined") globalThis.EncounterGenerator = instance;
@@ -401,34 +409,34 @@
     const templates = [];
     const baseList = [
       ["spear", "archer", "spear"],
+      ["worm", "ghoul", "spear"],
       ["spear", "ghoul", "archer"],
-      ["worm", "spear", "archer"],
       ["plagueFrog", "spear", "ghoul"],
       ["yeti", "seaWolf", "spear"],
       ["knight", "spear", "archer"],
       ["spear", "archer", "seaWolf"],
       ["worm", "ghoul", "plagueFrog"],
       ["knight", "spear", "archer", "ghoul"],
-      ["knight", "spear", "archer", "worm"], // S1 Boss
-      ["goblinSoldier", "yeti", "seaWolf"],
+      ["ogre", "spear", "archer", "worm"], // S1 Boss
+      ["goblinSoldier", "yeti", "knight"],
       ["plagueFrog", "plague", "spear", "archer"],
-      ["minotaur", "goblinSoldier", "yeti"],
+      ["minotaur", "goblinSoldier", "yeti", "seaWolf"],
       ["iceLord", "seaWolf", "yeti", "spear"],
       ["golem", "worm", "ghoul", "spear"],
-      ["spiderQueen", "spiderling", "spear", "archer"],
+      ["spiderQueen", "ghoul", "spear", "archer"],
       ["ogre", "goblinSoldier", "yeti", "seaWolf"],
       ["doomExecutor", "abyssEye", "spear", "archer"],
       ["skeletonSummoner", "spear", "archer", "knight"],
       ["spiderQueen", "spear", "archer", "knight"], // S2 Boss
       ["demonDeathKnight", "abyssEye", "doomExecutor", "spear"],
       ["iceLord", "minotaur", "abyssEye", "yeti"],
-      ["doomExecutor", "golem", "plague", "spear"],
+      ["doomExecutor", "golem", "plagueFrog", "spear"],
       ["demonDeathKnight", "knight", "ogre", "archer"],
       ["skeletonSummoner", "golem", "knight", "plagueFrog", "spear"],
       ["demonDeathKnight", "doomExecutor", "abyssEye", "iceLord"],
-      ["ogre", "minotaur", "iceLord", "seaWolf"],
+      ["ogre", "minotaur", "yeti", "seaWolf"],
       ["demonDeathKnight", "doomExecutor", "golem", "abyssEye", "spear"],
-      ["demonDeathKnight", "doomExecutor", "iceLord", "abyssEye", "knight"],
+      ["iceLord", "minotaur", "abyssEye", "spear", "spear"],
       ["demonDeathKnight", "doomExecutor", "abyssEye", "knight", "spear"], // S3 Boss
     ];
 
@@ -460,22 +468,70 @@
 
   function validateEncountersArray(encounters) {
     if (!Array.isArray(encounters) || encounters.length !== 30) return false;
+    const usedCompKeys = new Set();
+    const stageThemes = [new Set(), new Set(), new Set()];
+
     for (let i = 0; i < 30; i++) {
       const enc = encounters[i];
       if (!enc || typeof enc !== "object") return false;
-      const expectedStage = Math.floor(i / 10) + 1;
-      const expectedBattle = (i % 10) + 1;
+
+      const stageIndex = Math.floor(i / 10);
+      const battleInStage = i % 10;
+      const spec = STAGE_SPECS[stageIndex][battleInStage];
+
+      const expectedStage = stageIndex + 1;
+      const expectedBattle = battleInStage + 1;
       const expectedId = `S${expectedStage}-B${String(expectedBattle).padStart(2, "0")}`;
+
       if (enc.id !== expectedId || enc.stage !== expectedStage || enc.battle !== expectedBattle) return false;
-      if (!Array.isArray(enc.enemies) || enc.enemies.length === 0) return false;
-      if (typeof enc.boss !== "boolean") return false;
-      if (expectedBattle === 10 && !enc.boss) return false;
-      if (expectedBattle !== 10 && enc.boss) return false;
+      if (!Array.isArray(enc.enemies) || enc.enemies.length < spec.minEnemies || enc.enemies.length > spec.maxEnemies) return false;
+      if (typeof enc.boss !== "boolean" || enc.boss !== Boolean(spec.boss)) return false;
+
+      // Frontline check
+      if (!hasFrontline(enc.enemies)) return false;
+
+      // No direct spawn check
       for (const u of enc.enemies) {
-        if (!UNIT_TYPES[u] || u === "summoner") return false;
-        if (u === "spiderling" || u === "goblinCommoner") return false;
+        if (!UNIT_TYPES[u] || u === "summoner" || u === "spiderling" || u === "goblinCommoner") return false;
       }
+
+      // Stage cost range check
+      const cost = calculateEncounterCost(enc.enemies);
+      const stageMinCost = [4.5, 7.5, 10.5][stageIndex];
+      const stageMaxCost = [16.0, 20.0, 25.0][stageIndex];
+      if (cost < stageMinCost || cost > stageMaxCost) return false;
+
+      // Grade limits (non-boss encounters)
+      const { hero, advanced } = countGrades(enc.enemies);
+      if (!spec.boss && (hero > spec.maxHero || advanced > spec.maxAdvanced)) return false;
+
+      // Boss anchor check
+      if (expectedBattle === 10) {
+        if (stageIndex === 0 && (!enc.enemies.includes("knight") && !enc.enemies.includes("ogre") && !enc.enemies.includes("spiderQueen"))) return false;
+        if (stageIndex === 1 && (!enc.enemies.includes("spiderQueen") && !enc.enemies.includes("goblinChief") && !enc.enemies.includes("iceLord"))) return false;
+        if (stageIndex === 2 && !enc.enemies.includes("demonDeathKnight")) return false;
+      }
+
+      // Theme consecutive check
+      if (i >= 2) {
+        const t1 = encounters[i - 1].theme;
+        const t2 = encounters[i - 2].theme;
+        if (t1 === enc.theme && t2 === enc.theme) return false;
+      }
+
+      // Combination duplicate check
+      const compKey = [...enc.enemies].sort().join(",");
+      if (usedCompKeys.has(compKey)) return false;
+      usedCompKeys.add(compKey);
+
+      stageThemes[stageIndex].add(enc.theme);
     }
+
+    // Stage theme variety check (at least 3 themes per stage)
+    for (let s = 0; s < 3; s++) {
+      if (stageThemes[s].size < 3) return false;
+    }
+
     return true;
   }
 
@@ -486,5 +542,6 @@
     generate30Encounters,
     validateEncountersArray,
     getFallbackTemplateEncounters,
+    STAGE_SPECS,
   };
 });

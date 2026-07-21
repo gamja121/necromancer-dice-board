@@ -438,6 +438,16 @@ function validateUnitRegistry(unitTypes, metaData) {
   return true;
 }
 
+if (typeof window !== "undefined") {
+  window.UNIT_TYPES = UNIT_TYPES;
+  window.ENCOUNTER_UNIT_META = ENCOUNTER_UNIT_META;
+  window.validateUnitRegistry = validateUnitRegistry;
+}
+if (typeof globalThis !== "undefined") {
+  globalThis.UNIT_TYPES = UNIT_TYPES;
+  globalThis.ENCOUNTER_UNIT_META = ENCOUNTER_UNIT_META;
+  globalThis.validateUnitRegistry = validateUnitRegistry;
+}
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     UNIT_TYPES,
