@@ -185,10 +185,10 @@
     // Spec theme constraint if explicit
     if (spec.theme && getPrimaryTheme(enemies) !== spec.theme) return false;
 
-    // High HP / Tank restriction: if 2+ tanks (ogre/golem), no hero
+    // High HP / Tank restriction: if 2+ tanks, no hero
     let tanks = 0;
     for (const u of enemies) {
-      if (u === "ogre" || u === "golem") tanks++;
+      if (ENCOUNTER_UNIT_META[u]?.roles?.includes("tank")) tanks++;
     }
     if (tanks >= 2 && hero > 0) return false;
 

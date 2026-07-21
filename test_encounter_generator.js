@@ -28,14 +28,21 @@ console.log("\n=== 3. 단일 원정 제약 규칙 검증 ===");
 const singleRun = generator.generate30Encounters(12345);
 assert.strictEqual(generator.validateEncountersArray(singleRun.encounters), true, "validateEncountersArray 검증 통과해야 함");
 
-// 전열 보유, 특수소환물 직출 금지, 소환사 제외 검증
+// 전열 보유, 모든 특수 소환물 직출 금지, 소환사 제외 검증
 for (const enc of singleRun.encounters) {
   assert.ok(generator.hasFrontline(enc.enemies), `전투 ${enc.id}에 전열 유닛이 포함되어야 함`);
-  assert.ok(!enc.enemies.includes("spiderling"), `전투 ${enc.id}에 spiderling 직출 금지`);
-  assert.ok(!enc.enemies.includes("goblinCommoner"), `전투 ${enc.id}에 goblinCommoner 직출 금지`);
+  for (const type of enc.enemies) {
+    assert.notStrictEqual(unitData.UNIT_TYPES[type]?.grade, "special", `전투 ${enc.id}에 ${type} 특수 소환물 직출 금지`);
+  }
   assert.ok(!enc.enemies.includes("summoner"), `전투 ${enc.id}에 summoner 포함 금지`);
 }
 console.log("Pass: 전열 역할 보유, 특수 소환물 직출 금지, 소환사 제외 규칙 검증 완료.");
+
+const guardianSeed = unitData.UNIT_TYPES.guardianSeed;
+assert.deepStrictEqual(guardianSeed.dice, [0, 0, 0, 0, 0, 0], "수호 씨앗은 공격력이 없어야 함");
+assert.strictEqual(guardianSeed.hp, 1, "수호 씨앗 체력은 1로 고정되어야 함");
+assert.strictEqual(guardianSeed.fixedHp, true, "수호 씨앗은 군단 체력 보너스를 받지 않아야 함");
+assert.strictEqual(unitData.ENCOUNTER_UNIT_META.guardianSeed.directSpawn, false, "수호 씨앗은 직접 등장하면 안 됨");
 
 console.log("\n=== 4. 10,000회 대량 생성 시뮬레이션 스트레스 및 제약 Assertion 테스트 ===");
 const SIMULATION_COUNT = 10000;
@@ -96,6 +103,11 @@ assert.ok(
   fallbackCount < 10,
   `안전 템플릿 강하 비율이 0.1% 미만이어야 함 (실제 강하: ${fallbackCount}/${SIMULATION_COUNT})`
 );
+
+for (const type of ["crystalDevourer", "ragingTreant", "cerberus", "poisonMushroom", "goblinRider", "abyssHarpy", "troll", "boneGolem", "forestFairy"]) {
+  assert.ok(unitFrequencies[type] > 0, `${type} 신규 유닛이 자동 생성 전투에 등장해야 함`);
+}
+assert.strictEqual(unitFrequencies.guardianSeed || 0, 0, "수호 씨앗은 자동 생성 전투에 직접 등장하면 안 됨");
 
 console.log("\n=== 5. Fallback 템플릿 제약 검증 ===");
 const fallbackEncounters = generator.getFallbackTemplateEncounters(9999);

@@ -103,7 +103,7 @@ if (typeof UNIT_TYPES === "undefined") {
   }
 }
 
-const SETUP_RESERVE_TYPES = ["spear", "archer", "knight", "worm", "golem", "ghoul", "ogre", "plague", "plagueFrog", "minotaur", "yeti", "iceLord", "seaWolf", "spiderQueen", "goblinChief", "goblinSoldier", "skeletonSummoner", "doomExecutor", "abyssEye", "demonDeathKnight", "hellMantis", "scorpionKnight", "ancientTreant", "stoneGolem", "kraken"];
+const SETUP_RESERVE_TYPES = ["spear", "archer", "knight", "worm", "golem", "ghoul", "ogre", "plague", "plagueFrog", "minotaur", "yeti", "iceLord", "seaWolf", "spiderQueen", "goblinChief", "goblinSoldier", "skeletonSummoner", "doomExecutor", "abyssEye", "demonDeathKnight", "hellMantis", "scorpionKnight", "ancientTreant", "stoneGolem", "kraken", "crystalDevourer", "ragingTreant", "cerberus", "poisonMushroom", "goblinRider", "abyssHarpy", "troll", "boneGolem", "forestFairy"];
 
 const state = {
   phase: "setup",
@@ -131,6 +131,7 @@ const state = {
   pendingSpiderSummon: null,
   pendingGoblinSummon: null,
   pendingUndeadSummon: null,
+  pendingSeedSummon: null,
   winner: null,
   winnerAnnounced: false,
   lastDice: "-",
@@ -699,6 +700,12 @@ function plantHealthBonus(unit) {
 function reconcileUnitHealthBonuses() {
   state.units.forEach((unit) => {
     const def = UNIT_TYPES[unit.type];
+    if (def.fixedHp) {
+      unit.baseMaxHp = def.hp;
+      unit.maxHp = def.hp;
+      unit.hp = Math.min(unit.hp, def.hp);
+      return;
+    }
     const baseMaxHp = unit.baseMaxHp ?? def.hp;
     const summonBonus = isSummonedUnit(unit) ? summonHealthBonus(unit.owner) : 0;
     const plantBonus = plantHealthBonus(unit);
@@ -740,6 +747,10 @@ function spiderlingCount(owner) {
 
 function goblinCommonerCount(owner) {
   return state.units.filter((unit) => unit.owner === owner && unit.type === "goblinCommoner").length;
+}
+
+function guardianSeedCount(owner) {
+  return state.units.filter((unit) => unit.owner === owner && unit.type === "guardianSeed").length;
 }
 
 function homeEmptyCells(owner) {
@@ -885,6 +896,28 @@ function movementDeltas(unit) {
       [1, -1], [1, 0], [1, 1],
     ];
   }
+  if (unit.type === "crystalDevourer") {
+    return [[forward, 0], [0, -1], [0, 1], [-forward, 0]];
+  }
+  if (["ragingTreant", "troll", "boneGolem"].includes(unit.type)) {
+    return [[forward, 0], [0, -1], [0, 1], [-forward, 0]];
+  }
+  if (["cerberus", "forestFairy"].includes(unit.type)) {
+    return [
+      [-1, -1], [-1, 0], [-1, 1],
+      [0, -1], [0, 1],
+      [1, -1], [1, 0], [1, 1],
+    ];
+  }
+  if (unit.type === "poisonMushroom") {
+    return [[forward, 0], [0, -1], [0, 1]];
+  }
+  if (unit.type === "goblinRider") {
+    return [[forward, 0], [forward * 2, 0], [0, -1], [0, 1]];
+  }
+  if (unit.type === "abyssHarpy") {
+    return [[forward, -1], [forward, 0], [forward, 1], [0, -1], [0, 1]];
+  }
   return [];
 }
 
@@ -977,6 +1010,13 @@ function attackDeltas(unit) {
       [2, -2], [2, 0], [2, 2],
     ];
   }
+  if (unit.type === "crystalDevourer") return [[forward, -1], [forward, 0], [forward, 1], [0, -1], [0, 1]];
+  if (["ragingTreant", "troll"].includes(unit.type)) return [[forward, 0], [0, -1], [0, 1]];
+  if (unit.type === "boneGolem") return [[forward, 0]];
+  if (unit.type === "cerberus") return [[forward, -1], [forward, 0], [forward, 1]];
+  if (["poisonMushroom", "goblinRider"].includes(unit.type)) return [[forward, 0]];
+  if (unit.type === "abyssHarpy") return [[forward, 0], [forward * 2, 0]];
+  if (unit.type === "forestFairy") return [[forward, 0], [forward * 2, 0], [forward, -1], [forward, 1]];
   return [];
 }
 
@@ -1364,6 +1404,7 @@ function startCampaignBattle(nodeId) {
   state.pendingSpiderSummon = null;
   state.pendingGoblinSummon = null;
   state.pendingUndeadSummon = null;
+  state.pendingSeedSummon = null;
   state.winner = null;
   state.winnerAnnounced = false;
   state.lastDice = "-";
@@ -1450,6 +1491,14 @@ function selectUnit(unit) {
   state.inspectedCorpseId = null;
   state.inspectedLegionOwner = null;
   if (unit.owner !== state.turn) return;
+  if (UNIT_TYPES[unit.type]?.immobile && UNIT_TYPES[unit.type]?.cannotAttack) {
+    state.selectedUnitId = null;
+    state.validMoves = [];
+    state.validAttacks = [];
+    addLog(`${UNIT_TYPES[unit.type].label}은 지형을 막는 방어용 소환물입니다.`);
+    render();
+    return;
+  }
   if (unit.frozen) {
     state.selectedUnitId = null;
     state.validMoves = [];
@@ -1552,6 +1601,11 @@ async function attackTarget(attacker, target) {
     return;
   }
   if (await maybeBeginGoblinSummon(attacker, rolledDamage)) {
+    state.validAttacks = [];
+    render();
+    return;
+  }
+  if (await maybeBeginSeedSummon(attacker, rolledDamage)) {
     state.validAttacks = [];
     render();
     return;
@@ -1720,6 +1774,46 @@ function placeUndeadSummon(row, col) {
   return true;
 }
 
+async function maybeBeginSeedSummon(attacker, damage) {
+  if (damage !== 0 || attacker.type !== "crystalDevourer") return false;
+  if (!state.units.includes(attacker) || state.winner) return false;
+  if (guardianSeedCount(attacker.owner) >= 1) {
+    addLog("수호 씨앗이 이미 있어 추가 소환할 수 없습니다.");
+    return false;
+  }
+  const cells = homeEmptyCells(attacker.owner);
+  if (!cells.length) {
+    addLog("수호 씨앗을 소환할 빈 우리 영역이 없습니다.");
+    return false;
+  }
+  state.selectedUnitId = null;
+  state.validMoves = [];
+  state.validAttacks = [];
+  state.pendingSeedSummon = { owner: attacker.owner };
+  state.mode = "seedSummonPlace";
+  addLog("결정 포식화 소환 발동. 우리 영역에 수호 씨앗을 배치하세요.");
+  if (attacker.owner === "enemy") {
+    const picked = cells[Math.floor(Math.random() * cells.length)];
+    await wait(350);
+    placeSeedSummon(picked.row, picked.col);
+  }
+  return true;
+}
+
+function placeSeedSummon(row, col) {
+  const pending = state.pendingSeedSummon;
+  if (!pending || !isHomeCell(pending.owner, row) || !isEmptyCell(row, col)) return false;
+  if (guardianSeedCount(pending.owner) >= 1) return false;
+  const unit = createUnit("guardianSeed", pending.owner, row, col, null, { summonedNoCorpse: true });
+  triggerSummonVisual(unit);
+  playSfx("summon");
+  state.pendingSeedSummon = null;
+  state.mode = "move";
+  addLog("수호 씨앗 소환 완료. 해당 칸의 이동을 차단합니다.");
+  endTurn();
+  return true;
+}
+
 function resistsStatusEffect(unit, statusLabel) {
   if (!hasLegion(unit, "element") || !isLegionActive(unit.owner, "element")) return false;
   if (Math.random() >= 0.5) return false;
@@ -1805,9 +1899,9 @@ async function applyTurnStartPoison(owner) {
 
 function attackStyleFor(unit) {
   if (["archer"].includes(unit.type)) return "ranged";
-  if (["summoner", "plague", "iceLord", "skeletonSummoner", "abyssEye", "spiderQueen", "goblinChief", "ancientTreant", "kraken"].includes(unit.type)) return "magic";
-  if (["knight", "golem", "ogre", "minotaur", "doomExecutor", "demonDeathKnight", "stoneGolem"].includes(unit.type)) return "heavy";
-  if (["worm", "ghoul", "plagueFrog", "yeti", "seaWolf", "spiderling", "hellMantis", "scorpionKnight"].includes(unit.type)) return "claw";
+  if (["summoner", "plague", "iceLord", "skeletonSummoner", "abyssEye", "spiderQueen", "goblinChief", "ancientTreant", "kraken", "crystalDevourer", "poisonMushroom", "forestFairy"].includes(unit.type)) return "magic";
+  if (["knight", "golem", "ogre", "minotaur", "doomExecutor", "demonDeathKnight", "stoneGolem", "ragingTreant", "troll", "boneGolem"].includes(unit.type)) return "heavy";
+  if (["worm", "ghoul", "plagueFrog", "yeti", "seaWolf", "spiderling", "hellMantis", "scorpionKnight", "cerberus", "goblinRider", "abyssHarpy"].includes(unit.type)) return "claw";
   return "melee";
 }
 
@@ -2507,6 +2601,10 @@ async function handleCellClick(row, col) {
     placeUndeadSummon(row, col);
     return;
   }
+  if (state.mode === "seedSummonPlace") {
+    placeSeedSummon(row, col);
+    return;
+  }
   if (corpse && !unit && state.mode === "move") {
     state.inspectedCorpseId = corpse.id;
     state.inspectedUnitId = null;
@@ -2615,6 +2713,9 @@ function renderBoard() {
         cell.classList.add("is-summon");
       }
       if (state.mode === "undeadSummonPlace" && state.pendingUndeadSummon && isHomeCell(state.pendingUndeadSummon.owner, row) && isEmptyCell(row, col)) {
+        cell.classList.add("is-summon");
+      }
+      if (state.mode === "seedSummonPlace" && state.pendingSeedSummon && isHomeCell(state.pendingSeedSummon.owner, row) && isEmptyCell(row, col)) {
         cell.classList.add("is-summon");
       }
       const unit = unitAt(row, col);
@@ -2787,6 +2888,13 @@ function renderLog() {
 }
 
 function describeMovement(unit) {
+  if (unit.type === "guardianSeed") return "이동 불가 · 지형 차단";
+  if (unit.type === "crystalDevourer") return "상하좌우 1칸";
+  if (["ragingTreant", "troll", "boneGolem"].includes(unit.type)) return "상하좌우 1칸";
+  if (["cerberus", "forestFairy"].includes(unit.type)) return "주변 8방향 1칸";
+  if (unit.type === "poisonMushroom") return "앞/좌우 1칸, 뒤로 불가";
+  if (unit.type === "goblinRider") return "앞 1~2칸, 좌우 1칸, 뒤로 불가";
+  if (unit.type === "abyssHarpy") return "앞/앞대각/좌우 1칸";
   if (unit.type === "hellMantis") return "앞 1~2칸, 앞대각 1칸, 뒤로 불가";
   if (unit.type === "scorpionKnight") return "상하좌우 1칸";
   if (unit.type === "ancientTreant") return "상하좌우 1칸";
@@ -2819,6 +2927,14 @@ function describeMovement(unit) {
 }
 
 function describeAttack(unit) {
+  if (unit.type === "guardianSeed") return "공격 불가 · 지형 차단";
+  if (unit.type === "crystalDevourer") return "전방 3칸, 좌우 1칸";
+  if (["ragingTreant", "troll"].includes(unit.type)) return "정면과 좌우 1칸";
+  if (unit.type === "boneGolem") return "정면 1칸";
+  if (unit.type === "cerberus") return "전방 3칸";
+  if (["poisonMushroom", "goblinRider"].includes(unit.type)) return "정면 1칸";
+  if (unit.type === "abyssHarpy") return "정면 1~2칸";
+  if (unit.type === "forestFairy") return "정면 1~2칸, 앞대각";
   if (unit.type === "hellMantis") return "전방 3칸";
   if (unit.type === "scorpionKnight") return "상하좌우 1칸";
   if (unit.type === "ancientTreant") return "정면과 좌우 1칸";
@@ -3174,6 +3290,7 @@ function setupBattleBoardState(encounter) {
   state.pendingSpiderSummon = null;
   state.pendingGoblinSummon = null;
   state.pendingUndeadSummon = null;
+  state.pendingSeedSummon = null;
   state.winner = null;
   state.winnerAnnounced = false;
   state.lastDice = "-";
@@ -3245,7 +3362,7 @@ function render() {
   const selected = currentUnit();
   attackBtn.disabled = !selected || state.turn === "enemy" || state.phase !== "battle" || !["move", "postMove"].includes(state.mode) || !state.validAttacks.length;
   skipAttackBtn.disabled = !selected || state.turn === "enemy" || state.phase !== "battle" || !["move", "postMove"].includes(state.mode);
-  endTurnBtn.disabled = state.turn === "enemy" || state.phase !== "battle" || ["respawn", "summonPlace", "spiderSummonPlace", "goblinSummonPlace", "undeadSummonPlace"].includes(state.mode) || Boolean(state.winner);
+  endTurnBtn.disabled = state.turn === "enemy" || state.phase !== "battle" || ["respawn", "summonPlace", "spiderSummonPlace", "goblinSummonPlace", "undeadSummonPlace", "seedSummonPlace"].includes(state.mode) || Boolean(state.winner);
   renderBoard();
   renderUnitInfo();
   renderReserve();

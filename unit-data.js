@@ -43,7 +43,7 @@ var UNIT_TYPES = {
     image: "assets/grave-worm.jpg",
   },
   golem: {
-    label: "시체 골렘",
+    label: "누더기 포식자",
     legion: "corpse",
     grade: "advanced",
     hp: 6,
@@ -227,6 +227,90 @@ var UNIT_TYPES = {
     hp: 5,
     dice: [0, 1, 2, 2, 3, 3],
     image: "assets/kraken.jpg",
+  },
+  crystalDevourer: {
+    label: "결정 포식화",
+    legion: ["plant", "summon"],
+    grade: "hero",
+    hp: 5,
+    dice: [0, 1, 1, 2, 2, 3],
+    image: "assets/crystal-devourer.jpg",
+  },
+  guardianSeed: {
+    label: "수호 씨앗",
+    legion: ["plant", "summon"],
+    grade: "special",
+    hp: 1,
+    dice: [0, 0, 0, 0, 0, 0],
+    image: "assets/guardian-seed.jpg",
+    noCorpse: true,
+    fixedHp: true,
+    immobile: true,
+    cannotAttack: true,
+  },
+  ragingTreant: {
+    label: "분노한 고목",
+    legion: "plant",
+    grade: "advanced",
+    hp: 6,
+    dice: [0, 0, 1, 2, 2, 3],
+    image: "assets/raging-treant.jpg",
+  },
+  cerberus: {
+    label: "지옥의 케르베로스",
+    legion: ["beast", "demon"],
+    grade: "advanced",
+    hp: 4,
+    dice: [0, 1, 1, 2, 2, 3],
+    image: "assets/cerberus.jpg",
+  },
+  poisonMushroom: {
+    label: "독버섯 정령",
+    legion: ["plant", "plague"],
+    grade: "normal",
+    hp: 2,
+    dice: [0, 0, 1, 1, 2, 2],
+    image: "assets/poison-mushroom.jpg",
+  },
+  goblinRider: {
+    label: "고블린 라이더",
+    legion: "beast",
+    grade: "normal",
+    hp: 3,
+    dice: [0, 0, 1, 1, 2, 2],
+    image: "assets/goblin-rider.jpg",
+  },
+  abyssHarpy: {
+    label: "심연의 하피",
+    legion: "demon",
+    grade: "advanced",
+    hp: 4,
+    dice: [0, 1, 1, 2, 2, 3],
+    image: "assets/abyss-harpy.jpg",
+  },
+  troll: {
+    label: "트롤",
+    legion: "beast",
+    grade: "advanced",
+    hp: 5,
+    dice: [0, 0, 1, 2, 2, 3],
+    image: "assets/troll.jpg",
+  },
+  boneGolem: {
+    label: "뼈 골렘",
+    legion: ["skeleton", "element"],
+    grade: "advanced",
+    hp: 6,
+    dice: [0, 0, 1, 1, 2, 3],
+    image: "assets/bone-golem.jpg",
+  },
+  forestFairy: {
+    label: "숲의 요정",
+    legion: ["plant", "element"],
+    grade: "advanced",
+    hp: 3,
+    dice: [0, 0, 1, 1, 2, 3],
+    image: "assets/forest-fairy.jpg",
   },
 };
 
@@ -463,6 +547,88 @@ var ENCOUNTER_UNIT_META = {
     weight: 15,
     directSpawn: true,
   },
+  crystalDevourer: {
+    cost: 5.5,
+    minStage: 2,
+    roles: ["summoner", "frontline"],
+    themes: ["plant", "summon"],
+    maxCopies: 1,
+    weight: 15,
+    directSpawn: true,
+    bossAnchor: true,
+  },
+  ragingTreant: {
+    cost: 5.0,
+    minStage: 2,
+    roles: ["frontline", "tank", "heavy"],
+    themes: ["plant"],
+    maxCopies: 1,
+    weight: 40,
+    directSpawn: true,
+  },
+  cerberus: {
+    cost: 4.5,
+    minStage: 2,
+    roles: ["frontline", "burst"],
+    themes: ["beast", "demon"],
+    maxCopies: 1,
+    weight: 45,
+    directSpawn: true,
+  },
+  poisonMushroom: {
+    cost: 2.0,
+    minStage: 1,
+    roles: ["frontline", "status"],
+    themes: ["plant", "plague"],
+    maxCopies: 2,
+    weight: 100,
+    directSpawn: true,
+  },
+  goblinRider: {
+    cost: 2.5,
+    minStage: 1,
+    roles: ["frontline"],
+    themes: ["beast"],
+    maxCopies: 2,
+    weight: 100,
+    directSpawn: true,
+  },
+  abyssHarpy: {
+    cost: 4.0,
+    minStage: 2,
+    roles: ["ranged", "burst"],
+    themes: ["demon"],
+    maxCopies: 1,
+    weight: 45,
+    directSpawn: true,
+  },
+  troll: {
+    cost: 4.5,
+    minStage: 2,
+    roles: ["frontline", "tank", "heavy"],
+    themes: ["beast"],
+    maxCopies: 1,
+    weight: 45,
+    directSpawn: true,
+  },
+  boneGolem: {
+    cost: 5.0,
+    minStage: 2,
+    roles: ["frontline", "tank", "heavy"],
+    themes: ["undead", "element"],
+    maxCopies: 1,
+    weight: 40,
+    directSpawn: true,
+  },
+  forestFairy: {
+    cost: 4.0,
+    minStage: 2,
+    roles: ["ranged", "status"],
+    themes: ["plant", "element"],
+    maxCopies: 1,
+    weight: 45,
+    directSpawn: true,
+  },
   spiderling: {
     cost: 1.0,
     minStage: 99,
@@ -477,6 +643,15 @@ var ENCOUNTER_UNIT_META = {
     minStage: 99,
     roles: ["special"],
     themes: ["summon"],
+    maxCopies: 0,
+    weight: 0,
+    directSpawn: false,
+  },
+  guardianSeed: {
+    cost: 1.0,
+    minStage: 99,
+    roles: ["special"],
+    themes: ["plant", "summon"],
     maxCopies: 0,
     weight: 0,
     directSpawn: false,
@@ -517,11 +692,10 @@ function validateUnitRegistry(unitTypes, metaData) {
     }
   }
 
-  if (meta.spiderling && meta.spiderling.directSpawn !== false) {
-    errors.push(`spiderling must have directSpawn: false.`);
-  }
-  if (meta.goblinCommoner && meta.goblinCommoner.directSpawn !== false) {
-    errors.push(`goblinCommoner must have directSpawn: false.`);
+  for (const [key, unit] of Object.entries(types)) {
+    if (unit.grade === "special" && meta[key]?.directSpawn !== false) {
+      errors.push(`${key} must have directSpawn: false.`);
+    }
   }
 
   if (meta.summoner) {
