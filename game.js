@@ -35,6 +35,13 @@ const MAP_EDGES = [
   ["gate", "throne"],
 ];
 const campaign = {
+  version: 2,
+  generatorVersion: 1,
+  runSeed: 0,
+  stageIndex: 0,
+  battleIndex: 0,
+  viewStageIndex: 0,
+  encounters: [],
   depth: 0,
   roster: ["spear", "archer", "knight"],
   unitProgress: {},
@@ -43,6 +50,8 @@ const campaign = {
   finished: false,
   availableTotems: [],
   transitioning: false,
+  rewardState: null,
+  checkpoint: null,
 };
 let audioContext = null;
 const AUDIO_SETTINGS_KEY = "necromancer-audio-settings-v1";
@@ -86,7 +95,8 @@ const PLAYERS = {
   enemy: { label: "상대", dir: 1, homeRows: [0, 1], goalRow: 4 },
 };
 
-const UNIT_TYPES = {
+if (typeof UNIT_TYPES === "undefined") {
+  UNIT_TYPES = {
   summoner: {
     label: "소환사",
     hp: 5,
@@ -270,8 +280,9 @@ const UNIT_TYPES = {
     hp: 5,
     dice: [0, 1, 2, 2, 3, 3],
     image: "assets/demon-death-knight.jpg",
-  },
+  }
 };
+}
 
 const SETUP_RESERVE_TYPES = ["spear", "archer", "knight", "worm", "golem", "ghoul", "ogre", "plague", "plagueFrog", "minotaur", "yeti", "iceLord", "seaWolf", "spiderQueen", "goblinChief", "goblinSoldier", "skeletonSummoner", "doomExecutor", "abyssEye", "demonDeathKnight"];
 
@@ -327,6 +338,8 @@ const mapScreen = document.getElementById("mapScreen");
 const startScreen = document.getElementById("startScreen");
 const continueCampaignBtn = document.getElementById("continueCampaignBtn");
 const startCampaignBtn = document.getElementById("startCampaignBtn");
+const stageBadge = document.getElementById("stageBadge");
+const stageTabs = document.getElementById("stageTabs");
 const mapRoute = document.getElementById("mapRoute");
 const mapProgress = document.getElementById("mapProgress");
 const campaignRosterEl = document.getElementById("campaignRoster");
@@ -1127,20 +1140,26 @@ function legalAttacks(unit) {
 
 
 const CAMPAIGN_SAVE_KEY = "necromancer-campaign-save-v1";
-const CAMPAIGN_SAVE_VERSION = 1;
+const CAMPAIGN_SAVE_VERSION = 2;
 
 function autoSaveCampaign() {
   try {
     const saveData = {
-      version: CAMPAIGN_SAVE_VERSION,
-      depth: campaign.depth,
+      version: campaign.version || 2,
+      generatorVersion: campaign.generatorVersion || 1,
+      runSeed: campaign.runSeed || 0,
+      stageIndex: campaign.stageIndex || 0,
+      battleIndex: campaign.battleIndex || 0,
+      encounters: campaign.encounters || [],
+      depth: campaign.depth || 0,
       roster: campaign.roster,
       unitProgress: campaign.unitProgress,
       completed: campaign.completed,
       currentNodeId: campaign.currentNodeId,
       finished: campaign.finished,
       availableTotems: campaign.availableTotems,
-      rewardState: campaign.rewardState
+      rewardState: campaign.rewardState,
+      checkpoint: campaign.checkpoint
     };
     localStorage.setItem(CAMPAIGN_SAVE_KEY, JSON.stringify(saveData));
   } catch (e) {
@@ -1156,7 +1175,6 @@ function hasSavedCampaign() {
   }
 }
 
-def_delete_saved = "deleteSavedCampaign"; // variable to bypass linter
 function deleteSavedCampaign() {
   try {
     localStorage.removeItem(CAMPAIGN_SAVE_KEY);
@@ -1178,6 +1196,53 @@ function validateDice(dice, unitType) {
   return hasZero;
 }
 
+function loadLegacyCampaignSave(data) {
+  if (typeof data.finished !== "boolean") return null;
+  const isFinished = data.finished;
+  const depthVal = data.depth;
+  if (typeof depthVal !== "number" || !Number.isInteger(depthVal)) return null;
+  if (isFinished ? depthVal !== 5 : (depthVal < 0 || depthVal > 4)) return null;
+
+  if (!Array.isArray(data.completed)) return null;
+  const validNodeIds = MAP_NODES.map(node => node.id);
+  const validatedCompleted = data.completed.filter(id => validNodeIds.includes(id));
+
+  if (!Array.isArray(data.roster) || data.roster.length === 0) return null;
+  const validatedRoster = data.roster.filter(type => UNIT_TYPES[type] && type !== "summoner");
+  if (validatedRoster.length === 0) return null;
+
+  const validatedProgress = {};
+  for (const type of validatedRoster) {
+    const progress = (data.unitProgress || {})[type];
+    const defaultProg = defaultCampaignProgress(type);
+    if (typeof progress === "object" && progress !== null) {
+      let validatedHp = progress.hp;
+      if (typeof validatedHp !== "number" || !Number.isInteger(validatedHp) || validatedHp < 1 || validatedHp > UNIT_TYPES[type].hp) {
+        validatedHp = defaultProg.hp;
+      }
+      let validatedDice = progress.dice;
+      if (!validateDice(validatedDice, type)) {
+        validatedDice = [...defaultProg.dice];
+      }
+      validatedProgress[type] = { hp: validatedHp, dice: validatedDice };
+    } else {
+      validatedProgress[type] = defaultProg;
+    }
+  }
+
+  return {
+    version: 1,
+    depth: data.depth,
+    roster: validatedRoster,
+    unitProgress: validatedProgress,
+    completed: validatedCompleted,
+    currentNodeId: data.currentNodeId || null,
+    finished: Boolean(data.finished),
+    availableTotems: Array.isArray(data.availableTotems) ? data.availableTotems : [],
+    rewardState: data.rewardState || null
+  };
+}
+
 function loadCampaignSave() {
   try {
     const raw = localStorage.getItem(CAMPAIGN_SAVE_KEY);
@@ -1185,51 +1250,32 @@ function loadCampaignSave() {
     const data = JSON.parse(raw);
     if (!data || typeof data !== "object") return null;
 
-    if (data.version !== CAMPAIGN_SAVE_VERSION) return null;
-
-    if (typeof data.finished !== "boolean") return null;
-    const isFinished = data.finished;
-    const depthVal = data.depth;
-    if (typeof depthVal !== "number" || !Number.isInteger(depthVal)) {
-      return null;
+    if (data.version === 1) {
+      return loadLegacyCampaignSave(data);
     }
-    if (isFinished) {
-      if (depthVal !== 5) return null;
+
+    if (data.version !== 2) return null;
+    if (data.generatorVersion !== 1) return null;
+    if (typeof data.runSeed !== "number") return null;
+
+    if (typeof data.stageIndex !== "number" || !Number.isInteger(data.stageIndex) || data.stageIndex < 0 || data.stageIndex > 2) return null;
+    if (typeof data.battleIndex !== "number" || !Number.isInteger(data.battleIndex) || data.battleIndex < 0 || data.battleIndex > 30) return null;
+
+    if (!EncounterGenerator.validateEncountersArray(data.encounters)) return null;
+
+    if (data.finished) {
+      if (data.battleIndex !== 30) return null;
     } else {
-      if (depthVal < 0 || depthVal > 4) return null;
-    }
-
-    if (!Array.isArray(data.completed)) return null;
-    const validNodeIds = MAP_NODES.map(node => node.id);
-    const validatedCompleted = [];
-    for (const nodeId of data.completed) {
-      if (validNodeIds.includes(nodeId)) {
-        validatedCompleted.push(nodeId);
-      }
-    }
-
-    if (!Array.isArray(data.availableTotems)) return null;
-    const validTotemKeys = Object.keys(TOTEMS);
-    const validatedTotems = [];
-    for (const key of data.availableTotems) {
-      if (validTotemKeys.includes(key)) {
-        validatedTotems.push(key);
-      }
+      if (data.battleIndex < 0 || data.battleIndex >= 30) return null;
     }
 
     if (!Array.isArray(data.roster) || data.roster.length === 0) return null;
-    const validatedRoster = [];
-    for (const type of data.roster) {
-      if (UNIT_TYPES[type] && type !== "summoner") {
-        validatedRoster.push(type);
-      }
-    }
+    const validatedRoster = data.roster.filter(type => UNIT_TYPES[type] && type !== "summoner");
     if (validatedRoster.length === 0) return null;
 
-    if (typeof data.unitProgress !== "object" || data.unitProgress === null) return null;
     const validatedProgress = {};
     for (const type of validatedRoster) {
-      const progress = data.unitProgress[type];
+      const progress = (data.unitProgress || {})[type];
       const defaultProg = defaultCampaignProgress(type);
       if (typeof progress === "object" && progress !== null) {
         let validatedHp = progress.hp;
@@ -1246,53 +1292,21 @@ function loadCampaignSave() {
       }
     }
 
-    let validatedCurrentNodeId = data.currentNodeId;
-    if (validatedCurrentNodeId !== null && !validNodeIds.includes(validatedCurrentNodeId)) {
-      validatedCurrentNodeId = null;
-    }
-
-    let validatedRewardState = null;
-    if (typeof data.rewardState === "object" && data.rewardState !== null) {
-      const rs = data.rewardState;
-      if (Array.isArray(rs.survivors) && Array.isArray(rs.capturedTypes) && typeof rs.resultText === "string" && typeof rs.applied === "boolean") {
-        if (rs.chosenKey === null || ["heal", "dice", "totem"].includes(rs.chosenKey)) {
-          const validatedSurvivors = [];
-          for (const s of rs.survivors) {
-            if (s && typeof s === "object" && UNIT_TYPES[s.type] && typeof s.hp === "number" && typeof s.maxHp === "number") {
-              validatedSurvivors.push({
-                type: s.type,
-                hp: Math.max(0, Math.min(UNIT_TYPES[s.type].hp, s.hp)),
-                maxHp: UNIT_TYPES[s.type].hp
-              });
-            }
-          }
-          const validatedCapturedTypes = [];
-          for (const c of rs.capturedTypes) {
-            if (UNIT_TYPES[c]) {
-              validatedCapturedTypes.push(c);
-            }
-          }
-          validatedRewardState = {
-            survivors: validatedSurvivors,
-            capturedTypes: validatedCapturedTypes,
-            chosenKey: rs.chosenKey,
-            resultText: rs.resultText,
-            applied: rs.applied
-          };
-        }
-      }
-    }
-
     return {
-      version: CAMPAIGN_SAVE_VERSION,
-      depth: data.depth,
+      version: 2,
+      generatorVersion: 1,
+      runSeed: data.runSeed,
+      stageIndex: data.stageIndex,
+      battleIndex: data.battleIndex,
+      encounters: data.encounters,
       roster: validatedRoster,
       unitProgress: validatedProgress,
-      completed: validatedCompleted,
-      currentNodeId: validatedCurrentNodeId,
+      completed: Array.isArray(data.completed) ? data.completed : [],
+      currentNodeId: data.currentNodeId || null,
       finished: Boolean(data.finished),
-      availableTotems: validatedTotems,
-      rewardState: validatedRewardState
+      availableTotems: Array.isArray(data.availableTotems) ? data.availableTotems : [],
+      rewardState: data.rewardState || null,
+      checkpoint: data.checkpoint || null
     };
   } catch (e) {
     console.error("Failed to load/parse campaign save:", e);
@@ -1322,6 +1336,19 @@ function resetCampaign() {
   if (rewardDialog.open) rewardDialog.close();
   battleScreen.classList.remove("is-victorious");
   mapScreen.classList.remove("is-arriving", "is-departing");
+
+  const seed = (typeof crypto !== "undefined" && crypto.getRandomValues)
+    ? crypto.getRandomValues(new Uint32Array(1))[0]
+    : Math.floor(Math.random() * 1000000);
+  const generated = EncounterGenerator.generate30Encounters(seed);
+
+  campaign.version = 2;
+  campaign.generatorVersion = 1;
+  campaign.runSeed = seed;
+  campaign.stageIndex = 0;
+  campaign.battleIndex = 0;
+  campaign.viewStageIndex = 0;
+  campaign.encounters = generated.encounters;
   campaign.depth = 0;
   campaign.roster = ["spear", "archer", "knight"];
   campaign.unitProgress = Object.fromEntries(campaign.roster.map((type) => [type, defaultCampaignProgress(type)]));
@@ -1331,6 +1358,8 @@ function resetCampaign() {
   campaign.availableTotems = [];
   campaign.transitioning = false;
   campaign.rewardState = null;
+  campaign.checkpoint = null;
+
   state.phase = "map";
   state.winner = null;
   state.winnerAnnounced = false;
@@ -1352,6 +1381,10 @@ function enterCampaignBattle(nodeId) {
 }
 
 function startCampaignBattle(nodeId) {
+  if (campaign.version === 2) {
+    enterGeneratedCampaignBattle(campaign.battleIndex);
+    return;
+  }
   const node = MAP_NODES.find((item) => item.id === nodeId && item.stage === campaign.depth);
   if (!node || campaign.finished) return;
   ensureAudioContext();
@@ -2199,21 +2232,46 @@ function completeCampaignBattle() {
   survivingCapturedTypes().forEach((type) => {
     if (!campaign.roster.includes(type)) campaign.roster.push(type);
   });
-  if (campaign.currentNodeId && !campaign.completed.includes(campaign.currentNodeId)) {
-    campaign.completed.push(campaign.currentNodeId);
+  if (campaign.version === 1) {
+    if (campaign.currentNodeId && !campaign.completed.includes(campaign.currentNodeId)) {
+      campaign.completed.push(campaign.currentNodeId);
+    }
+    campaign.depth += 1;
+    campaign.currentNodeId = null;
+    campaign.finished = campaign.depth >= 5;
+    campaign.transitioning = false;
+    campaign.rewardState = null;
+    state.phase = "map";
+    state.winner = null;
+    state.winnerAnnounced = false;
+    battleScreen.classList.remove("is-victorious");
+    autoSaveCampaign();
+    render();
+    mapScreen.classList.add("is-arriving");
+    window.setTimeout(() => mapScreen.classList.remove("is-arriving"), 700);
+    return;
   }
-  campaign.depth += 1;
+
+  // Version 2 flow
+  const bIdx = campaign.battleIndex;
+  if (campaign.encounters && campaign.encounters[bIdx]) {
+    campaign.encounters[bIdx].cleared = true;
+  }
+  campaign.battleIndex = Math.min(30, bIdx + 1);
+  campaign.stageIndex = Math.floor(campaign.battleIndex / 10);
+  campaign.viewStageIndex = Math.min(2, campaign.stageIndex);
+  if (campaign.battleIndex >= 30) {
+    campaign.finished = true;
+  }
   campaign.currentNodeId = null;
-  campaign.finished = campaign.depth >= 5;
   campaign.transitioning = false;
   campaign.rewardState = null;
+  campaign.checkpoint = null;
   state.phase = "map";
   state.winner = null;
   state.winnerAnnounced = false;
   battleScreen.classList.remove("is-victorious");
-  
   autoSaveCampaign();
-  
   render();
   mapScreen.classList.add("is-arriving");
   window.setTimeout(() => mapScreen.classList.remove("is-arriving"), 700);
@@ -2891,6 +2949,105 @@ function closeInfoPopup() {
 }
 
 function renderCampaignMap() {
+  if (campaign.version === 1) {
+    renderLegacyCampaignMap();
+    return;
+  }
+
+  const currentStage = campaign.stageIndex;
+  if (typeof campaign.viewStageIndex !== "number") {
+    campaign.viewStageIndex = currentStage;
+  }
+  const viewStage = campaign.viewStageIndex;
+
+  if (stageBadge) {
+    stageBadge.textContent = `스테이지 ${currentStage + 1}/3`;
+  }
+
+  mapProgress.textContent = campaign.finished
+    ? "최종 30전투를 승리로 이끌었습니다! 원정을 완전 정복했습니다!"
+    : `전체 ${campaign.battleIndex + 1}/30전투 · 현재 스테이지의 노드를 터치하세요.`;
+
+  campaignRosterEl.innerHTML = `<strong>원정대 ${campaign.roster.length}</strong>`;
+  campaign.roster.forEach((type) => {
+    const def = UNIT_TYPES[type];
+    const progress = campaignProgressFor(type);
+    const item = document.createElement("span");
+    item.className = "campaign-roster-unit";
+    item.innerHTML = `<img src="${def.image}" alt=""><span><b>${def.label}</b><small>HP ${progress.hp}/${def.hp}</small></span>`;
+    campaignRosterEl.appendChild(item);
+  });
+
+  // Render Stage Tabs
+  if (stageTabs) {
+    stageTabs.innerHTML = "";
+    const stageNames = ["1. 묘지 외곽", "2. 오염된 경계", "3. 악마의 왕좌"];
+    for (let s = 0; s < 3; s++) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = `stage-tab-btn${s === viewStage ? " is-active" : ""}`;
+      btn.textContent = stageNames[s];
+      btn.disabled = s > currentStage && !campaign.finished;
+      btn.addEventListener("click", () => {
+        playSfx("ui");
+        campaign.viewStageIndex = s;
+        renderCampaignMap();
+      });
+      stageTabs.appendChild(btn);
+    }
+  }
+
+  // Render Vertical Route for viewStage
+  mapRoute.innerHTML = "";
+  const verticalContainer = document.createElement("div");
+  verticalContainer.className = "map-route-vertical";
+
+  const stageEncounters = (campaign.encounters || []).filter(e => e.stage === (viewStage + 1));
+  const themeLabels = {
+    undead: "언데드 부대",
+    corpse: "시체 부대",
+    beast: "야수 부대",
+    plague: "역병 부대",
+    ice: "서리 부대",
+    summon: "소환 부대",
+    demon: "악마 부대"
+  };
+
+  stageEncounters.forEach((enc) => {
+    const globalIdx = (enc.stage - 1) * 10 + (enc.battle - 1);
+    const isCompleted = globalIdx < campaign.battleIndex || enc.cleared;
+    const isAvailable = !campaign.finished && globalIdx === campaign.battleIndex;
+
+    const card = document.createElement("button");
+    card.type = "button";
+    let cardClass = `map-node-card${isCompleted ? " is-completed" : ""}${isAvailable ? " is-available" : ""}`;
+    if (enc.boss) cardClass += " is-boss";
+    card.className = cardClass;
+    card.disabled = !isAvailable;
+
+    const previewUnit = UNIT_TYPES[enc.enemies[0]] || UNIT_TYPES.spear;
+    const badgeText = enc.boss ? "보스" : (enc.isPacing ? "완급조절" : `전투 ${enc.battle}`);
+    const badgeColor = enc.boss ? "#d32f2f" : "#111";
+
+    card.innerHTML = `
+      <div class="node-card-left">
+        <span class="node-card-title">${isCompleted ? "✓ 완료" : (enc.boss ? "🔥 " + previewUnit.label + " 보스전" : previewUnit.label + " 부대")}</span>
+        <span class="node-card-sub">${themeLabels[enc.theme] || enc.theme} · 적 ${enc.enemyCount}마리</span>
+      </div>
+      <span class="node-card-badge" style="border-color: ${badgeColor}; color: ${badgeColor};">${badgeText}</span>
+    `;
+
+    if (isAvailable) {
+      card.addEventListener("click", () => enterGeneratedCampaignBattle(globalIdx));
+    }
+    verticalContainer.appendChild(card);
+  });
+
+  mapRoute.appendChild(verticalContainer);
+}
+
+function renderLegacyCampaignMap() {
+  if (stageBadge) stageBadge.textContent = "구버전 원정";
   mapProgress.textContent = campaign.finished
     ? "최종 전투를 돌파했습니다. 원정 완료!"
     : `${campaign.depth + 1}/5 구역 · 불이 켜진 전투를 선택하세요.`;
@@ -2940,6 +3097,35 @@ function renderCampaignMap() {
     if (available) button.addEventListener("click", () => enterCampaignBattle(node.id));
     mapRoute.appendChild(button);
   });
+}
+
+function enterGeneratedCampaignBattle(bIdx) {
+  const enc = campaign.encounters[bIdx];
+  if (!enc) return;
+
+  playSfx("ui");
+  enc.attempts = (enc.attempts || 0) + 1;
+  campaign.currentNodeId = enc.id;
+  campaign.battleIndex = bIdx;
+  campaign.stageIndex = Math.floor(bIdx / 10);
+  campaign.viewStageIndex = campaign.stageIndex;
+
+  campaign.checkpoint = {
+    battleIndex: bIdx,
+    stageIndex: campaign.stageIndex,
+    roster: [...campaign.roster],
+    unitProgress: JSON.parse(JSON.stringify(campaign.unitProgress)),
+    availableTotems: [...campaign.availableTotems]
+  };
+
+  autoSaveCampaign();
+
+  state.reserves.enemy = [...enc.enemies];
+  state.reserves.player = [...SETUP_RESERVE_TYPES];
+
+  resetBoardState();
+  state.phase = "setup";
+  render();
 }
 
 function render() {
@@ -3081,7 +3267,14 @@ function handleResetBtnClick() {
 continueCampaignBtn.addEventListener("click", () => {
   const save = loadCampaignSave();
   if (save) {
-    campaign.depth = save.depth;
+    campaign.version = save.version;
+    campaign.generatorVersion = save.generatorVersion || 1;
+    campaign.runSeed = save.runSeed || 0;
+    campaign.stageIndex = save.stageIndex || 0;
+    campaign.battleIndex = save.battleIndex || 0;
+    campaign.viewStageIndex = campaign.stageIndex || 0;
+    campaign.encounters = save.encounters || [];
+    campaign.depth = save.depth || 0;
     campaign.roster = save.roster;
     campaign.unitProgress = save.unitProgress;
     campaign.completed = save.completed;
@@ -3089,8 +3282,9 @@ continueCampaignBtn.addEventListener("click", () => {
     campaign.finished = save.finished;
     campaign.availableTotems = save.availableTotems;
     campaign.rewardState = save.rewardState;
+    campaign.checkpoint = save.checkpoint || null;
     campaign.transitioning = false;
-    
+
     if (campaign.rewardState) {
       restoreRewardScreen();
     } else {

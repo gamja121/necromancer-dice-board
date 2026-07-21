@@ -2711,3 +2711,138 @@ dialog::backdrop {
   height: 52px;
   padding: 0 24px;
 }
+
+/* 3스테이지 모바일 맵 & 탭 스타일 */
+.header-tag-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stage-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 2px solid #111;
+  border-radius: 4px;
+  background: #ffed4a;
+  color: #111;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.stage-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.stage-tab-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: 2px solid #111;
+  border-radius: 6px;
+  background: #f0f0f0;
+  color: #555;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.stage-tab-btn.is-active {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+
+.stage-tab-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 세로 10노드 스테이지 맵 */
+.map-route-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: #fafafa;
+  border: 2px solid #111;
+  border-radius: 8px;
+  margin-top: 12px;
+}
+
+.map-node-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border: 2px solid #111;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.map-node-card:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.15);
+}
+
+.map-node-card.is-completed {
+  background: #e6f4ea;
+  border-color: #278d49;
+  color: #1b5e20;
+}
+
+.map-node-card.is-available {
+  border-color: #111;
+  background: #fff;
+  box-shadow: 4px 4px 0 #111;
+}
+
+.map-node-card.is-boss {
+  border-width: 3px;
+  background: #fff0f0;
+  border-color: #d32f2f;
+}
+
+.map-node-card.is-boss.is-available {
+  box-shadow: 4px 4px 0 #d32f2f;
+}
+
+.map-node-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f5f5f5;
+  box-shadow: none;
+}
+
+.node-card-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.node-card-title {
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.node-card-sub {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.node-card-badge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border: 1px solid #111;
+  border-radius: 4px;
+}
+
