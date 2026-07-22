@@ -572,6 +572,31 @@ h2 {
   grid-template-columns: 1fr;
   gap: 4px;
   padding: 5px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.setup-book .reserve-card.is-dragging {
+  opacity: .58;
+  transform: scale(.94) rotate(0deg);
+  cursor: grabbing;
+}
+
+.setup-confirm-btn {
+  width: 100%;
+  min-height: 42px;
+  border: 3px solid #111;
+  border-radius: 6px;
+  background: #111;
+  color: #fff;
+  font: inherit;
+  font-weight: 900;
+}
+
+.cell.is-setup-drop {
+  outline: 3px dashed #17844b;
+  outline-offset: -6px;
+  background: #effff5;
 }
 
 .setup-book .reserve-card:nth-child(odd) {

@@ -120,6 +120,7 @@ const state = {
   selectedReserve: null,
   selectedUnitId: null,
   inspectedUnitId: null,
+  inspectedReserveType: null,
   inspectedCorpseId: null,
   inspectedLegionOwner: null,
   selectedTotem: null,
@@ -924,7 +925,7 @@ function movementDeltas(unit) {
   return [];
 }
 
-function attackDeltas(unit) {
+function baseAttackDeltas(unit) {
   const forward = PLAYERS[unit.owner].dir;
   if (unit.type === "summoner") {
     return [
@@ -1021,6 +1022,12 @@ function attackDeltas(unit) {
   if (unit.type === "abyssHarpy") return [[forward, 0], [forward * 2, 0]];
   if (unit.type === "forestFairy") return [[forward, 0], [forward * 2, 0], [forward, -1], [forward, 1]];
   return [];
+}
+
+function attackDeltas(unit) {
+  if (unit.type === "guardianSeed") return [];
+  const deltas = [...baseAttackDeltas(unit), [0, -1], [0, 1]];
+  return [...new Map(deltas.map((delta) => [delta.join(":"), delta])).values()];
 }
 
 function legalMoves(unit) {
@@ -1421,6 +1428,7 @@ function startCampaignBattle(nodeId) {
   state.deployedTypes = [];
   state.selectedReserve = null;
   state.selectedUnitId = null;
+  state.inspectedReserveType = null;
   state.inspectedUnitId = null;
   state.inspectedCorpseId = null;
   state.inspectedLegionOwner = null;
@@ -1462,19 +1470,22 @@ function setupCompleteFor(owner) {
 
 function advanceSetupIfNeeded() {
   if (state.phase !== "setup") return;
-  if (state.turn === "player" && setupCompleteFor("player")) {
-    state.turn = "enemy";
-    state.selectedReserve = null;
-    addLog("상대 배치 차례입니다.");
-    render();
-    window.setTimeout(autoEnemySetup, 450);
-  }
   if (state.turn === "enemy" && setupCompleteFor("enemy")) {
     state.phase = "battle";
     state.turn = "player";
     state.selectedReserve = null;
     addLog("전투 시작. 플레이어 턴입니다.");
   }
+}
+
+function confirmPlayerSetup() {
+  if (state.phase !== "setup" || state.turn !== "player" || !setupCompleteFor("player")) return;
+  state.turn = "enemy";
+  state.selectedReserve = null;
+  state.inspectedReserveType = null;
+  addLog("배치 완료. 상대 배치 차례입니다.");
+  render();
+  window.setTimeout(autoEnemySetup, 450);
 }
 
 function autoEnemySetup() {
@@ -1593,35 +1604,17 @@ async function attackTarget(attacker, target) {
   }
   state.lastDice = `${UNIT_TYPES[attacker.type].label}: ${rolledDamage}${demonDouble ? ` → ${damage} (악마 군단)` : ""}${undeadBonus ? " (언데드 군단)" : ""}${plaguePoison ? " (중독)" : ""}${iceFreeze ? " (빙결)" : ""}`;
 
-  const attackCells = attacker.type === "knight"
-    ? attackDeltas(attacker)
-      .map(([dr, dc]) => ({ row: attacker.row + dr, col: attacker.col + dc }))
-      .filter(({ row, col }) => isInside(row, col))
-    : [{ row: target.row, col: target.col }];
-  const targets = attacker.type === "knight"
-    ? attackCells
-      .map((cell) => unitAt(cell.row, cell.col))
-      .filter((unit) => unit && unit.owner !== attacker.owner)
-    : [target];
+  const attackCells = [{ row: target.row, col: target.col }];
+  const targets = [target];
 
   await playAttackEffect(attacker, targets, damage, attackCells);
 
-  if (attacker.type === "knight") {
-    targets.forEach((hit) => {
-      hit.hp -= damage;
-    });
-    applyPoison(attacker, targets);
-    applyFreeze(attacker, targets);
-    addLog(`죽음의 기사 전방 범위 공격 ${damage}. ${targets.length}명에게 피해.${demonDouble ? " 악마 군단 2배 발동." : ""}`);
-    targets.filter((hit) => hit.hp <= 0).forEach(killUnit);
-  } else {
-    target.hp -= damage;
-    applyPoison(attacker, [target]);
-    applyFreeze(attacker, [target]);
-    addLog(`${UNIT_TYPES[attacker.type].label} 공격 주사위 ${rolledDamage}. ${UNIT_TYPES[target.type].label}에게 ${damage} 피해.${demonDouble ? " 악마 군단 2배 발동." : ""}`);
-    if (target.hp <= 0) {
-      killUnit(target);
-    }
+  target.hp -= damage;
+  applyPoison(attacker, [target]);
+  applyFreeze(attacker, [target]);
+  addLog(`${UNIT_TYPES[attacker.type].label} 공격 주사위 ${rolledDamage}. ${UNIT_TYPES[target.type].label}에게 ${damage} 피해.${demonDouble ? " 악마 군단 2배 발동." : ""}`);
+  if (target.hp <= 0) {
+    killUnit(target);
   }
   await resolveBeastCounters(attacker, targets);
   if (await maybeBeginSpiderSummon(attacker, rolledDamage)) {
@@ -1686,7 +1679,6 @@ async function resolveBeastCounters(attacker, targets) {
 }
 
 async function maybeBeginSpiderSummon(attacker, damage) {
-  if (attacker.owner !== "player") return false;
   if (damage !== 0 || attacker.type !== "spiderQueen") return false;
   if (!state.units.includes(attacker) || state.winner) return false;
   if (spiderlingCount(attacker.owner) >= 1) {
@@ -1727,7 +1719,6 @@ function placeSpiderSummon(row, col) {
 }
 
 async function maybeBeginGoblinSummon(attacker, damage) {
-  if (attacker.owner !== "player") return false;
   if (damage !== 0 || attacker.type !== "goblinChief") return false;
   if (!state.units.includes(attacker) || state.winner) return false;
   if (goblinCommonerCount(attacker.owner) >= 1) {
@@ -1768,7 +1759,6 @@ function placeGoblinSummon(row, col) {
 }
 
 async function maybeBeginUndeadSummon(attacker, damage) {
-  if (attacker.owner !== "player") return false;
   if (damage !== 0 || attacker.type !== "skeletonSummoner") return false;
   if (!state.units.includes(attacker) || state.winner) return false;
   const cells = homeEmptyCells(attacker.owner);
@@ -1807,7 +1797,6 @@ function placeUndeadSummon(row, col) {
 }
 
 async function maybeBeginSeedSummon(attacker, damage) {
-  if (attacker.owner !== "player") return false;
   if (damage !== 0 || attacker.type !== "crystalDevourer") return false;
   if (!state.units.includes(attacker) || state.winner) return false;
   if (guardianSeedCount(attacker.owner) >= 1) {
@@ -2011,6 +2000,15 @@ function finishUnitAction(unit) {
   if (state.winner) return;
   if (isGoalCell(unit)) {
     if (unit.owner === "enemy") {
+      if (isNormalUnit(unit) && unit.respawns < 3) {
+        const cells = homeEmptyCells("enemy");
+        if (cells.length) {
+          beginRespawnPlacement(unit);
+          const picked = cells[Math.floor(Math.random() * cells.length)];
+          window.setTimeout(() => placeRespawn(picked.row, picked.col), 400);
+          return;
+        }
+      }
       endTurn();
       return;
     }
@@ -2470,18 +2468,20 @@ function applyRespawnGrowth(unit) {
   unit.respawns = Math.min(3, unit.respawns + 1);
   unit.retreat = unit.respawns;
   unit.hp = unit.maxHp;
-  const progress = campaignProgressFor(unit.type);
-  progress.hp = unit.baseMaxHp;
-  progress.maxHp = unit.baseMaxHp;
-  progress.dice = [...unit.dice];
-  progress.respawns = unit.respawns;
-  progress.retreat = unit.retreat;
-  autoSaveCampaign();
+  if (unit.owner === "player") {
+    const progress = campaignProgressFor(unit.type);
+    progress.hp = unit.baseMaxHp;
+    progress.maxHp = unit.baseMaxHp;
+    progress.dice = [...unit.dice];
+    progress.respawns = unit.respawns;
+    progress.retreat = unit.retreat;
+    autoSaveCampaign();
+  }
   return result;
 }
 
 function beginRespawnPlacement(unit) {
-  if (unit.owner !== "player" || !isNormalUnit(unit) || unit.respawns >= 3) {
+  if (!isNormalUnit(unit) || unit.respawns >= 3) {
     endTurn();
     return;
   }
@@ -2619,6 +2619,7 @@ async function handleCellClick(row, col) {
   const corpse = corpseAt(row, col);
   if (unit) {
     state.inspectedUnitId = unit.id;
+    state.inspectedReserveType = null;
     state.inspectedCorpseId = null;
     state.inspectedLegionOwner = null;
     render();
@@ -2679,11 +2680,28 @@ async function handleCellClick(row, col) {
 
 function handleSetupCell(row, col) {
   if (!state.selectedReserve) return;
-  if (setupCompleteFor(state.turn)) return;
-  if (!isHomeCell(state.turn, row) || !isEmptyCell(row, col)) return;
+  if (!isHomeCell(state.turn, row) || isTotemCell(row, col) || corpseAt(row, col)) return;
   if (state.turn === "player" && row === 4 && col === 2) return;
   if (state.turn === "enemy" && row === 0 && col === 2) return;
+  const existing = unitAt(row, col);
+  const canReplace = Boolean(
+    existing
+    && existing.owner === state.turn
+    && existing.type !== "summoner"
+    && !existing.summonedNoCorpse
+    && UNIT_TYPES[existing.type]?.grade !== "special"
+  );
+  if (existing && !canReplace) return;
+  if (!existing && !isEmptyCell(row, col)) return;
+  if (!existing && setupCompleteFor(state.turn)) return;
+
   const type = state.selectedReserve;
+  if (existing) {
+    state.board[row][col] = null;
+    state.units = state.units.filter((unit) => unit.id !== existing.id);
+    if (!state.reserves[state.turn].includes(existing.type)) state.reserves[state.turn].push(existing.type);
+    state.deployedTypes = state.deployedTypes.filter((deployedType) => deployedType !== existing.type);
+  }
   if (state.turn === "player") {
     createCampaignUnit(type, state.turn, row, col);
     if (!state.deployedTypes.includes(type)) state.deployedTypes.push(type);
@@ -2693,7 +2711,8 @@ function handleSetupCell(row, col) {
   const rIdx = state.reserves[state.turn].indexOf(type);
   if (rIdx !== -1) state.reserves[state.turn].splice(rIdx, 1);
   state.selectedReserve = null;
-  addLog(`${ownerLabel(state.turn)} ${UNIT_TYPES[type].label} 배치.`);
+  state.inspectedReserveType = null;
+  addLog(`${ownerLabel(state.turn)} ${UNIT_TYPES[type].label} ${existing ? `${UNIT_TYPES[existing.type].label}과 교체` : "배치"}.`);
   advanceSetupIfNeeded();
   render();
 }
@@ -2728,6 +2747,8 @@ function renderBoard() {
       cell.type = "button";
       cell.className = `cell ${zoneClass(row)}`;
       cell.setAttribute("aria-label", `${row + 1}행 ${col + 1}열`);
+      cell.setAttribute("data-row", String(row));
+      cell.setAttribute("data-col", String(col));
       if (isTotemCell(row, col)) {
         cell.classList.add("is-totem-cell");
         cell.setAttribute("aria-label", state.selectedTotem ? TOTEMS[state.selectedTotem].label : "토템 자리");
@@ -2767,6 +2788,22 @@ function renderBoard() {
       }
       const unit = unitAt(row, col);
       const corpse = corpseAt(row, col);
+      const replaceableSetupUnit = unit
+        && unit.owner === "player"
+        && unit.type !== "summoner"
+        && !unit.summonedNoCorpse
+        && UNIT_TYPES[unit.type]?.grade !== "special";
+      if (
+        state.phase === "setup"
+        && state.turn === "player"
+        && state.selectedReserve
+        && isHomeCell("player", row)
+        && !isTotemCell(row, col)
+        && (replaceableSetupUnit || (!unit && !setupCompleteFor("player")))
+        && !corpse
+      ) {
+        cell.classList.add("is-setup-drop");
+      }
       const visualEffects = visualsByCell.get(cellKey(row, col)) || [];
       if (visualEffects.some((effect) => effect.kind === "summon")) cell.classList.add("is-summoning");
       if (visualEffects.some((effect) => effect.kind === "corpseFail")) cell.classList.add("is-corpse-fail");
@@ -2801,6 +2838,17 @@ function renderBoard() {
         cell.appendChild(damage);
       }
       cell.addEventListener("click", () => handleCellClick(row, col));
+      cell.addEventListener("dragover", (event) => {
+        if (state.phase !== "setup" || state.turn !== "player") return;
+        event.preventDefault();
+      });
+      cell.addEventListener("drop", (event) => {
+        event.preventDefault();
+        const type = event.dataTransfer?.getData("text/unit-type") || state.selectedReserve;
+        if (!type || !state.reserves.player.includes(type)) return;
+        state.selectedReserve = type;
+        handleSetupCell(row, col);
+      });
       boardEl.appendChild(cell);
     }
   }
@@ -2858,7 +2906,7 @@ function renderReserve() {
   reserveEl.innerHTML = "";
   setupBookEl.innerHTML = "";
   const isPlayerSetup = state.phase === "setup" && state.turn === "player";
-  const units = isPlayerSetup && !setupCompleteFor("player") ? state.reserves[state.turn] : [];
+  const units = isPlayerSetup ? state.reserves.player : [];
   actionPanel.hidden = state.phase === "setup";
   setupBookEl.classList.toggle("is-hidden", !isPlayerSetup);
   diceBox.hidden = isPlayerSetup;
@@ -2900,29 +2948,90 @@ function renderReserve() {
   unitShelf.className = "setup-unit-shelf";
   if (!units.length) {
     const empty = document.createElement("p");
-    empty.textContent = "배치 완료. 전투를 준비합니다.";
+    empty.textContent = setupCompleteFor("player") ? "배치된 유닛을 확인하세요." : "대기 중인 유닛이 없습니다.";
     unitShelf.appendChild(empty);
-    setupBookEl.appendChild(unitShelf);
-    return;
   }
   units.forEach((type) => {
     const def = UNIT_TYPES[type];
+    const progress = campaignProgressFor(type);
     const card = document.createElement("button");
     card.type = "button";
     card.className = "reserve-card";
+    card.draggable = true;
     if (state.selectedReserve === type) card.classList.add("is-selected");
     card.innerHTML = `
       <img src="${def.image}" alt="${def.label}">
-      <span><strong>${def.label}</strong><span>HP ${def.hp} · 주사위 ${def.dice.map(dicePips).join(" ")}</span></span>
+      <span><strong>${def.label}</strong><span>HP ${progress.hp}/${progress.maxHp} · 주사위 ${progress.dice.map(dicePips).join(" ")}</span></span>
     `;
     card.addEventListener("click", () => {
       playSfx("ui");
       state.selectedReserve = type;
+      state.inspectedReserveType = type;
+      state.inspectedUnitId = null;
+      state.inspectedCorpseId = null;
+      state.inspectedLegionOwner = null;
       render();
+    });
+    card.addEventListener("dragstart", (event) => {
+      state.selectedReserve = type;
+      state.inspectedReserveType = type;
+      card.classList.add("is-dragging");
+      event.dataTransfer?.setData("text/unit-type", type);
+      if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
+    });
+    card.addEventListener("dragend", () => card.classList.remove("is-dragging"));
+
+    let pointerStart = null;
+    let pointerDragging = false;
+    card.addEventListener("pointerdown", (event) => {
+      if (event.pointerType === "mouse") return;
+      pointerStart = { x: event.clientX, y: event.clientY };
+      pointerDragging = false;
+      state.selectedReserve = type;
+      state.inspectedReserveType = type;
+      card.setPointerCapture?.(event.pointerId);
+    });
+    card.addEventListener("pointermove", (event) => {
+      if (!pointerStart || event.pointerType === "mouse") return;
+      if (Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y) < 8) return;
+      pointerDragging = true;
+      card.classList.add("is-dragging");
+      event.preventDefault();
+    });
+    card.addEventListener("pointerup", (event) => {
+      if (!pointerStart || !pointerDragging || event.pointerType === "mouse") {
+        pointerStart = null;
+        return;
+      }
+      const target = document.elementFromPoint?.(event.clientX, event.clientY);
+      const cell = target?.closest?.(".cell");
+      card.classList.remove("is-dragging");
+      card.releasePointerCapture?.(event.pointerId);
+      pointerStart = null;
+      pointerDragging = false;
+      if (!cell) return;
+      const row = Number(cell.getAttribute("data-row"));
+      const col = Number(cell.getAttribute("data-col"));
+      if (Number.isInteger(row) && Number.isInteger(col)) handleSetupCell(row, col);
+    });
+    card.addEventListener("pointercancel", (event) => {
+      card.classList.remove("is-dragging");
+      card.releasePointerCapture?.(event.pointerId);
+      pointerStart = null;
+      pointerDragging = false;
     });
     unitShelf.appendChild(card);
   });
   setupBookEl.appendChild(unitShelf);
+
+  if (setupCompleteFor("player")) {
+    const confirmButton = document.createElement("button");
+    confirmButton.type = "button";
+    confirmButton.className = "setup-confirm-btn";
+    confirmButton.textContent = "배치 완료 · 전투 시작";
+    confirmButton.addEventListener("click", confirmPlayerSetup);
+    setupBookEl.appendChild(confirmButton);
+  }
 }
 
 function renderLog() {
@@ -2973,7 +3082,7 @@ function describeMovement(unit) {
   return "-";
 }
 
-function describeAttack(unit) {
+function baseDescribeAttack(unit) {
   if (unit.type === "guardianSeed") return "공격 불가 · 지형 차단";
   if (unit.type === "crystalDevourer") return "전방 3칸, 좌우 1칸";
   if (["ragingTreant", "troll"].includes(unit.type)) return "정면과 좌우 1칸";
@@ -3004,13 +3113,19 @@ function describeAttack(unit) {
   if (unit.type === "summoner") return "인접 1칸";
   if (unit.type === "spear") return "정면 1칸";
   if (unit.type === "archer") return "전방 1~2칸, 앞대각, 좌우 2칸";
-  if (unit.type === "knight") return "전방 3칸 스플래시";
+  if (unit.type === "knight") return "전방 3칸 중 선택한 1개";
   if (unit.type === "worm") return "정면 1~2칸";
   if (unit.type === "golem") return "상하좌우 1칸";
   if (unit.type === "ghoul") return "전방 3칸";
   if (unit.type === "ogre") return "근접 6칸";
   if (unit.type === "plague") return "전방 1~2줄 범위";
   return "-";
+}
+
+function describeAttack(unit) {
+  const description = baseDescribeAttack(unit);
+  if (unit.type === "guardianSeed" || description.includes("좌우")) return description;
+  return `${description} · 좌우 1칸`;
 }
 
 function patternCells(unit, kind) {
@@ -3149,7 +3264,23 @@ function renderUnitInfo() {
     renderLegionInfo(state.inspectedLegionOwner);
     return;
   }
-  const unit = inspectedUnit();
+  const inspectedBoardUnit = inspectedUnit();
+  const reserveType = state.phase === "setup" ? state.inspectedReserveType : null;
+  const reserveProgress = reserveType ? campaignProgressFor(reserveType) : null;
+  const unit = inspectedBoardUnit || (reserveType ? {
+    id: `reserve-${reserveType}`,
+    type: reserveType,
+    owner: "player",
+    hp: reserveProgress.hp,
+    baseMaxHp: reserveProgress.maxHp,
+    maxHp: reserveProgress.maxHp,
+    dice: [...reserveProgress.dice],
+    respawns: reserveProgress.respawns,
+    retreat: reserveProgress.retreat,
+    poisoned: false,
+    frozen: false,
+    summonedNoCorpse: false,
+  } : null);
   const corpse = inspectedCorpse();
   if (corpse) {
     const source = UNIT_TYPES[corpse.sourceType];
@@ -3168,6 +3299,7 @@ function renderUnitInfo() {
   }
   if (!unit) {
     state.inspectedUnitId = null;
+    state.inspectedReserveType = null;
     state.inspectedCorpseId = null;
     unitInfoEl.innerHTML = "";
     unitInfoEl.classList.add("is-hidden");
@@ -3220,8 +3352,9 @@ function renderUnitInfo() {
 }
 
 function closeInfoPopup() {
-  if (!state.inspectedUnitId && !state.inspectedCorpseId && !state.inspectedLegionOwner) return;
+  if (!state.inspectedUnitId && !state.inspectedReserveType && !state.inspectedCorpseId && !state.inspectedLegionOwner) return;
   state.inspectedUnitId = null;
+  state.inspectedReserveType = null;
   state.inspectedCorpseId = null;
   state.inspectedLegionOwner = null;
   render();
@@ -3323,6 +3456,12 @@ function renderCampaignMap() {
   });
 
   mapRoute.appendChild(verticalContainer);
+  window.setTimeout(() => {
+    verticalContainer.querySelector?.(".map-node-card.is-available")?.scrollIntoView?.({
+      behavior: "smooth",
+      block: "center",
+    });
+  }, 0);
 }
 
 function renderLegacyCampaignMap() {
@@ -3407,6 +3546,7 @@ function setupBattleBoardState(encounter) {
   state.deployedTypes = [];
   state.selectedReserve = null;
   state.selectedUnitId = null;
+  state.inspectedReserveType = null;
   state.inspectedUnitId = null;
   state.inspectedCorpseId = null;
   state.inspectedLegionOwner = null;
@@ -3549,6 +3689,7 @@ rewardContinueBtn.addEventListener("click", () => {
 });
 playerLegionCard.addEventListener("click", () => {
   state.inspectedLegionOwner = "player";
+  state.inspectedReserveType = null;
   state.inspectedUnitId = null;
   state.inspectedCorpseId = null;
   render();
@@ -3557,12 +3698,13 @@ playerLegionCard.addEventListener("keydown", (event) => {
   if (event.key !== "Enter" && event.key !== " ") return;
   event.preventDefault();
   state.inspectedLegionOwner = "player";
+  state.inspectedReserveType = null;
   state.inspectedUnitId = null;
   state.inspectedCorpseId = null;
   render();
 });
 document.addEventListener("click", (event) => {
-  if (event.target.closest(".cell") || event.target.closest("#unitInfo") || event.target.closest(".status-card")) return;
+  if (event.target.closest(".cell") || event.target.closest("#unitInfo") || event.target.closest(".status-card") || event.target.closest(".reserve-card") || event.target.closest(".totem-option")) return;
   closeInfoPopup();
 });
 
