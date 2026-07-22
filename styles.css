@@ -66,7 +66,7 @@ button:disabled {
   grid-column: 1 / -1;
   min-height: calc(100vh - 40px);
   display: grid;
-  grid-template-rows: auto auto minmax(560px, 1fr);
+  grid-template-rows: auto auto auto minmax(560px, 1fr);
   gap: 12px;
   padding: 18px;
   border: 3px solid #111;
@@ -144,7 +144,11 @@ button:disabled {
 .map-route {
   position: relative;
   min-height: 560px;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   border: 3px solid #111;
   border-radius: 6px;
   background-color: #fff;
@@ -2259,7 +2263,7 @@ dialog::backdrop {
     grid-column: 1;
     min-height: 0;
     height: calc(100dvh - 12px);
-    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-rows: auto auto auto minmax(0, 1fr);
     gap: 6px;
     padding: 7px;
     border-width: 2px;
@@ -2312,6 +2316,8 @@ dialog::backdrop {
   .map-route {
     min-height: 0;
     height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
     border-width: 2px;
     background-size: cover;
   }
@@ -2931,4 +2937,28 @@ dialog::backdrop {
   padding: 4px 8px;
   border: 1px solid #111;
   border-radius: 4px;
+}
+
+@media (max-width: 640px) {
+  .stage-tabs {
+    gap: 4px;
+    margin-bottom: 0;
+  }
+
+  .stage-tab-btn {
+    min-height: 34px;
+    padding: 4px 3px;
+    font-size: 0.68rem;
+  }
+
+  .map-route-vertical {
+    gap: 8px;
+    margin-top: 0;
+    padding: 8px;
+  }
+
+  .map-node-card {
+    min-height: 58px;
+    padding: 8px 9px;
+  }
 }
