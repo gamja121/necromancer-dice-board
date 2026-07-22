@@ -109,6 +109,8 @@ sandbox.initGameApp();
 const loadedV1 = sandbox.loadCampaignSave();
 assert.ok(loadedV1 !== null, 'V1 세이브가 무사히 로드되어야 함');
 assert.strictEqual(loadedV1.version, 1, '버전 1이어야 함');
+assert.strictEqual(loadedV1.unitProgress.spear.maxHp, sandbox.UNIT_TYPES.spear.hp, '구버전 진행도에 최대 체력 기본값이 보강되어야 함');
+assert.strictEqual(loadedV1.unitProgress.spear.respawns, 0, '구버전 진행도에 재소환 횟수 기본값이 보강되어야 함');
 console.log('Pass: V1 레거시 세이브 로드 성공.');
 
 console.log('\n=== 2. V2 생성형 세이브 저장 및 복원 검증 ===');
@@ -265,5 +267,70 @@ assert.strictEqual(legionSnapshot.mantisAttacks, 3, '지옥 사마귀 공격 범
 assert.strictEqual(legionSnapshot.krakenMoves, 8, '크라켄 이동 범위 검증');
 assert.strictEqual(legionSnapshot.krakenAttacks, 16, '크라켄 공격 범위 검증');
 console.log('Pass: 벌레 주사위 강화, 식물 HP, 원소 면역, 신규 이동·공격 범위 검증 성공.');
+
+console.log('\n=== 9. 생존 승계, 자동 회복, 재소환 영구 성장 검증 ===');
+const progressionSnapshot = vm.runInContext(`(() => {
+  campaign.roster = ['spear', 'archer'];
+  campaign.unitProgress = {
+    spear: defaultCampaignProgress('spear'),
+    archer: defaultCampaignProgress('archer')
+  };
+  state.board = makeBoard();
+  state.units = [];
+  state.nextId = 1;
+  state.deployedTypes = ['spear', 'archer'];
+  const survivor = createCampaignUnit('spear', 'player', 3, 2);
+  survivor.hp = 1;
+  saveBattleProgress([]);
+  const survivorResult = {
+    roster: [...campaign.roster],
+    hp: campaign.unitProgress.spear.hp,
+    maxHp: campaign.unitProgress.spear.maxHp,
+    archerProgressExists: Boolean(campaign.unitProgress.archer)
+  };
+
+  state.board = makeBoard();
+  state.units = [];
+  state.nextId = 1;
+  const growingUnit = createCampaignUnit('spear', 'player', 2, 2);
+  const originalRandom = Math.random;
+  Math.random = () => 0;
+  const growthText = applyRespawnGrowth(growingUnit);
+  Math.random = originalRandom;
+  const backwardMoveExists = legalMoves(growingUnit).some((cell) => cell.row === 3 && cell.col === 2);
+
+  return {
+    survivorResult,
+    growthText,
+    maxHp: growingUnit.baseMaxHp,
+    respawns: growingUnit.respawns,
+    retreat: growingUnit.retreat,
+    backwardMoveExists,
+    savedRespawns: campaign.unitProgress.spear.respawns,
+    savedMaxHp: campaign.unitProgress.spear.maxHp
+  };
+})()`, sandbox);
+assert.deepStrictEqual(Array.from(progressionSnapshot.survivorResult.roster), ['spear'], '전투에서 죽은 배치 유닛은 원정대에서 제거되어야 함');
+assert.strictEqual(progressionSnapshot.survivorResult.hp, progressionSnapshot.survivorResult.maxHp, '생존 유닛은 전투 종료 후 완전히 회복되어야 함');
+assert.strictEqual(progressionSnapshot.survivorResult.archerProgressExists, false, '전사 유닛 진행도는 삭제되어야 함');
+assert.strictEqual(progressionSnapshot.growthText, '최대 체력 +1', '재소환 성장은 고정 난수에서 최대 체력을 올려야 함');
+assert.strictEqual(progressionSnapshot.respawns, 1, '재소환 횟수가 영구 진행도에 기록되어야 함');
+assert.strictEqual(progressionSnapshot.retreat, 1, '첫 재소환 후 후퇴 범위가 1칸이어야 함');
+assert.strictEqual(progressionSnapshot.backwardMoveExists, true, '후퇴 이동 칸이 실제 이동 범위에 포함되어야 함');
+assert.strictEqual(progressionSnapshot.savedRespawns, 1, '재소환 횟수가 캠페인 세이브 진행도에 저장되어야 함');
+assert.strictEqual(progressionSnapshot.savedMaxHp, sandbox.UNIT_TYPES.spear.hp + 1, '영구 최대 체력 상승이 저장되어야 함');
+console.log('Pass: 전사자 제거, 생존자 자동 회복, 영구 성장 및 후퇴 범위 검증 성공.');
+
+console.log('\n=== 10. 상대 소환 차단 검증 ===');
+assert.strictEqual(sandbox.runEnemyTurn.toString().includes('tryCorpseSummon'), false, '상대 AI는 시체 소환을 시도하지 않아야 함');
+[
+  sandbox.maybeBeginSpiderSummon,
+  sandbox.maybeBeginGoblinSummon,
+  sandbox.maybeBeginUndeadSummon,
+  sandbox.maybeBeginSeedSummon
+].forEach((summonHandler) => {
+  assert.ok(summonHandler.toString().includes('attacker.owner !== "player"'), '특수 소환은 플레이어 소유 유닛에만 허용되어야 함');
+});
+console.log('Pass: 상대 시체 소환 및 특수 소환 차단 검증 성공.');
 
 console.log('\n✅ 모든 세이브 무결성 및 복원 회귀 테스트 통과!');

@@ -245,20 +245,23 @@ function nextUnitId(type, owner) {
 
 function createUnit(type, owner, row, col, diceOverride = null, options = {}) {
   const def = UNIT_TYPES[type];
+  const baseMaxHp = options.baseMaxHp ?? def.hp;
   const unit = {
     id: nextUnitId(type, owner),
     type,
     owner,
     row,
     col,
-    hp: def.hp,
-    baseMaxHp: def.hp,
-    maxHp: def.hp,
+    hp: baseMaxHp,
+    baseMaxHp,
+    maxHp: baseMaxHp,
     dice: diceOverride ? [...diceOverride] : [...def.dice],
     poisoned: false,
     frozen: false,
     summonedNoCorpse: Boolean(options.summonedNoCorpse),
     capturedForCampaign: Boolean(options.capturedForCampaign),
+    respawns: Number.isInteger(options.respawns) ? options.respawns : 0,
+    retreat: Number.isInteger(options.retreat) ? options.retreat : 0,
   };
   state.units.push(unit);
   state.board[row][col] = unit.id;
@@ -1022,7 +1025,15 @@ function attackDeltas(unit) {
 
 function legalMoves(unit) {
   if (unit.frozen) return [];
-  return movementDeltas(unit)
+  const deltas = [...movementDeltas(unit)];
+  if (isNormalUnit(unit) && unit.retreat > 0) {
+    const backward = -PLAYERS[unit.owner].dir;
+    for (let step = 1; step <= Math.min(3, unit.retreat); step += 1) {
+      deltas.push([backward * step, 0]);
+    }
+  }
+  const uniqueDeltas = [...new Map(deltas.map((delta) => [delta.join(":"), delta])).values()];
+  return uniqueDeltas
     .map(([dr, dc]) => ({ row: unit.row + dr, col: unit.col + dc }))
     .filter(({ row, col }) => {
       if (!isEmptyCell(row, col)) return false;
@@ -1110,10 +1121,39 @@ function isValidCampaignUnitType(type) {
 }
 
 function validateRoster(roster) {
-  if (!Array.isArray(roster) || roster.length === 0) return null;
+  if (!Array.isArray(roster)) return null;
   if (!roster.every(isValidCampaignUnitType)) return null;
   if (new Set(roster).size !== roster.length) return null;
   return [...roster];
+}
+
+function normalizeCampaignProgress(type, progress) {
+  const def = UNIT_TYPES[type];
+  const fallback = {
+    hp: def.hp,
+    maxHp: def.hp,
+    dice: [...def.dice],
+    respawns: 0,
+    retreat: 0,
+  };
+  if (!isPlainRecord(progress)) return fallback;
+
+  const isNormal = def.grade === "normal";
+  const maxHp = Number.isInteger(progress.maxHp) && progress.maxHp >= def.hp && progress.maxHp <= def.hp + 3
+    ? progress.maxHp
+    : def.hp;
+  const respawns = isNormal && Number.isInteger(progress.respawns) && progress.respawns >= 0 && progress.respawns <= 3
+    ? progress.respawns
+    : 0;
+  const retreat = isNormal && Number.isInteger(progress.retreat) && progress.retreat >= 0 && progress.retreat <= 3
+    ? progress.retreat
+    : respawns;
+  const hp = Number.isInteger(progress.hp) && progress.hp >= 1 && progress.hp <= maxHp
+    ? progress.hp
+    : maxHp;
+  const dice = validateDice(progress.dice, type) ? [...progress.dice] : [...def.dice];
+
+  return { hp, maxHp, dice, respawns, retreat };
 }
 
 function validateTotemList(totems) {
@@ -1128,12 +1168,12 @@ function validateRewardState(rewardState) {
   if (!isPlainRecord(rewardState)) return false;
   if (!Array.isArray(rewardState.survivors) || !Array.isArray(rewardState.capturedTypes)) return false;
   if (typeof rewardState.resultText !== "string" || typeof rewardState.applied !== "boolean") return false;
-  if (![null, "heal", "dice", "totem"].includes(rewardState.chosenKey)) return false;
+  if (![null, "recover", "heal", "dice", "totem"].includes(rewardState.chosenKey)) return false;
   if ((rewardState.chosenKey === null) !== (rewardState.applied === false)) return false;
 
   const survivorsValid = rewardState.survivors.every((unit) => {
     if (!isPlainRecord(unit) || !isValidCampaignUnitType(unit.type)) return false;
-    if (!Number.isInteger(unit.maxHp) || unit.maxHp < UNIT_TYPES[unit.type].hp || unit.maxHp > UNIT_TYPES[unit.type].hp + 3) return false;
+    if (!Number.isInteger(unit.maxHp) || unit.maxHp < UNIT_TYPES[unit.type].hp || unit.maxHp > UNIT_TYPES[unit.type].hp + 4) return false;
     return Number.isInteger(unit.hp) && unit.hp >= 0 && unit.hp <= unit.maxHp;
   });
   if (!survivorsValid || !rewardState.capturedTypes.every(isValidCampaignUnitType)) return false;
@@ -1157,8 +1197,8 @@ function validateCheckpoint(checkpoint, battleIndex, stageIndex) {
   for (const type of checkpointRoster) {
     const progress = checkpoint.unitProgress[type];
     if (!isPlainRecord(progress)) return false;
-    if (!Number.isInteger(progress.hp) || progress.hp < 1 || progress.hp > UNIT_TYPES[type].hp) return false;
-    if (!validateDice(progress.dice, type)) return false;
+    const normalized = normalizeCampaignProgress(type, progress);
+    checkpoint.unitProgress[type] = normalized;
   }
   return JSON.parse(JSON.stringify(checkpoint));
 }
@@ -1183,15 +1223,7 @@ function loadLegacyCampaignSave(data) {
     const progress = (data.unitProgress || {})[type];
     const defaultProg = defaultCampaignProgress(type);
     if (typeof progress === "object" && progress !== null) {
-      let validatedHp = progress.hp;
-      if (typeof validatedHp !== "number" || !Number.isInteger(validatedHp) || validatedHp < 1 || validatedHp > UNIT_TYPES[type].hp) {
-        validatedHp = defaultProg.hp;
-      }
-      let validatedDice = progress.dice;
-      if (!validateDice(validatedDice, type)) {
-        validatedDice = [...defaultProg.dice];
-      }
-      validatedProgress[type] = { hp: validatedHp, dice: validatedDice };
+      validatedProgress[type] = normalizeCampaignProgress(type, progress);
     } else {
       validatedProgress[type] = defaultProg;
     }
@@ -1263,15 +1295,7 @@ function loadCampaignSave() {
       const progress = (data.unitProgress || {})[type];
       const defaultProg = defaultCampaignProgress(type);
       if (typeof progress === "object" && progress !== null) {
-        let validatedHp = progress.hp;
-        if (typeof validatedHp !== "number" || !Number.isInteger(validatedHp) || validatedHp < 1 || validatedHp > UNIT_TYPES[type].hp) {
-          validatedHp = defaultProg.hp;
-        }
-        let validatedDice = progress.dice;
-        if (!validateDice(validatedDice, type)) {
-          validatedDice = [...defaultProg.dice];
-        }
-        validatedProgress[type] = { hp: validatedHp, dice: validatedDice };
+      validatedProgress[type] = normalizeCampaignProgress(type, progress);
       } else {
         validatedProgress[type] = defaultProg;
       }
@@ -1301,17 +1325,22 @@ function loadCampaignSave() {
 
 function defaultCampaignProgress(type) {
   const def = UNIT_TYPES[type];
-  return { hp: def.hp, dice: [...def.dice] };
+  return { hp: def.hp, maxHp: def.hp, dice: [...def.dice], respawns: 0, retreat: 0 };
 }
 
 function campaignProgressFor(type) {
   if (!campaign.unitProgress[type]) campaign.unitProgress[type] = defaultCampaignProgress(type);
+  campaign.unitProgress[type] = normalizeCampaignProgress(type, campaign.unitProgress[type]);
   return campaign.unitProgress[type];
 }
 
 function createCampaignUnit(type, owner, row, col) {
   const progress = campaignProgressFor(type);
-  const unit = createUnit(type, owner, row, col, progress.dice);
+  const unit = createUnit(type, owner, row, col, progress.dice, {
+    baseMaxHp: progress.maxHp,
+    respawns: progress.respawns,
+    retreat: progress.retreat,
+  });
   unit.hp = Math.max(1, Math.min(unit.maxHp, progress.hp));
   return unit;
 }
@@ -1657,6 +1686,7 @@ async function resolveBeastCounters(attacker, targets) {
 }
 
 async function maybeBeginSpiderSummon(attacker, damage) {
+  if (attacker.owner !== "player") return false;
   if (damage !== 0 || attacker.type !== "spiderQueen") return false;
   if (!state.units.includes(attacker) || state.winner) return false;
   if (spiderlingCount(attacker.owner) >= 1) {
@@ -1697,6 +1727,7 @@ function placeSpiderSummon(row, col) {
 }
 
 async function maybeBeginGoblinSummon(attacker, damage) {
+  if (attacker.owner !== "player") return false;
   if (damage !== 0 || attacker.type !== "goblinChief") return false;
   if (!state.units.includes(attacker) || state.winner) return false;
   if (goblinCommonerCount(attacker.owner) >= 1) {
@@ -1737,6 +1768,7 @@ function placeGoblinSummon(row, col) {
 }
 
 async function maybeBeginUndeadSummon(attacker, damage) {
+  if (attacker.owner !== "player") return false;
   if (damage !== 0 || attacker.type !== "skeletonSummoner") return false;
   if (!state.units.includes(attacker) || state.winner) return false;
   const cells = homeEmptyCells(attacker.owner);
@@ -1775,6 +1807,7 @@ function placeUndeadSummon(row, col) {
 }
 
 async function maybeBeginSeedSummon(attacker, damage) {
+  if (attacker.owner !== "player") return false;
   if (damage !== 0 || attacker.type !== "crystalDevourer") return false;
   if (!state.units.includes(attacker) || state.winner) return false;
   if (guardianSeedCount(attacker.owner) >= 1) {
@@ -1978,20 +2011,11 @@ function finishUnitAction(unit) {
   if (state.winner) return;
   if (isGoalCell(unit)) {
     if (unit.owner === "enemy") {
-      if (Math.random() < 0.7) {
-        beginRespawnPlacement(unit);
-        const cells = [];
-        homeRows("enemy").forEach((row) => {
-          for (let col = 0; col < BOARD_SIZE; col += 1) {
-            if (isEmptyCell(row, col)) cells.push({ row, col });
-          }
-        });
-        if (cells.length) {
-          const picked = cells[Math.floor(Math.random() * cells.length)];
-          window.setTimeout(() => placeRespawn(picked.row, picked.col), 400);
-          return;
-        }
-      }
+      endTurn();
+      return;
+    }
+    if (!isNormalUnit(unit) || unit.respawns >= 3) {
+      addLog(`${UNIT_TYPES[unit.type].label} 재소환 한도에 도달했습니다.`);
       endTurn();
       return;
     }
@@ -2073,32 +2097,54 @@ function survivingCapturedTypes() {
 }
 
 function saveBattleProgress(capturedTypes) {
+  const persistentSurvivors = state.units.filter((unit) => (
+    unit.owner === "player"
+    && unit.type !== "summoner"
+    && !unit.summonedNoCorpse
+    && UNIT_TYPES[unit.type]?.grade !== "special"
+  ));
+  const survivingTypes = new Set(persistentSurvivors.map((unit) => unit.type));
+
   state.deployedTypes.forEach((type) => {
-    const survivor = state.units.find((unit) => unit.owner === "player" && unit.type === type && !unit.summonedNoCorpse);
-    const progress = campaignProgressFor(type);
-    if (survivor) {
-      progress.hp = Math.max(1, Math.min(UNIT_TYPES[type].hp, survivor.hp));
-      progress.dice = [...survivor.dice];
-    } else {
-      progress.hp = 1;
-    }
+    if (survivingTypes.has(type)) return;
+    campaign.roster = campaign.roster.filter((rosterType) => rosterType !== type);
+    delete campaign.unitProgress[type];
   });
+
+  persistentSurvivors.forEach((survivor) => {
+    if (!campaign.roster.includes(survivor.type)) campaign.roster.push(survivor.type);
+    campaign.unitProgress[survivor.type] = {
+      hp: survivor.baseMaxHp,
+      maxHp: survivor.baseMaxHp,
+      dice: [...survivor.dice],
+      respawns: isNormalUnit(survivor) ? Math.min(3, survivor.respawns || 0) : 0,
+      retreat: isNormalUnit(survivor) ? Math.min(3, survivor.retreat || 0) : 0,
+    };
+  });
+
   capturedTypes.forEach((type) => {
     const survivor = state.units.find((unit) => unit.owner === "player" && unit.type === type && unit.capturedForCampaign);
+    if (!survivor) return;
     if (!campaign.roster.includes(type)) campaign.roster.push(type);
-    campaign.unitProgress[type] = survivor
-      ? { hp: Math.max(1, Math.min(UNIT_TYPES[type].hp, survivor.hp)), dice: [...survivor.dice] }
-      : defaultCampaignProgress(type);
+    campaign.unitProgress[type] = {
+      hp: survivor.baseMaxHp,
+      maxHp: survivor.baseMaxHp,
+      dice: [...survivor.dice],
+      respawns: isNormalUnit(survivor) ? Math.min(3, survivor.respawns || 0) : 0,
+      retreat: isNormalUnit(survivor) ? Math.min(3, survivor.retreat || 0) : 0,
+    };
   });
+
+  healCampaignRoster();
 }
 
 function healCampaignRoster() {
   let healed = 0;
   campaign.roster.forEach((type) => {
     const progress = campaignProgressFor(type);
-    const gain = Math.max(0, UNIT_TYPES[type].hp - progress.hp);
+    const gain = Math.max(0, progress.maxHp - progress.hp);
     healed += gain;
-    progress.hp = UNIT_TYPES[type].hp;
+    progress.hp = progress.maxHp;
   });
   return healed;
 }
@@ -2126,6 +2172,11 @@ function unlockCampaignTotem() {
 }
 
 function applyCampaignReward(key) {
+  if (key === "recover") {
+    healCampaignRoster();
+    playSfx("magic");
+    return "생존한 원정대의 체력이 모두 회복되었습니다.";
+  }
   if (key === "heal") {
     const healed = healCampaignRoster();
     playSfx("magic");
@@ -2134,8 +2185,7 @@ function applyCampaignReward(key) {
   if (key === "dice") {
     const upgraded = upgradeCampaignDie();
     if (!upgraded) {
-      const healed = healCampaignRoster();
-      return `강화 가능한 주사위가 없어 원정대를 대신 ${healed} 회복했습니다.`;
+      return "강화 가능한 공격 주사위 면이 없습니다.";
     }
     playSfx("diceLand");
     return `${UNIT_TYPES[upgraded.type].label}의 공격 주사위 ${upgraded.value}이 ${upgraded.value + 1}로 강화됐습니다.`;
@@ -2184,18 +2234,16 @@ function getRewardConfig() {
   let optionsList = [];
   if (isBoss) {
     optionsList = [
-      { key: "heal", mark: "+", title: "군단 치료", detail: "모든 보유 유닛 체력 회복" },
       { key: "dice", mark: "D", title: "주사위 강화", detail: "무작위 공격 주사위 눈 +1 강화" },
       { key: "totem", mark: "T", title: "토템 잠금해제", detail: "무작위 패시브 토템 하나 획득" }
     ];
   } else if (isMid) {
     optionsList = [
-      { key: "heal", mark: "+", title: "군단 치료", detail: "모든 보유 유닛 체력 회복" },
       { key: "dice", mark: "D", title: "주사위 강화", detail: "무작위 공격 주사위 눈 +1 강화" }
     ];
   } else {
     optionsList = [
-      { key: "heal", mark: "+", title: "군단 소폭 치료", detail: "보유 유닛 체력 정비" }
+      { key: "recover", mark: "+", title: "전투 후 회복", detail: "생존 유닛 체력 완전 회복" }
     ];
   }
 
@@ -2206,13 +2254,13 @@ function showVictoryRewardScreen(capturedTypes) {
   saveBattleProgress(capturedTypes);
   battleScreen.classList.add("is-victorious");
   const survivors = state.units.filter((unit) => unit.owner === "player" && unit.type !== "summoner" && !unit.summonedNoCorpse);
+  const survivorSnapshots = survivors.map((unit) => {
+    const progress = campaignProgressFor(unit.type);
+    return { type: unit.type, hp: progress.hp, maxHp: progress.maxHp };
+  });
   
   campaign.rewardState = {
-    survivors: survivors.map((unit) => ({
-      type: unit.type,
-      hp: Math.max(0, unit.hp),
-      maxHp: unit.maxHp,
-    })),
+    survivors: survivorSnapshots,
     capturedTypes: [...capturedTypes],
     chosenKey: null,
     resultText: "",
@@ -2222,8 +2270,8 @@ function showVictoryRewardScreen(capturedTypes) {
   const cfg = getRewardConfig();
 
   rewardSubtitle.textContent = cfg.subtitle;
-  rewardSurvivors.innerHTML = `<strong>생존 유닛</strong><div>${survivors.length ? survivors.map((unit) => `
-    <span><img src="${UNIT_TYPES[unit.type].image}" alt=""><b>${UNIT_TYPES[unit.type].label}</b><small>HP ${Math.max(0, unit.hp)}/${unit.maxHp}</small></span>
+  rewardSurvivors.innerHTML = `<strong>생존 유닛</strong><div>${survivorSnapshots.length ? survivorSnapshots.map((unit) => `
+    <span><img src="${UNIT_TYPES[unit.type].image}" alt=""><b>${UNIT_TYPES[unit.type].label}</b><small>HP ${unit.hp}/${unit.maxHp}</small></span>
   `).join("") : "<em>생존 유닛 없음</em>"}</div>`;
   rewardCaptures.innerHTML = capturedTypes.length
     ? `<strong>소환 포획</strong><p>${capturedTypes.map((type) => UNIT_TYPES[type].label).join(", ")}</p>`
@@ -2233,9 +2281,8 @@ function showVictoryRewardScreen(capturedTypes) {
   rewardContinueBtn.textContent = cfg.btnText;
 
   if (!cfg.isBoss && !cfg.isMid && cfg.isV2) {
-    // Normal battle: auto-apply small heal and show continue directly
-    const result = applyCampaignReward("heal");
-    campaign.rewardState.chosenKey = "heal";
+    const result = applyCampaignReward("recover");
+    campaign.rewardState.chosenKey = "recover";
     campaign.rewardState.resultText = result;
     campaign.rewardState.applied = true;
     autoSaveCampaign();
@@ -2343,9 +2390,6 @@ function restoreRewardScreen() {
 
 function completeCampaignBattle() {
   stopBattleMusic();
-  survivingCapturedTypes().forEach((type) => {
-    if (!campaign.roster.includes(type)) campaign.roster.push(type);
-  });
   if (campaign.version === 1) {
     if (campaign.currentNodeId && !campaign.completed.includes(campaign.currentNodeId)) {
       campaign.completed.push(campaign.currentNodeId);
@@ -2393,34 +2437,61 @@ function completeCampaignBattle() {
 
 function showRespawnDialog(unit) {
   showDialog(
-    "전선을 돌파했습니다",
-    `${UNIT_TYPES[unit.type].label}이 적 끝줄에 도착했습니다. 본진으로 재소환하고 체력 회복, 공격 주사위 1면 +1 강화를 받을까요?`,
+    "적진 돌파",
+    `${UNIT_TYPES[unit.type].label}을 재소환할까요? 최대 체력 또는 공격 주사위 한 면이 무작위로 +1 증가하고, 후퇴 범위가 ${unit.respawns + 1}칸으로 늘어납니다. (${unit.respawns}/3회 사용)`,
     [
       { label: "재소환", onClick: () => beginRespawnPlacement(unit) },
-      { label: "그대로 둠", onClick: () => endTurn() },
+      { label: "그대로 두기", onClick: () => endTurn() },
     ],
   );
 }
 
-function upgradeAttackDie(unit) {
+function applyRespawnGrowth(unit) {
+  const def = UNIT_TYPES[unit.type];
   const candidates = unit.dice
     .map((value, index) => ({ value, index }))
     .filter((face) => face.value > 0 && face.value < 3);
-  if (!candidates.length) return null;
-  const picked = candidates[Math.floor(Math.random() * candidates.length)];
-  unit.dice[picked.index] += 1;
-  return picked.index;
+  const growthKinds = [];
+  if (unit.baseMaxHp < def.hp + 3) growthKinds.push("hp");
+  if (candidates.length) growthKinds.push("dice");
+  const growthKind = growthKinds.length ? growthKinds[Math.floor(Math.random() * growthKinds.length)] : null;
+  let result = "더 강화할 수 있는 능력치가 없습니다.";
+
+  if (growthKind === "hp") {
+    unit.baseMaxHp += 1;
+    unit.maxHp += 1;
+    result = "최대 체력 +1";
+  } else if (growthKind === "dice") {
+    const picked = candidates[Math.floor(Math.random() * candidates.length)];
+    unit.dice[picked.index] += 1;
+    result = `주사위 ${picked.index + 1}번 면 +1`;
+  }
+
+  unit.respawns = Math.min(3, unit.respawns + 1);
+  unit.retreat = unit.respawns;
+  unit.hp = unit.maxHp;
+  const progress = campaignProgressFor(unit.type);
+  progress.hp = unit.baseMaxHp;
+  progress.maxHp = unit.baseMaxHp;
+  progress.dice = [...unit.dice];
+  progress.respawns = unit.respawns;
+  progress.retreat = unit.retreat;
+  autoSaveCampaign();
+  return result;
 }
 
 function beginRespawnPlacement(unit) {
-  const index = upgradeAttackDie(unit);
-  unit.hp = unit.maxHp;
+  if (unit.owner !== "player" || !isNormalUnit(unit) || unit.respawns >= 3) {
+    endTurn();
+    return;
+  }
+  const growth = applyRespawnGrowth(unit);
   state.board[unit.row][unit.col] = null;
   unit.row = null;
   unit.col = null;
   state.pendingRespawnUnitId = unit.id;
   state.mode = "respawn";
-  addLog(`${UNIT_TYPES[unit.type].label} 재소환 준비. ${index === null ? "강화 가능한 주사위 면이 없습니다." : `주사위 ${index + 1}번 면이 +1 강화되었습니다.`}`);
+  addLog(`${UNIT_TYPES[unit.type].label} 재소환 준비. ${growth}, 후퇴 ${unit.retreat}칸. (${unit.respawns}/3회)`);
   render();
 }
 
@@ -2503,30 +2574,6 @@ function placeCorpseSummon(row, col) {
 
 async function runEnemyTurn() {
   if (state.phase !== "battle" || state.turn !== "enemy" || state.winner || state.isRolling) return;
-
-  const corpse = state.corpses.find((item) => !unitAt(item.row, item.col));
-  if (corpse && Math.random() < 0.45) {
-    await tryCorpseSummon(corpse);
-    if (state.mode === "summonPlace" && state.pendingSummon?.owner === "enemy") {
-      const cells = [];
-      homeRows("enemy").forEach((row) => {
-        for (let col = 0; col < BOARD_SIZE; col += 1) {
-          if (isEmptyCell(row, col)) cells.push({ row, col });
-        }
-      });
-      if (cells.length) {
-        const picked = cells[Math.floor(Math.random() * cells.length)];
-        await wait(350);
-        placeCorpseSummon(picked.row, picked.col);
-        return;
-      }
-      state.pendingSummon = null;
-      state.mode = "move";
-      endTurn();
-      return;
-    }
-    return;
-  }
 
   const enemyUnits = state.units.filter((unit) => unit.owner === "enemy");
   const attackers = enemyUnits
@@ -2967,7 +3014,13 @@ function describeAttack(unit) {
 }
 
 function patternCells(unit, kind) {
-  const deltas = kind === "move" ? movementDeltas(unit) : attackDeltas(unit);
+  const deltas = kind === "move" ? [...movementDeltas(unit)] : attackDeltas(unit);
+  if (kind === "move" && isNormalUnit(unit) && unit.retreat > 0) {
+    const backward = -PLAYERS[unit.owner].dir;
+    for (let step = 1; step <= Math.min(3, unit.retreat); step += 1) {
+      deltas.push([backward * step, 0]);
+    }
+  }
   const center = 2;
   return deltas
     .map(([dr, dc]) => ({ row: center + dr, col: center + dc }))
@@ -3029,7 +3082,7 @@ function renderLegionInfo(owner) {
 function effectiveDiceMarkup(unit) {
   const effective = effectiveAttackDice(unit);
   return effective.map((value, index) => {
-    const base = unit.dice[index];
+    const base = UNIT_TYPES[unit.type].dice[index];
     const bonus = value - base;
     return bonus > 0
       ? `<span class="stat-boost" title="${base} → ${value}">${value}<small>+${bonus}</small></span>`
@@ -3040,6 +3093,14 @@ function effectiveDiceMarkup(unit) {
 function appliedUnitEffects(unit) {
   const def = UNIT_TYPES[unit.type];
   const effects = [];
+  const permanentHpBonus = Math.max(0, (unit.baseMaxHp ?? def.hp) - def.hp);
+  if (permanentHpBonus > 0) {
+    effects.push({ source: "영구 성장", detail: `최대 체력 +${permanentHpBonus}` });
+  }
+  const permanentDiceBonus = unit.dice.reduce((sum, value, index) => sum + Math.max(0, value - def.dice[index]), 0);
+  if (permanentDiceBonus > 0) {
+    effects.push({ source: "영구 성장", detail: `공격 주사위 합계 +${permanentDiceBonus}` });
+  }
   if (isLegionActive(unit.owner, "skeleton") && def.grade !== "hero") {
     effects.push({ source: "언데드", detail: "공격 주사위 0 한 면 → 1" });
   }
@@ -3127,8 +3188,7 @@ function renderUnitInfo() {
       .map((legion) => `${legionNames[legion]} ${legionCount(unit.owner, legion)}/${legionTargets[legion]}${isLegionActive(unit.owner, legion) ? " 활성" : ""}`)
       .join(" / ")
     : "없음";
-  const baseMaxHp = unit.baseMaxHp ?? def.hp;
-  const maxHpBonus = Math.max(0, unit.maxHp - baseMaxHp);
+  const maxHpBonus = Math.max(0, unit.maxHp - def.hp);
   const counter = counterChance(unit);
   const effects = appliedUnitEffects(unit);
   unitInfoEl.innerHTML = `
@@ -3137,6 +3197,7 @@ function renderUnitInfo() {
       <dl>
         <div><dt>군단</dt><dd>${legionLabel}</dd></div>
         <div><dt>체력</dt><dd>${unit.hp} / ${maxHpBonus > 0 ? `<span class="stat-boost">${unit.maxHp}<small>+${maxHpBonus}</small></span>` : unit.maxHp}</dd></div>
+        ${isNormalUnit(unit) ? `<div><dt>재소환</dt><dd>${unit.respawns}/3 · 후퇴 ${unit.retreat}칸</dd></div>` : ""}
         ${unit.poisoned ? "<div><dt>상태</dt><dd>중독</dd></div>" : ""}
         ${unit.frozen ? "<div><dt>상태</dt><dd>빙결</dd></div>" : ""}
         <div><dt>공격</dt><dd>${describeAttack(unit)}</dd></div>
