@@ -2805,6 +2805,11 @@ dialog::backdrop {
   padding: 0 24px;
 }
 
+#installAppBtn {
+  background: #111;
+  color: #fff;
+}
+
 /* 3스테이지 모바일 맵 & 탭 스타일 */
 .header-tag-row {
   display: flex;
@@ -2906,6 +2911,44 @@ dialog::backdrop {
 
 .map-node-card.is-boss.is-available {
   box-shadow: 4px 4px 0 #d32f2f;
+}
+
+.map-node-card.is-elite {
+  border-color: #7a3db8;
+  background: #f7f0ff;
+}
+
+.map-node-card.is-elite.is-available {
+  box-shadow: 4px 4px 0 #7a3db8;
+}
+
+.map-interlude-card {
+  border-style: dashed;
+}
+
+.map-interlude-card.is-rest {
+  border-color: #278d49;
+  background: #effaf1;
+}
+
+.map-interlude-card.is-forge {
+  border-color: #a45f00;
+  background: #fff6df;
+}
+
+.map-interlude-card.is-event {
+  border-color: #087f8c;
+  background: #eafcff;
+}
+
+.map-interlude-card.is-available {
+  box-shadow: 4px 4px 0 #111;
+}
+
+.map-interlude-card.is-completed {
+  border-style: solid;
+  border-color: #278d49;
+  background: #e6f4ea;
 }
 
 .map-node-card:disabled {

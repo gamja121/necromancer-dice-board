@@ -34,6 +34,17 @@ const MAP_EDGES = [
   ["plague", "gate"], ["grave", "gate"],
   ["gate", "throne"],
 ];
+const INTERLUDE_SPECS = [
+  { id: "rest-1", stage: 1, triggerBattleIndex: 3, type: "rest", label: "망자의 야영지", subtitle: "원정대 한 마리를 단련합니다." },
+  { id: "forge-1", stage: 1, triggerBattleIndex: 6, type: "forge", label: "버려진 대장간", subtitle: "체력이나 공격 주사위를 강화합니다." },
+  { id: "event-1", stage: 1, triggerBattleIndex: 8, type: "event", label: "수상한 묘비", subtitle: "예측할 수 없는 전리품이 기다립니다." },
+  { id: "rest-2", stage: 2, triggerBattleIndex: 13, type: "rest", label: "얼어붙은 야영지", subtitle: "원정대 한 마리를 단련합니다." },
+  { id: "forge-2", stage: 2, triggerBattleIndex: 16, type: "forge", label: "서리 대장간", subtitle: "체력이나 공격 주사위를 강화합니다." },
+  { id: "event-2", stage: 2, triggerBattleIndex: 18, type: "event", label: "봉인된 무덤", subtitle: "예측할 수 없는 전리품이 기다립니다." },
+  { id: "rest-3", stage: 3, triggerBattleIndex: 23, type: "rest", label: "악마의 휴식처", subtitle: "원정대 한 마리를 단련합니다." },
+  { id: "forge-3", stage: 3, triggerBattleIndex: 26, type: "forge", label: "지옥불 대장간", subtitle: "체력이나 공격 주사위를 강화합니다." },
+  { id: "event-3", stage: 3, triggerBattleIndex: 28, type: "event", label: "심연의 제단", subtitle: "예측할 수 없는 전리품이 기다립니다." },
+];
 const campaign = {
   version: 2,
   generatorVersion: 1,
@@ -52,6 +63,7 @@ const campaign = {
   transitioning: false,
   rewardState: null,
   checkpoint: null,
+  resolvedInterludes: [],
 };
 let audioContext = null;
 const AUDIO_SETTINGS_KEY = "necromancer-audio-settings-v1";
@@ -159,6 +171,7 @@ const mapScreen = document.getElementById("mapScreen");
 const startScreen = document.getElementById("startScreen");
 const continueCampaignBtn = document.getElementById("continueCampaignBtn");
 const startCampaignBtn = document.getElementById("startCampaignBtn");
+const installAppBtn = document.getElementById("installAppBtn");
 const stageBadge = document.getElementById("stageBadge");
 const stageTabs = document.getElementById("stageTabs");
 const mapRoute = document.getElementById("mapRoute");
@@ -1081,7 +1094,8 @@ function autoSaveCampaign() {
       finished: campaign.finished,
       availableTotems: campaign.availableTotems,
       rewardState: campaign.rewardState,
-      checkpoint: campaign.checkpoint
+      checkpoint: campaign.checkpoint,
+      resolvedInterludes: campaign.resolvedInterludes || []
     };
     localStorage.setItem(CAMPAIGN_SAVE_KEY, JSON.stringify(saveData));
   } catch (e) {
@@ -1170,12 +1184,21 @@ function validateTotemList(totems) {
   return [...totems];
 }
 
+function validateResolvedInterludes(resolved) {
+  if (resolved === undefined || resolved === null) return [];
+  if (!Array.isArray(resolved)) return null;
+  const validIds = new Set(INTERLUDE_SPECS.map((spec) => spec.id));
+  if (!resolved.every((id) => validIds.has(id))) return null;
+  if (new Set(resolved).size !== resolved.length) return null;
+  return [...resolved];
+}
+
 function validateRewardState(rewardState) {
   if (rewardState === null || rewardState === undefined) return null;
   if (!isPlainRecord(rewardState)) return false;
   if (!Array.isArray(rewardState.survivors) || !Array.isArray(rewardState.capturedTypes)) return false;
   if (typeof rewardState.resultText !== "string" || typeof rewardState.applied !== "boolean") return false;
-  if (![null, "recover", "heal", "dice", "totem"].includes(rewardState.chosenKey)) return false;
+  if (![null, "recover", "heal", "dice", "vitality", "totem"].includes(rewardState.chosenKey)) return false;
   if ((rewardState.chosenKey === null) !== (rewardState.applied === false)) return false;
 
   const survivorsValid = rewardState.survivors.every((unit) => {
@@ -1283,6 +1306,8 @@ function loadCampaignSave() {
 
     const validatedTotems = validateTotemList(data.availableTotems);
     if (!validatedTotems) return null;
+    const validatedInterludes = validateResolvedInterludes(data.resolvedInterludes);
+    if (!validatedInterludes) return null;
 
     if (!Array.isArray(data.completed)) return null;
     const encounterIds = new Set(data.encounters.map((encounter) => encounter.id));
@@ -1322,7 +1347,8 @@ function loadCampaignSave() {
       finished: data.finished,
       availableTotems: validatedTotems,
       rewardState: validatedRewardState,
-      checkpoint: validatedCheckpoint
+      checkpoint: validatedCheckpoint,
+      resolvedInterludes: validatedInterludes
     };
   } catch (e) {
     console.error("Failed to load/parse campaign save:", e);
@@ -1380,6 +1406,7 @@ function resetCampaign() {
   campaign.transitioning = false;
   campaign.rewardState = null;
   campaign.checkpoint = null;
+  campaign.resolvedInterludes = [];
 
   state.phase = "map";
   state.winner = null;
@@ -2161,6 +2188,33 @@ function upgradeCampaignDie() {
   return picked;
 }
 
+function increaseCampaignMaxHp() {
+  const candidates = campaign.roster
+    .map((type) => ({ type, progress: campaignProgressFor(type), def: UNIT_TYPES[type] }))
+    .filter(({ progress, def }) => progress.maxHp < def.hp + 3);
+  if (!candidates.length) return null;
+  const picked = candidates[Math.floor(Math.random() * candidates.length)];
+  picked.progress.maxHp += 1;
+  picked.progress.hp = picked.progress.maxHp;
+  return picked.type;
+}
+
+function recruitRandomCampaignUnit() {
+  const candidates = Object.entries(UNIT_TYPES)
+    .filter(([type, def]) => (
+      type !== "summoner"
+      && !campaign.roster.includes(type)
+      && ["normal", "advanced"].includes(def.grade)
+      && def.grade !== "special"
+    ))
+    .map(([type]) => type);
+  if (!candidates.length) return null;
+  const type = candidates[Math.floor(Math.random() * candidates.length)];
+  campaign.roster.push(type);
+  campaign.unitProgress[type] = defaultCampaignProgress(type);
+  return type;
+}
+
 function unlockCampaignTotem() {
   const locked = Object.keys(TOTEMS).filter((key) => !campaign.availableTotems.includes(key));
   if (!locked.length) return null;
@@ -2188,6 +2242,12 @@ function applyCampaignReward(key) {
     playSfx("diceLand");
     return `${UNIT_TYPES[upgraded.type].label}의 공격 주사위 ${upgraded.value}이 ${upgraded.value + 1}로 강화됐습니다.`;
   }
+  if (key === "vitality") {
+    const type = increaseCampaignMaxHp();
+    if (!type) return "모든 원정대의 최대 체력 강화가 완성됐습니다.";
+    playSfx("magic");
+    return `${UNIT_TYPES[type].label}의 최대 체력이 1 증가했습니다.`;
+  }
   const totemKey = unlockCampaignTotem();
   if (!totemKey) {
     const upgraded = upgradeCampaignDie();
@@ -2206,6 +2266,7 @@ function getRewardConfig() {
 
   const isBoss = isV2 ? (battleNum % 10 === 0) : (campaign.depth >= 4);
   const isMid = isV2 ? (battleNum % 10 === 5) : false;
+  const isElite = isV2 ? (battleNum % 10 === 9) : false;
 
   let subtitle = "";
   let btnText = "지도로";
@@ -2217,6 +2278,9 @@ function getRewardConfig() {
     } else if (isBoss) {
       subtitle = `스테이지 ${stageNum} 보스 정복! 대형 전리품을 선택하세요.`;
       btnText = "다음 스테이지로";
+    } else if (isElite) {
+      subtitle = `스테이지 ${stageNum} 정예 부대 격파! 희귀 강화를 선택하세요.`;
+      btnText = "지도로";
     } else if (isMid) {
       subtitle = `스테이지 ${stageNum} 중간 탐험 완료 (${battleNum}/30전투). 보상을 선택하세요.`;
       btnText = "지도로";
@@ -2235,6 +2299,11 @@ function getRewardConfig() {
       { key: "dice", mark: "D", title: "주사위 강화", detail: "무작위 공격 주사위 눈 +1 강화" },
       { key: "totem", mark: "T", title: "토템 잠금해제", detail: "무작위 패시브 토템 하나 획득" }
     ];
+  } else if (isElite) {
+    optionsList = [
+      { key: "vitality", mark: "+", title: "생명력 강화", detail: "무작위 생존 유닛 최대 체력 +1" },
+      { key: "dice", mark: "D", title: "주사위 강화", detail: "무작위 공격 주사위 눈 +1 강화" }
+    ];
   } else if (isMid) {
     optionsList = [
       { key: "dice", mark: "D", title: "주사위 강화", detail: "무작위 공격 주사위 눈 +1 강화" }
@@ -2245,7 +2314,7 @@ function getRewardConfig() {
     ];
   }
 
-  return { isV2, battleNum, stageNum, isBoss, isMid, subtitle, btnText, optionsList };
+  return { isV2, battleNum, stageNum, isBoss, isMid, isElite, subtitle, btnText, optionsList };
 }
 
 function showVictoryRewardScreen(capturedTypes) {
@@ -2278,7 +2347,7 @@ function showVictoryRewardScreen(capturedTypes) {
   rewardResult.textContent = "";
   rewardContinueBtn.textContent = cfg.btnText;
 
-  if (!cfg.isBoss && !cfg.isMid && cfg.isV2) {
+  if (!cfg.isBoss && !cfg.isMid && !cfg.isElite && cfg.isV2) {
     const result = applyCampaignReward("recover");
     campaign.rewardState.chosenKey = "recover";
     campaign.rewardState.resultText = result;
@@ -2348,7 +2417,7 @@ function restoreRewardScreen() {
   rewardContinueBtn.hidden = !rs.chosenKey;
   rewardContinueBtn.textContent = cfg.btnText;
 
-  if (!cfg.isBoss && !cfg.isMid && cfg.isV2) {
+  if (!cfg.isBoss && !cfg.isMid && !cfg.isElite && cfg.isV2) {
     rewardOptions.innerHTML = "<p class='reward-auto-text'>일반 전투 승리 보상이 적용되었습니다.</p>";
   } else {
     rewardOptions.innerHTML = "";
@@ -2422,6 +2491,7 @@ function completeCampaignBattle() {
   campaign.currentNodeId = null;
   campaign.transitioning = false;
   campaign.rewardState = null;
+  campaign.resolvedInterludes = [];
   campaign.checkpoint = null;
   state.phase = "map";
   state.winner = null;
@@ -3360,6 +3430,94 @@ function closeInfoPopup() {
   render();
 }
 
+function pendingInterludeForBattleIndex(index = campaign.battleIndex) {
+  return INTERLUDE_SPECS.find((spec) => (
+    spec.triggerBattleIndex === index
+    && !campaign.resolvedInterludes.includes(spec.id)
+  )) || null;
+}
+
+function finishInterlude(spec, resultText) {
+  if (!campaign.resolvedInterludes.includes(spec.id)) {
+    campaign.resolvedInterludes.push(spec.id);
+  }
+  autoSaveCampaign();
+  render();
+  showDialog("탐험 결과", resultText, [
+    { label: "계속", onClick: () => render() },
+  ]);
+}
+
+function resolveInterlude(spec, choice) {
+  if (campaign.resolvedInterludes.includes(spec.id)) return;
+  let result = "";
+
+  if (choice === "vitality") {
+    const type = increaseCampaignMaxHp();
+    result = type
+      ? `${UNIT_TYPES[type].label}의 최대 체력이 1 증가했습니다.`
+      : "모든 원정대의 체력 단련이 이미 완성됐습니다.";
+    playSfx("magic");
+  } else if (choice === "dice") {
+    const upgraded = upgradeCampaignDie();
+    result = upgraded
+      ? `${UNIT_TYPES[upgraded.type].label}의 주사위 ${upgraded.value}이 ${upgraded.value + 1}로 강화됐습니다.`
+      : "강화 가능한 공격 주사위 면이 없습니다.";
+    playSfx("diceLand");
+  } else if (choice === "corpse") {
+    if (Math.random() < 0.6) {
+      const type = recruitRandomCampaignUnit();
+      result = type
+        ? `시체가 깨어났습니다. ${UNIT_TYPES[type].label}이 원정대에 합류했습니다.`
+        : "깨어날 수 있는 새로운 시체를 찾지 못했습니다.";
+      if (type) playSfx("summon");
+    } else {
+      result = "시체가 먼지로 무너졌습니다. 아무것도 얻지 못했습니다.";
+      playSfx("death");
+    }
+  } else if (choice === "totem") {
+    const key = unlockCampaignTotem();
+    if (key) {
+      result = `${TOTEMS[key].label}을 발견했습니다. 다음 전투부터 사용할 수 있습니다.`;
+      playSfx("summon");
+    } else {
+      const type = increaseCampaignMaxHp();
+      result = type
+        ? `모든 토템을 보유 중입니다. 대신 ${UNIT_TYPES[type].label}의 최대 체력이 1 증가했습니다.`
+        : "제단의 힘은 이미 모두 흡수했습니다.";
+      playSfx("magic");
+    }
+  } else {
+    result = "위험을 피하고 원정을 계속합니다.";
+    playSfx("ui");
+  }
+
+  finishInterlude(spec, result);
+}
+
+function openInterlude(spec) {
+  if (!spec || campaign.resolvedInterludes.includes(spec.id)) return;
+  if (spec.type === "rest") {
+    showDialog(spec.label, spec.subtitle, [
+      { label: "체력 단련", onClick: () => resolveInterlude(spec, "vitality") },
+      { label: "주사위 연습", onClick: () => resolveInterlude(spec, "dice") },
+    ]);
+    return;
+  }
+  if (spec.type === "forge") {
+    showDialog(spec.label, spec.subtitle, [
+      { label: "방어구 보강", onClick: () => resolveInterlude(spec, "vitality") },
+      { label: "무기 담금질", onClick: () => resolveInterlude(spec, "dice") },
+    ]);
+    return;
+  }
+  showDialog(spec.label, spec.subtitle, [
+    { label: "시체 조사", onClick: () => resolveInterlude(spec, "corpse") },
+    { label: "토템 흔적 추적", onClick: () => resolveInterlude(spec, "totem") },
+    { label: "지나간다", onClick: () => resolveInterlude(spec, "leave") },
+  ]);
+}
+
 function renderCampaignMap() {
   if (campaign.version === 1) {
     renderLegacyCampaignMap();
@@ -3367,6 +3525,7 @@ function renderCampaignMap() {
   }
 
   const currentStage = campaign.stageIndex;
+  const pendingInterlude = pendingInterludeForBattleIndex();
   if (typeof campaign.viewStageIndex !== "number") {
     campaign.viewStageIndex = currentStage;
   }
@@ -3378,7 +3537,9 @@ function renderCampaignMap() {
 
   mapProgress.textContent = campaign.finished
     ? "최종 30전투를 승리로 이끌었습니다! 원정을 완전 정복했습니다!"
-    : `전체 ${campaign.battleIndex + 1}/30전투 · 현재 스테이지의 노드를 터치하세요.`;
+    : pendingInterlude
+      ? `${pendingInterlude.label} · 탐험 선택을 완료하면 다음 전투가 열립니다.`
+      : `전체 ${campaign.battleIndex + 1}/30전투 · 현재 스테이지의 노드를 터치하세요.`;
 
   campaignRosterEl.innerHTML = `<strong>원정대 ${campaign.roster.length}</strong>`;
   campaign.roster.forEach((type) => {
@@ -3424,26 +3585,52 @@ function renderCampaignMap() {
     summon: "소환 부대",
     demon: "악마 부대"
   };
+  const interludeLabels = {
+    rest: { badge: "휴식", detail: "원정대 단련" },
+    forge: { badge: "강화", detail: "영구 능력치 강화" },
+    event: { badge: "이벤트", detail: "선택형 탐험" },
+  };
 
   stageEncounters.forEach((enc) => {
     const globalIdx = (enc.stage - 1) * 10 + (enc.battle - 1);
+    const interlude = INTERLUDE_SPECS.find((spec) => spec.triggerBattleIndex === globalIdx);
+    if (interlude) {
+      const resolved = campaign.resolvedInterludes.includes(interlude.id);
+      const available = !campaign.finished && campaign.battleIndex === interlude.triggerBattleIndex && !resolved;
+      const interludeCard = document.createElement("button");
+      interludeCard.type = "button";
+      interludeCard.className = `map-node-card map-interlude-card is-${interlude.type}${resolved ? " is-completed" : ""}${available ? " is-available" : ""}`;
+      interludeCard.disabled = !available;
+      interludeCard.innerHTML = `
+        <div class="node-card-left">
+          <span class="node-card-title">${resolved ? "완료 · " : ""}${interlude.label}</span>
+          <span class="node-card-sub">${interludeLabels[interlude.type].detail}</span>
+        </div>
+        <span class="node-card-badge">${interludeLabels[interlude.type].badge}</span>
+      `;
+      if (available) interludeCard.addEventListener("click", () => openInterlude(interlude));
+      verticalContainer.appendChild(interludeCard);
+    }
+
     const isCompleted = globalIdx < campaign.battleIndex || enc.cleared;
-    const isAvailable = !campaign.finished && globalIdx === campaign.battleIndex;
+    const isAvailable = !campaign.finished && !pendingInterlude && globalIdx === campaign.battleIndex;
+    const isElite = (globalIdx + 1) % 10 === 9;
 
     const card = document.createElement("button");
     card.type = "button";
     let cardClass = `map-node-card${isCompleted ? " is-completed" : ""}${isAvailable ? " is-available" : ""}`;
     if (enc.boss) cardClass += " is-boss";
+    if (isElite) cardClass += " is-elite";
     card.className = cardClass;
     card.disabled = !isAvailable;
 
     const previewUnit = UNIT_TYPES[enc.enemies[0]] || UNIT_TYPES.spear;
-    const badgeText = enc.boss ? "보스" : (enc.isPacing ? "완급조절" : `전투 ${enc.battle}`);
-    const badgeColor = enc.boss ? "#d32f2f" : "#111";
+    const badgeText = enc.boss ? "보스" : (isElite ? "정예" : (enc.isPacing ? "완급조절" : `전투 ${enc.battle}`));
+    const badgeColor = enc.boss ? "#d32f2f" : (isElite ? "#7a3db8" : "#111");
 
     card.innerHTML = `
       <div class="node-card-left">
-        <span class="node-card-title">${isCompleted ? "✓ 완료" : (enc.boss ? "🔥 " + previewUnit.label + " 보스전" : previewUnit.label + " 부대")}</span>
+        <span class="node-card-title">${isCompleted ? "완료" : (enc.boss ? previewUnit.label + " 보스전" : (isElite ? previewUnit.label + " 정예전" : previewUnit.label + " 부대"))}</span>
         <span class="node-card-sub">${themeLabels[enc.theme] || enc.theme} · 적 ${enc.enemyCount}마리</span>
       </div>
       <span class="node-card-badge" style="border-color: ${badgeColor}; color: ${badgeColor};">${badgeText}</span>
@@ -3584,7 +3771,7 @@ function setupBattleBoardState(encounter) {
 
 function enterGeneratedCampaignBattle(bIdx) {
   const enc = campaign.encounters[bIdx];
-  if (!enc) return;
+  if (!enc || pendingInterludeForBattleIndex(bIdx)) return;
 
   enc.attempts = (enc.attempts || 0) + 1;
   campaign.currentNodeId = enc.id;
@@ -3763,6 +3950,7 @@ continueCampaignBtn.addEventListener("click", () => {
     campaign.availableTotems = save.availableTotems;
     campaign.rewardState = save.rewardState;
     campaign.checkpoint = save.checkpoint || null;
+    campaign.resolvedInterludes = save.resolvedInterludes || [];
     campaign.transitioning = false;
 
     if (campaign.rewardState) {
@@ -3793,6 +3981,38 @@ startCampaignBtn.addEventListener("click", () => {
     render();
   }
 });
+
+let deferredInstallPrompt = null;
+const runningStandalone = window.matchMedia?.("(display-mode: standalone)")?.matches
+  || window.navigator?.standalone === true;
+installAppBtn.hidden = true;
+
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  if (!runningStandalone) installAppBtn.hidden = false;
+});
+
+installAppBtn.addEventListener("click", async () => {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  installAppBtn.hidden = true;
+});
+
+window.addEventListener("appinstalled", () => {
+  deferredInstallPrompt = null;
+  installAppBtn.hidden = true;
+});
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch((error) => {
+      console.error("Service worker registration failed:", error);
+    });
+  });
+}
 
 loadAudioSettings();
 syncAudioControls();

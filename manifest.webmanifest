@@ -1,0 +1,27 @@
+{
+  "name": "네크로멘서 십이장기: 망자의 원정",
+  "short_name": "망자의 원정",
+  "description": "주사위와 시체 소환으로 싸우는 모바일 전술 게임",
+  "id": "./",
+  "start_url": "./?mode=standalone",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "assets/app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
