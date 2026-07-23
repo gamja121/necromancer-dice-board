@@ -1989,12 +1989,14 @@ dialog::backdrop {
 }
 
 .reward-survivors,
+.reward-settlement,
 .reward-captures {
   padding: 10px 0;
   border-top: 1px solid rgba(215, 180, 106, .32);
 }
 
 .reward-survivors > strong,
+.reward-settlement > strong,
 .reward-captures > strong {
   display: block;
   margin-bottom: 7px;
@@ -2037,7 +2039,51 @@ dialog::backdrop {
 
 .reward-survivors b { font-size: 10px; }
 .reward-survivors small { color: #bcb4aa; font-size: 9px; }
-.reward-survivors em { color: #958d84; font-size: 12px; }
+.reward-survivors em {
+  color: #79d59a;
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.settlement-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.settlement-grid > span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  padding: 7px 8px;
+  border: 1px solid #514b45;
+  border-radius: 4px;
+  background: rgba(42, 39, 36, .75);
+}
+
+.settlement-grid b {
+  color: #f0d18c;
+  font-size: 10px;
+}
+
+.settlement-grid small {
+  color: #d4cdc3;
+  font-size: 10px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.settlement-grid .has-losses {
+  border-color: #8e4340;
+  background: rgba(86, 35, 34, .42);
+}
+
+.settlement-grid .has-losses b,
+.settlement-grid .has-losses small {
+  color: #f0a29c;
+}
 
 .reward-captures p {
   margin: 0;
@@ -2278,6 +2324,7 @@ dialog::backdrop {
   .reward-header::before,
   .reward-header::after { top: 31px; }
   .reward-survivors,
+  .reward-settlement,
   .reward-captures { padding: 7px 0; }
   .reward-survivors img { width: 50px; height: 38px; }
   .reward-survivors span { flex-basis: 64px; }

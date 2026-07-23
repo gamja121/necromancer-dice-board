@@ -208,6 +208,7 @@ const vibrationToggle = document.getElementById("vibrationToggle");
 const rewardDialog = document.getElementById("rewardDialog");
 const rewardSubtitle = document.getElementById("rewardSubtitle");
 const rewardSurvivors = document.getElementById("rewardSurvivors");
+const rewardSettlement = document.getElementById("rewardSettlement");
 const rewardCaptures = document.getElementById("rewardCaptures");
 const rewardOptions = document.getElementById("rewardOptions");
 const rewardResult = document.getElementById("rewardResult");
@@ -1204,13 +1205,20 @@ function validateRewardState(rewardState) {
   const survivorsValid = rewardState.survivors.every((unit) => {
     if (!isPlainRecord(unit) || !isValidCampaignUnitType(unit.type)) return false;
     if (!Number.isInteger(unit.maxHp) || unit.maxHp < UNIT_TYPES[unit.type].hp || unit.maxHp > UNIT_TYPES[unit.type].hp + 4) return false;
-    return Number.isInteger(unit.hp) && unit.hp >= 0 && unit.hp <= unit.maxHp;
+    if (!Number.isInteger(unit.hp) || unit.hp < 0 || unit.hp > unit.maxHp) return false;
+    if (unit.battleHp !== undefined && (!Number.isInteger(unit.battleHp) || unit.battleHp < 0 || unit.battleHp > unit.maxHp)) return false;
+    if (unit.healed !== undefined && (!Number.isInteger(unit.healed) || unit.healed < 0 || unit.healed > unit.maxHp)) return false;
+    return unit.enhancementLevel === undefined
+      || (Number.isInteger(unit.enhancementLevel) && unit.enhancementLevel >= 0);
   });
   if (!survivorsValid || !rewardState.capturedTypes.every(isValidCampaignUnitType)) return false;
+  const fallenTypes = rewardState.fallenTypes === undefined ? [] : rewardState.fallenTypes;
+  if (!Array.isArray(fallenTypes) || !fallenTypes.every(isValidCampaignUnitType)) return false;
 
   return {
     survivors: rewardState.survivors.map((unit) => ({ ...unit })),
     capturedTypes: [...rewardState.capturedTypes],
+    fallenTypes: [...new Set(fallenTypes)],
     chosenKey: rewardState.chosenKey,
     resultText: rewardState.resultText,
     applied: rewardState.applied,
@@ -2245,9 +2253,8 @@ function unlockCampaignTotem() {
 
 function applyCampaignReward(key) {
   if (key === "recover") {
-    healCampaignRoster();
     playSfx("magic");
-    return "생존한 원정대의 체력이 모두 회복되었습니다.";
+    return "생존 원정대의 체력이 전투 정산에서 자동으로 완전히 회복되었습니다.";
   }
   if (key === "heal") {
     const healed = healCampaignRoster();
@@ -2337,22 +2344,72 @@ function getRewardConfig() {
   return { isV2, battleNum, stageNum, isBoss, isMid, isElite, subtitle, btnText, optionsList };
 }
 
+function refreshRewardEnhancementLevels(rewardState) {
+  rewardState.survivors.forEach((unit) => {
+    if (!campaign.roster.includes(unit.type)) return;
+    unit.enhancementLevel = enhancementLevelFor(unit.type);
+    const progress = campaignProgressFor(unit.type);
+    unit.hp = progress.hp;
+    unit.maxHp = progress.maxHp;
+    unit.healed = Math.max(0, unit.maxHp - (unit.battleHp ?? unit.hp));
+  });
+}
+
+function renderRewardSummary(rewardState) {
+  const healedTotal = rewardState.survivors.reduce((sum, unit) => sum + (unit.healed || 0), 0);
+  const fallenTypes = rewardState.fallenTypes || [];
+  rewardSurvivors.innerHTML = `<strong>다음 전투 생존 유닛</strong><div>${rewardState.survivors.length ? rewardState.survivors.map((unit) => `
+    <span>
+      <img src="${UNIT_TYPES[unit.type].image}" alt="">
+      <b>${UNIT_TYPES[unit.type].label}</b>
+      <small>HP ${unit.battleHp ?? unit.hp} → ${unit.maxHp}</small>
+      <em>${unit.healed > 0 ? `회복 +${unit.healed}` : "피해 없음"} · +${unit.enhancementLevel || 0}강</em>
+    </span>
+  `).join("") : "<em>생존 유닛 없음</em>"}</div>`;
+
+  rewardSettlement.innerHTML = `
+    <strong>전투 정산</strong>
+    <div class="settlement-grid">
+      <span><b>자동 회복</b><small>${healedTotal > 0 ? `총 HP +${healedTotal}` : "모두 최대 체력"}</small></span>
+      <span class="${fallenTypes.length ? "has-losses" : ""}"><b>전사</b><small>${fallenTypes.length
+        ? fallenTypes.map((type) => UNIT_TYPES[type].label).join(", ")
+        : "없음"}</small></span>
+    </div>`;
+
+  rewardCaptures.innerHTML = rewardState.capturedTypes.length
+    ? `<strong>새 영입</strong><p>${rewardState.capturedTypes.map((type) => UNIT_TYPES[type].label).join(", ")} · 다음 전투 배치 가능</p>`
+    : `<strong>새 영입</strong><p>이번 전투에서 영입한 유닛이 없습니다.</p>`;
+}
+
 function showVictoryRewardScreen(capturedTypes) {
-  saveBattleProgress(capturedTypes);
-  battleScreen.classList.add("is-victorious");
-  const survivors = state.units.filter((unit) => (
+  const battleSurvivors = state.units.filter((unit) => (
     unit.owner === "player"
     && unit.type !== "summoner"
     && (!unit.summonedNoCorpse || unit.capturedForCampaign)
   ));
-  const survivorSnapshots = survivors.map((unit) => {
+  const survivingTypes = new Set(battleSurvivors.map((unit) => unit.type));
+  const fallenTypes = [...new Set(state.deployedTypes.filter((type) => !survivingTypes.has(type)))];
+  const battleHpByType = new Map(battleSurvivors.map((unit) => [unit.type, unit.hp]));
+
+  saveBattleProgress(capturedTypes);
+  battleScreen.classList.add("is-victorious");
+  const survivorSnapshots = battleSurvivors.map((unit) => {
     const progress = campaignProgressFor(unit.type);
-    return { type: unit.type, hp: progress.hp, maxHp: progress.maxHp };
+    const battleHp = Math.max(0, Math.min(progress.maxHp, battleHpByType.get(unit.type) ?? progress.hp));
+    return {
+      type: unit.type,
+      hp: progress.hp,
+      maxHp: progress.maxHp,
+      battleHp,
+      healed: Math.max(0, progress.maxHp - battleHp),
+      enhancementLevel: enhancementLevelFor(unit.type, progress),
+    };
   });
   
   campaign.rewardState = {
     survivors: survivorSnapshots,
     capturedTypes: [...capturedTypes],
+    fallenTypes,
     chosenKey: null,
     resultText: "",
     applied: false,
@@ -2361,25 +2418,20 @@ function showVictoryRewardScreen(capturedTypes) {
   const cfg = getRewardConfig();
 
   rewardSubtitle.textContent = cfg.subtitle;
-  rewardSurvivors.innerHTML = `<strong>생존 유닛</strong><div>${survivorSnapshots.length ? survivorSnapshots.map((unit) => `
-    <span><img src="${UNIT_TYPES[unit.type].image}" alt=""><b>${UNIT_TYPES[unit.type].label}</b><small>HP ${unit.hp}/${unit.maxHp}</small></span>
-  `).join("") : "<em>생존 유닛 없음</em>"}</div>`;
-  rewardCaptures.innerHTML = capturedTypes.length
-    ? `<strong>소환 포획</strong><p>${capturedTypes.map((type) => UNIT_TYPES[type].label).join(", ")}</p>`
-    : `<strong>소환 포획</strong><p>이미 포획했거나 소환하지 않았습니다.</p>`;
+  renderRewardSummary(campaign.rewardState);
   
   rewardResult.textContent = "";
   rewardContinueBtn.textContent = cfg.btnText;
 
   if (!cfg.isBoss && !cfg.isMid && !cfg.isElite && cfg.isV2) {
-    const result = applyCampaignReward("recover");
+    const result = "생존 원정대의 체력이 자동으로 완전히 회복되었습니다.";
     campaign.rewardState.chosenKey = "recover";
     campaign.rewardState.resultText = result;
     campaign.rewardState.applied = true;
     autoSaveCampaign();
 
     rewardResult.textContent = result;
-    rewardOptions.innerHTML = "<p class='reward-auto-text'>일반 전투 승리 보상이 적용되었습니다.</p>";
+    rewardOptions.innerHTML = "<p class='reward-auto-text'>전투 정산과 자동 회복이 완료되었습니다.</p>";
     rewardContinueBtn.hidden = false;
   } else {
     rewardContinueBtn.hidden = true;
@@ -2399,6 +2451,8 @@ function showVictoryRewardScreen(capturedTypes) {
           campaign.rewardState.chosenKey = reward.key;
           campaign.rewardState.resultText = result;
           campaign.rewardState.applied = true;
+          refreshRewardEnhancementLevels(campaign.rewardState);
+          renderRewardSummary(campaign.rewardState);
         }
         autoSaveCampaign();
 
@@ -2430,19 +2484,14 @@ function restoreRewardScreen() {
   const cfg = getRewardConfig();
 
   rewardSubtitle.textContent = cfg.subtitle;
-  rewardSurvivors.innerHTML = `<strong>생존 유닛</strong><div>${rs.survivors.length ? rs.survivors.map((unit) => `
-    <span><img src="${UNIT_TYPES[unit.type].image}" alt=""><b>${UNIT_TYPES[unit.type].label}</b><small>HP ${Math.max(0, unit.hp)}/${unit.maxHp}</small></span>
-  `).join("") : "<em>생존 유닛 없음</em>"}</div>`;
-  rewardCaptures.innerHTML = rs.capturedTypes.length
-    ? `<strong>소환 포획</strong><p>${rs.capturedTypes.map((type) => UNIT_TYPES[type].label).join(", ")}</p>`
-    : `<strong>소환 포획</strong><p>이미 포획했거나 소환하지 않았습니다.</p>`;
+  renderRewardSummary(rs);
   
   rewardResult.textContent = rs.resultText || "";
   rewardContinueBtn.hidden = !rs.chosenKey;
   rewardContinueBtn.textContent = cfg.btnText;
 
   if (!cfg.isBoss && !cfg.isMid && !cfg.isElite && cfg.isV2) {
-    rewardOptions.innerHTML = "<p class='reward-auto-text'>일반 전투 승리 보상이 적용되었습니다.</p>";
+    rewardOptions.innerHTML = "<p class='reward-auto-text'>전투 정산과 자동 회복이 완료되었습니다.</p>";
   } else {
     rewardOptions.innerHTML = "";
     cfg.optionsList.forEach((reward) => {
@@ -2464,6 +2513,8 @@ function restoreRewardScreen() {
         rs.chosenKey = reward.key;
         rs.resultText = result;
         rs.applied = true;
+        refreshRewardEnhancementLevels(rs);
+        renderRewardSummary(rs);
         autoSaveCampaign();
 
         rewardResult.textContent = result;
