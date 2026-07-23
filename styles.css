@@ -513,6 +513,11 @@ h2 {
   justify-content: center;
   gap: 8px;
   overflow-x: auto;
+  overflow-y: hidden;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 .totem-picker {
@@ -599,13 +604,14 @@ h2 {
 }
 
 .setup-book .reserve-card {
+  flex: 0 0 76px;
   width: 76px;
   min-height: 92px;
   grid-template-columns: 1fr;
   gap: 4px;
   padding: 5px;
   cursor: grab;
-  touch-action: none;
+  touch-action: pan-x;
 }
 
 .setup-book .reserve-card > .enhancement-badge {

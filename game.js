@@ -3076,6 +3076,10 @@ function renderReserve() {
       <span><strong>${def.label}</strong><span>HP ${progress.hp}/${progress.maxHp} · 주사위 ${progress.dice.map(dicePips).join(" ")}</span></span>
     `;
     card.addEventListener("click", () => {
+      if (card.dataset.suppressClick === "true") {
+        delete card.dataset.suppressClick;
+        return;
+      }
       playSfx("ui");
       state.selectedReserve = type;
       state.inspectedReserveType = type;
@@ -3097,6 +3101,7 @@ function renderReserve() {
     let pointerDragging = false;
     card.addEventListener("pointerdown", (event) => {
       if (event.pointerType === "mouse") return;
+      delete card.dataset.suppressClick;
       pointerStart = { x: event.clientX, y: event.clientY };
       pointerDragging = false;
       state.selectedReserve = type;
@@ -3105,7 +3110,16 @@ function renderReserve() {
     });
     card.addEventListener("pointermove", (event) => {
       if (!pointerStart || event.pointerType === "mouse") return;
-      if (Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y) < 8) return;
+      const dx = event.clientX - pointerStart.x;
+      const dy = event.clientY - pointerStart.y;
+      if (Math.hypot(dx, dy) < 8) return;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        card.dataset.suppressClick = "true";
+        card.releasePointerCapture?.(event.pointerId);
+        pointerStart = null;
+        pointerDragging = false;
+        return;
+      }
       pointerDragging = true;
       card.classList.add("is-dragging");
       event.preventDefault();
