@@ -388,6 +388,40 @@ assert.strictEqual(placementSnapshot.infoVisible, true, '대기 유닛도 정보
 console.log('Pass: 0명 배치 진행, 교체 배치, 대기 유닛 정보 검증 성공.');
 
 console.log('\n=== 12. 탐험 노드 및 정예 보상 검증 ===');
+console.log('\n=== 13. Captured unit carryover, enhancement badge, and totem reselection ===');
+const carryoverSnapshot = vm.runInContext(`(() => {
+  resetCampaign();
+  setupBattleBoardState(campaign.encounters[0]);
+  createUnit('forestFairy', 'player', 3, 0, null, {
+    summonedNoCorpse: true,
+    capturedForCampaign: true
+  });
+  const captured = survivingCapturedTypes();
+  saveBattleProgress(captured);
+  const rosterAfterCapture = [...campaign.roster];
+
+  campaign.unitProgress.spear.maxHp += 1;
+  campaign.unitProgress.spear.hp = campaign.unitProgress.spear.maxHp;
+  campaign.unitProgress.spear.dice[2] += 1;
+  const enhancementLevel = enhancementLevelFor('spear');
+
+  campaign.availableTotems = ['beast', 'ice', 'undead'];
+  setupBattleBoardState(campaign.encounters[1]);
+  const reserveHasFairy = state.reserves.player.includes('forestFairy');
+  const beastSelected = selectSetupTotem('beast') && state.selectedTotem === 'beast';
+  const iceSelected = selectSetupTotem('ice') && state.selectedTotem === 'ice';
+  const cleared = selectSetupTotem(null) && state.selectedTotem === null;
+  return { captured, rosterAfterCapture, reserveHasFairy, enhancementLevel, beastSelected, iceSelected, cleared };
+})()`, sandbox);
+assert.ok(Array.from(carryoverSnapshot.captured).includes('forestFairy'), 'corpse-captured forest fairy should be captured');
+assert.ok(Array.from(carryoverSnapshot.rosterAfterCapture).includes('forestFairy'), 'captured forest fairy should persist in roster');
+assert.strictEqual(carryoverSnapshot.reserveHasFairy, true, 'captured forest fairy should be deployable next battle');
+assert.strictEqual(carryoverSnapshot.enhancementLevel, 2, 'one HP and one die upgrade should display as +2');
+assert.strictEqual(carryoverSnapshot.beastSelected, true, 'beast totem should be selectable during setup');
+assert.strictEqual(carryoverSnapshot.iceSelected, true, 'selected totem should be changeable during setup');
+assert.strictEqual(carryoverSnapshot.cleared, true, 'totem selection should be removable during setup');
+console.log('Pass: captured carryover, enhancement level, and setup totem reselection.');
+
 const expeditionSnapshot = vm.runInContext(`(() => {
   resetCampaign();
   campaign.battleIndex = 3;

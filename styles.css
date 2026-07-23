@@ -555,6 +555,18 @@ h2 {
   background: #fff;
 }
 
+.totem-none-mark {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 2px dashed #777;
+  background: #f4f4f4;
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+}
+
 .totem-option span {
   min-width: 0;
   display: grid;
@@ -565,6 +577,22 @@ h2 {
 .totem-option small { overflow-wrap: anywhere; }
 .totem-option b { font-size: 11px; }
 .totem-option small { font-size: 9px; line-height: 1.2; }
+
+.enhancement-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+  padding: 1px 4px;
+  border: 1px solid #147a3c;
+  border-radius: 3px;
+  background: #e8f8ed;
+  color: #147a3c;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 1.2;
+  white-space: nowrap;
+}
 
 .setup-book.is-hidden {
   display: none;
@@ -578,6 +606,14 @@ h2 {
   padding: 5px;
   cursor: grab;
   touch-action: none;
+}
+
+.setup-book .reserve-card > .enhancement-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  z-index: 2;
+  margin: 0;
 }
 
 .setup-book .reserve-card.is-dragging {
@@ -1602,6 +1638,7 @@ h2 {
 }
 
 .reserve-card {
+  position: relative;
   display: grid;
   grid-template-columns: 58px 1fr;
   gap: 10px;
@@ -2485,9 +2522,16 @@ dialog::backdrop {
 
   .totem-picker { gap: 3px; }
   .totem-picker > strong { font-size: 9px; }
-  .totem-options { gap: 3px; }
+  .totem-options {
+    display: flex;
+    gap: 3px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+  }
 
   .totem-option {
+    flex: 0 0 142px;
     grid-template-columns: 30px minmax(0, 1fr);
     gap: 3px;
     padding: 2px;
@@ -2501,8 +2545,19 @@ dialog::backdrop {
     height: 30px;
   }
 
+  .totem-none-mark {
+    width: 30px;
+    height: 30px;
+    border-width: 1px;
+    font-size: 20px;
+  }
+
   .totem-option b { font-size: 8px; }
-  .totem-option small { display: none; }
+  .totem-option small {
+    display: block;
+    font-size: 7px;
+    line-height: 1.15;
+  }
 
   .setup-book .reserve-card {
     flex: 0 0 52px;

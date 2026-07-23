@@ -1367,6 +1367,26 @@ function campaignProgressFor(type) {
   return campaign.unitProgress[type];
 }
 
+function enhancementLevelFor(type, progress = campaignProgressFor(type)) {
+  const def = UNIT_TYPES[type];
+  if (!def || !progress) return 0;
+  const hpLevels = Math.max(0, (progress.maxHp ?? def.hp) - def.hp);
+  const diceLevels = (progress.dice || []).reduce(
+    (sum, value, index) => sum + Math.max(0, value - (def.dice[index] ?? value)),
+    0
+  );
+  return hpLevels + diceLevels;
+}
+
+function enhancementLevelForUnit(unit) {
+  const def = UNIT_TYPES[unit?.type];
+  if (!def || !unit) return 0;
+  return enhancementLevelFor(unit.type, {
+    maxHp: unit.baseMaxHp ?? unit.maxHp ?? def.hp,
+    dice: unit.dice || def.dice,
+  });
+}
+
 function createCampaignUnit(type, owner, row, col) {
   const progress = campaignProgressFor(type);
   const unit = createUnit(type, owner, row, col, progress.dice, {
@@ -2125,7 +2145,7 @@ function saveBattleProgress(capturedTypes) {
   const persistentSurvivors = state.units.filter((unit) => (
     unit.owner === "player"
     && unit.type !== "summoner"
-    && !unit.summonedNoCorpse
+    && (!unit.summonedNoCorpse || unit.capturedForCampaign)
     && UNIT_TYPES[unit.type]?.grade !== "special"
   ));
   const survivingTypes = new Set(persistentSurvivors.map((unit) => unit.type));
@@ -2320,7 +2340,11 @@ function getRewardConfig() {
 function showVictoryRewardScreen(capturedTypes) {
   saveBattleProgress(capturedTypes);
   battleScreen.classList.add("is-victorious");
-  const survivors = state.units.filter((unit) => unit.owner === "player" && unit.type !== "summoner" && !unit.summonedNoCorpse);
+  const survivors = state.units.filter((unit) => (
+    unit.owner === "player"
+    && unit.type !== "summoner"
+    && (!unit.summonedNoCorpse || unit.capturedForCampaign)
+  ));
   const survivorSnapshots = survivors.map((unit) => {
     const progress = campaignProgressFor(unit.type);
     return { type: unit.type, hp: progress.hp, maxHp: progress.maxHp };
@@ -2972,6 +2996,17 @@ function renderCorpse(corpse) {
   return el;
 }
 
+function selectSetupTotem(key) {
+  if (state.phase !== "setup" || state.turn !== "player") return false;
+  if (key !== null && !campaign.availableTotems.includes(key)) return false;
+  state.selectedTotem = key;
+  addLog(key
+    ? `${TOTEMS[key].label} 선택. 양쪽 진영 모두 효과를 받습니다.`
+    : "토템을 사용하지 않도록 변경했습니다.");
+  render();
+  return true;
+}
+
 function renderReserve() {
   reserveEl.innerHTML = "";
   setupBookEl.innerHTML = "";
@@ -2992,18 +3027,23 @@ function renderReserve() {
     totemPicker.className = "totem-picker";
     totemPicker.innerHTML = `<strong>중앙 토템</strong><div class="totem-options"></div>`;
     const options = totemPicker.querySelector(".totem-options");
+    const noneButton = document.createElement("button");
+    noneButton.type = "button";
+    noneButton.className = "totem-option is-none";
+    noneButton.classList.toggle("is-selected", state.selectedTotem === null);
+    noneButton.setAttribute("aria-pressed", String(state.selectedTotem === null));
+    noneButton.innerHTML = `<span class="totem-none-mark" aria-hidden="true">×</span><span><b>사용 안 함</b><small>중앙 토템을 비워 둡니다.</small></span>`;
+    noneButton.addEventListener("click", () => selectSetupTotem(null));
+    options.appendChild(noneButton);
     campaign.availableTotems.forEach((key) => {
       const totem = TOTEMS[key];
       const button = document.createElement("button");
       button.type = "button";
       button.className = "totem-option";
       if (state.selectedTotem === key) button.classList.add("is-selected");
+      button.setAttribute("aria-pressed", String(state.selectedTotem === key));
       button.innerHTML = `<img src="${totem.image}" alt=""><span><b>${totem.label}</b><small>${totem.effect}</small></span>`;
-      button.addEventListener("click", () => {
-        state.selectedTotem = key;
-        addLog(`${totem.label} 선택. 양쪽 진영 모두 효과를 받습니다.`);
-        render();
-      });
+      button.addEventListener("click", () => selectSetupTotem(key));
       options.appendChild(button);
     });
     setupBookEl.appendChild(totemPicker);
@@ -3024,6 +3064,7 @@ function renderReserve() {
   units.forEach((type) => {
     const def = UNIT_TYPES[type];
     const progress = campaignProgressFor(type);
+    const enhancementLevel = enhancementLevelFor(type, progress);
     const card = document.createElement("button");
     card.type = "button";
     card.className = "reserve-card";
@@ -3031,6 +3072,7 @@ function renderReserve() {
     if (state.selectedReserve === type) card.classList.add("is-selected");
     card.innerHTML = `
       <img src="${def.image}" alt="${def.label}">
+      ${enhancementLevel > 0 ? `<em class="enhancement-badge">+${enhancementLevel}강</em>` : ""}
       <span><strong>${def.label}</strong><span>HP ${progress.hp}/${progress.maxHp} · 주사위 ${progress.dice.map(dicePips).join(" ")}</span></span>
     `;
     card.addEventListener("click", () => {
@@ -3391,12 +3433,14 @@ function renderUnitInfo() {
       .join(" / ")
     : "없음";
   const maxHpBonus = Math.max(0, unit.maxHp - def.hp);
+  const enhancementLevel = enhancementLevelForUnit(unit);
   const counter = counterChance(unit);
   const effects = appliedUnitEffects(unit);
   unitInfoEl.innerHTML = `
-    <h2 class="unit-info-title"><span>${def.label}</span><b>${gradeLabel}</b></h2>
+    <h2 class="unit-info-title"><span>${def.label}${enhancementLevel > 0 ? `<em class="enhancement-badge">+${enhancementLevel}강</em>` : ""}</span><b>${gradeLabel}</b></h2>
     <div class="unit-info-card compact-info">
       <dl>
+        <div><dt>강화</dt><dd>${enhancementLevel > 0 ? `<span class="stat-boost">+${enhancementLevel}강<small>영구</small></span>` : "0강"}</dd></div>
         <div><dt>군단</dt><dd>${legionLabel}</dd></div>
         <div><dt>체력</dt><dd>${unit.hp} / ${maxHpBonus > 0 ? `<span class="stat-boost">${unit.maxHp}<small>+${maxHpBonus}</small></span>` : unit.maxHp}</dd></div>
         ${isNormalUnit(unit) ? `<div><dt>재소환</dt><dd>${unit.respawns}/3 · 후퇴 ${unit.retreat}칸</dd></div>` : ""}
@@ -3545,9 +3589,10 @@ function renderCampaignMap() {
   campaign.roster.forEach((type) => {
     const def = UNIT_TYPES[type];
     const progress = campaignProgressFor(type);
+    const enhancementLevel = enhancementLevelFor(type, progress);
     const item = document.createElement("span");
     item.className = "campaign-roster-unit";
-    item.innerHTML = `<img src="${def.image}" alt=""><span><b>${def.label}</b><small>HP ${progress.hp}/${def.hp}</small></span>`;
+    item.innerHTML = `<img src="${def.image}" alt=""><span><b>${def.label}${enhancementLevel > 0 ? `<em class="enhancement-badge">+${enhancementLevel}강</em>` : ""}</b><small>HP ${progress.hp}/${progress.maxHp}</small></span>`;
     campaignRosterEl.appendChild(item);
   });
 
@@ -3660,9 +3705,10 @@ function renderLegacyCampaignMap() {
   campaign.roster.forEach((type) => {
     const def = UNIT_TYPES[type];
     const progress = campaignProgressFor(type);
+    const enhancementLevel = enhancementLevelFor(type, progress);
     const item = document.createElement("span");
     item.className = "campaign-roster-unit";
-    item.innerHTML = `<img src="${def.image}" alt=""><span><b>${def.label}</b><small>HP ${progress.hp}/${def.hp}</small></span>`;
+    item.innerHTML = `<img src="${def.image}" alt=""><span><b>${def.label}${enhancementLevel > 0 ? `<em class="enhancement-badge">+${enhancementLevel}강</em>` : ""}</b><small>HP ${progress.hp}/${progress.maxHp}</small></span>`;
     campaignRosterEl.appendChild(item);
   });
 
