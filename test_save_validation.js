@@ -486,4 +486,46 @@ assert.deepStrictEqual(Array.from(settlementSnapshot.savedFallenTypes), ['archer
 assert.strictEqual(settlementSnapshot.recoverIsDisplayOnly, true, '자동 회복 뒤 일반 보상에서 회복을 중복 실행하지 않아야 함');
 console.log('Pass: 전사·회복·강화 정산 저장과 중복 회복 방지 검증 성공.');
 
+console.log('\n=== 15. 전투 브리핑 정보 및 무상태 닫기 검증 ===');
+const briefingSnapshot = vm.runInContext(`(() => {
+  resetCampaign();
+  campaign.availableTotems = ['beast'];
+  const encounter = {
+    enemies: ['ogre', 'minotaur', 'spear'],
+    boss: false,
+    isPacing: false,
+    stage: 1,
+    battle: 1,
+    attempts: 0
+  };
+  const briefing = buildEncounterBriefing(encounter, 0);
+  const before = JSON.stringify({
+    attempts: encounter.attempts,
+    currentNodeId: campaign.currentNodeId,
+    checkpoint: campaign.checkpoint
+  });
+  openBattleBriefing(encounter, 0, () => {});
+  closeBattleBriefing();
+  const after = JSON.stringify({
+    attempts: encounter.attempts,
+    currentNodeId: campaign.currentNodeId,
+    checkpoint: campaign.checkpoint
+  });
+  return {
+    enemyCount: briefing.enemies.reduce((sum, enemy) => sum + enemy.count, 0),
+    beastActive: briefing.activeLegions.some((legion) => legion.key === 'beast' && legion.count === 2),
+    ownsBeastTotem: briefing.totems.some((totem) => totem.key === 'beast'),
+    reward: briefing.reward,
+    stateUnchanged: before === after,
+    pendingCleared: pendingBriefingStart === null
+  };
+})()`, sandbox);
+assert.strictEqual(briefingSnapshot.enemyCount, 3, '브리핑에 적 전체 수가 정확히 표시되어야 함');
+assert.strictEqual(briefingSnapshot.beastActive, true, '적 야수 2마리는 활성 야수 군단으로 표시되어야 함');
+assert.strictEqual(briefingSnapshot.ownsBeastTotem, true, '보유 토템이 브리핑에 표시되어야 함');
+assert.strictEqual(briefingSnapshot.reward, '전투 정산 · 생존 유닛 자동 회복', '일반 전투 보상 안내가 정확해야 함');
+assert.strictEqual(briefingSnapshot.stateUnchanged, true, '브리핑 열기와 닫기는 전투 상태를 변경하지 않아야 함');
+assert.strictEqual(briefingSnapshot.pendingCleared, true, '브리핑을 닫으면 대기 중인 전투 콜백이 제거되어야 함');
+console.log('Pass: 적 구성, 활성 군단, 보상, 토템 표시와 무상태 닫기 검증 성공.');
+
 console.log('\n✅ 모든 세이브 무결성 및 복원 회귀 테스트 통과!');

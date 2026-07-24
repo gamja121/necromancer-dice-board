@@ -11,9 +11,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="망자의 원정">
   <title>네크로멘서 십이장기 프로토타입</title>
-  <link rel="manifest" href="manifest.webmanifest?v=20260724-1">
+  <link rel="manifest" href="manifest.webmanifest?v=20260724-2">
   <link rel="apple-touch-icon" href="assets/app-icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=20260724-1">
+  <link rel="stylesheet" href="styles.css?v=20260724-2">
 </head>
 <body>
   <main class="app">
@@ -121,6 +121,32 @@
     </form>
   </dialog>
 
+  <dialog id="battleBriefingDialog" class="battle-briefing-dialog">
+    <section class="battle-briefing-card" aria-labelledby="briefingTitle">
+      <header class="briefing-header">
+        <span id="briefingBadge">전투</span>
+        <h2 id="briefingTitle">전투 브리핑</h2>
+        <p id="briefingSubtitle"></p>
+      </header>
+      <div class="briefing-section">
+        <strong>적 부대</strong>
+        <div class="briefing-enemies" id="briefingEnemies"></div>
+      </div>
+      <div class="briefing-section">
+        <strong>활성 군단</strong>
+        <div class="briefing-legions" id="briefingLegions"></div>
+      </div>
+      <div class="briefing-grid">
+        <div><strong>승리 보상</strong><p id="briefingReward"></p></div>
+        <div><strong>보유 토템</strong><p id="briefingTotems"></p></div>
+      </div>
+      <div class="briefing-actions">
+        <button type="button" id="briefingBackBtn">돌아가기</button>
+        <button type="button" id="briefingStartBtn">전투 시작</button>
+      </div>
+    </section>
+  </dialog>
+
   <dialog id="soundDialog" class="sound-dialog">
     <form method="dialog" class="sound-card">
       <header>
@@ -160,8 +186,8 @@
 
   <audio id="battleMusic" src="assets/battle-theme.mp3" preload="metadata" loop></audio>
 
-  <script src="unit-data.js?v=20260724-1"></script>
-  <script src="encounter-generator.js?v=20260724-1"></script>
-  <script src="game.js?v=20260724-1"></script>
+  <script src="unit-data.js?v=20260724-2"></script>
+  <script src="encounter-generator.js?v=20260724-2"></script>
+  <script src="game.js?v=20260724-2"></script>
 </body>
 </html>

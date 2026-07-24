@@ -18,6 +18,18 @@ const TOTEMS = {
     effect: "공격·반격 주사위가 1이면 체력 1 회복",
   },
 };
+const LEGION_RULES = Object.freeze([
+  { key: "skeleton", name: "언데드", target: 3, effect: "영웅 제외 우리편 전체 공격 주사위 0 하나를 1로 변경" },
+  { key: "corpse", name: "시체", target: 2, effect: "시체 소환 주사위 +1" },
+  { key: "beast", name: "야수", target: 2, effect: "야수 유닛이 공격받고 생존 시 30% 확률 반격" },
+  { key: "plague", name: "역병", target: 2, effect: "역병 유닛 공격 후 생존 대상에게 1턴 중독" },
+  { key: "ice", name: "얼음", target: 2, effect: "얼음 유닛 공격 후 생존 대상에게 1턴 빙결" },
+  { key: "summon", name: "소환", target: 2, effect: "소환물 최대 체력 +3" },
+  { key: "demon", name: "악마", target: 2, effect: "악마 유닛 공격 시 30% 확률 최종 피해 2배" },
+  { key: "insect", name: "벌레", target: 2, effect: "벌레 유닛 공격 주사위 2 한 면을 3으로 변경" },
+  { key: "plant", name: "식물", target: 2, effect: "식물 유닛 최대 체력 +1" },
+  { key: "element", name: "원소", target: 2, effect: "원소 유닛이 50% 확률로 상태이상 면역" },
+]);
 const MAP_NODES = [
   { id: "first", stage: 0, x: 50, y: 88, label: "버려진 초소", subtitle: "언데드 3", enemies: ["spear", "archer", "knight"] },
   { id: "frost", stage: 1, x: 30, y: 69, label: "서리 길", subtitle: "얼음 3", enemies: ["yeti", "seaWolf", "spear"] },
@@ -217,6 +229,16 @@ const choiceDialog = document.getElementById("choiceDialog");
 const dialogTitle = document.getElementById("dialogTitle");
 const dialogText = document.getElementById("dialogText");
 const dialogActions = document.getElementById("dialogActions");
+const battleBriefingDialog = document.getElementById("battleBriefingDialog");
+const briefingBadge = document.getElementById("briefingBadge");
+const briefingTitle = document.getElementById("briefingTitle");
+const briefingSubtitle = document.getElementById("briefingSubtitle");
+const briefingEnemies = document.getElementById("briefingEnemies");
+const briefingLegions = document.getElementById("briefingLegions");
+const briefingReward = document.getElementById("briefingReward");
+const briefingTotems = document.getElementById("briefingTotems");
+const briefingBackBtn = document.getElementById("briefingBackBtn");
+const briefingStartBtn = document.getElementById("briefingStartBtn");
 
 function makeBoard() {
   return Array.from({ length: BOARD_SIZE }, () => Array.from({ length: BOARD_SIZE }, () => null));
@@ -675,14 +697,17 @@ function isSummonedUnit(unit) {
 }
 
 function legionOf(unit) {
-  const legion = UNIT_TYPES[unit.type]?.legion || null;
-  return Array.isArray(legion) ? legion[0] : legion;
+  return legionsForType(unit.type)[0] || null;
+}
+
+function legionsForType(type) {
+  const legion = UNIT_TYPES[type]?.legion || null;
+  if (!legion) return [];
+  return Array.isArray(legion) ? legion : [legion];
 }
 
 function legionsOf(unit) {
-  const legion = UNIT_TYPES[unit.type]?.legion || null;
-  if (!legion) return [];
-  return Array.isArray(legion) ? legion : [legion];
+  return legionsForType(unit.type);
 }
 
 function hasLegion(unit, legion) {
@@ -1454,6 +1479,90 @@ function enterCampaignBattle(nodeId) {
     campaign.transitioning = false;
     startCampaignBattle(nodeId);
   }, 460);
+}
+
+let pendingBriefingStart = null;
+
+function battleBriefingReward(encounter, battleIndex, legacy = false) {
+  if (legacy) {
+    return encounter.stage >= 4
+      ? "주사위 강화 또는 토템 획득"
+      : "전투 정산 · 생존 유닛 자동 회복";
+  }
+  const battleNumber = battleIndex + 1;
+  if (encounter.boss || battleNumber % 10 === 0) return "주사위 강화 또는 토템 획득";
+  if (battleNumber % 10 === 9) return "최대 체력 또는 주사위 강화";
+  if (battleNumber % 10 === 5) return "주사위 강화";
+  return "전투 정산 · 생존 유닛 자동 회복";
+}
+
+function buildEncounterBriefing(encounter, battleIndex, legacy = false) {
+  const enemyCounts = new Map();
+  const legionCounts = new Map();
+  encounter.enemies.forEach((type) => {
+    enemyCounts.set(type, (enemyCounts.get(type) || 0) + 1);
+    legionsForType(type).forEach((legion) => {
+      legionCounts.set(legion, (legionCounts.get(legion) || 0) + 1);
+    });
+  });
+
+  const battleNumber = legacy ? encounter.stage + 1 : battleIndex + 1;
+  const isBoss = Boolean(encounter.boss) || (legacy && encounter.stage >= 4);
+  const isElite = !legacy && battleNumber % 10 === 9;
+  const kind = isBoss ? "보스" : (isElite ? "정예" : (encounter.isPacing ? "완급조절" : "일반"));
+  const lead = UNIT_TYPES[encounter.enemies[0]] || UNIT_TYPES.spear;
+
+  return {
+    battleNumber,
+    kind,
+    title: isBoss ? `${lead.label} 보스전` : `${lead.label} 부대`,
+    subtitle: `적 ${encounter.enemies.length}마리 · ${kind} 전투`,
+    enemies: Array.from(enemyCounts, ([type, count]) => ({ type, count })),
+    activeLegions: LEGION_RULES
+      .map((rule) => ({ ...rule, count: legionCounts.get(rule.key) || 0 }))
+      .filter((rule) => rule.count >= rule.target),
+    reward: battleBriefingReward(encounter, battleIndex, legacy),
+    totems: campaign.availableTotems
+      .filter((key) => TOTEMS[key])
+      .map((key) => ({ key, ...TOTEMS[key] })),
+  };
+}
+
+function closeBattleBriefing() {
+  pendingBriefingStart = null;
+  if (battleBriefingDialog.open) battleBriefingDialog.close();
+}
+
+function openBattleBriefing(encounter, battleIndex, onStart, legacy = false) {
+  const briefing = buildEncounterBriefing(encounter, battleIndex, legacy);
+  pendingBriefingStart = onStart;
+  briefingBadge.textContent = briefing.kind;
+  if (briefingBadge.dataset) briefingBadge.dataset.kind = briefing.kind;
+  briefingTitle.textContent = briefing.title;
+  briefingSubtitle.textContent = briefing.subtitle;
+  briefingEnemies.innerHTML = briefing.enemies.map(({ type, count }) => {
+    const def = UNIT_TYPES[type];
+    return `
+      <article class="briefing-enemy">
+        <img src="${def.image}" alt="">
+        <span>${def.label}</span>
+        ${count > 1 ? `<b>×${count}</b>` : ""}
+      </article>
+    `;
+  }).join("");
+  briefingLegions.innerHTML = briefing.activeLegions.length
+    ? briefing.activeLegions.map((legion) => `
+      <article class="briefing-legion">
+        <strong>${legion.name} ${legion.count}/${legion.target}</strong>
+        <span>${legion.effect}</span>
+      </article>
+    `).join("")
+    : '<p class="briefing-empty">활성 군단 효과 없음</p>';
+  briefingReward.textContent = briefing.reward;
+  briefingTotems.textContent = briefing.totems.length
+    ? briefing.totems.map((totem) => `${totem.label}: ${totem.effect}`).join(" · ")
+    : "보유 토템 없음 · 토템 없이 시작";
+  battleBriefingDialog.showModal();
 }
 
 function startCampaignBattle(nodeId) {
@@ -3336,19 +3445,11 @@ function patternBoard(unit, kind) {
 }
 
 function legionInfoRows(owner) {
-  const rows = [
-    { key: "skeleton", name: "언데드", target: 3, effect: "영웅 제외 우리편 전체 공격 주사위 0 하나를 1로 변경" },
-    { key: "corpse", name: "시체", target: 2, effect: "시체 소환 주사위 +1" },
-    { key: "beast", name: "야수", target: 2, effect: "야수 유닛이 공격받고 생존 시 30% 확률 반격" },
-    { key: "plague", name: "역병", target: 2, effect: "역병 유닛 공격 후 생존 대상에게 1턴 중독" },
-    { key: "ice", name: "얼음", target: 2, effect: "얼음 유닛 공격 후 생존 대상에게 1턴 빙결" },
-    { key: "summon", name: "소환", target: 2, effect: "소환물 최대 체력 +3" },
-    { key: "demon", name: "악마", target: 2, effect: "악마 유닛 공격 시 30% 확률 최종 피해 2배" },
-    { key: "insect", name: "벌레", target: 2, effect: "벌레 유닛 공격 주사위 2 한 면을 3으로 변경" },
-    { key: "plant", name: "식물", target: 2, effect: "식물 유닛 최대 체력 +1" },
-    { key: "element", name: "원소", target: 2, effect: "원소 유닛이 50% 확률로 상태이상 면역" },
-  ];
-  return rows.map((row) => ({ ...row, count: legionCount(owner, row.key), active: isLegionActive(owner, row.key) }));
+  return LEGION_RULES.map((row) => ({
+    ...row,
+    count: legionCount(owner, row.key),
+    active: isLegionActive(owner, row.key),
+  }));
 }
 
 function renderLegionInfo(owner) {
@@ -3747,7 +3848,9 @@ function renderCampaignMap() {
     `;
 
     if (isAvailable) {
-      card.addEventListener("click", () => enterGeneratedCampaignBattle(globalIdx));
+      card.addEventListener("click", () => {
+        openBattleBriefing(enc, globalIdx, () => enterGeneratedCampaignBattle(globalIdx));
+      });
     }
     verticalContainer.appendChild(card);
   });
@@ -3810,7 +3913,11 @@ function renderLegacyCampaignMap() {
       <strong>${completed ? "완료" : node.label}</strong>
       <small>${node.subtitle}</small>
     `;
-    if (available) button.addEventListener("click", () => enterCampaignBattle(node.id));
+    if (available) {
+      button.addEventListener("click", () => {
+        openBattleBriefing(node, campaign.depth, () => enterCampaignBattle(node.id), true);
+      });
+    }
     mapRoute.appendChild(button);
   });
 }
@@ -3984,6 +4091,17 @@ rewardDialog.addEventListener("cancel", (event) => event.preventDefault());
 rewardContinueBtn.addEventListener("click", () => {
   rewardDialog.close();
   completeCampaignBattle();
+});
+battleBriefingDialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  closeBattleBriefing();
+});
+briefingBackBtn.addEventListener("click", closeBattleBriefing);
+briefingStartBtn.addEventListener("click", () => {
+  const startBattle = pendingBriefingStart;
+  pendingBriefingStart = null;
+  battleBriefingDialog.close();
+  if (startBattle) startBattle();
 });
 playerLegionCard.addEventListener("click", () => {
   state.inspectedLegionOwner = "player";
