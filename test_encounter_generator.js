@@ -31,12 +31,31 @@ assert.strictEqual(generator.validateEncountersArray(singleRun.encounters), true
 // 전열 보유, 모든 특수 소환물 직출 금지, 소환사 제외 검증
 for (const enc of singleRun.encounters) {
   assert.ok(generator.hasFrontline(enc.enemies), `전투 ${enc.id}에 전열 유닛이 포함되어야 함`);
+  assert.strictEqual(
+    new Set(enc.enemies).size,
+    enc.enemies.length,
+    `전투 ${enc.id}에 동일 유닛이 중복 등장하면 안 됨`
+  );
   for (const type of enc.enemies) {
     assert.notStrictEqual(unitData.UNIT_TYPES[type]?.grade, "special", `전투 ${enc.id}에 ${type} 특수 소환물 직출 금지`);
   }
   assert.ok(!enc.enemies.includes("summoner"), `전투 ${enc.id}에 summoner 포함 금지`);
 }
 console.log("Pass: 전열 역할 보유, 특수 소환물 직출 금지, 소환사 제외 규칙 검증 완료.");
+
+const directSpawnUnits = Object.entries(unitData.ENCOUNTER_UNIT_META)
+  .filter(([, meta]) => meta.directSpawn)
+  .map(([type]) => type);
+const singleRunAppearances = Object.fromEntries(directSpawnUnits.map((type) => [type, 0]));
+singleRun.encounters.forEach((encounter) => {
+  encounter.enemies.forEach((type) => {
+    singleRunAppearances[type] = (singleRunAppearances[type] || 0) + 1;
+  });
+});
+directSpawnUnits.forEach((type) => {
+  assert.ok(singleRunAppearances[type] >= 1, `${type}은 한 원정에 최소 1회 등장해야 함`);
+});
+console.log("Pass: 모든 직접 등장 유닛의 원정당 최소 1회 출현 검증 완료.");
 
 const guardianSeed = unitData.UNIT_TYPES.guardianSeed;
 assert.deepStrictEqual(guardianSeed.dice, [0, 0, 0, 0, 0, 0], "수호 씨앗은 공격력이 없어야 함");
@@ -104,7 +123,7 @@ assert.ok(
   `안전 템플릿 강하 비율이 0.1% 미만이어야 함 (실제 강하: ${fallbackCount}/${SIMULATION_COUNT})`
 );
 
-for (const type of ["crystalDevourer", "ragingTreant", "cerberus", "poisonMushroom", "goblinRider", "abyssHarpy", "troll", "boneGolem", "forestFairy"]) {
+for (const type of directSpawnUnits) {
   assert.ok(unitFrequencies[type] > 0, `${type} 신규 유닛이 자동 생성 전투에 등장해야 함`);
 }
 assert.strictEqual(unitFrequencies.guardianSeed || 0, 0, "수호 씨앗은 자동 생성 전투에 직접 등장하면 안 됨");

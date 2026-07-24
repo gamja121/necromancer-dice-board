@@ -119,10 +119,24 @@ sandbox.autoSaveCampaign();
 const loadedV2 = sandbox.loadCampaignSave();
 assert.ok(loadedV2 !== null, 'V2 세이브가 무사히 로드되어야 함');
 assert.strictEqual(loadedV2.version, 2, '버전 2이어야 함');
+assert.strictEqual(loadedV2.generatorVersion, 2, '새 원정은 중복 금지 생성기 버전 2를 사용해야 함');
 assert.strictEqual(loadedV2.encounters.length, 30, '30전투 포함되어야 함');
 assert.deepStrictEqual(Array.from(loadedV2.resolvedInterludes), [], '기존 V2 세이브는 해결한 탐험 노드 빈 목록으로 보완되어야 함');
 assert.strictEqual(elements.continueCampaignBtn.disabled, false, '계속하기 버튼이 활성화되어야 함');
 console.log('Pass: V2 30전투 생성 세이브 정상 로드 및 복원 확인.');
+
+const oldGeneratorSave = JSON.parse(JSON.stringify(loadedV2));
+oldGeneratorSave.generatorVersion = 1;
+oldGeneratorSave.encounters[0].enemies = ['archer', 'archer', 'worm'];
+oldGeneratorSave.encounters[0].enemyCount = 3;
+oldGeneratorSave.encounters[0].actualPower = 6.5;
+oldGeneratorSave.encounters[0].theme = 'undead';
+oldGeneratorSave.encounters[0].compKey = 'archer,archer,worm';
+storage['necromancer-campaign-save-v1'] = JSON.stringify(oldGeneratorSave);
+const loadedOldGenerator = sandbox.loadCampaignSave();
+assert.ok(loadedOldGenerator !== null, '기존 생성기 버전 1의 중복 조합 세이브도 이어서 플레이할 수 있어야 함');
+assert.strictEqual(loadedOldGenerator.generatorVersion, 1, '기존 원정의 생성기 버전은 유지되어야 함');
+console.log('Pass: 기존 생성기 버전 1 중복 조합 세이브 호환성 유지.');
 
 console.log('\n=== 3. 30전투 완결 세이브 복원 검증 (Issue 7) ===');
 const completedV2Save = {

@@ -59,7 +59,7 @@ const INTERLUDE_SPECS = [
 ];
 const campaign = {
   version: 2,
-  generatorVersion: 1,
+  generatorVersion: 2,
   runSeed: 0,
   stageIndex: 0,
   battleIndex: 0,
@@ -1107,7 +1107,7 @@ function autoSaveCampaign() {
   try {
     const saveData = {
       version: campaign.version || 2,
-      generatorVersion: campaign.generatorVersion || 1,
+      generatorVersion: campaign.generatorVersion || EncounterGenerator.GENERATOR_VERSION || 2,
       runSeed: campaign.runSeed || 0,
       stageIndex: campaign.stageIndex || 0,
       battleIndex: campaign.battleIndex || 0,
@@ -1317,7 +1317,7 @@ function loadCampaignSave() {
     }
 
     if (data.version !== 2) return null;
-    if (data.generatorVersion !== 1) return null;
+    if (![1, 2].includes(data.generatorVersion)) return null;
     if (!Number.isInteger(data.runSeed) || data.runSeed < 0 || data.runSeed > 0xffffffff) return null;
     if (typeof data.finished !== "boolean") return null;
 
@@ -1326,7 +1326,10 @@ function loadCampaignSave() {
 
     const expectedStageIndex = data.battleIndex >= 30 ? 2 : Math.floor(data.battleIndex / 10);
     if (data.stageIndex !== expectedStageIndex) return null;
-    if (!EncounterGenerator.validateEncountersArray(data.encounters)) return null;
+    const encounterValidationOptions = data.generatorVersion === 1
+      ? { allowDuplicateUnits: true, minimumAppearances: 0 }
+      : {};
+    if (!EncounterGenerator.validateEncountersArray(data.encounters, encounterValidationOptions)) return null;
 
     if (data.finished) {
       if (data.battleIndex !== 30) return null;
@@ -1368,7 +1371,7 @@ function loadCampaignSave() {
 
     return {
       version: 2,
-      generatorVersion: 1,
+      generatorVersion: data.generatorVersion,
       runSeed: data.runSeed,
       stageIndex: data.stageIndex,
       battleIndex: data.battleIndex,
@@ -1443,7 +1446,7 @@ function resetCampaign() {
   const generated = EncounterGenerator.generate30Encounters(seed);
 
   campaign.version = 2;
-  campaign.generatorVersion = 1;
+  campaign.generatorVersion = generated.generatorVersion || EncounterGenerator.GENERATOR_VERSION || 2;
   campaign.runSeed = seed;
   campaign.stageIndex = 0;
   campaign.battleIndex = 0;

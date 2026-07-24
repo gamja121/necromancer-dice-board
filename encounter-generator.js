@@ -26,6 +26,9 @@
 })(typeof self !== "undefined" ? self : (typeof window !== "undefined" ? window : globalThis), function (UNIT_TYPES, ENCOUNTER_UNIT_META) {
   const MAX_BACKTRACKS = 200;
   const MAX_RESTARTS = 20;
+  const GENERATOR_VERSION = 2;
+  const MIN_CAMPAIGN_APPEARANCES = 1;
+  const TARGET_CAMPAIGN_APPEARANCES = 3;
 
   function createPRNG(seed) {
     let s = seed >>> 0;
@@ -144,8 +147,9 @@
     return bestTheme;
   }
 
-  function isValidEncounterCandidate(enemies, spec, stageNum) {
+  function isValidEncounterCandidate(enemies, spec, stageNum, options = {}) {
     if (!hasFrontline(enemies)) return false;
+    if (!options.allowDuplicateUnits && new Set(enemies).size !== enemies.length) return false;
 
     // Direct spawn check
     for (const u of enemies) {
@@ -226,7 +230,7 @@
 
       for (let i = startIndex; i < available.length; i++) {
         current.push(available[i]);
-        buildCombo(current, i, targetSize);
+        buildCombo(current, i + 1, targetSize);
         current.pop();
       }
     }
@@ -250,6 +254,7 @@
       const usedCompKeys = new Set();
       const heroCountsPerStage = [{}, {}, {}];
       const stageThemes = [[], [], []];
+      const appearanceCounts = {};
 
       let failed = false;
       let cellIndex = 0;
@@ -285,26 +290,38 @@
           return true;
         };
 
-        const candidateWeight = (cand) => {
-          if (!encounters.length) return 1;
-          const prev = encounters[encounters.length - 1];
-          let weight = 1;
+        const coverageTarget = stageIndex === 0 ? 1 : (stageIndex === 1 ? 2 : TARGET_CAMPAIGN_APPEARANCES);
+        const candidateScore = (cand) => {
+          const previous = encounters[encounters.length - 1];
+          let score = rng();
           for (const unit of cand.enemies) {
-            if (prev.enemies.includes(unit)) weight *= 0.7;
+            const count = appearanceCounts[unit] || 0;
+            const grade = UNIT_TYPES[unit]?.grade;
+            const isTank = ENCOUNTER_UNIT_META[unit]?.roles?.includes("tank");
+            const scarcity = grade === "hero" ? 4 : (isTank ? 3 : (grade === "advanced" ? 1.6 : 1));
+            if (count < coverageTarget) score += 100 * scarcity;
+            if (count === 0) score += 25 * scarcity;
+            score += Math.max(0, coverageTarget - count) * 8 * scarcity;
+            if (count >= coverageTarget) score -= 120 * (count - coverageTarget + 1);
+            if (ENCOUNTER_UNIT_META[unit]?.minStage === 3) score += 90;
+            if (previous?.enemies.includes(unit)) score -= 7;
+            score += (ENCOUNTER_UNIT_META[unit]?.weight || 1) / 1000;
           }
-          return weight;
+          return score;
         };
 
-        // Most candidates satisfy the cross-battle rules. Probe deterministic random
-        // candidates first so large stage-three domains do not need a full scan.
+        // Probe a deterministic sample and choose the composition that best closes
+        // campaign-wide appearance deficits without repeating the previous battle.
         let chosenCandidate = null;
+        let chosenScore = -Infinity;
         const probeCount = Math.min(256, candidates.length);
         for (let probe = 0; probe < probeCount; probe++) {
           const candidate = candidates[Math.floor(rng() * candidates.length)];
           if (!candidateAllowed(candidate)) continue;
-          if (rng() <= candidateWeight(candidate)) {
+          const score = candidateScore(candidate);
+          if (score > chosenScore) {
             chosenCandidate = candidate;
-            break;
+            chosenScore = score;
           }
         }
 
@@ -314,8 +331,11 @@
           for (let offset = 0; offset < candidates.length; offset++) {
             const candidate = candidates[(start + offset) % candidates.length];
             if (candidateAllowed(candidate)) {
-              chosenCandidate = candidate;
-              break;
+              const score = candidateScore(candidate);
+              if (score > chosenScore) {
+                chosenCandidate = candidate;
+                chosenScore = score;
+              }
             }
           }
         }
@@ -331,6 +351,7 @@
             const popped = encounters.pop();
             usedCompKeys.delete(popped.compKey);
             for (const u of popped.enemies) {
+              appearanceCounts[u] = Math.max(0, (appearanceCounts[u] || 0) - 1);
               if (UNIT_TYPES[u] && UNIT_TYPES[u].grade === "hero") {
                 if (heroCountsPerStage[popped.stage - 1][u]) {
                   heroCountsPerStage[popped.stage - 1][u]--;
@@ -368,6 +389,7 @@
         stageThemes[stageIndex].push(chosenCandidate.theme);
 
         for (const u of chosenCandidate.enemies) {
+          appearanceCounts[u] = (appearanceCounts[u] || 0) + 1;
           if (UNIT_TYPES[u] && UNIT_TYPES[u].grade === "hero") {
             heroCountsPerStage[stageIndex][u] = (heroCountsPerStage[stageIndex][u] || 0) + 1;
           }
@@ -387,9 +409,12 @@
           }
         }
 
-        if (diverse) {
+        const completeCoverage = getAvailableUnitsForStage(3)
+          .every((unit) => (appearanceCounts[unit] || 0) >= MIN_CAMPAIGN_APPEARANCES);
+
+        if (diverse && completeCoverage) {
           return {
-            generatorVersion: 1,
+            generatorVersion: GENERATOR_VERSION,
             runSeed: seed,
             encounters,
             usedFallback: false,
@@ -407,7 +432,7 @@
     usedFallback = true;
     const fallbackEncounters = getFallbackTemplateEncounters(seed);
     return {
-      generatorVersion: 1,
+      generatorVersion: GENERATOR_VERSION,
       runSeed: seed,
       encounters: fallbackEncounters,
       usedFallback: true,
@@ -419,36 +444,36 @@
   function getFallbackTemplateEncounters(seed) {
     const templates = [];
     const baseList = [
-      ["archer", "archer", "worm"],
-      ["archer", "seaWolf", "goblinSoldier"],
+      ["spear", "yeti", "poisonMushroom"],
+      ["archer", "worm", "goblinRider"],
+      ["ghoul", "plagueFrog", "hellMantis"],
       ["yeti", "seaWolf", "goblinSoldier"],
-      ["worm", "ghoul", "ghoul"],
-      ["spear", "archer", "seaWolf", "goblinSoldier"],
-      ["worm", "plagueFrog", "knight"],
-      ["spear", "ghoul", "knight"],
-      ["spear", "worm", "worm", "seaWolf"],
-      ["archer", "ghoul", "plagueFrog", "plagueFrog"],
-      ["archer", "worm", "ghoul", "knight"],
-      ["plagueFrog", "seaWolf", "ogre"],
-      ["spear", "abyssEye", "doomExecutor"],
-      ["worm", "ghoul", "seaWolf", "plague"],
-      ["spear", "yeti", "abyssEye", "iceLord"],
-      ["worm", "goblinSoldier", "goblinSoldier", "minotaur"],
-      ["ghoul", "plagueFrog", "seaWolf", "golem"],
-      ["worm", "goblinSoldier", "goblinSoldier", "golem"],
-      ["plagueFrog", "seaWolf", "plague", "golem"],
-      ["spear", "abyssEye", "abyssEye", "spiderQueen"],
-      ["archer", "worm", "iceLord", "goblinChief"],
-      ["worm", "ghoul", "seaWolf", "skeletonSummoner"],
-      ["spear", "yeti", "iceLord", "golem"],
-      ["ghoul", "yeti", "plague", "doomExecutor"],
-      ["archer", "ghoul", "doomExecutor", "golem"],
-      ["archer", "seaWolf", "seaWolf", "plague", "iceLord"],
-      ["worm", "worm", "minotaur", "goblinChief"],
-      ["plagueFrog", "plague", "minotaur", "skeletonSummoner"],
-      ["spear", "yeti", "goblinSoldier", "iceLord", "ogre"],
-      ["seaWolf", "abyssEye", "abyssEye", "knight", "demonDeathKnight"],
-      ["ghoul", "goblinSoldier", "doomExecutor", "golem", "demonDeathKnight"],
+      ["spear", "ghoul", "goblinRider"],
+      ["seaWolf", "knight", "hellMantis"],
+      ["worm", "goblinSoldier", "knight"],
+      ["archer", "plagueFrog", "knight"],
+      ["ghoul", "hellMantis", "poisonMushroom", "goblinRider"],
+      ["spear", "archer", "goblinSoldier", "knight"],
+      ["abyssEye", "stoneGolem", "poisonMushroom"],
+      ["yeti", "abyssEye", "troll"],
+      ["archer", "plagueFrog", "seaWolf", "ragingTreant"],
+      ["worm", "abyssEye", "poisonMushroom", "troll"],
+      ["plagueFrog", "seaWolf", "scorpionKnight", "abyssHarpy"],
+      ["worm", "goblinChief", "ancientTreant"],
+      ["goblinSoldier", "hellMantis", "scorpionKnight", "abyssHarpy"],
+      ["spear", "seaWolf", "plague", "spiderQueen"],
+      ["plagueFrog", "skeletonSummoner", "goblinRider", "forestFairy"],
+      ["iceLord", "ancientTreant", "kraken", "poisonMushroom"],
+      ["goblinSoldier", "abyssEye", "crystalDevourer", "abyssHarpy"],
+      ["archer", "ghoul", "demonDeathKnight", "forestFairy"],
+      ["yeti", "golem", "spiderQueen", "poisonMushroom"],
+      ["spear", "plague", "skeletonSummoner", "scorpionKnight"],
+      ["plagueFrog", "doomExecutor", "kraken", "forestFairy"],
+      ["plague", "demonDeathKnight", "hellMantis", "ancientTreant"],
+      ["ghoul", "abyssEye", "ogre", "goblinChief"],
+      ["ogre", "kraken", "cerberus", "goblinRider"],
+      ["spear", "archer", "minotaur", "spiderQueen", "boneGolem"],
+      ["worm", "yeti", "doomExecutor", "demonDeathKnight", "stoneGolem"],
     ];
 
     for (let i = 0; i < 30; i++) {
@@ -478,10 +503,15 @@
     return templates;
   }
 
-  function validateEncountersArray(encounters) {
+  function validateEncountersArray(encounters, options = {}) {
     if (!Array.isArray(encounters) || encounters.length !== 30) return false;
+    const allowDuplicateUnits = Boolean(options.allowDuplicateUnits);
+    const minimumAppearances = Number.isInteger(options.minimumAppearances)
+      ? options.minimumAppearances
+      : MIN_CAMPAIGN_APPEARANCES;
     const usedCompKeys = new Set();
     const stageThemes = [new Set(), new Set(), new Set()];
+    const appearanceCounts = {};
 
     for (let i = 0; i < 30; i++) {
       const enc = encounters[i];
@@ -506,7 +536,7 @@
       const cost = calculateEncounterCost(enc.enemies);
       const compKey = [...enc.enemies].sort().join(",");
       const theme = getPrimaryTheme(enc.enemies);
-      if (!isValidEncounterCandidate(enc.enemies, spec, expectedStage)) return false;
+      if (!isValidEncounterCandidate(enc.enemies, spec, expectedStage, { allowDuplicateUnits })) return false;
       if (enc.actualPower !== cost || enc.targetPower !== (spec.minCost + spec.maxCost) / 2) return false;
       if (enc.compKey !== compKey || enc.theme !== theme) return false;
 
@@ -522,11 +552,20 @@
       usedCompKeys.add(compKey);
 
       stageThemes[stageIndex].add(enc.theme);
+      enc.enemies.forEach((unit) => {
+        appearanceCounts[unit] = (appearanceCounts[unit] || 0) + 1;
+      });
     }
 
     // Stage theme variety check (at least 3 themes per stage)
     for (let s = 0; s < 3; s++) {
       if (stageThemes[s].size < 3) return false;
+    }
+
+    if (minimumAppearances > 0) {
+      const allDirectUnitsCovered = getAvailableUnitsForStage(3)
+        .every((unit) => (appearanceCounts[unit] || 0) >= minimumAppearances);
+      if (!allDirectUnitsCovered) return false;
     }
 
     return true;
@@ -540,5 +579,8 @@
     validateEncountersArray,
     getFallbackTemplateEncounters,
     STAGE_SPECS,
+    GENERATOR_VERSION,
+    MIN_CAMPAIGN_APPEARANCES,
+    TARGET_CAMPAIGN_APPEARANCES,
   };
 });
