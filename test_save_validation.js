@@ -542,4 +542,55 @@ assert.strictEqual(briefingSnapshot.stateUnchanged, true, '브리핑 열기와 �
 assert.strictEqual(briefingSnapshot.pendingCleared, true, '브리핑을 닫으면 대기 중인 전투 콜백이 제거되어야 함');
 console.log('Pass: 적 구성, 활성 군단, 보상, 토템 표시와 무상태 닫기 검증 성공.');
 
+console.log('\n=== 16. 임시 체력 보너스 및 시체 확인 회귀 검증 ===');
+const healthBonusSnapshot = vm.runInContext(`(() => {
+  state.phase = 'setup';
+  state.board = makeBoard();
+  state.units = [];
+  state.corpses = [];
+  state.nextId = 1;
+  campaign.unitProgress.ancientTreant = defaultCampaignProgress('ancientTreant');
+  campaign.unitProgress.ancientTreant.maxHp += 1;
+  campaign.unitProgress.ancientTreant.hp = campaign.unitProgress.ancientTreant.maxHp;
+  const first = createCampaignUnit('ancientTreant', 'player', 3, 0);
+  const second = createCampaignUnit('ancientTreant', 'player', 3, 1);
+  return {
+    firstHp: first.hp,
+    firstMaxHp: first.maxHp,
+    secondHp: second.hp,
+    secondMaxHp: second.maxHp
+  };
+})()`, sandbox);
+assert.strictEqual(healthBonusSnapshot.firstHp, healthBonusSnapshot.firstMaxHp, '먼저 배치된 유닛도 활성화된 식물 체력 보너스만큼 현재 체력이 올라야 함');
+assert.strictEqual(healthBonusSnapshot.secondHp, healthBonusSnapshot.secondMaxHp, '새로 배치한 유닛은 영구 강화와 군단 체력 보너스가 현재 체력에도 함께 적용되어야 함');
+
+const corpseConfirmationSnapshot = vm.runInContext(`(() => {
+  state.phase = 'battle';
+  state.turn = 'player';
+  state.winner = null;
+  state.isRolling = false;
+  const corpse = {
+    id: 'corpse-confirm-test',
+    row: 2,
+    col: 2,
+    sourceType: 'ogre',
+    sourceOwner: 'enemy',
+    target: 4,
+    attemptsRemaining: 2
+  };
+  confirmCorpseSummon(corpse);
+  return {
+    attemptsRemaining: corpse.attemptsRemaining,
+    text: dialogText.textContent,
+    title: dialogTitle.textContent,
+    clickUsesConfirmation: handleCellClick.toString().includes('confirmCorpseSummon(corpse)')
+  };
+})()`, sandbox);
+assert.strictEqual(corpseConfirmationSnapshot.attemptsRemaining, 2, '시체 확인창을 여는 것만으로 소환 기회가 줄면 안 됨');
+assert.ok(corpseConfirmationSnapshot.text.includes('4+'), '시체 확인창에 소환 목표가 표시되어야 함');
+assert.ok(corpseConfirmationSnapshot.text.includes('2'), '시체 확인창에 남은 기회가 표시되어야 함');
+assert.ok(corpseConfirmationSnapshot.title.includes(sandbox.UNIT_TYPES.ogre.label), '시체 확인창에 죽은 유닛 이름이 표시되어야 함');
+assert.strictEqual(corpseConfirmationSnapshot.clickUsesConfirmation, true, '시체 클릭은 즉시 굴리지 않고 확인창을 열어야 함');
+console.log('Pass: 임시 최대 체력이 현재 체력에 반영되고 시체 소환 전 확인 단계를 거칩니다.');
+
 console.log('\n✅ 모든 세이브 무결성 및 복원 회귀 테스트 통과!');

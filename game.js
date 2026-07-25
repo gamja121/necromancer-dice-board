@@ -1430,7 +1430,8 @@ function createCampaignUnit(type, owner, row, col) {
     respawns: progress.respawns,
     retreat: progress.retreat,
   });
-  unit.hp = Math.max(1, Math.min(unit.maxHp, progress.hp));
+  const temporaryHealthBonus = Math.max(0, unit.maxHp - unit.baseMaxHp);
+  unit.hp = Math.max(1, Math.min(unit.maxHp, progress.hp + temporaryHealthBonus));
   return unit;
 }
 
@@ -2797,6 +2798,22 @@ async function tryCorpseSummon(corpse) {
   beginCorpseSummonPlacement(corpse, owner, total);
 }
 
+function confirmCorpseSummon(corpse) {
+  if (!corpse || state.phase !== "battle" || state.winner || state.isRolling || state.turn !== "player") return;
+  const source = UNIT_TYPES[corpse.sourceType];
+  const bonus = corpseSummonBonus(state.turn);
+  const requiredDie = Math.max(1, corpse.target - bonus);
+  const bonusText = bonus > 0 ? ` (시체 군단 보정 +${bonus})` : "";
+  showDialog(
+    `${source?.label || "알 수 없는 유닛"} 시체`,
+    `소환 목표 ${corpse.target}+${bonusText}. 주사위 ${requiredDie} 이상이 필요합니다. 남은 기회는 ${corpse.attemptsRemaining ?? 2}회입니다.`,
+    [
+      { label: "취소", onClick: () => render() },
+      { label: "주사위 굴리기", onClick: () => tryCorpseSummon(corpse) },
+    ]
+  );
+}
+
 function beginCorpseSummonPlacement(corpse, owner, roll) {
   state.pendingSummon = {
     corpseId: corpse.id,
@@ -2915,7 +2932,7 @@ async function handleCellClick(row, col) {
     state.inspectedUnitId = null;
     state.inspectedLegionOwner = null;
     render();
-    tryCorpseSummon(corpse);
+    confirmCorpseSummon(corpse);
     return;
   }
   if (unit && unit.owner === state.turn && state.mode === "move") {
