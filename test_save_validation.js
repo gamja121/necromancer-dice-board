@@ -119,7 +119,7 @@ sandbox.autoSaveCampaign();
 const loadedV2 = sandbox.loadCampaignSave();
 assert.ok(loadedV2 !== null, 'V2 세이브가 무사히 로드되어야 함');
 assert.strictEqual(loadedV2.version, 2, '버전 2이어야 함');
-assert.strictEqual(loadedV2.generatorVersion, 2, '새 원정은 중복 금지 생성기 버전 2를 사용해야 함');
+assert.strictEqual(loadedV2.generatorVersion, 3, '새 원정은 히드라 포함 생성기 버전 3을 사용해야 함');
 assert.strictEqual(loadedV2.encounters.length, 30, '30전투 포함되어야 함');
 assert.deepStrictEqual(Array.from(loadedV2.resolvedInterludes), [], '기존 V2 세이브는 해결한 탐험 노드 빈 목록으로 보완되어야 함');
 assert.strictEqual(elements.continueCampaignBtn.disabled, false, '계속하기 버튼이 활성화되어야 함');
@@ -137,6 +137,14 @@ const loadedOldGenerator = sandbox.loadCampaignSave();
 assert.ok(loadedOldGenerator !== null, '기존 생성기 버전 1의 중복 조합 세이브도 이어서 플레이할 수 있어야 함');
 assert.strictEqual(loadedOldGenerator.generatorVersion, 1, '기존 원정의 생성기 버전은 유지되어야 함');
 console.log('Pass: 기존 생성기 버전 1 중복 조합 세이브 호환성 유지.');
+
+const oldGeneratorV2Save = JSON.parse(JSON.stringify(loadedV2));
+oldGeneratorV2Save.generatorVersion = 2;
+storage['necromancer-campaign-save-v1'] = JSON.stringify(oldGeneratorV2Save);
+const loadedOldGeneratorV2 = sandbox.loadCampaignSave();
+assert.ok(loadedOldGeneratorV2 !== null, '기존 생성기 버전 2 세이브도 이어서 플레이할 수 있어야 함');
+assert.strictEqual(loadedOldGeneratorV2.generatorVersion, 2, '기존 생성기 버전 2 표시는 유지되어야 함');
+console.log('Pass: 기존 생성기 버전 2 세이브 호환성 유지.');
 
 console.log('\n=== 3. 30전투 완결 세이브 복원 검증 (Issue 7) ===');
 const completedV2Save = {
@@ -592,5 +600,109 @@ assert.ok(corpseConfirmationSnapshot.text.includes('2'), '시체 확인창에 �
 assert.ok(corpseConfirmationSnapshot.title.includes(sandbox.UNIT_TYPES.ogre.label), '시체 확인창에 죽은 유닛 이름이 표시되어야 함');
 assert.strictEqual(corpseConfirmationSnapshot.clickUsesConfirmation, true, '시체 클릭은 즉시 굴리지 않고 확인창을 열어야 함');
 console.log('Pass: 임시 최대 체력이 현재 체력에 반영되고 시체 소환 전 확인 단계를 거칩니다.');
+
+console.log('\n=== 17. 확률 합산, 변환 충돌, 토템 부활·회복, 히드라 검증 ===');
+const batchPatchSnapshot = vm.runInContext(`(() => {
+  state.phase = 'setup';
+  state.board = makeBoard();
+  state.units = [];
+  state.corpses = [];
+  state.nextId = 1;
+  state.selectedTotem = 'insect';
+  const worm = createUnit('worm', 'player', 3, 0);
+  createUnit('hellMantis', 'player', 3, 1);
+  createUnit('spear', 'player', 4, 0);
+  createUnit('archer', 'player', 4, 1);
+  createUnit('knight', 'player', 4, 2);
+  const conflictDice = effectiveAttackDice(worm);
+
+  state.board = makeBoard();
+  state.units = [];
+  state.nextId = 1;
+  state.selectedTotem = 'demon';
+  const hydra = createUnit('hydra', 'player', 3, 0);
+  createUnit('doomExecutor', 'player', 3, 1);
+  const frenzyChance = demonFrenzyChance(hydra);
+
+  state.selectedTotem = 'plague';
+  createUnit('plagueFrog', 'player', 3, 2);
+  const poisonChanceValue = poisonChance(hydra);
+
+  state.board = makeBoard();
+  state.units = [];
+  state.nextId = 1;
+  state.selectedTotem = 'ice';
+  const yeti = createUnit('yeti', 'player', 3, 0);
+  createUnit('iceLord', 'player', 3, 1);
+  const freezeChanceValue = freezeChance(yeti);
+
+  state.board = makeBoard();
+  state.units = [];
+  state.nextId = 1;
+  state.selectedTotem = 'element';
+  const treant = createUnit('ancientTreant', 'player', 3, 0);
+  createUnit('stoneGolem', 'player', 3, 1);
+  const resistanceChance = statusResistanceChance(treant);
+
+  state.board = makeBoard();
+  state.units = [];
+  state.corpses = [];
+  state.nextId = 1;
+  state.selectedTotem = 'corpse';
+  const reviver = createUnit('ghoul', 'player', 3, 0);
+  const originalRandom = Math.random;
+  Math.random = () => 0.09;
+  reviver.hp = 0;
+  const firstDeathResult = killUnit(reviver);
+  const survivedFirstDeath = state.units.includes(reviver) && reviver.hp === 1 && reviver.corpseTotemRevived;
+  reviver.hp = 0;
+  const secondDeathResult = killUnit(reviver);
+  const removedSecondDeath = !state.units.includes(reviver);
+
+  state.board = makeBoard();
+  state.units = [];
+  state.nextId = 1;
+  state.selectedTotem = 'plant';
+  const healed = createUnit('spear', 'player', 3, 0);
+  healed.hp -= 1;
+  const healTriggered = maybeApplyPlantTotemHeal(healed);
+  Math.random = originalRandom;
+
+  return {
+    conflictDice,
+    frenzyChance,
+    poisonChanceValue,
+    freezeChanceValue,
+    resistanceChance,
+    firstDeathResult,
+    survivedFirstDeath,
+    secondDeathResult,
+    removedSecondDeath,
+    corpseCount: state.corpses.length,
+    healTriggered,
+    healedHp: healed.hp,
+    healedMaxHp: healed.maxHp,
+    hydraLegions: legionsOf({ type: 'hydra' }),
+    hydraMoves: movementDeltas({ type: 'hydra', owner: 'player' }).length,
+    hydraAttacks: attackDeltas({ type: 'hydra', owner: 'player' }).length,
+    wormLegions: legionsOf({ type: 'worm' }),
+    spiderLegions: legionsOf({ type: 'spiderQueen' })
+  };
+})()`, sandbox);
+assert.deepStrictEqual(Array.from(batchPatchSnapshot.conflictDice), [1, 0, 1, 1, 3, 2], '한 주사위 면은 군단·토템에 중복 변환되면 안 됨');
+assert.strictEqual(batchPatchSnapshot.frenzyChance, 0.4, '악마 군단과 악마 토템은 폭주 40%로 합산되어야 함');
+assert.strictEqual(batchPatchSnapshot.poisonChanceValue, 0.4, '역병 군단과 역병 토템은 중독 40%로 합산되어야 함');
+assert.strictEqual(batchPatchSnapshot.freezeChanceValue, 0.3, '얼음 군단 빙결 확률은 30%여야 함');
+assert.strictEqual(batchPatchSnapshot.resistanceChance, 0.6, '원소 군단과 원소 토템은 면역 60%로 합산되어야 함');
+assert.strictEqual(batchPatchSnapshot.survivedFirstDeath, true, '시체 토템은 성공 시 HP 1로 1회 부활시켜야 함');
+assert.strictEqual(batchPatchSnapshot.removedSecondDeath, true, '시체 토템으로 부활한 유닛은 두 번째로 부활하면 안 됨');
+assert.strictEqual(batchPatchSnapshot.healTriggered, true, '식물 토템은 10% 판정 성공 시 회복해야 함');
+assert.strictEqual(batchPatchSnapshot.healedHp, batchPatchSnapshot.healedMaxHp, '식물 토템 회복은 최대 체력을 넘지 않아야 함');
+assert.deepStrictEqual(Array.from(batchPatchSnapshot.hydraLegions), ['plague', 'demon'], '히드라는 역병·악마 이중 군단이어야 함');
+assert.strictEqual(batchPatchSnapshot.hydraMoves, 4, '히드라는 상하좌우 1칸 이동해야 함');
+assert.strictEqual(batchPatchSnapshot.hydraAttacks, 5, '히드라는 전방 3칸과 좌우를 공격해야 함');
+assert.deepStrictEqual(Array.from(batchPatchSnapshot.wormLegions), ['corpse', 'insect'], '묘지 벌래는 시체·벌래 군단이어야 함');
+assert.deepStrictEqual(Array.from(batchPatchSnapshot.spiderLegions), ['summon', 'insect'], '거미여왕은 소환·벌래 군단이어야 함');
+console.log('Pass: 확률 합산, 주사위 변환 순서, 토템 회복·1회 부활, 히드라와 벌래 분류 검증 성공.');
 
 console.log('\n✅ 모든 세이브 무결성 및 복원 회귀 테스트 통과!');

@@ -1,14 +1,21 @@
-const CACHE_NAME = "necromancer-expedition-v7";
+const CACHE_NAME = "necromancer-expedition-v8";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=20260724-3",
-  "./unit-data.js?v=20260724-3",
-  "./encounter-generator.js?v=20260724-3",
-  "./game.js?v=20260724-3",
-  "./manifest.webmanifest?v=20260724-3",
+  "./styles.css?v=20260726-1",
+  "./unit-data.js?v=20260726-1",
+  "./encounter-generator.js?v=20260726-1",
+  "./game.js?v=20260726-1",
+  "./manifest.webmanifest?v=20260726-1",
   "./assets/app-icon-192.png",
-  "./assets/app-icon-512.png"
+  "./assets/app-icon-512.png",
+  "./assets/hydra.jpg",
+  "./assets/totem-insect.jpg",
+  "./assets/totem-demon.jpg",
+  "./assets/totem-plague.jpg",
+  "./assets/totem-corpse.jpg",
+  "./assets/totem-element.jpg",
+  "./assets/totem-plant.jpg"
 ];
 
 self.addEventListener("install", (event) => {

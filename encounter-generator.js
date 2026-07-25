@@ -26,7 +26,7 @@
 })(typeof self !== "undefined" ? self : (typeof window !== "undefined" ? window : globalThis), function (UNIT_TYPES, ENCOUNTER_UNIT_META) {
   const MAX_BACKTRACKS = 200;
   const MAX_RESTARTS = 20;
-  const GENERATOR_VERSION = 2;
+  const GENERATOR_VERSION = 3;
   const MIN_CAMPAIGN_APPEARANCES = 1;
   const TARGET_CAMPAIGN_APPEARANCES = 3;
 
@@ -461,7 +461,7 @@
       ["plagueFrog", "seaWolf", "scorpionKnight", "abyssHarpy"],
       ["worm", "goblinChief", "ancientTreant"],
       ["goblinSoldier", "hellMantis", "scorpionKnight", "abyssHarpy"],
-      ["spear", "seaWolf", "plague", "spiderQueen"],
+      ["spear", "seaWolf", "plague", "hydra"],
       ["plagueFrog", "skeletonSummoner", "goblinRider", "forestFairy"],
       ["iceLord", "ancientTreant", "kraken", "poisonMushroom"],
       ["goblinSoldier", "abyssEye", "crystalDevourer", "abyssHarpy"],

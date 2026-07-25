@@ -17,16 +17,46 @@ const TOTEMS = {
     image: "assets/totem-undead.jpg",
     effect: "공격·반격 주사위가 1이면 체력 1 회복",
   },
+  insect: {
+    label: "벌래 토템",
+    image: "assets/totem-insect.jpg",
+    effect: "모든 유닛 공격 주사위의 1 한 면을 0으로 변경",
+  },
+  demon: {
+    label: "악마 토템",
+    image: "assets/totem-demon.jpg",
+    effect: "모든 유닛 폭주 확률 +10%",
+  },
+  plague: {
+    label: "역병 토템",
+    image: "assets/totem-plague.jpg",
+    effect: "모든 유닛 중독 확률 +10%",
+  },
+  corpse: {
+    label: "시체 토템",
+    image: "assets/totem-corpse.jpg",
+    effect: "사망 시 10% 확률로 체력 1 부활",
+  },
+  element: {
+    label: "원소 토템",
+    image: "assets/totem-element.jpg",
+    effect: "모든 유닛 상태이상 면역 확률 +10%",
+  },
+  plant: {
+    label: "식물 토템",
+    image: "assets/totem-plant.jpg",
+    effect: "피격 후 생존 시 10% 확률로 체력 1 회복",
+  },
 };
 const LEGION_RULES = Object.freeze([
   { key: "skeleton", name: "언데드", target: 3, effect: "영웅 제외 우리편 전체 공격 주사위 0 하나를 1로 변경" },
   { key: "corpse", name: "시체", target: 2, effect: "시체 소환 주사위 +1" },
   { key: "beast", name: "야수", target: 2, effect: "야수 유닛이 공격받고 생존 시 30% 확률 반격" },
-  { key: "plague", name: "역병", target: 2, effect: "역병 유닛 공격 후 생존 대상에게 1턴 중독" },
-  { key: "ice", name: "얼음", target: 2, effect: "얼음 유닛 공격 후 생존 대상에게 1턴 빙결" },
+  { key: "plague", name: "역병", target: 2, effect: "역병 유닛 공격 시 30% 확률로 1턴 중독" },
+  { key: "ice", name: "얼음", target: 2, effect: "얼음 유닛 공격 시 30% 확률로 1턴 빙결" },
   { key: "summon", name: "소환", target: 2, effect: "소환물 최대 체력 +3" },
   { key: "demon", name: "악마", target: 2, effect: "악마 유닛 공격 시 30% 확률 최종 피해 2배" },
-  { key: "insect", name: "벌레", target: 2, effect: "벌레 유닛 공격 주사위 2 한 면을 3으로 변경" },
+  { key: "insect", name: "벌래", target: 2, effect: "벌래 유닛 공격 주사위 2 한 면을 3으로 변경" },
   { key: "plant", name: "식물", target: 2, effect: "식물 유닛 최대 체력 +1" },
   { key: "element", name: "원소", target: 2, effect: "원소 유닛이 50% 확률로 상태이상 면역" },
 ]);
@@ -59,7 +89,7 @@ const INTERLUDE_SPECS = [
 ];
 const campaign = {
   version: 2,
-  generatorVersion: 2,
+  generatorVersion: 3,
   runSeed: 0,
   stageIndex: 0,
   battleIndex: 0,
@@ -127,7 +157,7 @@ if (typeof UNIT_TYPES === "undefined") {
   }
 }
 
-const SETUP_RESERVE_TYPES = ["spear", "archer", "knight", "worm", "golem", "ghoul", "ogre", "plague", "plagueFrog", "minotaur", "yeti", "iceLord", "seaWolf", "spiderQueen", "goblinChief", "goblinSoldier", "skeletonSummoner", "doomExecutor", "abyssEye", "demonDeathKnight", "hellMantis", "scorpionKnight", "ancientTreant", "stoneGolem", "kraken", "crystalDevourer", "ragingTreant", "cerberus", "poisonMushroom", "goblinRider", "abyssHarpy", "troll", "boneGolem", "forestFairy"];
+const SETUP_RESERVE_TYPES = ["spear", "archer", "knight", "worm", "golem", "ghoul", "ogre", "plague", "plagueFrog", "hydra", "minotaur", "yeti", "iceLord", "seaWolf", "spiderQueen", "goblinChief", "goblinSoldier", "skeletonSummoner", "doomExecutor", "abyssEye", "demonDeathKnight", "hellMantis", "scorpionKnight", "ancientTreant", "stoneGolem", "kraken", "crystalDevourer", "ragingTreant", "cerberus", "poisonMushroom", "goblinRider", "abyssHarpy", "troll", "boneGolem", "forestFairy"];
 
 const state = {
   phase: "setup",
@@ -295,6 +325,7 @@ function createUnit(type, owner, row, col, diceOverride = null, options = {}) {
     dice: diceOverride ? [...diceOverride] : [...def.dice],
     poisoned: false,
     frozen: false,
+    corpseTotemRevived: Boolean(options.corpseTotemRevived),
     summonedNoCorpse: Boolean(options.summonedNoCorpse),
     capturedForCampaign: Boolean(options.capturedForCampaign),
     respawns: Number.isInteger(options.respawns) ? options.respawns : 0,
@@ -769,13 +800,27 @@ function reconcileUnitHealthBonuses() {
 
 function effectiveAttackDice(unit) {
   const dice = [...unit.dice];
+  const transformed = new Set();
   if (isLegionActive(unit.owner, "skeleton") && UNIT_TYPES[unit.type]?.grade !== "hero") {
     const zeroIndex = dice.indexOf(0);
-    if (zeroIndex !== -1) dice[zeroIndex] = 1;
+    if (zeroIndex !== -1) {
+      dice[zeroIndex] = 1;
+      transformed.add(zeroIndex);
+    }
   }
   if (hasLegion(unit, "insect") && isLegionActive(unit.owner, "insect")) {
-    const twoIndex = dice.indexOf(2);
-    if (twoIndex !== -1) dice[twoIndex] = 3;
+    const twoIndex = dice.findIndex((value, index) => value === 2 && !transformed.has(index));
+    if (twoIndex !== -1) {
+      dice[twoIndex] = 3;
+      transformed.add(twoIndex);
+    }
+  }
+  if (state.selectedTotem === "insect") {
+    const oneIndex = dice.findIndex((value, index) => value === 1 && !transformed.has(index));
+    if (oneIndex !== -1) {
+      dice[oneIndex] = 0;
+      transformed.add(oneIndex);
+    }
   }
   return dice;
 }
@@ -815,7 +860,7 @@ function activeLegionSummary(owner) {
   if (isLegionActive(owner, "ice")) active.push("얼음");
   if (isLegionActive(owner, "summon")) active.push("소환");
   if (isLegionActive(owner, "demon")) active.push("악마");
-  if (isLegionActive(owner, "insect")) active.push("벌레");
+  if (isLegionActive(owner, "insect")) active.push("벌래");
   if (isLegionActive(owner, "plant")) active.push("식물");
   if (isLegionActive(owner, "element")) active.push("원소");
   return active.length ? active.join(" ") : "없음";
@@ -833,6 +878,45 @@ function counterChance(unit) {
   if (hasLegion(unit, "beast") && isLegionActive(unit.owner, "beast")) chance += 0.3;
   if (state.selectedTotem === "beast") chance += 0.1;
   return chance;
+}
+
+function demonFrenzyChance(unit) {
+  let chance = 0;
+  if (hasLegion(unit, "demon") && isLegionActive(unit.owner, "demon")) chance += 0.3;
+  if (state.selectedTotem === "demon") chance += 0.1;
+  return Math.min(1, chance);
+}
+
+function poisonChance(unit) {
+  let chance = 0;
+  if (hasLegion(unit, "plague") && isLegionActive(unit.owner, "plague")) chance += 0.3;
+  if (state.selectedTotem === "plague") chance += 0.1;
+  return Math.min(1, chance);
+}
+
+function freezeChance(unit) {
+  return hasLegion(unit, "ice") && isLegionActive(unit.owner, "ice") ? 0.3 : 0;
+}
+
+function statusResistanceChance(unit) {
+  let chance = 0;
+  if (hasLegion(unit, "element") && isLegionActive(unit.owner, "element")) chance += 0.5;
+  if (state.selectedTotem === "element") chance += 0.1;
+  return Math.min(1, chance);
+}
+
+function maybeApplyPlantTotemHeal(unit) {
+  if (state.selectedTotem !== "plant" || !state.units.includes(unit) || unit.hp <= 0) return false;
+  if (Math.random() >= 0.1) return false;
+  if (unit.hp >= unit.maxHp) {
+    addLog(`${UNIT_TYPES[unit.type].label} 식물 토템 발동. 체력이 이미 가득 찼습니다.`);
+    return true;
+  }
+  unit.hp = Math.min(unit.maxHp, unit.hp + 1);
+  triggerStatusVisual(unit, "heal", "생명 회복", "HP +1", 900);
+  playSfx("magic");
+  addLog(`${UNIT_TYPES[unit.type].label} 식물 토템 발동. 체력 1 회복.`);
+  return true;
 }
 
 function applyUndeadTotemHeal(unit, roll, actionLabel) {
@@ -929,7 +1013,7 @@ function movementDeltas(unit) {
   if (unit.type === "hellMantis") {
     return [[forward, 0], [forward * 2, 0], [forward, -1], [forward, 1]];
   }
-  if (["scorpionKnight", "ancientTreant", "stoneGolem"].includes(unit.type)) {
+  if (["scorpionKnight", "ancientTreant", "stoneGolem", "hydra"].includes(unit.type)) {
     return [[forward, 0], [0, -1], [0, 1], [-forward, 0]];
   }
   if (unit.type === "kraken") {
@@ -999,6 +1083,9 @@ function baseAttackDeltas(unit) {
   }
   if (unit.type === "plagueFrog") {
     return [[forward, 0]];
+  }
+  if (unit.type === "hydra") {
+    return [[forward, -1], [forward, 0], [forward, 1], [0, -1], [0, 1]];
   }
   if (unit.type === "minotaur") {
     return [[forward, -1], [forward, 0], [forward, 1], [0, -1], [0, 1]];
@@ -1317,7 +1404,7 @@ function loadCampaignSave() {
     }
 
     if (data.version !== 2) return null;
-    if (![1, 2].includes(data.generatorVersion)) return null;
+    if (![1, 2, 3].includes(data.generatorVersion)) return null;
     if (!Number.isInteger(data.runSeed) || data.runSeed < 0 || data.runSeed > 0xffffffff) return null;
     if (typeof data.finished !== "boolean") return null;
 
@@ -1326,8 +1413,8 @@ function loadCampaignSave() {
 
     const expectedStageIndex = data.battleIndex >= 30 ? 2 : Math.floor(data.battleIndex / 10);
     if (data.stageIndex !== expectedStageIndex) return null;
-    const encounterValidationOptions = data.generatorVersion === 1
-      ? { allowDuplicateUnits: true, minimumAppearances: 0 }
+    const encounterValidationOptions = data.generatorVersion < 3
+      ? { allowDuplicateUnits: data.generatorVersion === 1, minimumAppearances: 0 }
       : {};
     if (!EncounterGenerator.validateEncountersArray(data.encounters, encounterValidationOptions)) return null;
 
@@ -1758,19 +1845,18 @@ async function attackTarget(attacker, target) {
   if (state.isRolling) return;
   const attackDice = effectiveAttackDice(attacker);
   const undeadBonus = isLegionActive(attacker.owner, "skeleton") && UNIT_TYPES[attacker.type]?.grade !== "hero";
-  const plaguePoison = hasLegion(attacker, "plague") && isLegionActive(attacker.owner, "plague");
-  const iceFreeze = hasLegion(attacker, "ice") && isLegionActive(attacker.owner, "ice");
-  const demonDouble = hasLegion(attacker, "demon") && isLegionActive(attacker.owner, "demon") && Math.random() < 0.3;
+  const frenzyChance = demonFrenzyChance(attacker);
+  const demonDouble = frenzyChance > 0 && Math.random() < frenzyChance;
   const rolledDamage = await showDiceRoll(`${UNIT_TYPES[attacker.type].label} 공격`, attackDice);
   applyUndeadTotemHeal(attacker, rolledDamage, "공격");
   const damage = demonDouble ? rolledDamage * 2 : rolledDamage;
   if (demonDouble && rolledDamage > 0) {
-    triggerStatusVisual(attacker, "demonBurst", "악마 폭주", `${rolledDamage} ×2`, 1050);
+    triggerStatusVisual(attacker, "demonBurst", "악마 폭주", `${rolledDamage} ×2 · ${Math.round(frenzyChance * 100)}%`, 1050);
     playSfx("magic");
     render();
     await wait(420);
   }
-  state.lastDice = `${UNIT_TYPES[attacker.type].label}: ${rolledDamage}${demonDouble ? ` → ${damage} (악마 군단)` : ""}${undeadBonus ? " (언데드 군단)" : ""}${plaguePoison ? " (중독)" : ""}${iceFreeze ? " (빙결)" : ""}`;
+  state.lastDice = `${UNIT_TYPES[attacker.type].label}: ${rolledDamage}${demonDouble ? ` → ${damage} (폭주)` : ""}${undeadBonus ? " (언데드 군단)" : ""}`;
 
   const attackCells = [{ row: target.row, col: target.col }];
   const targets = [target];
@@ -1778,9 +1864,13 @@ async function attackTarget(attacker, target) {
   await playAttackEffect(attacker, targets, damage, attackCells);
 
   target.hp -= damage;
-  applyPoison(attacker, [target]);
-  applyFreeze(attacker, [target]);
+  if (target.hp > 0) maybeApplyPlantTotemHeal(target);
+  const poisoned = applyPoison(attacker, [target]);
+  const frozen = applyFreeze(attacker, [target]);
   addLog(`${UNIT_TYPES[attacker.type].label} 공격 주사위 ${rolledDamage}. ${UNIT_TYPES[target.type].label}에게 ${damage} 피해.${demonDouble ? " 악마 군단 2배 발동." : ""}`);
+  if (poisoned.length || frozen.length) {
+    state.lastDice += `${poisoned.length ? " · 중독" : ""}${frozen.length ? " · 빙결" : ""}`;
+  }
   if (target.hp <= 0) {
     killUnit(target);
   }
@@ -1833,12 +1923,20 @@ async function resolveBeastCounters(attacker, targets) {
     playSfx("heavy");
     render();
     await wait(360);
-    const damage = await showDiceRoll(`${UNIT_TYPES[counter.type].label} 반격`, effectiveAttackDice(counter));
-    applyUndeadTotemHeal(counter, damage, "반격");
-    state.lastDice = `${UNIT_TYPES[counter.type].label} 반격: ${damage}`;
+    const rolledDamage = await showDiceRoll(`${UNIT_TYPES[counter.type].label} 반격`, effectiveAttackDice(counter));
+    applyUndeadTotemHeal(counter, rolledDamage, "반격");
+    const frenzyChance = demonFrenzyChance(counter);
+    const frenzy = frenzyChance > 0 && Math.random() < frenzyChance;
+    const damage = frenzy ? rolledDamage * 2 : rolledDamage;
+    state.lastDice = `${UNIT_TYPES[counter.type].label} 반격: ${rolledDamage}${frenzy ? ` → ${damage} (폭주)` : ""}`;
     await playAttackEffect(counter, [attacker], damage, [{ row: attacker.row, col: attacker.col }]);
     attacker.hp -= damage;
-    addLog(`${UNIT_TYPES[counter.type].label} 반격 ${damage} (${Math.round(chance * 100)}%).`);
+    if (attacker.hp > 0) maybeApplyPlantTotemHeal(attacker);
+    if (attacker.hp > 0) {
+      applyPoison(counter, [attacker]);
+      applyFreeze(counter, [attacker]);
+    }
+    addLog(`${UNIT_TYPES[counter.type].label} 반격 ${damage} (${Math.round(chance * 100)}%).${frenzy ? " 폭주 2배 발동." : ""}`);
     if (attacker.hp <= 0) {
       killUnit(attacker);
       return;
@@ -2005,37 +2103,40 @@ function placeSeedSummon(row, col) {
 }
 
 function resistsStatusEffect(unit, statusLabel) {
-  if (!hasLegion(unit, "element") || !isLegionActive(unit.owner, "element")) return false;
-  if (Math.random() >= 0.5) return false;
+  const chance = statusResistanceChance(unit);
+  if (chance <= 0 || Math.random() >= chance) return false;
   triggerStatusVisual(unit, "elementGuard", "원소 면역", statusLabel, 900);
   playSfx("magic");
-  addLog(`${UNIT_TYPES[unit.type].label} 원소 군단 발동. ${statusLabel} 면역.`);
+  addLog(`${UNIT_TYPES[unit.type].label} 원소 면역 발동 (${Math.round(chance * 100)}%). ${statusLabel} 무효.`);
   return true;
 }
 
 function applyPoison(attacker, targets) {
-  if (!hasLegion(attacker, "plague") || !isLegionActive(attacker.owner, "plague")) return;
+  const chance = poisonChance(attacker);
+  if (chance <= 0) return [];
   const candidates = targets.filter((unit) => state.units.includes(unit) && unit.hp > 0);
-  const affected = candidates.filter((unit) => !resistsStatusEffect(unit, "중독"));
+  const affected = candidates.filter((unit) => Math.random() < chance && !resistsStatusEffect(unit, "중독"));
   if (affected.length) playSfx("poison");
   affected
     .forEach((unit) => {
       unit.poisoned = true;
       triggerStatusVisual(unit, "poisonBurst", "중독", "다음 턴 -1", 900);
-      addLog(`${UNIT_TYPES[unit.type].label} 중독. 다음 자기 턴에 1 피해.`);
+      addLog(`${UNIT_TYPES[unit.type].label} 중독 (${Math.round(chance * 100)}%). 다음 자기 턴에 1 피해.`);
     });
   if (candidates.length) render();
+  return affected;
 }
 
 function applyFreeze(attacker, targets) {
-  if (!hasLegion(attacker, "ice") || !isLegionActive(attacker.owner, "ice")) return;
+  const chance = freezeChance(attacker);
+  if (chance <= 0) return [];
   const candidates = targets.filter((unit) => state.units.includes(unit) && unit.hp > 0);
-  const affected = candidates.filter((unit) => !resistsStatusEffect(unit, "빙결"));
+  const affected = candidates.filter((unit) => Math.random() < chance && !resistsStatusEffect(unit, "빙결"));
   if (affected.length) playSfx("freeze");
   affected
     .forEach((unit) => {
       unit.frozen = true;
-      addLog(`${UNIT_TYPES[unit.type].label} 빙결. 다음 자기 턴 이동/공격 불가.`);
+      addLog(`${UNIT_TYPES[unit.type].label} 빙결 (${Math.round(chance * 100)}%). 다음 자기 턴 이동/공격 불가.`);
       if (state.selectedTotem === "ice") {
         unit.hp -= 1;
         triggerStatusVisual(unit, "iceShatter", "빙결 파쇄", "-1", 900);
@@ -2045,6 +2146,7 @@ function applyFreeze(attacker, targets) {
       }
     });
   if (candidates.length) render();
+  return affected;
 }
 
 function clearFrozenUnits(owner) {
@@ -2091,7 +2193,7 @@ function attackStyleFor(unit) {
   if (["archer"].includes(unit.type)) return "ranged";
   if (["summoner", "plague", "iceLord", "skeletonSummoner", "abyssEye", "spiderQueen", "goblinChief", "ancientTreant", "kraken", "crystalDevourer", "poisonMushroom", "forestFairy"].includes(unit.type)) return "magic";
   if (["knight", "golem", "ogre", "minotaur", "doomExecutor", "demonDeathKnight", "stoneGolem", "ragingTreant", "troll", "boneGolem"].includes(unit.type)) return "heavy";
-  if (["worm", "ghoul", "plagueFrog", "yeti", "seaWolf", "spiderling", "hellMantis", "scorpionKnight", "cerberus", "goblinRider", "abyssHarpy"].includes(unit.type)) return "claw";
+  if (["worm", "ghoul", "plagueFrog", "hydra", "yeti", "seaWolf", "spiderling", "hellMantis", "scorpionKnight", "cerberus", "goblinRider", "abyssHarpy"].includes(unit.type)) return "claw";
   return "melee";
 }
 
@@ -2124,7 +2226,22 @@ async function playAttackEffect(attacker, targets, damage, attackCells) {
   };
 }
 
+function tryCorpseTotemRevival(unit) {
+  if (state.selectedTotem !== "corpse" || unit.corpseTotemRevived || !state.units.includes(unit)) return false;
+  if (Math.random() >= 0.1) return false;
+  unit.corpseTotemRevived = true;
+  unit.hp = 1;
+  unit.poisoned = false;
+  unit.frozen = false;
+  triggerStatusVisual(unit, "summon", "시체 토템 부활", "HP 1", 1050);
+  playSfx("summon");
+  addLog(`${UNIT_TYPES[unit.type].label} 시체 토템 발동. 체력 1로 1회 부활.`);
+  render();
+  return true;
+}
+
 function killUnit(unit) {
+  if (tryCorpseTotemRevival(unit)) return false;
   playSfx("death");
   const deathRow = unit.row;
   const deathCol = unit.col;
@@ -3374,6 +3491,7 @@ function describeMovement(unit) {
   if (unit.type === "iceLord") return "상하좌우 1칸";
   if (unit.type === "seaWolf") return "앞/앞대각/좌우 1칸, 뒤로 불가";
   if (unit.type === "plagueFrog") return "앞 1~2칸, 좌우 1칸";
+  if (unit.type === "hydra") return "상하좌우 1칸";
   if (unit.type === "yeti") return "앞/좌/우 1칸";
   if (unit.type === "minotaur") return "상하좌우 1칸";
   if (unit.type === "summoner") return "자기 영역 안에서 1칸";
@@ -3414,6 +3532,7 @@ function baseDescribeAttack(unit) {
   if (unit.type === "iceLord") return "정면 1~2칸, 앞대각";
   if (unit.type === "seaWolf") return "전방 3칸";
   if (unit.type === "plagueFrog") return "정면 1칸";
+  if (unit.type === "hydra") return "전방 3칸, 좌우 1칸";
   if (unit.type === "yeti") return "전방 3칸";
   if (unit.type === "minotaur") return "전방 3칸, 좌우 1칸";
   if (unit.type === "summoner") return "인접 1칸";
@@ -3495,10 +3614,10 @@ function renderLegionInfo(owner) {
 function effectiveDiceMarkup(unit) {
   const effective = effectiveAttackDice(unit);
   return effective.map((value, index) => {
-    const base = UNIT_TYPES[unit.type].dice[index];
-    const bonus = value - base;
-    return bonus > 0
-      ? `<span class="stat-boost" title="${base} → ${value}">${value}<small>+${bonus}</small></span>`
+    const base = unit.dice[index];
+    const delta = value - base;
+    return delta !== 0
+      ? `<span class="stat-boost" title="${base} → ${value}">${value}<small>${delta > 0 ? "+" : ""}${delta}</small></span>`
       : `<span>${value}</span>`;
   }).join("<i>,</i>");
 }
@@ -3524,19 +3643,19 @@ function appliedUnitEffects(unit) {
     effects.push({ source: "야수", detail: "반격 확률 +30%" });
   }
   if (hasLegion(unit, "plague") && isLegionActive(unit.owner, "plague")) {
-    effects.push({ source: "역병", detail: "공격 후 1턴 중독" });
+    effects.push({ source: "역병", detail: "중독 확률 +30%" });
   }
   if (hasLegion(unit, "ice") && isLegionActive(unit.owner, "ice")) {
-    effects.push({ source: "얼음", detail: "공격 후 1턴 빙결" });
+    effects.push({ source: "얼음", detail: "빙결 확률 +30%" });
   }
   if (isSummonedUnit(unit) && !def.fixedHp && isLegionActive(unit.owner, "summon")) {
     effects.push({ source: "소환", detail: "최대 체력 +3" });
   }
   if (hasLegion(unit, "demon") && isLegionActive(unit.owner, "demon")) {
-    effects.push({ source: "악마", detail: "30% 확률 공격 피해 2배" });
+    effects.push({ source: "악마", detail: "폭주 확률 +30%" });
   }
   if (hasLegion(unit, "insect") && isLegionActive(unit.owner, "insect")) {
-    effects.push({ source: "벌레", detail: "공격 주사위 2 한 면 → 3" });
+    effects.push({ source: "벌래", detail: "공격 주사위 2 한 면 → 3" });
   }
   if (hasLegion(unit, "plant") && !def.fixedHp && isLegionActive(unit.owner, "plant")) {
     effects.push({ source: "식물", detail: "최대 체력 +1" });
@@ -3552,6 +3671,24 @@ function appliedUnitEffects(unit) {
   }
   if (state.selectedTotem === "undead") {
     effects.push({ source: "언데드 토템", detail: "공격·반격 주사위 1이면 체력 +1" });
+  }
+  if (state.selectedTotem === "insect") {
+    effects.push({ source: "벌래 토템", detail: "공격 주사위 1 한 면 → 0" });
+  }
+  if (state.selectedTotem === "demon") {
+    effects.push({ source: "악마 토템", detail: "폭주 확률 +10%" });
+  }
+  if (state.selectedTotem === "plague") {
+    effects.push({ source: "역병 토템", detail: "중독 확률 +10%" });
+  }
+  if (state.selectedTotem === "corpse") {
+    effects.push({ source: "시체 토템", detail: unit.corpseTotemRevived ? "1회 부활 사용 완료" : "사망 시 부활 확률 10%" });
+  }
+  if (state.selectedTotem === "element") {
+    effects.push({ source: "원소 토템", detail: "상태이상 면역 +10%" });
+  }
+  if (state.selectedTotem === "plant") {
+    effects.push({ source: "식물 토템", detail: "피격 후 생존 시 회복 확률 10%" });
   }
   return effects;
 }
@@ -3611,7 +3748,7 @@ function renderUnitInfo() {
     special: "소환물",
   };
   const gradeLabel = unit.summonedNoCorpse ? "소환물" : gradeLabels[def.grade] || "왕";
-  const legionNames = { skeleton: "언데드", corpse: "시체", beast: "야수", plague: "역병", ice: "얼음", summon: "소환", demon: "악마", insect: "벌레", plant: "식물", element: "원소" };
+  const legionNames = { skeleton: "언데드", corpse: "시체", beast: "야수", plague: "역병", ice: "얼음", summon: "소환", demon: "악마", insect: "벌래", plant: "식물", element: "원소" };
   const legionTargets = { skeleton: 3, corpse: 2, beast: 2, plague: 2, ice: 2, summon: 2, demon: 2, insect: 2, plant: 2, element: 2 };
   const legionLabel = legionsOf(unit).length
     ? legionsOf(unit)
@@ -3621,6 +3758,10 @@ function renderUnitInfo() {
   const maxHpBonus = Math.max(0, unit.maxHp - def.hp);
   const enhancementLevel = enhancementLevelForUnit(unit);
   const counter = counterChance(unit);
+  const frenzy = demonFrenzyChance(unit);
+  const poison = poisonChance(unit);
+  const freeze = freezeChance(unit);
+  const resistance = statusResistanceChance(unit);
   const effects = appliedUnitEffects(unit);
   unitInfoEl.innerHTML = `
     <h2 class="unit-info-title"><span>${def.label}${enhancementLevel > 0 ? `<em class="enhancement-badge">+${enhancementLevel}강</em>` : ""}</span><b>${gradeLabel}</b></h2>
@@ -3635,6 +3776,10 @@ function renderUnitInfo() {
         <div><dt>공격</dt><dd>${describeAttack(unit)}</dd></div>
         <div><dt>주사위</dt><dd class="effective-dice">${effectiveDiceMarkup(unit)}</dd></div>
         ${counter > 0 ? `<div><dt>반격</dt><dd><span class="stat-boost">${Math.round(counter * 100)}%<small>적용</small></span></dd></div>` : ""}
+        ${frenzy > 0 ? `<div><dt>폭주</dt><dd><span class="stat-boost">${Math.round(frenzy * 100)}%<small>피해 2배</small></span></dd></div>` : ""}
+        ${poison > 0 ? `<div><dt>중독</dt><dd><span class="stat-boost">${Math.round(poison * 100)}%<small>1턴</small></span></dd></div>` : ""}
+        ${freeze > 0 ? `<div><dt>빙결</dt><dd><span class="stat-boost">${Math.round(freeze * 100)}%<small>1턴</small></span></dd></div>` : ""}
+        ${resistance > 0 ? `<div><dt>상태 면역</dt><dd><span class="stat-boost">${Math.round(resistance * 100)}%<small>적용</small></span></dd></div>` : ""}
       </dl>
       ${effects.length ? `
         <div class="applied-effects">
