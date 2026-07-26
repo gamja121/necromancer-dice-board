@@ -457,10 +457,23 @@ function buildPieceImage(source) {
       const cropY = Math.max(0, minY - padding);
       const cropWidth = Math.min(width - cropX, maxX - minX + 1 + padding * 2);
       const cropHeight = Math.min(height - cropY, maxY - minY + 1 + padding * 2);
+      const contentEdge = Math.max(cropWidth, cropHeight);
+      const outputEdge = Math.max(1, Math.ceil(contentEdge * 1.12));
       const output = document.createElement("canvas");
-      output.width = cropWidth;
-      output.height = cropHeight;
-      output.getContext("2d").drawImage(canvas, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+      output.width = outputEdge;
+      output.height = outputEdge;
+      const outputContext = output.getContext("2d");
+      outputContext.drawImage(
+        canvas,
+        cropX,
+        cropY,
+        cropWidth,
+        cropHeight,
+        Math.round((outputEdge - cropWidth) / 2),
+        Math.round((outputEdge - cropHeight) / 2),
+        cropWidth,
+        cropHeight
+      );
       resolve(output.toDataURL("image/png"));
     };
     image.onerror = () => resolve(source);
@@ -1652,6 +1665,10 @@ function openBattleBriefing(encounter, battleIndex, onStart, legacy = false) {
       </article>
     `;
   }).join("");
+  briefingEnemies.querySelectorAll(".briefing-enemy img").forEach((image, index) => {
+    const type = briefing.enemies[index]?.type;
+    if (type && UNIT_TYPES[type]) applyPieceImage(image, UNIT_TYPES[type].image);
+  });
   briefingLegions.innerHTML = briefing.activeLegions.length
     ? briefing.activeLegions.map((legion) => `
       <article class="briefing-legion">
@@ -2664,6 +2681,10 @@ function renderRewardSummary(rewardState) {
       <em>${unit.healed > 0 ? `회복 +${unit.healed}` : "피해 없음"} · +${unit.enhancementLevel || 0}강</em>
     </span>
   `).join("") : "<em>생존 유닛 없음</em>"}</div>`;
+  rewardSurvivors.querySelectorAll("img").forEach((image, index) => {
+    const type = rewardState.survivors[index]?.type;
+    if (type && UNIT_TYPES[type]) applyPieceImage(image, UNIT_TYPES[type].image);
+  });
 
   rewardSettlement.innerHTML = `
     <strong>전투 정산</strong>
@@ -3289,8 +3310,27 @@ function renderBoard() {
       if (unit?.id === state.inspectedUnitId) cell.classList.add("is-inspected");
       if (unit?.poisoned) cell.classList.add("is-poisoned");
       if (unit?.frozen) cell.classList.add("is-frozen");
+      if (
+        state.effects.phase === "windup"
+        && state.effects.targetCell?.row === row
+        && state.effects.targetCell?.col === col
+      ) {
+        cell.classList.add("is-combat-target");
+      }
       if (unit?.id === state.effects.attackerId && state.effects.phase === "travel") {
         cell.classList.add("is-striking", `strike-${state.effects.attackStyle || "melee"}`, `from-${state.effects.attackOwner || unit.owner}`);
+        if (state.effects.sourceCell && state.effects.targetCell) {
+          const deltaCol = state.effects.targetCell.col - state.effects.sourceCell.col;
+          const deltaRow = state.effects.targetCell.row - state.effects.sourceCell.row;
+          const length = Math.max(1, Math.hypot(deltaCol, deltaRow));
+          const lunge = state.effects.attackStyle === "ranged" ? -5 : state.effects.attackStyle === "heavy" ? 16 : 12;
+          const strikeX = (deltaCol / length) * lunge;
+          const strikeY = (deltaRow / length) * lunge;
+          cell.style.setProperty("--strike-x", `${strikeX}px`);
+          cell.style.setProperty("--strike-y", `${strikeY}px`);
+          cell.style.setProperty("--strike-return-x", `${-strikeX * 0.32}px`);
+          cell.style.setProperty("--strike-return-y", `${-strikeY * 0.32}px`);
+        }
       }
       if (unit && state.effects.hitIds.includes(unit.id)) {
         cell.classList.add(state.effects.isMiss ? "is-miss" : "is-hit");
@@ -3475,6 +3515,7 @@ function renderReserve() {
       ${enhancementLevel > 0 ? `<em class="enhancement-badge">+${enhancementLevel}강</em>` : ""}
       <span><strong>${def.label}</strong><span>HP ${progress.hp}/${progress.maxHp} · 주사위 ${progress.dice.map(dicePips).join(" ")}</span></span>
     `;
+    applyPieceImage(card.querySelector("img"), def.image);
     card.addEventListener("click", () => {
       if (card.dataset.suppressClick === "true") {
         delete card.dataset.suppressClick;
@@ -4027,6 +4068,7 @@ function renderCampaignMap() {
     const item = document.createElement("span");
     item.className = "campaign-roster-unit";
     item.innerHTML = `<img src="${def.image}" alt=""><span><b>${def.label}${enhancementLevel > 0 ? `<em class="enhancement-badge">+${enhancementLevel}강</em>` : ""}</b><small>HP ${progress.hp}/${progress.maxHp}</small></span>`;
+    applyPieceImage(item.querySelector("img"), def.image);
     campaignRosterEl.appendChild(item);
   });
 
@@ -4145,6 +4187,7 @@ function renderLegacyCampaignMap() {
     const item = document.createElement("span");
     item.className = "campaign-roster-unit";
     item.innerHTML = `<img src="${def.image}" alt=""><span><b>${def.label}${enhancementLevel > 0 ? `<em class="enhancement-badge">+${enhancementLevel}강</em>` : ""}</b><small>HP ${progress.hp}/${progress.maxHp}</small></span>`;
+    applyPieceImage(item.querySelector("img"), def.image);
     campaignRosterEl.appendChild(item);
   });
 
@@ -4181,6 +4224,7 @@ function renderLegacyCampaignMap() {
       <strong>${completed ? "완료" : node.label}</strong>
       <small>${node.subtitle}</small>
     `;
+    applyPieceImage(button.querySelector(".map-node-image img"), preview.image);
     if (available) {
       button.addEventListener("click", () => {
         openBattleBriefing(node, campaign.depth, () => enterCampaignBattle(node.id), true);
