@@ -380,6 +380,168 @@ h2 {
   text-align: center;
 }
 
+.dice-stage {
+  --cube-size: 96px;
+  --cube-half: 48px;
+  position: relative;
+  width: 136px;
+  height: 136px;
+  display: grid;
+  place-items: center;
+  perspective: 620px;
+  perspective-origin: 50% 40%;
+}
+
+.dice-cube {
+  --final-rotate-x: 0deg;
+  --final-rotate-y: 0deg;
+  position: relative;
+  width: var(--cube-size);
+  height: var(--cube-size);
+  transform: rotateX(var(--final-rotate-x)) rotateY(var(--final-rotate-y));
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.cube-face {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  border: 4px solid #111;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .75), inset 0 -8px 15px rgba(0, 0, 0, .08);
+  backface-visibility: hidden;
+}
+
+.cube-face-1 { transform: translateZ(var(--cube-half)); }
+.cube-face-2 { transform: rotateY(180deg) translateZ(var(--cube-half)); }
+.cube-face-3 { transform: rotateY(90deg) translateZ(var(--cube-half)); }
+.cube-face-4 { transform: rotateY(-90deg) translateZ(var(--cube-half)); }
+.cube-face-5 { transform: rotateX(90deg) translateZ(var(--cube-half)); }
+.cube-face-6 { transform: rotateX(-90deg) translateZ(var(--cube-half)); }
+
+.cube-face .dice-miss {
+  font-size: 46px;
+}
+
+.cube-face .pip {
+  width: 15px;
+  height: 15px;
+  box-shadow: inset -2px -2px 0 rgba(255, 255, 255, .2);
+}
+
+.cube-face[data-value="1"] .pip-1 { left: 50%; top: 50%; transform: translate(-50%, -50%); }
+.cube-face[data-value="2"] .pip-1 { left: 19px; top: 19px; }
+.cube-face[data-value="2"] .pip-2 { right: 19px; bottom: 19px; }
+.cube-face[data-value="3"] .pip-1 { left: 17px; top: 17px; }
+.cube-face[data-value="3"] .pip-2 { left: 50%; top: 50%; transform: translate(-50%, -50%); }
+.cube-face[data-value="3"] .pip-3 { right: 17px; bottom: 17px; }
+.cube-face[data-value="4"] .pip-1 { left: 17px; top: 17px; }
+.cube-face[data-value="4"] .pip-2 { right: 17px; top: 17px; }
+.cube-face[data-value="4"] .pip-3 { left: 17px; bottom: 17px; }
+.cube-face[data-value="4"] .pip-4 { right: 17px; bottom: 17px; }
+.cube-face[data-value="5"] .pip-1 { left: 16px; top: 16px; }
+.cube-face[data-value="5"] .pip-2 { right: 16px; top: 16px; }
+.cube-face[data-value="5"] .pip-3 { left: 50%; top: 50%; transform: translate(-50%, -50%); }
+.cube-face[data-value="5"] .pip-4 { left: 16px; bottom: 16px; }
+.cube-face[data-value="5"] .pip-5 { right: 16px; bottom: 16px; }
+.cube-face[data-value="6"] .pip-1 { left: 16px; top: 15px; }
+.cube-face[data-value="6"] .pip-2 { right: 16px; top: 15px; }
+.cube-face[data-value="6"] .pip-3 { left: 16px; top: 50%; transform: translateY(-50%); }
+.cube-face[data-value="6"] .pip-4 { right: 16px; top: 50%; transform: translateY(-50%); }
+.cube-face[data-value="6"] .pip-5 { left: 16px; bottom: 15px; }
+.cube-face[data-value="6"] .pip-6 { right: 16px; bottom: 15px; }
+
+.dice-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: 7px;
+  width: 84px !important;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, .24);
+  filter: blur(6px);
+  transform: translateX(-50%) scale(.72);
+  pointer-events: none;
+}
+
+.dice-box.is-rolling .dice-cube {
+  animation: diceCubeTumble 1.312s cubic-bezier(.32, .02, .28, 1) both;
+}
+
+.dice-box.is-rolling .dice-shadow {
+  animation: diceShadowRoll .328s ease-in-out 4;
+}
+
+.dice-box.is-landed .dice-cube {
+  animation: diceCubeLand .3s cubic-bezier(.15, .82, .25, 1) both;
+}
+
+.dice-box.is-landed .dice-shadow {
+  animation: diceShadowLand .3s ease-out both;
+}
+
+.dice-box.land-miss .cube-face-1,
+.dice-box.land-miss .cube-face-2,
+.dice-box.land-miss .cube-face-3,
+.dice-box.land-miss .cube-face-4,
+.dice-box.land-miss .cube-face-5,
+.dice-box.land-miss .cube-face-6 {
+  color: #555;
+  border-style: dashed;
+}
+
+.dice-box.land-power .cube-face {
+  border-color: #8f201d;
+  box-shadow: inset 0 0 0 3px rgba(185, 47, 42, .18), 0 0 10px rgba(185, 47, 42, .28);
+}
+
+@keyframes diceCubeTumble {
+  0% { transform: translate3d(-7px, 4px, 0) rotateX(8deg) rotateY(-12deg) rotateZ(0); }
+  18% { transform: translate3d(7px, -28px, 0) rotateX(205deg) rotateY(142deg) rotateZ(9deg); }
+  38% { transform: translate3d(-6px, -11px, 0) rotateX(388deg) rotateY(325deg) rotateZ(-7deg); }
+  58% { transform: translate3d(8px, -34px, 0) rotateX(574deg) rotateY(511deg) rotateZ(7deg); }
+  78% { transform: translate3d(-5px, -8px, 0) rotateX(758deg) rotateY(696deg) rotateZ(-4deg); }
+  100% { transform: translate3d(0, -19px, 0) rotateX(920deg) rotateY(872deg) rotateZ(3deg); }
+}
+
+@keyframes diceCubeLand {
+  0% {
+    transform:
+      translate3d(0, -18px, 0)
+      rotateX(calc(var(--final-rotate-x) + 22deg))
+      rotateY(calc(var(--final-rotate-y) - 18deg))
+      rotateZ(4deg);
+  }
+  55% {
+    transform:
+      translate3d(0, 4px, 0)
+      rotateX(calc(var(--final-rotate-x) - 4deg))
+      rotateY(calc(var(--final-rotate-y) + 3deg))
+      rotateZ(-1deg);
+  }
+  76% {
+    transform:
+      translate3d(0, -2px, 0)
+      rotateX(calc(var(--final-rotate-x) + 2deg))
+      rotateY(calc(var(--final-rotate-y) - 1deg));
+  }
+  100% { transform: translate3d(0, 0, 0) rotateX(var(--final-rotate-x)) rotateY(var(--final-rotate-y)); }
+}
+
+@keyframes diceShadowRoll {
+  0%, 100% { opacity: .52; transform: translateX(-50%) scale(.78); filter: blur(5px); }
+  50% { opacity: .2; transform: translateX(-50%) scale(.42); filter: blur(9px); }
+}
+
+@keyframes diceShadowLand {
+  0% { opacity: .2; transform: translateX(-50%) scale(.42); filter: blur(9px); }
+  58% { opacity: .72; transform: translateX(-50%) scale(.92); filter: blur(4px); }
+  100% { opacity: .48; transform: translateX(-50%) scale(.72); filter: blur(6px); }
+}
+
 .dice-box span {
   color: var(--muted);
   font-size: 13px;
@@ -988,6 +1150,12 @@ h2 {
 }
 .cell.is-striking.strike-heavy .unit-card { animation-duration: .52s; }
 .cell.is-striking.strike-ranged .unit-card { animation-name: rangedRecoil; }
+.cell.is-striking.motion-pierce .unit-card { animation-name: pierceLunge; }
+.cell.is-striking.motion-cleave .unit-card { animation-name: cleaveLunge; }
+.cell.is-striking.motion-crush .unit-card { animation-name: crushLunge; animation-duration: .52s; }
+.cell.is-striking.motion-pounce .unit-card,
+.cell.is-striking.motion-maul .unit-card { animation-name: pounceLunge; }
+.cell.is-striking.motion-ritual .unit-card { animation-name: ritualCast; }
 .cell.is-hit .unit-card {
   animation: hitShake .46s ease-in-out 1;
 }
@@ -1084,6 +1252,32 @@ h2 {
 .style-claw .combat-trail {
   height: 12px;
   border-radius: 40% 100% 100% 40%;
+}
+
+.combat-cinematic.motion-pierce .combat-trail {
+  height: 5px;
+  border-radius: 999px 15% 15% 999px;
+  box-shadow: 0 0 4px var(--combat-primary);
+}
+
+.combat-cinematic.motion-cleave .combat-impact-ring {
+  border-radius: 44% 56% 48% 52%;
+  transform: translate(-50%, -50%) rotate(-28deg) scale(.1);
+}
+
+.combat-cinematic.motion-crush .combat-impact-ring {
+  border-width: 8px;
+  border-radius: 18%;
+}
+
+.combat-cinematic.motion-ritual .combat-trail {
+  height: 4px;
+  background: repeating-linear-gradient(90deg, transparent 0 7px, var(--combat-primary) 8px 14px);
+}
+
+.combat-cinematic.motion-maul .combat-impact-ring {
+  border-style: double;
+  border-width: 9px;
 }
 
 .phase-travel .combat-trail {
@@ -1841,6 +2035,43 @@ h2 {
   0%, 100% { translate: 0 0; scale: 1; }
   28% { translate: var(--strike-return-x) var(--strike-return-y); scale: 1.04; }
   52% { translate: var(--strike-x) var(--strike-y); scale: .97; }
+}
+
+@keyframes pierceLunge {
+  0%, 100% { translate: 0 0; scale: 1; }
+  20% { translate: var(--strike-recoil-x) var(--strike-recoil-y); scale: .96 1.04; }
+  48% { translate: var(--strike-x) var(--strike-y); scale: 1.13 .91; }
+  72% { translate: var(--strike-return-x) var(--strike-return-y); scale: .98 1.02; }
+}
+
+@keyframes cleaveLunge {
+  0%, 100% { translate: 0 0; rotate: 0deg; scale: 1; }
+  24% { translate: var(--strike-recoil-x) var(--strike-recoil-y); rotate: -8deg; scale: 1.04; }
+  52% { translate: var(--strike-x) var(--strike-y); rotate: 8deg; scale: 1.11; }
+  74% { translate: var(--strike-return-x) var(--strike-return-y); rotate: -2deg; scale: .97; }
+}
+
+@keyframes crushLunge {
+  0%, 100% { translate: 0 0; scale: 1; }
+  18% { translate: 0 5px; scale: 1.08 .92; }
+  42% { translate: var(--strike-half-x) var(--strike-half-y); scale: .94 1.1; }
+  58% { translate: var(--strike-x) var(--strike-y); scale: 1.16 .87; }
+  78% { translate: var(--strike-return-x) var(--strike-return-y); scale: .96 1.04; }
+}
+
+@keyframes pounceLunge {
+  0%, 100% { translate: 0 0; rotate: 0deg; scale: 1; }
+  18% { translate: var(--strike-recoil-x) var(--strike-recoil-y); rotate: -3deg; scale: .92 1.07; }
+  46% { translate: var(--strike-x) var(--strike-y); rotate: 4deg; scale: 1.16 .9; }
+  64% { translate: var(--strike-half-x) var(--strike-half-y); rotate: -3deg; scale: 1.04; }
+  82% { translate: var(--strike-return-x) var(--strike-return-y); rotate: 1deg; scale: .98; }
+}
+
+@keyframes ritualCast {
+  0%, 100% { translate: 0 0; rotate: 0deg; scale: 1; filter: none; }
+  24% { translate: 0 -4px; rotate: -3deg; scale: 1.04; filter: contrast(1.2); }
+  52% { translate: 0 -8px; rotate: 3deg; scale: 1.12; filter: contrast(1.45); }
+  76% { translate: 0 2px; rotate: -1deg; scale: .98; filter: contrast(1.1); }
 }
 
 @keyframes combatTargetLock {
@@ -2774,8 +3005,10 @@ dialog::backdrop {
   .combat-cinematic *,
   .impact-particles i,
   .damage-pop,
-  .dice-box.is-rolling strong,
-  .dice-box.is-landed strong,
+  .dice-box.is-rolling .dice-cube,
+  .dice-box.is-rolling .dice-shadow,
+  .dice-box.is-landed .dice-cube,
+  .dice-box.is-landed .dice-shadow,
   .reward-card,
   .reward-dialog::backdrop,
   .play-area.is-victorious .board,
@@ -3024,6 +3257,53 @@ dialog::backdrop {
   .side-dice span {
     font-size: 10px;
     line-height: 1.1;
+  }
+
+  .dice-stage {
+    --cube-size: 76px;
+    --cube-half: 38px;
+    width: 96px;
+    height: 88px;
+    perspective: 520px;
+  }
+
+  .cube-face {
+    border-width: 3px;
+    border-radius: 8px;
+  }
+
+  .cube-face .pip {
+    width: 11px;
+    height: 11px;
+  }
+
+  .cube-face[data-value="2"] .pip-1 { left: 15px; top: 15px; }
+  .cube-face[data-value="2"] .pip-2 { right: 15px; bottom: 15px; }
+  .cube-face[data-value="3"] .pip-1 { left: 14px; top: 14px; }
+  .cube-face[data-value="3"] .pip-3 { right: 14px; bottom: 14px; }
+  .cube-face[data-value="4"] .pip-1,
+  .cube-face[data-value="5"] .pip-1 { left: 13px; top: 13px; }
+  .cube-face[data-value="4"] .pip-2,
+  .cube-face[data-value="5"] .pip-2 { right: 13px; top: 13px; }
+  .cube-face[data-value="4"] .pip-3,
+  .cube-face[data-value="5"] .pip-4 { left: 13px; bottom: 13px; }
+  .cube-face[data-value="4"] .pip-4,
+  .cube-face[data-value="5"] .pip-5 { right: 13px; bottom: 13px; }
+  .cube-face[data-value="6"] .pip-1 { left: 13px; top: 12px; }
+  .cube-face[data-value="6"] .pip-2 { right: 13px; top: 12px; }
+  .cube-face[data-value="6"] .pip-3 { left: 13px; }
+  .cube-face[data-value="6"] .pip-4 { right: 13px; }
+  .cube-face[data-value="6"] .pip-5 { left: 13px; bottom: 12px; }
+  .cube-face[data-value="6"] .pip-6 { right: 13px; bottom: 12px; }
+
+  .cube-face .dice-miss {
+    font-size: 36px;
+  }
+
+  .dice-shadow {
+    bottom: -1px;
+    width: 66px !important;
+    height: 13px;
   }
 
   .dice-miss {

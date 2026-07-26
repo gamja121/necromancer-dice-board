@@ -207,6 +207,7 @@ const state = {
     sourceCell: null,
     targetCell: null,
     impactTier: 0,
+    motion: "strike",
   },
   visualEffects: [],
   log: [],
@@ -489,9 +490,38 @@ function applyPieceImage(imageElement, source) {
   });
 }
 
-function setDiceFace(value) {
-  diceFace.dataset.value = String(Math.max(0, Math.min(6, Number(value) || 0)));
-  diceFace.innerHTML = diceFaceMarkup(value);
+const DICE_FACE_ROTATIONS = [
+  [0, 0],
+  [0, 180],
+  [0, -90],
+  [0, 90],
+  [-90, 0],
+  [90, 0],
+];
+
+function normalizedDiceFaces(faces) {
+  const source = Array.isArray(faces) && faces.length ? faces : [0];
+  return Array.from({ length: 6 }, (_, index) => source[index % source.length]);
+}
+
+function prepareDiceCube(faces) {
+  const cubeFaces = normalizedDiceFaces(faces);
+  diceFace.innerHTML = cubeFaces.map((value, index) => `
+    <span class="cube-face cube-face-${index + 1}" data-value="${value}">
+      ${diceFaceMarkup(value)}
+    </span>
+  `).join("");
+  return cubeFaces;
+}
+
+function setDiceFace(value, faceIndex = 0) {
+  const normalized = Math.max(0, Math.min(6, Number(value) || 0));
+  const [rotateX, rotateY] = DICE_FACE_ROTATIONS[faceIndex] || DICE_FACE_ROTATIONS[0];
+  diceFace.dataset.value = String(normalized);
+  diceFace.style.setProperty("--final-rotate-x", `${rotateX}deg`);
+  diceFace.style.setProperty("--final-rotate-y", `${rotateY}deg`);
+  diceFace.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+  diceFace.setAttribute("aria-label", `주사위 ${normalized}`);
 }
 
 function wait(ms) {
@@ -587,6 +617,33 @@ function sfxTone(frequency, duration, options = {}) {
   gain.connect(context.destination);
   oscillator.start(start);
   oscillator.stop(start + duration + 0.02);
+}
+
+function sfxNoise(duration, options = {}) {
+  const context = ensureAudioContext();
+  if (!context) return;
+  const start = context.currentTime + (options.delay || 0);
+  const frameCount = Math.max(1, Math.floor(context.sampleRate * duration));
+  const buffer = context.createBuffer(1, frameCount, context.sampleRate);
+  const channel = buffer.getChannelData(0);
+  for (let index = 0; index < frameCount; index += 1) {
+    const envelope = 1 - index / frameCount;
+    channel[index] = (Math.random() * 2 - 1) * envelope;
+  }
+  const source = context.createBufferSource();
+  const filter = context.createBiquadFilter();
+  const gain = context.createGain();
+  source.buffer = buffer;
+  filter.type = options.filterType || "bandpass";
+  filter.frequency.setValueAtTime(options.frequency || 520, start);
+  filter.Q.setValueAtTime(options.q || 0.75, start);
+  gain.gain.setValueAtTime(0.0001, start);
+  gain.gain.exponentialRampToValueAtTime((options.gain || 0.04) * state.sfxVolume, start + 0.008);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+  source.connect(filter);
+  filter.connect(gain);
+  gain.connect(context.destination);
+  source.start(start);
 }
 
 function playSfx(name) {
@@ -687,24 +744,34 @@ function toggleBattleMusic() {
 async function showDiceRoll(label, faces, finalValue = null) {
   state.isRolling = true;
   diceLabel.textContent = label;
+  const cubeFaces = prepareDiceCube(faces);
   diceBox.classList.remove("is-landed", "land-miss", "land-power");
+  void diceBox.offsetWidth;
   diceBox.classList.add("is-rolling");
   const rolls = 16;
   let value = faces[0];
   for (let index = 0; index < rolls; index += 1) {
     value = rollDie(faces);
-    setDiceFace(value);
     playSfx("diceTick");
-    await wait(90);
+    await wait(82);
   }
   const final = finalValue ?? value;
-  setDiceFace(final);
+  let matchingFaces = cubeFaces
+    .map((faceValue, index) => ({ faceValue, index }))
+    .filter((item) => item.faceValue === final);
+  if (!matchingFaces.length) {
+    cubeFaces[0] = final;
+    prepareDiceCube(cubeFaces);
+    matchingFaces = [{ faceValue: final, index: 0 }];
+  }
+  const finalFace = matchingFaces[Math.floor(Math.random() * matchingFaces.length)].index;
   diceBox.classList.remove("is-rolling");
+  setDiceFace(final, finalFace);
   diceBox.classList.add("is-landed");
   if (final === 0) diceBox.classList.add("land-miss");
   if (final >= 3) diceBox.classList.add("land-power");
   playSfx("diceLand");
-  await wait(190);
+  await wait(300);
   diceBox.classList.remove("is-landed", "land-miss", "land-power");
   state.isRolling = false;
   return final;
@@ -2225,6 +2292,53 @@ function attackStyleFor(unit) {
   return "melee";
 }
 
+function attackMotionFor(unit) {
+  if (["spear", "goblinSoldier", "scorpionKnight"].includes(unit.type)) return "pierce";
+  if (unit.type === "archer") return "volley";
+  if (["knight", "doomExecutor", "demonDeathKnight"].includes(unit.type)) return "cleave";
+  if (["golem", "ogre", "minotaur", "stoneGolem", "ragingTreant", "troll", "boneGolem"].includes(unit.type)) return "crush";
+  if (["hydra", "kraken", "cerberus"].includes(unit.type)) return "maul";
+  if (attackStyleFor(unit) === "magic") return "ritual";
+  if (attackStyleFor(unit) === "claw") return "pounce";
+  return "strike";
+}
+
+function playAttackLaunchSfx(attacker, attackStyle, theme) {
+  const soundByStyle = { ranged: "arrow", magic: "magic", heavy: "heavy", claw: "claw", melee: "attack" };
+  playSfx(soundByStyle[attackStyle]);
+  if (attackStyle === "heavy") {
+    sfxNoise(.18, { filterType: "lowpass", frequency: 180, gain: .07 });
+    sfxTone(72, .2, { type: "sine", gain: .045, endFrequency: 42 });
+  } else if (attackStyle === "ranged") {
+    sfxNoise(.14, { filterType: "highpass", frequency: 1300, gain: .026 });
+  } else if (attackStyle === "claw") {
+    sfxNoise(.13, { frequency: 760, q: 1.3, gain: .038 });
+  } else if (attackStyle === "magic") {
+    sfxTone(theme === "ice" ? 980 : 430, .22, { type: "sine", gain: .028, endFrequency: theme === "demon" ? 120 : 1260 });
+  }
+  if (theme === "ice") sfxTone(1560, .11, { type: "triangle", gain: .018, delay: .04 });
+  if (theme === "demon") sfxTone(84, .24, { type: "sawtooth", gain: .025, endFrequency: 46 });
+  if (theme === "plant") sfxNoise(.2, { filterType: "bandpass", frequency: 320, gain: .018 });
+  if (attacker.type === "archer") sfxTone(1480, .09, { type: "triangle", gain: .018 });
+}
+
+function playAttackImpactSfx(attackStyle, theme, damage) {
+  if (damage <= 0) {
+    sfxNoise(.12, { filterType: "highpass", frequency: 1100, gain: .018 });
+    return;
+  }
+  playSfx("hit");
+  const power = Math.min(3, damage);
+  sfxNoise(.12 + power * .035, {
+    filterType: attackStyle === "heavy" ? "lowpass" : "bandpass",
+    frequency: attackStyle === "heavy" ? 145 : 420 + power * 90,
+    gain: .035 + power * .014,
+  });
+  sfxTone(105 - power * 12, .15 + power * .025, { type: "sine", gain: .035 + power * .012, endFrequency: 45 });
+  if (theme === "ice") sfxTone(1320, .13, { type: "triangle", gain: .025, delay: .025, endFrequency: 760 });
+  if (theme === "element") sfxTone(620, .16, { type: "square", gain: .018, delay: .02, endFrequency: 190 });
+}
+
 function combatThemeFor(unit) {
   const legions = new Set(legionsOf(unit));
   if (legions.has("ice")) return "ice";
@@ -2255,12 +2369,13 @@ function emptyCombatEffects() {
     sourceCell: null,
     targetCell: null,
     impactTier: 0,
+    motion: "strike",
   };
 }
 
 async function playAttackEffect(attacker, targets, damage, attackCells) {
   const attackStyle = attackStyleFor(attacker);
-  const soundByStyle = { ranged: "arrow", magic: "magic", heavy: "heavy", claw: "claw", melee: "attack" };
+  const theme = combatThemeFor(attacker);
   const targetCell = targets[0]
     ? { row: targets[0].row, col: targets[0].col }
     : attackCells?.[0] || { row: attacker.row, col: attacker.col };
@@ -2269,7 +2384,8 @@ async function playAttackEffect(attacker, targets, damage, attackCells) {
     attackerId: attacker.id,
     attackStyle,
     attackOwner: attacker.owner,
-    theme: combatThemeFor(attacker),
+    theme,
+    motion: attackMotionFor(attacker),
     sourceCell: { row: attacker.row, col: attacker.col },
     targetCell,
     impactTier: damage >= 3 ? 3 : damage > 0 ? Math.max(1, damage) : 0,
@@ -2281,7 +2397,7 @@ async function playAttackEffect(attacker, targets, damage, attackCells) {
   render();
   await wait(150);
 
-  playSfx(soundByStyle[attackStyle]);
+  playAttackLaunchSfx(attacker, attackStyle, theme);
   state.effects = {
     ...baseEffect,
     phase: "travel",
@@ -2289,7 +2405,7 @@ async function playAttackEffect(attacker, targets, damage, attackCells) {
   render();
   await wait(180);
 
-  if (damage > 0) playSfx("hit");
+  playAttackImpactSfx(attackStyle, theme, damage);
   state.effects = {
     ...baseEffect,
     phase: "impact",
@@ -3221,6 +3337,7 @@ function renderBoard() {
   boardEl.classList.toggle("is-power-hit", Boolean(state.effects.isPowerHit));
   boardEl.dataset.combatPhase = state.effects.phase || "";
   boardEl.dataset.combatTheme = state.effects.theme || "ink";
+  boardEl.dataset.combatMotion = state.effects.motion || "strike";
   if (state.effects.sourceCell && state.effects.targetCell) {
     const sourceX = (state.effects.sourceCell.col + 0.5) * 20;
     const sourceY = (state.effects.sourceCell.row + 0.5) * 20;
@@ -3318,16 +3435,35 @@ function renderBoard() {
         cell.classList.add("is-combat-target");
       }
       if (unit?.id === state.effects.attackerId && state.effects.phase === "travel") {
-        cell.classList.add("is-striking", `strike-${state.effects.attackStyle || "melee"}`, `from-${state.effects.attackOwner || unit.owner}`);
+        cell.classList.add(
+          "is-striking",
+          `strike-${state.effects.attackStyle || "melee"}`,
+          `motion-${state.effects.motion || "strike"}`,
+          `from-${state.effects.attackOwner || unit.owner}`
+        );
         if (state.effects.sourceCell && state.effects.targetCell) {
           const deltaCol = state.effects.targetCell.col - state.effects.sourceCell.col;
           const deltaRow = state.effects.targetCell.row - state.effects.sourceCell.row;
           const length = Math.max(1, Math.hypot(deltaCol, deltaRow));
-          const lunge = state.effects.attackStyle === "ranged" ? -5 : state.effects.attackStyle === "heavy" ? 16 : 12;
+          const lungeByMotion = {
+            volley: -5,
+            ritual: 3,
+            pierce: 17,
+            cleave: 14,
+            crush: 16,
+            maul: 18,
+            pounce: 19,
+            strike: 12,
+          };
+          const lunge = lungeByMotion[state.effects.motion] ?? 12;
           const strikeX = (deltaCol / length) * lunge;
           const strikeY = (deltaRow / length) * lunge;
           cell.style.setProperty("--strike-x", `${strikeX}px`);
           cell.style.setProperty("--strike-y", `${strikeY}px`);
+          cell.style.setProperty("--strike-recoil-x", `${-strikeX * 0.2}px`);
+          cell.style.setProperty("--strike-recoil-y", `${-strikeY * 0.2}px`);
+          cell.style.setProperty("--strike-half-x", `${strikeX * 0.5}px`);
+          cell.style.setProperty("--strike-half-y", `${strikeY * 0.5}px`);
           cell.style.setProperty("--strike-return-x", `${-strikeX * 0.32}px`);
           cell.style.setProperty("--strike-return-y", `${-strikeY * 0.32}px`);
         }
@@ -3343,7 +3479,7 @@ function renderBoard() {
       visualEffects.forEach((effect) => cell.appendChild(renderVisualEffect(effect)));
       if (unit && state.effects.hitIds.includes(unit.id) && state.effects.attackStyle) {
         const effect = document.createElement("span");
-        effect.className = `combat-effect effect-${state.effects.attackStyle} from-${state.effects.attackOwner}${state.effects.isMiss ? " is-miss" : ""}`;
+        effect.className = `combat-effect effect-${state.effects.attackStyle} motion-${state.effects.motion || "strike"} from-${state.effects.attackOwner}${state.effects.isMiss ? " is-miss" : ""}`;
         effect.setAttribute("aria-hidden", "true");
         cell.appendChild(effect);
       }
@@ -3376,7 +3512,7 @@ function renderBoard() {
   }
   if (combatActive) {
     const cinematic = document.createElement("div");
-    cinematic.className = `combat-cinematic phase-${state.effects.phase || "windup"} theme-${state.effects.theme || "ink"} style-${state.effects.attackStyle}`;
+    cinematic.className = `combat-cinematic phase-${state.effects.phase || "windup"} theme-${state.effects.theme || "ink"} style-${state.effects.attackStyle} motion-${state.effects.motion || "strike"}`;
     cinematic.setAttribute("aria-hidden", "true");
     cinematic.innerHTML = `
       <span class="combat-focus"></span>
