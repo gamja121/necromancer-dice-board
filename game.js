@@ -1136,6 +1136,15 @@ function movementDeltas(unit) {
   if (unit.type === "abyssHarpy") {
     return [[forward, -1], [forward, 0], [forward, 1], [0, -1], [0, 1]];
   }
+  if (unit.type === "mummyGuardian") {
+    return [[forward, 0], [0, -1], [0, 1]];
+  }
+  if (unit.type === "boneHound") {
+    return [[forward, 0], [forward * 2, 0], [0, -1], [0, -2], [0, 1], [0, 2]];
+  }
+  if (["soulReaper", "mimic"].includes(unit.type)) {
+    return [[forward, 0], [0, -1], [0, 1], [-forward, 0]];
+  }
   return [];
 }
 
@@ -1238,6 +1247,8 @@ function baseAttackDeltas(unit) {
   if (["poisonMushroom", "goblinRider"].includes(unit.type)) return [[forward, 0]];
   if (unit.type === "abyssHarpy") return [[forward, 0], [forward * 2, 0]];
   if (unit.type === "forestFairy") return [[forward, 0], [forward * 2, 0], [forward, -1], [forward, 1]];
+  if (["mummyGuardian", "boneHound"].includes(unit.type)) return [[forward, 0]];
+  if (["soulReaper", "mimic"].includes(unit.type)) return [[forward, 0], [0, -1], [0, 1], [-forward, 0]];
   return [];
 }
 
@@ -2287,17 +2298,17 @@ async function applyTurnStartPoison(owner) {
 function attackStyleFor(unit) {
   if (["archer"].includes(unit.type)) return "ranged";
   if (["summoner", "plague", "iceLord", "skeletonSummoner", "abyssEye", "spiderQueen", "goblinChief", "ancientTreant", "kraken", "crystalDevourer", "poisonMushroom", "forestFairy"].includes(unit.type)) return "magic";
-  if (["knight", "golem", "ogre", "minotaur", "doomExecutor", "demonDeathKnight", "stoneGolem", "ragingTreant", "troll", "boneGolem"].includes(unit.type)) return "heavy";
-  if (["worm", "ghoul", "plagueFrog", "hydra", "yeti", "seaWolf", "spiderling", "hellMantis", "scorpionKnight", "cerberus", "goblinRider", "abyssHarpy"].includes(unit.type)) return "claw";
+  if (["knight", "golem", "ogre", "minotaur", "doomExecutor", "demonDeathKnight", "stoneGolem", "ragingTreant", "troll", "boneGolem", "soulReaper"].includes(unit.type)) return "heavy";
+  if (["worm", "ghoul", "plagueFrog", "hydra", "yeti", "seaWolf", "spiderling", "hellMantis", "scorpionKnight", "cerberus", "goblinRider", "abyssHarpy", "boneHound", "mimic"].includes(unit.type)) return "claw";
   return "melee";
 }
 
 function attackMotionFor(unit) {
   if (["spear", "goblinSoldier", "scorpionKnight"].includes(unit.type)) return "pierce";
   if (unit.type === "archer") return "volley";
-  if (["knight", "doomExecutor", "demonDeathKnight"].includes(unit.type)) return "cleave";
+  if (["knight", "doomExecutor", "demonDeathKnight", "soulReaper"].includes(unit.type)) return "cleave";
   if (["golem", "ogre", "minotaur", "stoneGolem", "ragingTreant", "troll", "boneGolem"].includes(unit.type)) return "crush";
-  if (["hydra", "kraken", "cerberus"].includes(unit.type)) return "maul";
+  if (["hydra", "kraken", "cerberus", "mimic"].includes(unit.type)) return "maul";
   if (attackStyleFor(unit) === "magic") return "ritual";
   if (attackStyleFor(unit) === "claw") return "pounce";
   return "strike";
