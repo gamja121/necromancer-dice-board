@@ -491,12 +491,12 @@ function applyPieceImage(imageElement, source) {
 }
 
 const DICE_FACE_ROTATIONS = [
-  [0, 0],
-  [0, 180],
-  [0, -90],
-  [0, 90],
-  [-90, 0],
-  [90, 0],
+  [-14, 18],
+  [-14, 198],
+  [-14, -72],
+  [-14, 108],
+  [-104, 18],
+  [76, 18],
 ];
 
 function normalizedDiceFaces(faces) {
@@ -748,12 +748,12 @@ async function showDiceRoll(label, faces, finalValue = null) {
   diceBox.classList.remove("is-landed", "land-miss", "land-power");
   void diceBox.offsetWidth;
   diceBox.classList.add("is-rolling");
-  const rolls = 16;
+  const rolls = 23;
   let value = faces[0];
   for (let index = 0; index < rolls; index += 1) {
     value = rollDie(faces);
     playSfx("diceTick");
-    await wait(82);
+    await wait(74 + index * 2.5);
   }
   const final = finalValue ?? value;
   let matchingFaces = cubeFaces
@@ -771,7 +771,7 @@ async function showDiceRoll(label, faces, finalValue = null) {
   if (final === 0) diceBox.classList.add("land-miss");
   if (final >= 3) diceBox.classList.add("land-power");
   playSfx("diceLand");
-  await wait(300);
+  await wait(480);
   diceBox.classList.remove("is-landed", "land-miss", "land-power");
   state.isRolling = false;
   return final;
