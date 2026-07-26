@@ -2414,6 +2414,13 @@ async function playAttackEffect(attacker, targets, damage, attackCells) {
     damages: targets.map((unit) => ({ row: unit.row, col: unit.col, value: damage })),
   };
   render();
+  if (damage > 0) {
+    const hitStopDuration = damage >= 3 ? 112 : damage === 2 ? 82 : 58;
+    await wait(24);
+    boardEl.classList.add("is-hit-stop");
+    await wait(hitStopDuration);
+    boardEl.classList.remove("is-hit-stop");
+  }
   await wait(damage >= 3 ? 390 : 330);
 
   state.effects = {
@@ -3335,6 +3342,9 @@ function renderBoard() {
   boardEl.classList.toggle("is-combat-active", combatActive);
   boardEl.classList.toggle("is-combat-hit", combatImpact && !state.effects.isMiss);
   boardEl.classList.toggle("is-power-hit", Boolean(state.effects.isPowerHit));
+  [0, 1, 2, 3].forEach((tier) => {
+    boardEl.classList.toggle(`impact-tier-${tier}`, state.effects.impactTier === tier);
+  });
   boardEl.dataset.combatPhase = state.effects.phase || "";
   boardEl.dataset.combatTheme = state.effects.theme || "ink";
   boardEl.dataset.combatMotion = state.effects.motion || "strike";
@@ -3490,9 +3500,15 @@ function renderBoard() {
         damage.textContent = damageValue === 0 ? "MISS" : `-${damageValue}`;
         cell.appendChild(damage);
         const particles = document.createElement("span");
-        particles.className = `impact-particles theme-${state.effects.theme || "ink"} tier-${state.effects.impactTier || 0}`;
+        const particleTier = state.effects.impactTier || 0;
+        const particleCount = particleTier === 0 ? 4 : 6 + particleTier * 4;
+        particles.className = `impact-particles style-${state.effects.attackStyle || "melee"} theme-${state.effects.theme || "ink"} tier-${particleTier}`;
         particles.setAttribute("aria-hidden", "true");
-        particles.innerHTML = Array.from({ length: 8 }, (_, index) => `<i style="--particle-index:${index}"></i>`).join("");
+        particles.innerHTML = Array.from({ length: particleCount }, (_, index) => {
+          const angle = (360 / particleCount) * index + (index % 2 ? 7 : -4);
+          const distance = 30 + particleTier * 11 + (index % 3) * 7;
+          return `<i style="--particle-angle:${angle}deg;--particle-end:-${distance}px;--particle-delay:${(index % 4) * 9}ms"></i>`;
+        }).join("");
         cell.appendChild(particles);
       }
       cell.addEventListener("click", () => handleCellClick(row, col));
@@ -3512,12 +3528,14 @@ function renderBoard() {
   }
   if (combatActive) {
     const cinematic = document.createElement("div");
-    cinematic.className = `combat-cinematic phase-${state.effects.phase || "windup"} theme-${state.effects.theme || "ink"} style-${state.effects.attackStyle} motion-${state.effects.motion || "strike"}`;
+    cinematic.className = `combat-cinematic phase-${state.effects.phase || "windup"} theme-${state.effects.theme || "ink"} style-${state.effects.attackStyle} motion-${state.effects.motion || "strike"} tier-${state.effects.impactTier || 0}`;
     cinematic.setAttribute("aria-hidden", "true");
     cinematic.innerHTML = `
       <span class="combat-focus"></span>
       <span class="combat-trail"></span>
       <span class="combat-impact-ring"></span>
+      <span class="combat-contact-flash"></span>
+      <span class="combat-debris-wave"></span>
       <span class="combat-speed-lines"></span>
     `;
     boardEl.appendChild(cinematic);

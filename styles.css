@@ -898,11 +898,19 @@ h2 {
   animation: boardImpact .42s cubic-bezier(.2, .8, .25, 1);
 }
 
+.board.is-hit-stop,
+.board.is-hit-stop * {
+  animation-play-state: paused !important;
+}
+
 .board.combat-ranged { --impact-color: rgba(204, 47, 43, .36); --shake-distance: 2px; --shake-back: -2px; }
 .board.combat-magic { --impact-color: rgba(34, 141, 190, .55); --shake-distance: 4px; --shake-back: -4px; }
 .board.combat-heavy { --impact-color: rgba(190, 38, 32, .62); --shake-distance: 7px; --shake-back: -7px; }
 .board.combat-claw { --impact-color: rgba(43, 145, 83, .5); --shake-distance: 5px; --shake-back: -5px; }
 .board.is-power-hit { --shake-distance: 9px; --shake-back: -9px; }
+.board.is-combat-hit.impact-tier-1 { --shake-distance: 3px; --shake-back: -3px; }
+.board.is-combat-hit.impact-tier-2 { --shake-distance: 6px; --shake-back: -6px; }
+.board.is-combat-hit.impact-tier-3 { --shake-distance: 10px; --shake-back: -10px; }
 
 .board[data-combat-theme="ice"] { --combat-primary: #34a9d6; --combat-secondary: #dff8ff; --combat-glow: rgba(52, 169, 214, .58); }
 .board[data-combat-theme="plague"] { --combat-primary: #62ad3d; --combat-secondary: #d7ed4a; --combat-glow: rgba(98, 173, 61, .55); }
@@ -1018,7 +1026,7 @@ h2 {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  mix-blend-mode: multiply;
+  mix-blend-mode: normal;
 }
 
 .totem-piece strong,
@@ -1307,6 +1315,82 @@ h2 {
   animation: combatImpactRing .38s cubic-bezier(.1, .76, .2, 1) forwards;
 }
 
+.combat-contact-flash {
+  position: absolute;
+  left: var(--target-x);
+  top: var(--target-y);
+  width: 8%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    0 0 0 4px var(--combat-primary),
+    0 0 16px 6px var(--combat-secondary),
+    0 0 34px 12px var(--combat-glow);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(.12);
+  mix-blend-mode: multiply;
+}
+
+.phase-impact .combat-contact-flash {
+  animation: contactFlash .28s steps(2, end) forwards;
+}
+
+.combat-cinematic.tier-0 .combat-contact-flash {
+  width: 5%;
+  box-shadow: 0 0 0 2px #777;
+  opacity: .35;
+}
+
+.combat-cinematic.tier-3 .combat-contact-flash {
+  width: 12%;
+  box-shadow:
+    0 0 0 6px var(--combat-primary),
+    0 0 22px 10px var(--combat-secondary),
+    0 0 46px 18px var(--combat-glow);
+}
+
+.combat-debris-wave {
+  position: absolute;
+  left: var(--target-x);
+  top: var(--target-y);
+  width: 24%;
+  aspect-ratio: 1;
+  background: repeating-conic-gradient(
+    from 7deg,
+    transparent 0deg 12deg,
+    var(--combat-primary) 13deg 16deg,
+    transparent 17deg 30deg
+  );
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(.18) rotate(-14deg);
+  clip-path: polygon(50% 0, 61% 35%, 100% 50%, 63% 61%, 50% 100%, 38% 63%, 0 50%, 36% 38%);
+}
+
+.phase-impact .combat-debris-wave {
+  animation: debrisWave .4s cubic-bezier(.08, .72, .18, 1) forwards;
+}
+
+.combat-cinematic.tier-0 .combat-debris-wave { display: none; }
+.combat-cinematic.tier-2 .combat-debris-wave { width: 31%; }
+.combat-cinematic.tier-3 .combat-debris-wave { width: 40%; }
+
+.combat-cinematic.style-ranged .combat-debris-wave {
+  width: 17%;
+  clip-path: polygon(0 44%, 72% 44%, 72% 24%, 100% 50%, 72% 76%, 72% 56%, 0 56%);
+}
+
+.combat-cinematic.style-heavy .combat-debris-wave {
+  clip-path: polygon(50% 0, 62% 34%, 100% 50%, 64% 65%, 50% 100%, 35% 64%, 0 50%, 34% 35%);
+}
+
+.combat-cinematic.style-magic .combat-debris-wave {
+  border: 3px double var(--combat-primary);
+  border-radius: 50%;
+  background: repeating-conic-gradient(var(--combat-secondary) 0 5deg, transparent 6deg 22deg);
+  clip-path: none;
+}
+
 .combat-speed-lines {
   position: absolute;
   inset: -18%;
@@ -1344,8 +1428,9 @@ h2 {
   border-radius: 60% 20%;
   background: var(--combat-primary, #c5332f);
   box-shadow: 0 0 7px var(--combat-glow, rgba(197, 51, 47, .48));
-  transform: rotate(calc(var(--particle-index) * 45deg)) translateY(-9px) scale(.2);
+  transform: rotate(var(--particle-angle)) translateY(-9px) scale(.2);
   animation: impactParticle .48s cubic-bezier(.1, .7, .2, 1) forwards;
+  animation-delay: var(--particle-delay, 0ms);
 }
 
 .impact-particles.tier-0 i {
@@ -1357,6 +1442,38 @@ h2 {
 .impact-particles.tier-3 i {
   width: 9px;
   height: 26px;
+  animation-duration: .62s;
+}
+
+.impact-particles.style-ranged i {
+  width: 4px;
+  height: 20px;
+  border-width: 1px;
+  border-radius: 999px;
+}
+
+.impact-particles.style-heavy i {
+  width: 12px;
+  height: 12px;
+  border-width: 3px;
+  border-radius: 2px;
+}
+
+.impact-particles.style-magic i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+
+.impact-particles.style-claw i {
+  width: 5px;
+  height: 25px;
+  border-radius: 100% 0;
+}
+
+.impact-particles.style-melee i {
+  clip-path: polygon(50% 0, 100% 100%, 50% 74%, 0 100%);
 }
 
 .impact-particles.theme-ice i { background: #8be2ff; clip-path: polygon(50% 0, 100% 72%, 50% 100%, 0 72%); }
@@ -1387,6 +1504,19 @@ h2 {
   100% { opacity: 0; transform: translate(-50%, -50%) scale(1.65); }
 }
 
+@keyframes contactFlash {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.12); }
+  26% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  58% { opacity: .88; transform: translate(-50%, -50%) scale(.68); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+}
+
+@keyframes debrisWave {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.15) rotate(-14deg); }
+  34% { opacity: .92; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.45) rotate(12deg); }
+}
+
 @keyframes speedLineBurst {
   0% { opacity: 0; transform: scale(.7) rotate(-3deg); }
   32% { opacity: .75; }
@@ -1394,9 +1524,9 @@ h2 {
 }
 
 @keyframes impactParticle {
-  0% { opacity: 1; transform: rotate(calc(var(--particle-index) * 45deg)) translateY(-7px) scale(.2); }
+  0% { opacity: 1; transform: rotate(var(--particle-angle)) translateY(-7px) scale(.2); }
   58% { opacity: 1; }
-  100% { opacity: 0; transform: rotate(calc(var(--particle-index) * 45deg)) translateY(-54px) scale(1); }
+  100% { opacity: 0; transform: rotate(var(--particle-angle)) translateY(var(--particle-end)) scale(1); }
 }
 
 .combat-effect.is-miss {
