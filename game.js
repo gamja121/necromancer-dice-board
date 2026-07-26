@@ -202,6 +202,11 @@ const state = {
     damages: [],
     attackStyle: null,
     attackOwner: null,
+    phase: null,
+    theme: "ink",
+    sourceCell: null,
+    targetCell: null,
+    impactTier: 0,
   },
   visualEffects: [],
   log: [],
@@ -669,6 +674,7 @@ function toggleBattleMusic() {
 async function showDiceRoll(label, faces, finalValue = null) {
   state.isRolling = true;
   diceLabel.textContent = label;
+  diceBox.classList.remove("is-landed", "land-miss", "land-power");
   diceBox.classList.add("is-rolling");
   const rolls = 16;
   let value = faces[0];
@@ -681,7 +687,12 @@ async function showDiceRoll(label, faces, finalValue = null) {
   const final = finalValue ?? value;
   setDiceFace(final);
   diceBox.classList.remove("is-rolling");
+  diceBox.classList.add("is-landed");
+  if (final === 0) diceBox.classList.add("land-miss");
+  if (final >= 3) diceBox.classList.add("land-power");
   playSfx("diceLand");
+  await wait(190);
+  diceBox.classList.remove("is-landed", "land-miss", "land-power");
   state.isRolling = false;
   return final;
 }
@@ -2197,24 +2208,23 @@ function attackStyleFor(unit) {
   return "melee";
 }
 
-async function playAttackEffect(attacker, targets, damage, attackCells) {
-  const attackStyle = attackStyleFor(attacker);
-  const soundByStyle = { ranged: "arrow", magic: "magic", heavy: "heavy", claw: "claw", melee: "attack" };
-  playSfx(soundByStyle[attackStyle]);
-  if (damage > 0) window.setTimeout(() => playSfx("hit"), 130);
-  state.effects = {
-    attackerId: attacker.id,
-    hitIds: targets.map((unit) => unit.id),
-    blastCells: attackCells,
-    damages: targets.map((unit) => ({ row: unit.row, col: unit.col, value: damage })),
-    attackStyle,
-    attackOwner: attacker.owner,
-    isMiss: damage === 0,
-    isPowerHit: damage >= 3,
-  };
-  render();
-  await wait(760);
-  state.effects = {
+function combatThemeFor(unit) {
+  const legions = new Set(legionsOf(unit));
+  if (legions.has("ice")) return "ice";
+  if (legions.has("plague")) return "plague";
+  if (legions.has("demon")) return "demon";
+  if (legions.has("insect")) return "insect";
+  if (legions.has("plant")) return "plant";
+  if (legions.has("element")) return "element";
+  if (legions.has("corpse")) return "corpse";
+  if (legions.has("skeleton")) return "undead";
+  if (legions.has("beast")) return "beast";
+  if (legions.has("summon")) return "summon";
+  return "ink";
+}
+
+function emptyCombatEffects() {
+  return {
     attackerId: null,
     hitIds: [],
     blastCells: [],
@@ -2223,7 +2233,64 @@ async function playAttackEffect(attacker, targets, damage, attackCells) {
     attackOwner: null,
     isMiss: false,
     isPowerHit: false,
+    phase: null,
+    theme: "ink",
+    sourceCell: null,
+    targetCell: null,
+    impactTier: 0,
   };
+}
+
+async function playAttackEffect(attacker, targets, damage, attackCells) {
+  const attackStyle = attackStyleFor(attacker);
+  const soundByStyle = { ranged: "arrow", magic: "magic", heavy: "heavy", claw: "claw", melee: "attack" };
+  const targetCell = targets[0]
+    ? { row: targets[0].row, col: targets[0].col }
+    : attackCells?.[0] || { row: attacker.row, col: attacker.col };
+  const baseEffect = {
+    ...emptyCombatEffects(),
+    attackerId: attacker.id,
+    attackStyle,
+    attackOwner: attacker.owner,
+    theme: combatThemeFor(attacker),
+    sourceCell: { row: attacker.row, col: attacker.col },
+    targetCell,
+    impactTier: damage >= 3 ? 3 : damage > 0 ? Math.max(1, damage) : 0,
+    isMiss: damage === 0,
+    isPowerHit: damage >= 3,
+  };
+
+  state.effects = { ...baseEffect, phase: "windup" };
+  render();
+  await wait(150);
+
+  playSfx(soundByStyle[attackStyle]);
+  state.effects = {
+    ...baseEffect,
+    phase: "travel",
+  };
+  render();
+  await wait(180);
+
+  if (damage > 0) playSfx("hit");
+  state.effects = {
+    ...baseEffect,
+    phase: "impact",
+    blastCells: attackCells || [],
+    hitIds: targets.map((unit) => unit.id),
+    damages: targets.map((unit) => ({ row: unit.row, col: unit.col, value: damage })),
+  };
+  render();
+  await wait(damage >= 3 ? 390 : 330);
+
+  state.effects = {
+    ...baseEffect,
+    phase: "aftermath",
+    attackerId: null,
+  };
+  render();
+  await wait(150);
+  state.effects = emptyCombatEffects();
 }
 
 function tryCorpseTotemRevival(unit) {
@@ -2253,6 +2320,7 @@ function killUnit(unit) {
     col: deathCol,
     type: unit.type,
     owner: unit.owner,
+    theme: combatThemeFor(unit),
     final: finalEnemy,
   }, finalEnemy ? 1100 : 850);
   reconcileUnitHealthBonuses();
@@ -3125,9 +3193,27 @@ function renderBoard() {
     if (!visualsByCell.has(key)) visualsByCell.set(key, []);
     visualsByCell.get(key).push(effect);
   });
-  boardEl.classList.toggle("is-combat-active", Boolean(state.effects.attackStyle));
-  boardEl.classList.toggle("is-combat-hit", Boolean(state.effects.attackStyle) && !state.effects.isMiss);
+  const combatActive = Boolean(state.effects.attackStyle);
+  const combatImpact = state.effects.phase === "impact";
+  boardEl.classList.toggle("is-combat-active", combatActive);
+  boardEl.classList.toggle("is-combat-hit", combatImpact && !state.effects.isMiss);
   boardEl.classList.toggle("is-power-hit", Boolean(state.effects.isPowerHit));
+  boardEl.dataset.combatPhase = state.effects.phase || "";
+  boardEl.dataset.combatTheme = state.effects.theme || "ink";
+  if (state.effects.sourceCell && state.effects.targetCell) {
+    const sourceX = (state.effects.sourceCell.col + 0.5) * 20;
+    const sourceY = (state.effects.sourceCell.row + 0.5) * 20;
+    const targetX = (state.effects.targetCell.col + 0.5) * 20;
+    const targetY = (state.effects.targetCell.row + 0.5) * 20;
+    const angle = Math.atan2(targetY - sourceY, targetX - sourceX) * (180 / Math.PI);
+    const distance = Math.hypot(targetX - sourceX, targetY - sourceY);
+    boardEl.style.setProperty("--source-x", `${sourceX}%`);
+    boardEl.style.setProperty("--source-y", `${sourceY}%`);
+    boardEl.style.setProperty("--target-x", `${targetX}%`);
+    boardEl.style.setProperty("--target-y", `${targetY}%`);
+    boardEl.style.setProperty("--attack-angle", `${angle}deg`);
+    boardEl.style.setProperty("--attack-distance", `${distance}%`);
+  }
   ["melee", "ranged", "magic", "heavy", "claw"].forEach((style) => {
     boardEl.classList.toggle(`combat-${style}`, state.effects.attackStyle === style);
   });
@@ -3203,7 +3289,7 @@ function renderBoard() {
       if (unit?.id === state.inspectedUnitId) cell.classList.add("is-inspected");
       if (unit?.poisoned) cell.classList.add("is-poisoned");
       if (unit?.frozen) cell.classList.add("is-frozen");
-      if (unit?.id === state.effects.attackerId) {
+      if (unit?.id === state.effects.attackerId && state.effects.phase === "travel") {
         cell.classList.add("is-striking", `strike-${state.effects.attackStyle || "melee"}`, `from-${state.effects.attackOwner || unit.owner}`);
       }
       if (unit && state.effects.hitIds.includes(unit.id)) {
@@ -3223,10 +3309,15 @@ function renderBoard() {
       }
       if (damageByCell.has(cellKey(row, col))) {
         const damage = document.createElement("div");
-        damage.className = `damage-pop${state.effects.isMiss ? " is-miss" : ""}${state.effects.isPowerHit ? " is-power-hit" : ""}`;
+        damage.className = `damage-pop theme-${state.effects.theme || "ink"}${state.effects.isMiss ? " is-miss" : ""}${state.effects.isPowerHit ? " is-power-hit" : ""}`;
         const damageValue = damageByCell.get(cellKey(row, col));
         damage.textContent = damageValue === 0 ? "MISS" : `-${damageValue}`;
         cell.appendChild(damage);
+        const particles = document.createElement("span");
+        particles.className = `impact-particles theme-${state.effects.theme || "ink"} tier-${state.effects.impactTier || 0}`;
+        particles.setAttribute("aria-hidden", "true");
+        particles.innerHTML = Array.from({ length: 8 }, (_, index) => `<i style="--particle-index:${index}"></i>`).join("");
+        cell.appendChild(particles);
       }
       cell.addEventListener("click", () => handleCellClick(row, col));
       cell.addEventListener("dragover", (event) => {
@@ -3243,11 +3334,23 @@ function renderBoard() {
       boardEl.appendChild(cell);
     }
   }
+  if (combatActive) {
+    const cinematic = document.createElement("div");
+    cinematic.className = `combat-cinematic phase-${state.effects.phase || "windup"} theme-${state.effects.theme || "ink"} style-${state.effects.attackStyle}`;
+    cinematic.setAttribute("aria-hidden", "true");
+    cinematic.innerHTML = `
+      <span class="combat-focus"></span>
+      <span class="combat-trail"></span>
+      <span class="combat-impact-ring"></span>
+      <span class="combat-speed-lines"></span>
+    `;
+    boardEl.appendChild(cinematic);
+  }
 }
 
 function renderVisualEffect(effect) {
   const element = document.createElement("span");
-  element.className = `visual-effect visual-${effect.kind}${effect.final ? " is-final" : ""}`;
+  element.className = `visual-effect visual-${effect.kind}${effect.theme ? ` theme-${effect.theme}` : ""}${effect.final ? " is-final" : ""}`;
   element.setAttribute("aria-hidden", "true");
   if (effect.kind === "death") {
     const def = UNIT_TYPES[effect.type];
