@@ -1294,6 +1294,186 @@ h2 {
   border-width: 9px;
 }
 
+.combat-signature {
+  position: absolute;
+  left: var(--target-x);
+  top: var(--target-y);
+  z-index: 4;
+  display: none;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.combat-cinematic.unit-mummyGuardian .signature-primary {
+  display: block;
+  width: 30%;
+  height: 15%;
+  border-top: 8px double #e9ddc1;
+  border-bottom: 6px solid #775e4c;
+  border-radius: 48%;
+  box-shadow: 0 0 0 3px rgba(63, 41, 36, .72), 0 0 18px rgba(233, 221, 193, .72);
+  transform: translate(-50%, -50%) rotate(-16deg) scaleX(.15);
+}
+
+.combat-cinematic.unit-mummyGuardian .signature-secondary {
+  display: block;
+  width: 18%;
+  aspect-ratio: 1;
+  border: 5px dashed #e9ddc1;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) rotate(0) scale(.2);
+}
+
+.combat-cinematic.unit-soulReaper .signature-primary {
+  display: block;
+  width: 34%;
+  aspect-ratio: 1;
+  border: 12px solid transparent;
+  border-top-color: #eee7f0;
+  border-right-color: #765489;
+  border-radius: 50%;
+  filter: drop-shadow(0 0 5px #111) drop-shadow(0 0 12px rgba(148, 104, 160, .88));
+  transform: translate(-50%, -50%) rotate(-48deg) scale(.12);
+}
+
+.combat-cinematic.unit-soulReaper .signature-secondary {
+  display: block;
+  width: 9%;
+  aspect-ratio: 1.3;
+  border-radius: 48% 48% 55% 55%;
+  background: radial-gradient(circle at 34% 42%, #fff 0 7%, transparent 8%), #17111c;
+  box-shadow: 0 0 0 3px #765489, 0 0 22px #9468a0;
+  transform: translate(-50%, -50%) scale(.2);
+}
+
+.combat-cinematic.unit-boneHound .signature-primary {
+  display: block;
+  width: 31%;
+  height: 24%;
+  background:
+    linear-gradient(65deg, transparent 0 42%, #f4efd9 43% 50%, #111 51% 54%, transparent 55%) 0 0 / 25% 100% repeat-x;
+  filter: drop-shadow(0 3px 0 #111) drop-shadow(0 0 8px rgba(242, 240, 223, .85));
+  transform: translate(-50%, -50%) scale(.18) rotate(-8deg);
+}
+
+.combat-cinematic.unit-boneHound .signature-secondary {
+  display: block;
+  width: 24%;
+  aspect-ratio: 1;
+  border: 5px dotted #eeeacb;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(.2);
+}
+
+.combat-cinematic.unit-mimic .signature-primary,
+.combat-cinematic.unit-mimic .signature-secondary {
+  display: block;
+  width: 28%;
+  height: 13%;
+  border: 6px solid #111;
+  background:
+    repeating-linear-gradient(115deg, transparent 0 13px, #f7e5c7 14px 21px, #111 22px 25px),
+    #8b2730;
+  box-shadow: 0 0 18px rgba(189, 45, 53, .82);
+}
+
+.combat-cinematic.unit-mimic .signature-primary {
+  border-radius: 50% 50% 18% 18%;
+  transform: translate(-50%, -120%) scale(.2);
+}
+
+.combat-cinematic.unit-mimic .signature-secondary {
+  border-radius: 18% 18% 50% 50%;
+  transform: translate(-50%, 20%) scale(.2) rotate(180deg);
+}
+
+.phase-impact.unit-mummyGuardian .signature-primary {
+  animation: mummyBind .48s cubic-bezier(.12, .72, .18, 1) forwards;
+}
+.phase-impact.unit-mummyGuardian .signature-secondary {
+  animation: mummySeal .52s ease-out forwards;
+}
+.phase-impact.unit-soulReaper .signature-primary {
+  animation: reaperArc .48s cubic-bezier(.08, .74, .16, 1) forwards;
+}
+.phase-impact.unit-soulReaper .signature-secondary {
+  animation: soulMark .52s ease-out forwards;
+}
+.phase-impact.unit-boneHound .signature-primary {
+  animation: boneBite .42s cubic-bezier(.08, .78, .2, 1) forwards;
+}
+.phase-impact.unit-boneHound .signature-secondary {
+  animation: boneScatter .48s ease-out forwards;
+}
+.phase-impact.unit-mimic .signature-primary {
+  animation: mimicJawTop .46s cubic-bezier(.12, .8, .2, 1) forwards;
+}
+.phase-impact.unit-mimic .signature-secondary {
+  animation: mimicJawBottom .46s cubic-bezier(.12, .8, .2, 1) forwards;
+}
+
+.combat-effect.unit-soulReaper.effect-heavy::before,
+.combat-effect.unit-soulReaper.effect-heavy::after {
+  background: #765489;
+  box-shadow: 0 0 7px #eee7f0;
+}
+
+.combat-effect.unit-mimic.effect-claw::before {
+  height: 7px;
+  box-shadow: 0 18px 0 #111, 0 36px 0 #111;
+}
+
+@keyframes mummyBind {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(-24deg) scaleX(.1); }
+  40% { opacity: 1; transform: translate(-50%, -50%) rotate(8deg) scaleX(1.12); }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(28deg) scaleX(1.38); }
+}
+
+@keyframes mummySeal {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(-35deg) scale(.15); }
+  42% { opacity: 1; transform: translate(-50%, -50%) rotate(8deg) scale(.95); }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(65deg) scale(1.45); }
+}
+
+@keyframes reaperArc {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(-88deg) scale(.12); }
+  34% { opacity: 1; }
+  72% { opacity: 1; transform: translate(-50%, -50%) rotate(22deg) scale(1.08); }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(45deg) scale(1.45); }
+}
+
+@keyframes soulMark {
+  0% { opacity: 0; transform: translate(-50%, 5%) scale(.2); }
+  38% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -150%) scale(.65); }
+}
+
+@keyframes boneBite {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.2) rotate(-12deg); }
+  40% { opacity: 1; transform: translate(-50%, -50%) scale(1.12) rotate(3deg); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.35) rotate(12deg); }
+}
+
+@keyframes boneScatter {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.2); }
+  35% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.7) rotate(42deg); }
+}
+
+@keyframes mimicJawTop {
+  0% { opacity: 0; transform: translate(-50%, -220%) scale(.55); }
+  42% { opacity: 1; transform: translate(-50%, -88%) scale(1.08); }
+  68% { opacity: 1; transform: translate(-50%, -52%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -52%) scale(1.24); }
+}
+
+@keyframes mimicJawBottom {
+  0% { opacity: 0; transform: translate(-50%, 120%) scale(.55) rotate(180deg); }
+  42% { opacity: 1; transform: translate(-50%, -12%) scale(1.08) rotate(180deg); }
+  68% { opacity: 1; transform: translate(-50%, -48%) scale(1) rotate(180deg); }
+  100% { opacity: 0; transform: translate(-50%, -48%) scale(1.24) rotate(180deg); }
+}
+
 .phase-travel .combat-trail {
   animation: combatTrail .18s cubic-bezier(.12, .72, .15, 1) forwards;
 }
@@ -1903,6 +2083,160 @@ h2 {
   border-radius: 50%;
   box-shadow: inset 0 0 0 6px rgba(24, 130, 76, .18), 0 0 14px rgba(24, 130, 76, .55);
   animation: summonCircle .9s ease-out forwards;
+}
+
+.visual-corpseAwaken,
+.visual-corpseSummon {
+  --status-color: #c79bd2;
+  --status-dark: #311d3b;
+  inset: -7%;
+  z-index: 38;
+  display: grid;
+  place-content: center;
+  gap: 3px;
+  text-align: center;
+  isolation: isolate;
+  animation: corpseRitualReveal 1.05s cubic-bezier(.12, .76, .18, 1) forwards;
+}
+
+.visual-corpseAwaken::before,
+.visual-corpseSummon::before {
+  content: "";
+  position: absolute;
+  inset: 4%;
+  z-index: -1;
+  border: 5px double #28172f;
+  border-radius: 50%;
+  background:
+    repeating-conic-gradient(from 12deg, rgba(199, 155, 210, .72) 0 4deg, transparent 5deg 18deg),
+    radial-gradient(circle, rgba(255, 255, 255, .76) 0 8%, rgba(118, 84, 137, .48) 9% 42%, transparent 43%);
+  box-shadow: inset 0 0 18px #9468a0, 0 0 24px rgba(118, 84, 137, .9);
+  animation: corpseRitualSeal 1.05s cubic-bezier(.1, .74, .2, 1) forwards;
+}
+
+.visual-corpseAwaken::after,
+.visual-corpseSummon::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: -1;
+  width: 8px;
+  height: 8px;
+  border-radius: 55% 45% 60% 40%;
+  background: #f4e8f7;
+  box-shadow:
+    -36px 7px 0 #9468a0,
+    -25px -28px 0 #ead8ef,
+    5px -42px 0 #765489,
+    34px -24px 0 #f4e8f7,
+    42px 13px 0 #765489,
+    17px 38px 0 #ead8ef,
+    -29px 34px 0 #9468a0;
+  animation: corpseSoulMotes 1.05s ease-out forwards;
+}
+
+.visual-corpseSummon {
+  inset: -14%;
+  animation-duration: 1.2s;
+}
+
+.visual-corpseSummon::before {
+  border-width: 7px;
+  animation-duration: 1.2s;
+}
+
+.visual-corpseRelease {
+  inset: -5%;
+  z-index: 36;
+}
+
+.visual-corpseRelease::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 55%;
+  width: 30%;
+  aspect-ratio: .68;
+  border: 4px solid #2c1935;
+  border-radius: 52% 48% 58% 42%;
+  background:
+    radial-gradient(circle at 34% 35%, #fff 0 5%, transparent 6%),
+    radial-gradient(circle at 67% 35%, #fff 0 5%, transparent 6%),
+    linear-gradient(#b98ac5, #5e3c6d);
+  box-shadow: 0 0 22px #9468a0;
+  filter: blur(.2px);
+  animation: corpseSoulRelease 1.05s cubic-bezier(.12, .74, .18, 1) forwards;
+}
+
+.visual-corpseRelease::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 54%;
+  width: 72%;
+  aspect-ratio: 1;
+  border: 5px dotted #c79bd2;
+  border-radius: 50%;
+  animation: corpseReleaseRing 1s ease-out forwards;
+}
+
+.corpse-soul-trail {
+  position: absolute;
+  left: var(--trail-source-x);
+  top: var(--trail-source-y);
+  z-index: 37;
+  width: var(--trail-distance);
+  height: 12px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, #fff 0 16%, #c79bd2 17% 44%, transparent 46%) 0 50% / 24px 24px repeat-x;
+  filter: drop-shadow(0 0 5px #9468a0) drop-shadow(0 0 10px #765489);
+  transform-origin: 0 50%;
+  transform: translateY(-50%) rotate(var(--trail-angle)) scaleX(.05);
+  opacity: 0;
+  pointer-events: none;
+  animation: corpseSoulTrail 1s cubic-bezier(.08, .72, .18, 1) forwards;
+}
+
+@keyframes corpseRitualReveal {
+  0% { opacity: 0; transform: scale(.62); filter: brightness(.8); }
+  22% { opacity: 1; transform: scale(1.08); filter: brightness(1.5); }
+  72% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.18); }
+}
+
+@keyframes corpseRitualSeal {
+  0% { opacity: 0; transform: scale(.18) rotate(-80deg); }
+  34% { opacity: 1; transform: scale(.92) rotate(2deg); }
+  72% { opacity: .92; transform: scale(1.02) rotate(34deg); }
+  100% { opacity: 0; transform: scale(1.5) rotate(82deg); }
+}
+
+@keyframes corpseSoulMotes {
+  0% { opacity: 0; transform: translate(-50%, 20px) scale(.25) rotate(0); }
+  32% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -54px) scale(1.35) rotate(65deg); }
+}
+
+@keyframes corpseSoulRelease {
+  0% { opacity: 0; transform: translate(-50%, 18%) scale(.55) rotate(-5deg); }
+  34% { opacity: 1; transform: translate(-50%, -18%) scale(1.05) rotate(3deg); }
+  72% { opacity: .9; transform: translate(-50%, -72%) scale(.82) rotate(-4deg); }
+  100% { opacity: 0; transform: translate(-50%, -145%) scale(.42) rotate(8deg); filter: blur(4px); }
+}
+
+@keyframes corpseReleaseRing {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.2) rotate(-30deg); }
+  36% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.45) rotate(38deg); }
+}
+
+@keyframes corpseSoulTrail {
+  0% { opacity: 0; transform: translateY(-50%) rotate(var(--trail-angle)) scaleX(.05); }
+  24% { opacity: 1; }
+  68% { opacity: .95; transform: translateY(-50%) rotate(var(--trail-angle)) scaleX(1); }
+  100% { opacity: 0; transform: translateY(-50%) rotate(var(--trail-angle)) scaleX(1.08); filter: blur(3px); }
 }
 
 .visual-summon::before,

@@ -310,6 +310,30 @@ function triggerSummonVisual(unit) {
   triggerVisualEffect("summon", { row: unit.row, col: unit.col, unitId: unit.id }, 900);
 }
 
+function triggerCorpseSummonVisual(corpse, unit) {
+  triggerVisualEffect("corpseRelease", {
+    row: corpse.row,
+    col: corpse.col,
+    type: corpse.sourceType,
+  }, 1050);
+  triggerVisualEffect("corpseSummon", {
+    row: unit.row,
+    col: unit.col,
+    unitId: unit.id,
+    type: unit.type,
+    title: "시체 소환",
+    detail: UNIT_TYPES[unit.type]?.label || "",
+  }, 1200);
+  triggerVisualEffect("corpseTrail", {
+    row: unit.row,
+    col: unit.col,
+    sourceRow: corpse.row,
+    sourceCol: corpse.col,
+    targetRow: unit.row,
+    targetCol: unit.col,
+  }, 1000);
+}
+
 function nextUnitId(type, owner) {
   const id = `${owner}-${type}-${state.nextId}`;
   state.nextId += 1;
@@ -1839,6 +1863,24 @@ function advanceSetupIfNeeded() {
   }
 }
 
+function playCorpseRitualSfx(phase = "awaken") {
+  if (phase === "awaken") {
+    sfxNoise(.32, { filterType: "bandpass", frequency: 260, q: 1.8, gain: .032 });
+    sfxTone(118, .48, { type: "sawtooth", gain: .038, endFrequency: 62 });
+    sfxTone(420, .34, { type: "sine", gain: .022, delay: .08, endFrequency: 760 });
+    return;
+  }
+  sfxNoise(.22, { filterType: "highpass", frequency: 980, q: 1.1, gain: .025 });
+  [164, 246, 369, 554].forEach((frequency, index) => {
+    sfxTone(frequency, .38, {
+      type: index % 2 ? "triangle" : "sine",
+      gain: .028,
+      delay: index * .055,
+      endFrequency: frequency * 1.35,
+    });
+  });
+}
+
 function confirmPlayerSetup() {
   if (state.phase !== "setup" || state.turn !== "player" || !setupCompleteFor("player")) return;
   state.turn = "enemy";
@@ -2331,9 +2373,22 @@ function playAttackLaunchSfx(attacker, attackStyle, theme) {
   if (theme === "demon") sfxTone(84, .24, { type: "sawtooth", gain: .025, endFrequency: 46 });
   if (theme === "plant") sfxNoise(.2, { filterType: "bandpass", frequency: 320, gain: .018 });
   if (attacker.type === "archer") sfxTone(1480, .09, { type: "triangle", gain: .018 });
+  if (attacker.type === "mummyGuardian") {
+    sfxNoise(.2, { filterType: "highpass", frequency: 920, q: 1.4, gain: .026 });
+    sfxTone(170, .24, { type: "triangle", gain: .026, endFrequency: 86 });
+  } else if (attacker.type === "soulReaper") {
+    sfxTone(1280, .2, { type: "sawtooth", gain: .036, endFrequency: 96 });
+    sfxNoise(.16, { filterType: "highpass", frequency: 1450, gain: .025, delay: .03 });
+  } else if (attacker.type === "boneHound") {
+    sfxTone(220, .14, { type: "square", gain: .035, endFrequency: 105 });
+    sfxNoise(.12, { filterType: "bandpass", frequency: 680, gain: .032 });
+  } else if (attacker.type === "mimic") {
+    sfxTone(74, .28, { type: "sawtooth", gain: .046, endFrequency: 38 });
+    sfxNoise(.18, { filterType: "lowpass", frequency: 210, gain: .052, delay: .04 });
+  }
 }
 
-function playAttackImpactSfx(attackStyle, theme, damage) {
+function playAttackImpactSfx(attackStyle, theme, damage, attacker) {
   if (damage <= 0) {
     sfxNoise(.12, { filterType: "highpass", frequency: 1100, gain: .018 });
     return;
@@ -2348,6 +2403,14 @@ function playAttackImpactSfx(attackStyle, theme, damage) {
   sfxTone(105 - power * 12, .15 + power * .025, { type: "sine", gain: .035 + power * .012, endFrequency: 45 });
   if (theme === "ice") sfxTone(1320, .13, { type: "triangle", gain: .025, delay: .025, endFrequency: 760 });
   if (theme === "element") sfxTone(620, .16, { type: "square", gain: .018, delay: .02, endFrequency: 190 });
+  if (attacker?.type === "soulReaper") {
+    sfxTone(92, .32, { type: "sine", gain: .05, endFrequency: 38 });
+  } else if (attacker?.type === "boneHound") {
+    sfxNoise(.18, { filterType: "highpass", frequency: 1250, gain: .034 });
+  } else if (attacker?.type === "mimic") {
+    sfxNoise(.2, { filterType: "lowpass", frequency: 130, gain: .065 });
+    sfxTone(56, .2, { type: "square", gain: .052, endFrequency: 34 });
+  }
 }
 
 function combatThemeFor(unit) {
@@ -2381,6 +2444,7 @@ function emptyCombatEffects() {
     targetCell: null,
     impactTier: 0,
     motion: "strike",
+    unitType: null,
   };
 }
 
@@ -2396,6 +2460,7 @@ async function playAttackEffect(attacker, targets, damage, attackCells) {
     attackStyle,
     attackOwner: attacker.owner,
     theme,
+    unitType: attacker.type,
     motion: attackMotionFor(attacker),
     sourceCell: { row: attacker.row, col: attacker.col },
     targetCell,
@@ -2416,7 +2481,7 @@ async function playAttackEffect(attacker, targets, damage, attackCells) {
   render();
   await wait(180);
 
-  playAttackImpactSfx(attackStyle, theme, damage);
+  playAttackImpactSfx(attackStyle, theme, damage, attacker);
   state.effects = {
     ...baseEffect,
     phase: "impact",
@@ -3135,6 +3200,16 @@ async function tryCorpseSummon(corpse) {
     endTurn();
     return;
   }
+  triggerVisualEffect("corpseAwaken", {
+    row: corpse.row,
+    col: corpse.col,
+    type: corpse.sourceType,
+    title: "소환 성공",
+    detail: `${total} / 목표 ${corpse.target}+`,
+  }, 900);
+  playCorpseRitualSfx("awaken");
+  render();
+  await wait(460);
   beginCorpseSummonPlacement(corpse, owner, total);
 }
 
@@ -3176,8 +3251,8 @@ function placeCorpseSummon(row, col) {
   const unit = createUnit(pending.type, pending.owner, row, col, null, {
     capturedForCampaign: pending.owner === "player" && corpse.sourceOwner === "enemy",
   });
-  triggerSummonVisual(unit);
-  playSfx("summon");
+  triggerCorpseSummonVisual(corpse, unit);
+  playCorpseRitualSfx("rise");
   state.corpses = state.corpses.filter((item) => item.id !== corpse.id);
   state.pendingSummon = null;
   state.mode = "move";
@@ -3344,6 +3419,7 @@ function renderBoard() {
   const damageByCell = new Map(state.effects.damages.map((item) => [cellKey(item.row, item.col), item.value]));
   const visualsByCell = new Map();
   state.visualEffects.forEach((effect) => {
+    if (effect.kind === "corpseTrail") return;
     const key = cellKey(effect.row, effect.col);
     if (!visualsByCell.has(key)) visualsByCell.set(key, []);
     visualsByCell.get(key).push(effect);
@@ -3359,6 +3435,7 @@ function renderBoard() {
   boardEl.dataset.combatPhase = state.effects.phase || "";
   boardEl.dataset.combatTheme = state.effects.theme || "ink";
   boardEl.dataset.combatMotion = state.effects.motion || "strike";
+  boardEl.dataset.combatUnit = state.effects.unitType || "";
   if (state.effects.sourceCell && state.effects.targetCell) {
     const sourceX = (state.effects.sourceCell.col + 0.5) * 20;
     const sourceY = (state.effects.sourceCell.row + 0.5) * 20;
@@ -3441,7 +3518,7 @@ function renderBoard() {
         cell.classList.add("is-setup-drop");
       }
       const visualEffects = visualsByCell.get(cellKey(row, col)) || [];
-      if (visualEffects.some((effect) => effect.kind === "summon")) cell.classList.add("is-summoning");
+      if (visualEffects.some((effect) => ["summon", "corpseSummon"].includes(effect.kind))) cell.classList.add("is-summoning");
       if (visualEffects.some((effect) => effect.kind === "corpseFail")) cell.classList.add("is-corpse-fail");
       if (visualEffects.some((effect) => effect.kind === "corpseBreak")) cell.classList.add("is-corpse-breaking");
       if (unit?.id === state.selectedUnitId) cell.classList.add("is-selected");
@@ -3500,7 +3577,7 @@ function renderBoard() {
       visualEffects.forEach((effect) => cell.appendChild(renderVisualEffect(effect)));
       if (unit && state.effects.hitIds.includes(unit.id) && state.effects.attackStyle) {
         const effect = document.createElement("span");
-        effect.className = `combat-effect effect-${state.effects.attackStyle} motion-${state.effects.motion || "strike"} from-${state.effects.attackOwner}${state.effects.isMiss ? " is-miss" : ""}`;
+        effect.className = `combat-effect effect-${state.effects.attackStyle} motion-${state.effects.motion || "strike"} unit-${state.effects.unitType || "generic"} from-${state.effects.attackOwner}${state.effects.isMiss ? " is-miss" : ""}`;
         effect.setAttribute("aria-hidden", "true");
         cell.appendChild(effect);
       }
@@ -3539,7 +3616,7 @@ function renderBoard() {
   }
   if (combatActive) {
     const cinematic = document.createElement("div");
-    cinematic.className = `combat-cinematic phase-${state.effects.phase || "windup"} theme-${state.effects.theme || "ink"} style-${state.effects.attackStyle} motion-${state.effects.motion || "strike"} tier-${state.effects.impactTier || 0}`;
+    cinematic.className = `combat-cinematic phase-${state.effects.phase || "windup"} theme-${state.effects.theme || "ink"} style-${state.effects.attackStyle} motion-${state.effects.motion || "strike"} unit-${state.effects.unitType || "generic"} tier-${state.effects.impactTier || 0}`;
     cinematic.setAttribute("aria-hidden", "true");
     cinematic.innerHTML = `
       <span class="combat-focus"></span>
@@ -3548,8 +3625,27 @@ function renderBoard() {
       <span class="combat-contact-flash"></span>
       <span class="combat-debris-wave"></span>
       <span class="combat-speed-lines"></span>
+      <span class="combat-signature signature-primary"></span>
+      <span class="combat-signature signature-secondary"></span>
     `;
     boardEl.appendChild(cinematic);
+  }
+  const corpseTrail = state.visualEffects.find((effect) => effect.kind === "corpseTrail");
+  if (corpseTrail) {
+    const sourceX = (corpseTrail.sourceCol + .5) * 20;
+    const sourceY = (corpseTrail.sourceRow + .5) * 20;
+    const targetX = (corpseTrail.targetCol + .5) * 20;
+    const targetY = (corpseTrail.targetRow + .5) * 20;
+    const deltaX = targetX - sourceX;
+    const deltaY = targetY - sourceY;
+    const trail = document.createElement("span");
+    trail.className = "corpse-soul-trail";
+    trail.setAttribute("aria-hidden", "true");
+    trail.style.setProperty("--trail-source-x", `${sourceX}%`);
+    trail.style.setProperty("--trail-source-y", `${sourceY}%`);
+    trail.style.setProperty("--trail-distance", `${Math.hypot(deltaX, deltaY)}%`);
+    trail.style.setProperty("--trail-angle", `${Math.atan2(deltaY, deltaX) * (180 / Math.PI)}deg`);
+    boardEl.appendChild(trail);
   }
 }
 
