@@ -2642,6 +2642,21 @@ h2 {
   background: #fff;
 }
 
+.corpse-enhancement {
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  z-index: 5;
+  padding: 2px 4px;
+  border: 1px solid #075b31;
+  border-radius: 3px;
+  background: #dff5e8;
+  color: #087a3d;
+  font-size: 10px;
+  font-weight: 950;
+  line-height: 1;
+}
+
 .reserve-card.is-selected {
   outline: 3px solid var(--accent);
 }

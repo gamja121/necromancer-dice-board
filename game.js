@@ -367,8 +367,15 @@ function createUnit(type, owner, row, col, diceOverride = null, options = {}) {
   return unit;
 }
 
-function createCorpse(row, col, sourceType, sourceOwner) {
+function createCorpse(row, col, sourceType, sourceOwner, sourceUnit = null) {
   const target = randomInt(2, 6);
+  const def = UNIT_TYPES[sourceType];
+  const permanentStats = sourceUnit && def ? {
+    baseMaxHp: Number.isInteger(sourceUnit.baseMaxHp) ? sourceUnit.baseMaxHp : def.hp,
+    dice: Array.isArray(sourceUnit.dice) ? [...sourceUnit.dice] : [...def.dice],
+    respawns: Number.isInteger(sourceUnit.respawns) ? sourceUnit.respawns : 0,
+    retreat: Number.isInteger(sourceUnit.retreat) ? sourceUnit.retreat : 0,
+  } : null;
   const corpse = {
     id: `corpse-${state.nextId++}`,
     row,
@@ -377,6 +384,13 @@ function createCorpse(row, col, sourceType, sourceOwner) {
     sourceOwner,
     target,
     attemptsRemaining: 2,
+    permanentStats,
+    enhancementLevel: permanentStats
+      ? enhancementLevelFor(sourceType, {
+        maxHp: permanentStats.baseMaxHp,
+        dice: permanentStats.dice,
+      })
+      : 0,
   };
   state.corpses.push(corpse);
   return corpse;
@@ -2551,7 +2565,7 @@ function killUnit(unit) {
     window.setTimeout(announceWinner, 150);
     return;
   }
-  const corpse = createCorpse(unit.row, unit.col, unit.type, unit.owner);
+  const corpse = createCorpse(unit.row, unit.col, unit.type, unit.owner, unit);
   addLog(`${UNIT_TYPES[unit.type].label} 사망. 시체 생성, 소환 목표 ${corpse.target}+.`);
   checkCampaignVictory();
 }
@@ -3219,9 +3233,12 @@ function confirmCorpseSummon(corpse) {
   const bonus = corpseSummonBonus(state.turn);
   const requiredDie = Math.max(1, corpse.target - bonus);
   const bonusText = bonus > 0 ? ` (시체 군단 보정 +${bonus})` : "";
+  const growthText = corpse.enhancementLevel > 0
+    ? ` 영구 강화 +${corpse.enhancementLevel}강은 부활 후에도 유지됩니다.`
+    : "";
   showDialog(
     `${source?.label || "알 수 없는 유닛"} 시체`,
-    `소환 목표 ${corpse.target}+${bonusText}. 주사위 ${requiredDie} 이상이 필요합니다. 남은 기회는 ${corpse.attemptsRemaining ?? 2}회입니다.`,
+    `소환 목표 ${corpse.target}+${bonusText}. 주사위 ${requiredDie} 이상이 필요합니다. 남은 기회는 ${corpse.attemptsRemaining ?? 2}회입니다.${growthText}`,
     [
       { label: "취소", onClick: () => render() },
       { label: "주사위 굴리기", onClick: () => tryCorpseSummon(corpse) },
@@ -3248,7 +3265,11 @@ function placeCorpseSummon(row, col) {
   if (!pending || !isHomeCell(pending.owner, row) || !isEmptyCell(row, col)) return false;
   const corpse = state.corpses.find((item) => item.id === pending.corpseId);
   if (!corpse) return false;
-  const unit = createUnit(pending.type, pending.owner, row, col, null, {
+  const permanentStats = corpse.permanentStats;
+  const unit = createUnit(pending.type, pending.owner, row, col, permanentStats?.dice || null, {
+    baseMaxHp: permanentStats?.baseMaxHp,
+    respawns: permanentStats?.respawns,
+    retreat: permanentStats?.retreat,
     capturedForCampaign: pending.owner === "player" && corpse.sourceOwner === "enemy",
   });
   triggerCorpseSummonVisual(corpse, unit);
@@ -3693,7 +3714,10 @@ function renderUnit(unit) {
 function renderCorpse(corpse) {
   const el = document.createElement("div");
   el.className = "corpse";
-  el.innerHTML = `<img src="assets/corpse.jpg" alt="시체"><span class="corpse-attempts">${corpse.attemptsRemaining ?? 2}회</span>`;
+  const enhancementBadge = corpse.enhancementLevel > 0
+    ? `<span class="corpse-enhancement">+${corpse.enhancementLevel}강</span>`
+    : "";
+  el.innerHTML = `<img src="assets/corpse.jpg" alt="시체"><span class="corpse-attempts">${corpse.attemptsRemaining ?? 2}회</span>${enhancementBadge}`;
   return el;
 }
 
@@ -4140,6 +4164,7 @@ function renderUnitInfo() {
           <div><dt>필요</dt><dd>${corpse.target}+</dd></div>
           <div><dt>기회</dt><dd>${corpse.attemptsRemaining ?? 2}회 남음</dd></div>
           <div><dt>소환</dt><dd>${source?.label || "유닛"}</dd></div>
+          ${corpse.enhancementLevel > 0 ? `<div><dt>강화</dt><dd class="stat-boost">+${corpse.enhancementLevel}강 유지</dd></div>` : ""}
         </dl>
       </div>
     `;
