@@ -2792,6 +2792,32 @@ h2 {
   font-style: normal;
 }
 
+.effective-dice .stat-boost {
+  padding: 1px 4px;
+  border: 2px solid #087a3d;
+  border-radius: 3px;
+  background: #dff5e8;
+}
+
+.effective-dice .stat-boost small {
+  white-space: nowrap;
+}
+
+.effective-dice .is-effect-die {
+  border-color: #1d6f9f;
+  background: #dceef8;
+  color: #155a82;
+}
+
+.effective-dice .is-effect-die small {
+  color: #155a82;
+}
+
+.effective-dice .is-permanent-die.is-effect-die {
+  border-color: #087a3d #1d6f9f #1d6f9f #087a3d;
+  background: linear-gradient(135deg, #dff5e8 0 50%, #dceef8 51%);
+}
+
 .applied-effects {
   display: grid;
   grid-template-columns: 64px minmax(0, 1fr);

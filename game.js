@@ -4017,13 +4017,22 @@ function renderLegionInfo(owner) {
 }
 
 function effectiveDiceMarkup(unit) {
+  const definition = UNIT_TYPES[unit.type];
   const effective = effectiveAttackDice(unit);
   return effective.map((value, index) => {
-    const base = unit.dice[index];
-    const delta = value - base;
-    return delta !== 0
-      ? `<span class="stat-boost" title="${base} → ${value}">${value}<small>${delta > 0 ? "+" : ""}${delta}</small></span>`
-      : `<span>${value}</span>`;
+    const original = definition?.dice[index] ?? unit.dice[index];
+    const permanentDelta = unit.dice[index] - original;
+    const effectDelta = value - unit.dice[index];
+    const details = [];
+    if (permanentDelta !== 0) details.push(`영구 ${permanentDelta > 0 ? "+" : ""}${permanentDelta}`);
+    if (effectDelta !== 0) details.push(`효과 ${effectDelta > 0 ? "+" : ""}${effectDelta}`);
+    if (!details.length) return `<span>${value}</span>`;
+    const classes = [
+      "stat-boost",
+      permanentDelta !== 0 ? "is-permanent-die" : "",
+      effectDelta !== 0 ? "is-effect-die" : "",
+    ].filter(Boolean).join(" ");
+    return `<span class="${classes}" title="기본 ${original} → 현재 ${value}">${value}<small>${details.join(" · ")}</small></span>`;
   }).join("<i>,</i>");
 }
 
