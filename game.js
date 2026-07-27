@@ -2030,14 +2030,24 @@ async function attackTarget(attacker, target) {
 
   const effectResult = await playAttackEffect(attacker, targets, damage, attackCells, rolledDamage);
 
+  const isSameBattle =
+    state.phase === "battle" &&
+    (state.battleToken || 0) === currentBattleToken;
+  const hasSameUnits =
+    state.units.some((u) => u.id === attackerId) &&
+    state.units.some((u) => u.id === targetId) &&
+    state.units.includes(attacker) &&
+    state.units.includes(target);
+
   if (
     effectResult?.aborted ||
-    state.phase !== "battle" ||
-    (state.battleToken || 0) !== currentBattleToken ||
-    !state.units.some((u) => u.id === attackerId) ||
-    !state.units.some((u) => u.id === targetId)
+    !isSameBattle ||
+    !hasSameUnits
   ) {
-    state.effects = emptyCombatEffects();
+    if (isSameBattle) {
+      state.effects = emptyCombatEffects();
+      render();
+    }
     return;
   }
 
@@ -2504,6 +2514,7 @@ async function playAttackEffect(attacker, targets, damage, attackCells, rolledDa
   const canTriggerUltimate = (rolledDamage !== null) && (damage > 0) && (state.phase === "battle") && (rolledDamage === 3 || isKill) && (window.UltimateVfx && window.UltimateVfx.canPlay());
 
   if (canTriggerUltimate) {
+    const effectBattleToken = state.battleToken || 0;
     let impactTriggered = false;
     let vfxResult = null;
     try {
@@ -2541,14 +2552,22 @@ async function playAttackEffect(attacker, targets, damage, attackCells, rolledDa
         render();
       }
     } finally {
-      state.effects = {
-        ...baseEffect,
-        phase: "aftermath",
-        attackerId: null,
-      };
-      render();
-      await wait(150);
-      state.effects = emptyCombatEffects();
+      const wasAborted = vfxResult?.reason === "cancelled" || vfxResult?.reason === "superseded";
+      const isSameBattle = state.phase === "battle" && (state.battleToken || 0) === effectBattleToken;
+
+      if (!wasAborted && isSameBattle) {
+        state.effects = {
+          ...baseEffect,
+          phase: "aftermath",
+          attackerId: null,
+        };
+        render();
+        await wait(150);
+        state.effects = emptyCombatEffects();
+      } else if (isSameBattle) {
+        state.effects = emptyCombatEffects();
+        render();
+      }
     }
 
     if (vfxResult?.reason === "cancelled" || vfxResult?.reason === "superseded") {

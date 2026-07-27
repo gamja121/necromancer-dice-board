@@ -347,6 +347,20 @@ async function runTests() {
 
   console.log("Pass: Cancel before impact verified.");
 
+  let countAfter = 0;
+  const pAfter = UltimateVfx.playGreatswordImpact({
+    boardElement: boardEl,
+    targetCell: { row: 1, col: 1 },
+    onImpact: () => { countAfter++; }
+  });
+  await wait(700); // after the normal impact point
+  UltimateVfx.cancel();
+  const resAfter = await pAfter;
+  assert.strictEqual(resAfter.reason, "cancelled");
+  assert.strictEqual(resAfter.impactTriggered, true);
+  assert.strictEqual(countAfter, 1, "onImpact must be called exactly once when cancelled after impact");
+  console.log("Pass: Cancel after impact verified.");
+
   // Test 10: Superseded consecutive calls
   console.log("Test 10: Superseded consecutive calls check...");
   let count1 = 0;
@@ -365,10 +379,14 @@ async function runTests() {
 
   const res1 = await p1;
   assert.strictEqual(res1.reason, "superseded", "First call should be superseded by second call");
+  assert.strictEqual(res1.impactTriggered, false, "Superseded call must not reach impact");
+  assert.strictEqual(count1, 0, "Superseded call must not invoke onImpact");
 
   // Finish p2
   UltimateVfx.cancel();
-  await p2;
+  const res2 = await p2;
+  assert.strictEqual(res2.reason, "cancelled", "Second call should be cancelled cleanly");
+  assert.strictEqual(count2, 0, "Second call cancelled before impact must not invoke onImpact");
   console.log("Pass: Superseded consecutive calls verified.");
 
   console.log("\n✅ All Ultimate VFX unit tests passed successfully!");

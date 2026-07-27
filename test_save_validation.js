@@ -710,49 +710,64 @@ assert.deepStrictEqual(Array.from(batchPatchSnapshot.spiderLegions), ['summon', 
 console.log('Pass: 확률 합산, 주사위 변환 순서, 토템 회복·1회 부활, 히드라와 벌래 분류 검증 성공.');
 
 console.log('\n=== 18. 취소 및 세션 무효화 시 피해 미적용 검증 ===');
-vm.runInContext(`
-  resetCampaign();
-  setupBattleBoardState(campaign.encounters[0]);
-  state.phase = "battle";
-  const attacker = createUnit('spear', 'player', 3, 2);
-  const target = createUnit('ghoul', 'enemy', 2, 2);
-  const initialHp = target.hp;
+async function verifyCancelledAndInvalidatedAttacks() {
+  const result = await vm.runInContext(`(async () => {
+    resetCampaign();
+    setupBattleBoardState(campaign.encounters[0]);
+    state.phase = "battle";
+    const originalRandom = Math.random;
+    Math.random = () => 0.999999;
+    const attacker = createUnit('knight', 'player', 3, 2);
+    const target = createUnit('ghoul', 'enemy', 2, 2);
+    const initialHp = target.hp;
 
-  window.UltimateVfx = {
-    canPlay: () => true,
-    prefersReducedMotion: () => false,
-    cancel: () => {},
-    playGreatswordImpact: async () => ({ reason: "cancelled", impactTriggered: false })
-  };
+    window.UltimateVfx = {
+      canPlay: () => true,
+      prefersReducedMotion: () => false,
+      cancel: () => {},
+      playGreatswordImpact: async () => ({ reason: "cancelled", impactTriggered: false })
+    };
 
-  attackTarget(attacker, target);
-  if (target.hp !== initialHp) {
-    throw new Error("Cancelled attack reduced target HP!");
-  }
+    await attackTarget(attacker, target);
+    const cancelledHp = target.hp;
 
-  // Session Token invalidation test
-  resetCampaign();
-  setupBattleBoardState(campaign.encounters[0]);
-  state.phase = "battle";
-  const attacker2 = createUnit('spear', 'player', 3, 2);
-  const target2 = createUnit('ghoul', 'enemy', 2, 2);
-  const initialHp2 = target2.hp;
+    resetCampaign();
+    setupBattleBoardState(campaign.encounters[0]);
+    state.phase = "battle";
+    const attacker2 = createUnit('knight', 'player', 3, 2);
+    const target2 = createUnit('ghoul', 'enemy', 2, 2);
+    const initialHp2 = target2.hp;
 
-  window.UltimateVfx = {
-    canPlay: () => true,
-    prefersReducedMotion: () => false,
-    cancel: () => {},
-    playGreatswordImpact: async () => {
-      state.battleToken = (state.battleToken || 0) + 1;
-      return { reason: "complete", impactTriggered: true };
-    }
-  };
+    window.UltimateVfx = {
+      canPlay: () => true,
+      prefersReducedMotion: () => false,
+      cancel: () => {},
+      playGreatswordImpact: async () => {
+        state.battleToken = (state.battleToken || 0) + 1;
+        state.effects = { phase: "new-battle-sentinel" };
+        return { reason: "complete", impactTriggered: true };
+      }
+    };
 
-  attackTarget(attacker2, target2);
-  if (target2.hp !== initialHp2) {
-    throw new Error("Invalidated session attack reduced target HP!");
-  }
-`, sandbox);
-console.log('Pass: 취소된 필살기 및 세션 변경 시 피해 0회 적용 검증 성공.');
+    await attackTarget(attacker2, target2);
+    Math.random = originalRandom;
+    return {
+      initialHp,
+      cancelledHp,
+      initialHp2,
+      invalidatedHp: target2.hp,
+      invalidatedEffectPhase: state.effects.phase
+    };
+  })()`, sandbox);
 
-console.log('\n✅ 모든 세이브 무결성 및 복원 회귀 테스트 통과!');
+  assert.strictEqual(result.cancelledHp, result.initialHp, '취소된 필살기는 실제 비동기 완료 후에도 피해를 주면 안 됨');
+  assert.strictEqual(result.invalidatedHp, result.initialHp2, '세션이 변경된 공격은 실제 비동기 완료 후에도 피해를 주면 안 됨');
+  assert.strictEqual(result.invalidatedEffectPhase, 'new-battle-sentinel', '이전 공격의 finally가 새 전투 이펙트 상태를 덮어쓰면 안 됨');
+  console.log('Pass: 실제 비동기 완료 후 취소된 필살기 및 세션 변경 피해 0회 검증 성공.');
+  console.log('\n✅ 모든 세이브 무결성 및 복원 회귀 테스트 통과!');
+}
+
+verifyCancelledAndInvalidatedAttacks().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
