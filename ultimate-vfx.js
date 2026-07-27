@@ -1,4 +1,4 @@
-/* ultimate-vfx.js */
+/* ultimate-vfx.js v21 - Shattered Board Crater VFX */
 (function (root) {
   let activeSession = null;
   let preloadPromise = null;
@@ -104,7 +104,7 @@
     thud.start(now);
     thud.stop(now + 0.26);
 
-    // Metallic ring (3 frequencies)
+    // Metallic ring
     const ringFreqs = [880, 1340, 2200];
     ringFreqs.forEach((f, idx) => {
       const osc = ctx.createOscillator();
@@ -122,13 +122,12 @@
       osc.stop(now + 0.42);
     });
 
-    // Crack noise
     playCrackSound(ctx, now, vol);
   }
 
   function playCrackSound(ctx, now, vol) {
     try {
-      const bufferSize = ctx.sampleRate * 0.3; // 300ms
+      const bufferSize = ctx.sampleRate * 0.3;
       const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
       const data = buffer.getChannelData(0);
       for (let i = 0; i < bufferSize; i++) {
@@ -155,54 +154,31 @@
       gain.connect(ctx.destination);
       noise.start(now);
       noise.stop(now + 0.3);
-
-      // Debris click schedule
-      for (let i = 0; i < 7; i++) {
-        const delay = 0.08 + Math.random() * 0.32;
-        playDebrisClick(ctx, now + delay, vol);
-      }
-    } catch (e) {
-      console.warn("Crack sound synthesis failed:", e);
-    }
+    } catch (e) {}
   }
 
-  function playDebrisClick(ctx, time, vol) {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    trackAudioNode(osc);
-    trackAudioNode(gain);
-
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(1400 + Math.random() * 1200, time);
-    gain.gain.setValueAtTime(0.004 * vol, time);
-    gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.028);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(time);
-    osc.stop(time + 0.035);
-  }
-
-  // Preload assets
+  // Preloading image asset
   function preload() {
     if (preloadPromise) return preloadPromise;
     preloadPromise = new Promise((resolve) => {
-      const ImageClass = typeof Image !== "undefined" ? Image : (typeof window !== "undefined" ? window.Image : null);
-      if (!ImageClass) {
-        resolve(false);
+      if (typeof Image === "undefined") {
+        resolve(null);
         return;
       }
-      swordImage = new ImageClass();
-      swordImage.src = "assets/vfx/greatsword.png";
-      swordImage.onload = () => resolve(true);
-      swordImage.onerror = () => {
-        console.warn("Failed to preload ultimate vfx greatsword image.");
-        resolve(false);
+      const img = new Image();
+      img.src = "./greatsword.png";
+      img.onload = () => {
+        swordImage = img;
+        resolve(img);
+      };
+      img.onerror = () => {
+        swordImage = null;
+        resolve(null);
       };
     });
     return preloadPromise;
   }
 
-  // Check if animation is permitted
   function canPlay() {
     return !activeSession;
   }
@@ -210,6 +186,252 @@
   function prefersReducedMotion() {
     if (typeof window === "undefined" || !window.matchMedia) return false;
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  // Choose automatic quality tier based on device hardware and reduced motion setting
+  function chooseVfxQuality() {
+    if (prefersReducedMotion()) return "reduced";
+    if (typeof navigator !== "undefined") {
+      if (navigator.deviceMemory && navigator.deviceMemory <= 3) return "low";
+      if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) return "low";
+    }
+    return "high";
+  }
+
+  // Seeded Pseudo-Random Generator (Mulberry32)
+  function createSeededRandom(seed) {
+    let s = seed >>> 0;
+    return function () {
+      s = (s + 0x6d2b79f5) | 0;
+      let t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  // Multi-legion priority color theme selector
+  function getLegionTheme(options = {}) {
+    const legions = options.attackerLegions || [];
+    const priorityOrder = [
+      "demon", "ice", "plague", "undead", "elemental",
+      "plant", "insect", "corpse", "beast", "summon"
+    ];
+
+    let matched = "default";
+    for (const key of priorityOrder) {
+      if (legions.includes(key)) {
+        matched = key;
+        break;
+      }
+    }
+
+    const themes = {
+      demon: { name: "demon", impactColor: "#d03030", innerColor: "#4a0808", edgeColor: "#ff7766", dustColor: "rgba(180, 50, 40, 0.7)" },
+      ice: { name: "ice", impactColor: "#70d0ff", innerColor: "#08304a", edgeColor: "#e0f8ff", dustColor: "rgba(150, 220, 255, 0.7)" },
+      plague: { name: "plague", impactColor: "#40aa55", innerColor: "#0a3a14", edgeColor: "#a5ffb8", dustColor: "rgba(80, 160, 90, 0.7)" },
+      undead: { name: "undead", impactColor: "#a070e0", innerColor: "#28084a", edgeColor: "#e5c0ff", dustColor: "rgba(140, 100, 190, 0.7)" },
+      corpse: { name: "corpse", impactColor: "#803020", innerColor: "#30100a", edgeColor: "#d08070", dustColor: "rgba(110, 60, 50, 0.7)" },
+      insect: { name: "insect", impactColor: "#d0a050", innerColor: "#3a280a", edgeColor: "#ffecb0", dustColor: "rgba(190, 150, 80, 0.7)" },
+      plant: { name: "plant", impactColor: "#85cc45", innerColor: "#1a3808", edgeColor: "#dcff9e", dustColor: "rgba(130, 190, 70, 0.7)" },
+      elemental: { name: "elemental", impactColor: "#ffaa30", innerColor: "#4a2808", edgeColor: "#ffebaa", dustColor: "rgba(230, 170, 60, 0.7)" },
+      beast: { name: "beast", impactColor: "#e07830", innerColor: "#3a1a08", edgeColor: "#ffd4aa", dustColor: "rgba(200, 130, 70, 0.7)" },
+      summon: { name: "summon", impactColor: "#30d0c0", innerColor: "#083a38", edgeColor: "#b0ffff", dustColor: "rgba(70, 200, 190, 0.7)" },
+      default: { name: "default", impactColor: "#d6b36a", innerColor: "#2a2010", edgeColor: "#fff0cd", dustColor: "rgba(188, 174, 148, 0.7)" }
+    };
+
+    return themes[matched] || themes.default;
+  }
+
+  // Build deterministic Shattered Board Crater Model
+  function buildFractureModel(options = {}) {
+    const quality = options.quality || "high";
+    const seed = options.debugSeed ?? ((options.attackerId || 1) * 31 + (options.targetId || 1) * 17 + (options.battleToken || 1) * 13 + (options.timestamp || 0));
+    const random = createSeededRandom(seed);
+
+    const impactX = options.impactX || 0;
+    const impactY = options.impactY || 0;
+    const cellWidth = options.cellWidth || 80;
+    const cellHeight = options.cellHeight || 80;
+    const minCellDim = Math.min(cellWidth, cellHeight);
+    const isKill = options.isKill === true;
+
+    // Quality tier counts
+    const limits = {
+      high: { craterPieces: 5, mainCracks: 5, branchCracks: 10, debris: 14, dust: 18 },
+      medium: { craterPieces: 4, mainCracks: 4, branchCracks: 7, debris: 10, dust: 14 },
+      low: { craterPieces: 3, mainCracks: 3, branchCracks: 3, debris: 5, dust: 7 },
+      reduced: { craterPieces: 1, mainCracks: 2, branchCracks: 0, debris: 1, dust: 2 }
+    }[quality] || { craterPieces: 4, mainCracks: 4, branchCracks: 6, debris: 9, dust: 12 };
+
+    const baseRadius = minCellDim * (quality === "reduced" ? 0.2 : 0.32) * (isKill ? 1.1 : 1.0);
+    const pointCount = 10;
+    const craterPolygon = [];
+    for (let i = 0; i < pointCount; i++) {
+      const angle = (i / pointCount) * Math.PI * 2;
+      const r = baseRadius * (0.75 + random() * 0.45);
+      craterPolygon.push({
+        x: impactX + Math.cos(angle) * r,
+        y: impactY + Math.sin(angle) * r,
+        angle,
+        r
+      });
+    }
+
+    // Split crater polygon into wedge pieces
+    const craterPieces = [];
+    const pieceCount = limits.craterPieces;
+    for (let i = 0; i < pieceCount; i++) {
+      const startIdx = Math.floor((i / pieceCount) * pointCount);
+      const endIdx = Math.floor(((i + 1) / pieceCount) * pointCount);
+      const pts = [{ x: impactX, y: impactY }];
+      for (let j = startIdx; j <= endIdx; j++) {
+        pts.push(craterPolygon[j % pointCount]);
+      }
+
+      // Convert points to polygon string for CSS clip-path (relative to cell box)
+      const relPts = pts.map(p => ({
+        x: p.x - (impactX - baseRadius * 1.5),
+        y: p.y - (impactY - baseRadius * 1.5)
+      }));
+      const boxSize = baseRadius * 3;
+      const clipPathStr = "polygon(" + relPts.map(p => `${((p.x / boxSize) * 100).toFixed(1)}% ${((p.y / boxSize) * 100).toFixed(1)}%`).join(", ") + ")";
+
+      craterPieces.push({
+        id: i,
+        clipPath: clipPathStr,
+        depth: 3 + Math.floor(random() * 7),
+        tiltX: -8 + random() * 18,
+        tiltY: -10 + random() * 20,
+        rotZ: -5 + random() * 10,
+        delay: Math.floor(random() * 35),
+        isFront: i < 2 // Front pieces layer over the sword tip
+      });
+    }
+
+    // Generate main fracture polylines
+    const mainFractures = [];
+    const mainCount = limits.mainCracks;
+    const baseAngle = options.attackAngle || (Math.PI / 4);
+
+    for (let i = 0; i < mainCount; i++) {
+      const angleOffset = (i === 0) ? (random() * 0.2 - 0.1) : ((i / mainCount) * Math.PI * 2 + (random() * 0.4 - 0.2));
+      const crackAngle = baseAngle + angleOffset;
+      const length = minCellDim * (0.55 + random() * 0.4) * (isKill ? 1.25 : 1.0);
+      const segmentCount = 5 + Math.floor(random() * 3);
+      const points = [{ x: impactX, y: impactY }];
+
+      let currX = impactX;
+      let currY = impactY;
+      let currAngle = crackAngle;
+
+      for (let s = 1; s <= segmentCount; s++) {
+        const segLen = (length / segmentCount) * (0.8 + random() * 0.4);
+        currAngle += (random() * 0.6 - 0.3);
+        currX += Math.cos(currAngle) * segLen;
+        currY += Math.sin(currAngle) * segLen;
+        points.push({ x: currX, y: currY });
+      }
+
+      mainFractures.push({
+        id: i,
+        startDelay: (i === 0) ? 20 : (35 + i * 20),
+        points,
+        branches: []
+      });
+    }
+
+    // Generate branch fractures
+    const branchFractures = [];
+    if (limits.branchCracks > 0) {
+      mainFractures.forEach((mainCrk) => {
+        if (mainCrk.points.length < 3) return;
+        const branchCount = 1 + Math.floor(random() * 2);
+        for (let b = 0; b < branchCount; b++) {
+          if (branchFractures.length >= limits.branchCracks) break;
+          const srcIdx = 2 + Math.floor(random() * (mainCrk.points.length - 2));
+          const srcPt = mainCrk.points[srcIdx];
+          const parentAngle = Math.atan2(srcPt.y - mainCrk.points[srcIdx - 1].y, srcPt.x - mainCrk.points[srcIdx - 1].x);
+          const side = (random() > 0.5) ? 1 : -1;
+          const branchAngle = parentAngle + side * (0.5 + random() * 0.5);
+          const bLength = minCellDim * (0.2 + random() * 0.25);
+          const bSegs = 3;
+          const bPoints = [{ x: srcPt.x, y: srcPt.y }];
+
+          let bx = srcPt.x;
+          let by = srcPt.y;
+          let ba = branchAngle;
+          for (let s = 1; s <= bSegs; s++) {
+            const segLen = bLength / bSegs;
+            ba += (random() * 0.4 - 0.2);
+            bx += Math.cos(ba) * segLen;
+            by += Math.sin(ba) * segLen;
+            bPoints.push({ x: bx, y: by });
+          }
+
+          branchFractures.push({
+            mainId: mainCrk.id,
+            startDelay: mainCrk.startDelay + 45 + b * 25,
+            points: bPoints
+          });
+        }
+      });
+    }
+
+    // Generate debris particles
+    const debris = [];
+    for (let i = 0; i < limits.debris; i++) {
+      const angle = random() * Math.PI * 2;
+      const speed = 80 + random() * 180;
+      debris.push({
+        id: i,
+        x: impactX,
+        y: impactY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - (100 + random() * 120),
+        vz: 120 + random() * 180,
+        gravity: 420 + random() * 220,
+        rotation: random() * 360,
+        rotSpeed: -360 + random() * 720,
+        size: 5 + random() * 9,
+        scale: 0.6 + random() * 0.8,
+        depth: 0.5 + random() * 1.0,
+        vertices: [
+          { x: -0.5, y: -0.5 },
+          { x: 0.4 + random() * 0.2, y: -0.6 },
+          { x: 0.6, y: 0.4 },
+          { x: -0.3, y: 0.5 }
+        ]
+      });
+    }
+
+    // Generate dust cloud particles
+    const dust = [];
+    for (let i = 0; i < limits.dust; i++) {
+      const angle = random() * Math.PI * 2;
+      const dist = baseRadius * (0.2 + random() * 1.1);
+      dust.push({
+        id: i,
+        targetX: impactX + Math.cos(angle) * dist,
+        targetY: impactY + Math.sin(angle) * dist,
+        size: 14 + random() * 26,
+        maxOpacity: 0.2 + random() * 0.45,
+        expandRate: 1.2 + random() * 1.5
+      });
+    }
+
+    return {
+      seed,
+      quality,
+      impactX,
+      impactY,
+      baseRadius,
+      craterPolygon,
+      craterPieces,
+      mainFractures,
+      branchFractures,
+      debris,
+      dust
+    };
   }
 
   // Session common cleanup and resolve
@@ -227,24 +449,17 @@
     }
     session.timerIds.forEach((id) => clearTimeout(id));
 
-    // Cleanup and stop audio nodes safely
     session.audioNodes.forEach((node) => {
-      try {
-        node.stop();
-      } catch (e) {}
-      try {
-        node.disconnect();
-      } catch (e) {}
+      try { node.stop(); } catch (e) {}
+      try { node.disconnect(); } catch (e) {}
     });
 
-    // Remove DOM overlays
     if (session.overlay && session.overlay.parentNode) {
       session.overlay.parentNode.removeChild(session.overlay);
     }
     if (session.clone && session.clone.parentNode) {
       session.clone.parentNode.removeChild(session.clone);
     }
-
     if (session.boardElement) {
       session.boardElement.style.opacity = "";
     }
@@ -260,7 +475,6 @@
   // Main animation play
   function playGreatswordImpact(options = {}) {
     return new Promise((resolve) => {
-      // If there's an active session, supersede it cleanly
       if (activeSession) {
         finishSession("superseded");
       }
@@ -272,27 +486,29 @@
         damage = 3,
         isKill = false,
         onImpact = () => {},
-        reducedMotion = prefersReducedMotion()
+        reducedMotion = prefersReducedMotion(),
+        attackerId,
+        targetId,
+        battleToken,
+        debugSeed
       } = options;
 
-      if (!boardElement) {
+      if (!boardElement || !boardElement.parentNode) {
         onImpact();
-        resolve({ reason: "missing_board" });
+        resolve({ reason: "missing_board", impactTriggered: true });
         return;
       }
 
-      // Find target cell element
       const targetCellEl = boardElement.querySelector(
         `[data-row="${targetCell.row}"][data-col="${targetCell.col}"]`
       );
 
       if (!targetCellEl) {
         onImpact();
-        resolve({ reason: "missing_target_cell" });
+        resolve({ reason: "missing_target_cell", impactTriggered: true });
         return;
       }
 
-      // Initialise activeSession
       activeSession = {
         resolve,
         boardElement,
@@ -308,199 +524,171 @@
       };
 
       if (typeof state !== "undefined") {
-        state.isRolling = true; // Lock inputs
+        state.isRolling = true;
       }
 
-      const boardRect = boardElement.getBoundingClientRect();
+      const quality = reducedMotion ? "reduced" : chooseVfxQuality();
+      const theme = getLegionTheme(options);
+
+      // Measurements
       const wrapRect = boardElement.parentNode.getBoundingClientRect();
+      const cellRect = targetCellEl.getBoundingClientRect();
+      const impactX = cellRect.left - wrapRect.left + cellRect.width / 2;
+      const impactY = cellRect.top - wrapRect.top + cellRect.height / 2;
 
-      // Audio trigger: Focus phase
-      playFocusRiseSound();
+      // Build deterministic fracture model
+      const fractureModel = buildFractureModel({
+        quality,
+        debugSeed,
+        attackerId,
+        targetId,
+        battleToken,
+        timestamp: Date.now(),
+        impactX,
+        impactY,
+        cellWidth: cellRect.width,
+        cellHeight: cellRect.height,
+        isKill,
+        attackAngle: attackerOwner === "player" ? (Math.PI / 4) : (-Math.PI / 4)
+      });
+      activeSession.fractureModel = fractureModel;
 
-      // Dim overlay
+      // Create overlay container
       const overlay = document.createElement("div");
-      overlay.className = "ultimate-vfx-dim-overlay";
-      document.body.appendChild(overlay);
+      overlay.className = `ultimate-vfx-overlay ${reducedMotion ? "is-reduced-motion" : ""} quality-${quality}`;
+      overlay.style.setProperty("--impact-color", theme.impactColor);
+      overlay.style.setProperty("--fracture-inner", theme.innerColor);
+      overlay.style.setProperty("--fracture-edge", theme.edgeColor);
+      overlay.style.setProperty("--dust-color", theme.dustColor);
       activeSession.overlay = overlay;
-      overlay.offsetHeight; // trigger reflow
-      overlay.classList.add("is-active");
 
-      // Clone board
+      // Duplicate board clone for 3D crater depth
       const clone = boardElement.cloneNode(true);
       clone.removeAttribute("id");
-      clone.classList.add("ultimate-vfx-board-clone");
-      clone.style.position = "absolute";
-      clone.style.left = `${boardRect.left - wrapRect.left}px`;
-      clone.style.top = `${boardRect.top - wrapRect.top}px`;
-      clone.style.width = `${boardRect.width}px`;
-      clone.style.height = `${boardRect.height}px`;
-      clone.style.margin = "0";
-      boardElement.parentNode.appendChild(clone);
+      clone.className = (clone.className || "") + " ultimate-vfx-board-clone";
+      overlay.appendChild(clone);
       activeSession.clone = clone;
 
-      // Hide original board
-      boardElement.style.opacity = "0";
+      // 2.5D Crater Layer & Pieces
+      const craterBoxSize = fractureModel.baseRadius * 3;
+      const craterLayer = document.createElement("div");
+      craterLayer.className = "ultimate-vfx-crater-layer";
+      craterLayer.style.left = `${impactX - craterBoxSize / 2}px`;
+      craterLayer.style.top = `${impactY - craterBoxSize / 2}px`;
+      craterLayer.style.width = `${craterBoxSize}px`;
+      craterLayer.style.height = `${craterBoxSize}px`;
 
-      // Canvas for drawing cracks and particles
-      const canvas = document.createElement("canvas");
-      canvas.className = "ultimate-vfx-canvas";
-      canvas.width = boardRect.width * 2;
-      canvas.height = boardRect.height * 2;
-      canvas.style.width = "100%";
-      canvas.style.height = "100%";
-      clone.appendChild(canvas);
-      const ctx = canvas.getContext("2d");
+      const craterShadow = document.createElement("div");
+      craterShadow.className = "ultimate-vfx-crater-shadow";
+      craterLayer.appendChild(craterShadow);
 
-      // Get target cell center relative to clone board
-      const cloneCell = clone.querySelector(
-        `[data-row="${targetCell.row}"][data-col="${targetCell.col}"]`
-      );
-      const cellWidth = cloneCell.offsetWidth;
-      const cellHeight = cloneCell.offsetHeight;
-      const centerX = cloneCell.offsetLeft + cellWidth / 2;
-      const centerY = cloneCell.offsetTop + cellHeight / 2;
+      const pieceDOMs = [];
+      fractureModel.craterPieces.forEach((piece) => {
+        const pEl = document.createElement("div");
+        pEl.className = `ultimate-vfx-crater-piece ${piece.isFront ? "is-front-piece" : "is-back-piece"}`;
+        pEl.style.clipPath = piece.clipPath;
+        pEl.style.webkitClipPath = piece.clipPath;
+        pEl.style.setProperty("--piece-depth", `${piece.depth}px`);
+        pEl.style.setProperty("--piece-tilt-x", `${piece.tiltX}deg`);
+        pEl.style.setProperty("--piece-tilt-y", `${piece.tiltY}deg`);
+        pEl.style.setProperty("--piece-rot-z", `${piece.rotZ}deg`);
+        craterLayer.appendChild(pEl);
+        pieceDOMs.push(pEl);
+      });
+      overlay.appendChild(craterLayer);
+
+      // Fracture Canvas (Main & Branch Cracks)
+      const fractureCanvas = document.createElement("canvas");
+      fractureCanvas.className = "ultimate-vfx-fracture-canvas";
+      fractureCanvas.width = wrapRect.width;
+      fractureCanvas.height = wrapRect.height;
+      overlay.appendChild(fractureCanvas);
+      const fCtx = fractureCanvas.getContext("2d");
+
+      // Dust Canvas
+      const dustCanvas = document.createElement("canvas");
+      dustCanvas.className = "ultimate-vfx-dust-canvas";
+      dustCanvas.width = wrapRect.width;
+      dustCanvas.height = wrapRect.height;
+      overlay.appendChild(dustCanvas);
+      const dCtx = dustCanvas.getContext("2d");
+
+      // Debris Layer DOMs
+      const debrisLayer = document.createElement("div");
+      debrisLayer.className = "ultimate-vfx-debris-layer";
+      overlay.appendChild(debrisLayer);
+
+      const debrisDOMs = [];
+      fractureModel.debris.forEach((deb) => {
+        const dEl = document.createElement("div");
+        dEl.className = "ultimate-vfx-debris-piece";
+        dEl.style.width = `${deb.size}px`;
+        dEl.style.height = `${deb.size}px`;
+
+        const clipPts = deb.vertices.map(v => `${((v.x + 0.5) * 100).toFixed(0)}% ${((v.y + 0.5) * 100).toFixed(0)}%`).join(", ");
+        dEl.style.clipPath = `polygon(${clipPts})`;
+        dEl.style.webkitClipPath = `polygon(${clipPts})`;
+
+        const sEl = document.createElement("div");
+        sEl.className = "ultimate-vfx-debris-shadow";
+
+        debrisLayer.appendChild(sEl);
+        debrisLayer.appendChild(dEl);
+        debrisDOMs.push({ el: dEl, shadowEl: sEl, data: deb });
+      });
+
+      // Impact Flash
+      const flash = document.createElement("div");
+      flash.className = "ultimate-vfx-flash";
+      overlay.appendChild(flash);
 
       // Reticle
       const reticle = document.createElement("div");
       reticle.className = "ultimate-vfx-reticle";
-      reticle.style.left = `${centerX}px`;
-      reticle.style.top = `${centerY}px`;
-      clone.appendChild(reticle);
+      reticle.style.left = `${impactX}px`;
+      reticle.style.top = `${impactY}px`;
+      overlay.appendChild(reticle);
+
+      // Greatsword Element
+      const sword = document.createElement("div");
+      sword.className = "ultimate-vfx-greatsword";
+      sword.style.left = `${impactX}px`;
+      sword.style.top = `${impactY}px`;
+
+      const shadow = document.createElement("div");
+      shadow.className = "ultimate-vfx-greatsword-shadow";
+      sword.appendChild(shadow);
+
+      if (swordImage) {
+        const imgEl = swordImage.cloneNode(true);
+        imgEl.className = "ultimate-vfx-greatsword-img";
+        sword.appendChild(imgEl);
+      } else {
+        const fallbackEl = document.createElement("div");
+        fallbackEl.className = "ultimate-vfx-greatsword-fallback";
+        sword.appendChild(fallbackEl);
+      }
+      overlay.appendChild(sword);
+
+      // Append overlay to board container
+      boardElement.parentNode.appendChild(overlay);
+      boardElement.style.opacity = "0";
+
+      // Timeline Durations
+      const hitStopDuration = isKill ? 80 : 60;
+      const totalDuration = isKill ? 1350 : 1200;
+      const tImpact = reducedMotion ? 150 : 430;
+
+      // Start Rise & Fall Audio
+      playFocusRiseSound();
+      const whooshTimerId = setTimeout(() => {
+        playWhooshSound();
+      }, Math.max(0, tImpact - 220));
+      activeSession.timerIds.push(whooshTimerId);
+
       requestAnimationFrame(() => {
         reticle.classList.add("is-active");
       });
-
-      // Sword & Shadow setup
-      const sword = document.createElement("div");
-      sword.className = "ultimate-vfx-greatsword";
-      
-      // Fallback check if greatsword image is not loaded
-      const isImgReady = swordImage && swordImage.complete && swordImage.naturalWidth > 0;
-      if (!isImgReady) {
-        sword.classList.add("ultimate-vfx-greatsword-fallback");
-      }
-      
-      sword.style.left = `${centerX - 70}px`; // 140px / 2
-      sword.style.top = `${centerY - 280}px`; // origin bottom center, so bottom matches centerY
-      clone.appendChild(sword);
-
-      const shadow = document.createElement("div");
-      shadow.className = "ultimate-vfx-shadow";
-      shadow.style.left = `${centerX}px`;
-      shadow.style.top = `${centerY}px`;
-      clone.appendChild(shadow);
-
-      // Duration configs based on reducedMotion
-      const focusDuration = reducedMotion ? 100 : 180;
-      const dropDuration = reducedMotion ? 150 : 340;
-      const tImpact = focusDuration + dropDuration;
-      const totalDuration = reducedMotion ? 600 : 1450;
-      const recoveryStartTime = reducedMotion ? 400 : 1100;
-
-      let particles = [];
-      let cracks = [];
-      let crackProgress = 0;
-      let hasImpacted = false;
-      let whooshPlayed = false;
-
-      // Generate layered, branching fracture paths once so every frame is stable.
-      const craterPoints = [];
-      const craterPointCount = reducedMotion ? 7 : 11;
-      for (let i = 0; i < craterPointCount; i++) {
-        const angle = (i / craterPointCount) * Math.PI * 2;
-        const radius = cellWidth * (0.12 + Math.random() * 0.1);
-        craterPoints.push({
-          x: centerX + Math.cos(angle) * radius,
-          y: centerY + Math.sin(angle) * radius * 0.62
-        });
-      }
-
-      const crackCount = reducedMotion ? 4 : (8 + Math.floor(Math.random() * 3));
-      for (let i = 0; i < crackCount; i++) {
-        const angle = (i / crackCount) * Math.PI * 2 + (Math.random() * 0.34 - 0.17);
-        const segments = reducedMotion ? 3 : (5 + Math.floor(Math.random() * 3));
-        const path = [{ x: centerX, y: centerY }];
-        const branches = [];
-        let curX = centerX;
-        let curY = centerY;
-        const maxRadius = cellWidth * (reducedMotion ? 0.9 : (1.35 + Math.random() * 0.4));
-        const segLen = maxRadius / segments;
-        for (let j = 1; j <= segments; j++) {
-          const segAngle = angle + (Math.random() * 0.62 - 0.31);
-          const lengthJitter = 0.72 + Math.random() * 0.5;
-          curX += Math.cos(segAngle) * segLen * lengthJitter;
-          curY += Math.sin(segAngle) * segLen * lengthJitter;
-          path.push({ x: curX, y: curY });
-
-          if (!reducedMotion && j > 1 && j < segments && Math.random() < 0.58) {
-            const branchAngle = segAngle + (Math.random() < 0.5 ? -1 : 1) * (0.48 + Math.random() * 0.45);
-            const branchLength = segLen * (0.75 + Math.random() * 0.9);
-            const branchMid = {
-              x: curX + Math.cos(branchAngle) * branchLength * 0.48,
-              y: curY + Math.sin(branchAngle) * branchLength * 0.48
-            };
-            branches.push({
-              startProgress: j / segments,
-              points: [
-                { x: curX, y: curY },
-                {
-                  x: branchMid.x + (Math.random() * 8 - 4),
-                  y: branchMid.y + (Math.random() * 8 - 4)
-                },
-                {
-                  x: curX + Math.cos(branchAngle) * branchLength,
-                  y: curY + Math.sin(branchAngle) * branchLength
-                }
-              ]
-            });
-          }
-        }
-        cracks.push({
-          points: path,
-          branches,
-          weight: 0.78 + Math.random() * 0.5
-        });
-      }
-
-      // Generate particles
-      function spawnParticles() {
-        const pCount = reducedMotion ? 1 : (9 + Math.floor(Math.random() * 5));
-        for (let i = 0; i < pCount; i++) {
-          const angle = Math.random() * Math.PI * 2;
-          const speed = 2.5 + Math.random() * 4.5;
-          const vZ = 4.0 + Math.random() * 6.5;
-          particles.push({
-            x: centerX,
-            y: centerY,
-            z: 0,
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed - 2.5,
-            vz: vZ,
-            gravity: 0.22,
-            size: 3.5 + Math.random() * 7,
-            color: Math.random() < 0.3 ? "#777" : Math.random() < 0.6 ? "#555" : "#424242",
-            rotation: Math.random() * Math.PI * 2,
-            vRot: Math.random() * 0.2 - 0.1,
-            opacity: 1
-          });
-        }
-      }
-
-      function spawnShockwaves() {
-        const shockwave = document.createElement("div");
-        shockwave.className = "ultimate-vfx-shockwave";
-        shockwave.style.left = `${centerX}px`;
-        shockwave.style.top = `${centerY}px`;
-        clone.appendChild(shockwave);
-
-        if (!reducedMotion) {
-          const shockwave2 = document.createElement("div");
-          shockwave2.className = "ultimate-vfx-shockwave-double";
-          shockwave2.style.left = `${centerX}px`;
-          shockwave2.style.top = `${centerY}px`;
-          clone.appendChild(shockwave2);
-        }
-      }
 
       // Safety timeout
       activeSession.safetyTimeoutId = setTimeout(() => {
@@ -508,8 +696,10 @@
         finishSession("safety_timeout");
       }, 3500);
 
+      // Animation loop properties
       let lastTime = performance.now();
       let simTime = 0;
+      let hasImpacted = false;
 
       function tick(now) {
         if (!activeSession || activeSession.completed) return;
@@ -527,32 +717,16 @@
           return;
         }
 
-        // A. Focus Phase
-        if (simTime < focusDuration) {
-          const p = simTime / focusDuration;
-          if (!reducedMotion) {
-            clone.style.transform = `perspective(600px) rotateX(${p * 6}deg)`;
-          }
-        }
-
-        // B. Sword Drop Phase
-        if (simTime >= focusDuration && simTime < tImpact) {
-          if (!whooshPlayed) {
-            playWhooshSound();
-            whooshPlayed = true;
-          }
-          reticle.style.opacity = Math.max(0, 1 - (simTime - focusDuration) / 100);
-
-          const dropProgress = (simTime - focusDuration) / dropDuration;
+        // A. Pre-impact Reticle & Drop
+        if (simTime < tImpact) {
+          const dropProgress = Math.max(0, simTime / tImpact);
           const easedP = Math.pow(dropProgress, 3.5);
 
           if (reducedMotion) {
-            const tx = 50 * (1 - easedP);
+            const tx = 40 * (1 - easedP);
             const ty = -100 * (1 - easedP);
-            const scale = 1.0 + 0.4 * (1 - easedP);
-            const rotZ = -20 * (1 - easedP);
             sword.style.opacity = Math.min(1, dropProgress * 3.0);
-            sword.style.transform = `translate(${tx}px, ${ty}px) rotateZ(${rotZ}deg) scale(${scale})`;
+            sword.style.transform = `translate(${tx}px, ${ty}px) scale(${1.0 + 0.3 * (1 - easedP)})`;
           } else {
             const tx = 160 * (1 - easedP);
             const ty = -320 * (1 - easedP);
@@ -563,12 +737,11 @@
             sword.style.transform = `translate(${tx}px, ${ty}px) rotateZ(${rotZ}deg) rotateY(${rotY}deg) scale(${scale})`;
           }
 
-          const shadowScale = easedP;
           shadow.style.opacity = easedP * 0.7;
-          shadow.style.transform = `translate(-50%, -50%) scale(${shadowScale})`;
+          shadow.style.transform = `translate(-50%, -50%) scale(${easedP})`;
         }
 
-        // C. Impact Moment
+        // B. Impact Moment
         if (simTime >= tImpact && !hasImpacted) {
           hasImpacted = true;
           if (activeSession) {
@@ -577,231 +750,199 @@
           sword.style.transform = "translate(0, 0) rotateZ(0deg) scale(1)";
           shadow.style.transform = "translate(-50%, -50%) scale(1)";
 
-          // Trigger game impact callback
-          onImpact();
-
-          // Synth sound and vibration
-          playImpactSound();
-          if (typeof state !== "undefined" && state.vibrationEnabled && !state.musicMuted && navigator.vibrate) {
-            navigator.vibrate(reducedMotion ? 12 : 24);
-          }
-
-          // Trigger hit stop freeze
+          // Trigger hit stop
           activeSession.isHitStop = true;
-          clone.classList.add("ultimate-vfx-is-hit-stop");
+          overlay.classList.add("ultimate-vfx-is-hit-stop");
+          playImpactSound();
 
-          // Flash
-          const flash = document.createElement("div");
-          flash.className = "ultimate-vfx-flash";
-          clone.appendChild(flash);
-          flash.offsetHeight;
+          // Sinking crater pieces
+          pieceDOMs.forEach((pDOM) => {
+            pDOM.classList.add("is-sunk");
+          });
+
+          // Impact Flash
           flash.classList.add("is-active");
+          const flashTimerId = setTimeout(() => {
+            flash.classList.remove("is-active");
+          }, 120);
+          activeSession.timerIds.push(flashTimerId);
 
-          if (isKill) {
-            const glow = document.createElement("div");
-            glow.className = "ultimate-vfx-killed-glow";
-            glow.style.left = `${centerX - cellWidth * 1.5}px`;
-            glow.style.top = `${centerY - cellHeight * 1.5}px`;
-            glow.style.width = `${cellWidth * 3}px`;
-            glow.style.height = `${cellHeight * 3}px`;
-            clone.appendChild(glow);
-          }
-
-          const hitStopDuration = reducedMotion ? 35 : (isKill ? 80 : 60);
-
+          // Hit stop timeout
           const hitStopTimeoutId = setTimeout(() => {
             if (!activeSession || activeSession.completed) return;
             activeSession.isHitStop = false;
-            if (activeSession.clone) {
-              activeSession.clone.classList.remove("ultimate-vfx-is-hit-stop");
-              if (!reducedMotion) {
-                activeSession.clone.classList.add("ultimate-vfx-shake");
-                const shakeTimeoutId = setTimeout(() => {
-                  if (activeSession && activeSession.clone) {
-                    activeSession.clone.classList.remove("ultimate-vfx-shake");
-                  }
-                }, 140);
-                activeSession.timerIds.push(shakeTimeoutId);
-              }
+            overlay.classList.remove("ultimate-vfx-is-hit-stop");
+
+            // Execute impact callback
+            try {
+              onImpact();
+            } catch (e) {
+              console.error("VFX onImpact callback error:", e);
             }
-            // Spawn shockwave and particles now
-            spawnShockwaves();
-            spawnParticles();
+
+            // Sword shake
+            if (!reducedMotion) {
+              sword.classList.add("ultimate-vfx-sword-shake");
+            }
           }, hitStopDuration);
           activeSession.timerIds.push(hitStopTimeoutId);
         }
 
-        // D. Crack & Particles rendering
+        // C. Fracture Lines Drawing (Sequential 3-Stroke Crack)
         if (simTime >= tImpact) {
-          if (!activeSession.isHitStop) {
-            // Update crack growth
-            crackProgress = Math.min(1.0, crackProgress + (reducedMotion ? 0.08 : 0.045));
+          const postImpactTime = simTime - tImpact;
+          fCtx.clearRect(0, 0, fractureCanvas.width, fractureCanvas.height);
 
-            // Update particles
-            particles.forEach((p) => {
-              p.x += p.vx;
-              p.y += p.vy;
-              p.vy += p.gravity;
-              p.z += p.vz;
-              p.rotation += p.vRot;
-              p.opacity = Math.max(0, p.opacity - 0.016);
-            });
-            particles = particles.filter((p) => p.opacity > 0);
-          }
+          // Render Main Fractures
+          fractureModel.mainFractures.forEach((mainCrk) => {
+            if (postImpactTime < mainCrk.startDelay) return;
+            const progress = Math.min(1.0, (postImpactTime - mainCrk.startDelay) / 180);
+            if (progress <= 0) return;
 
-          // Clear and scale canvas
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.save();
-          ctx.scale(2, 2);
+            const totalPoints = mainCrk.points.length;
+            const drawCount = Math.max(2, Math.floor(progress * totalPoints));
 
-          // Draw a layered crater and branching floor fractures.
-          ctx.lineCap = "round";
-          ctx.lineJoin = "round";
-
-          if (crackProgress > 0.03 && craterPoints.length > 2) {
-            const craterScale = Math.min(1, crackProgress * 2.8);
-            ctx.save();
-            ctx.translate(centerX, centerY);
-            ctx.scale(craterScale, craterScale);
-            ctx.translate(-centerX, -centerY);
-            ctx.beginPath();
-            ctx.moveTo(craterPoints[0].x, craterPoints[0].y);
-            for (let i = 1; i < craterPoints.length; i++) {
-              ctx.lineTo(craterPoints[i].x, craterPoints[i].y);
+            // Stroke 1: Deep Dark Shadow
+            fCtx.save();
+            fCtx.beginPath();
+            fCtx.moveTo(mainCrk.points[0].x, mainCrk.points[0].y + 2);
+            for (let k = 1; k < drawCount; k++) {
+              fCtx.lineTo(mainCrk.points[k].x, mainCrk.points[k].y + 2);
             }
-            ctx.closePath();
-            ctx.fillStyle = "rgba(7, 5, 5, 0.94)";
-            ctx.fill();
-            ctx.lineWidth = 5.5;
-            ctx.strokeStyle = "rgba(20, 12, 10, 0.95)";
-            ctx.stroke();
-            ctx.lineWidth = 1.6;
-            ctx.strokeStyle = isKill ? "rgba(255, 63, 48, 0.95)" : "rgba(230, 166, 92, 0.82)";
-            ctx.stroke();
-            ctx.restore();
-          }
+            fCtx.strokeStyle = "rgba(0, 0, 0, 0.85)";
+            fCtx.lineWidth = 6;
+            fCtx.lineCap = "round";
+            fCtx.lineJoin = "round";
+            fCtx.stroke();
+            fCtx.restore();
 
-          function traceFracture(points, pointsToDraw, offsetX = 0, offsetY = 0) {
-            if (pointsToDraw < 2) return;
-            ctx.beginPath();
-            ctx.moveTo(points[0].x + offsetX, points[0].y + offsetY);
-            for (let j = 1; j < pointsToDraw; j++) {
-              ctx.lineTo(points[j].x + offsetX, points[j].y + offsetY);
+            // Stroke 2: Inner Fissure (Legion Theme Color)
+            fCtx.save();
+            fCtx.beginPath();
+            fCtx.moveTo(mainCrk.points[0].x, mainCrk.points[0].y);
+            for (let k = 1; k < drawCount; k++) {
+              fCtx.lineTo(mainCrk.points[k].x, mainCrk.points[k].y);
             }
-          }
+            fCtx.strokeStyle = theme.impactColor;
+            fCtx.lineWidth = 3;
+            fCtx.lineCap = "round";
+            fCtx.lineJoin = "round";
+            fCtx.stroke();
+            fCtx.restore();
 
-          function drawFracture(points, pointsToDraw, weight, branch = false) {
-            if (pointsToDraw < 2) return;
-            const width = (branch ? 3.4 : 7.2) * weight;
-
-            traceFracture(points, pointsToDraw, 1.5, 1.8);
-            ctx.lineWidth = width + 2.4;
-            ctx.strokeStyle = "rgba(0, 0, 0, 0.46)";
-            ctx.stroke();
-
-            traceFracture(points, pointsToDraw);
-            ctx.lineWidth = width;
-            ctx.strokeStyle = "rgba(10, 7, 7, 0.96)";
-            ctx.stroke();
-
-            traceFracture(points, pointsToDraw);
-            ctx.lineWidth = Math.max(1.2, width * 0.38);
-            ctx.strokeStyle = isKill ? "rgba(124, 18, 16, 0.94)" : "rgba(74, 43, 26, 0.9)";
-            ctx.stroke();
-
-            traceFracture(points, pointsToDraw, -0.9, -1.05);
-            ctx.lineWidth = branch ? 0.75 : 1.15;
-            ctx.strokeStyle = isKill ? "rgba(255, 82, 60, 0.78)" : "rgba(255, 218, 170, 0.58)";
-            ctx.stroke();
-          }
-
-          cracks.forEach((crack) => {
-            const path = crack.points;
-            if (path.length < 2) return;
-            const pointsToDraw = Math.ceil(path.length * crackProgress);
-            if (pointsToDraw < 2) return;
-
-            drawFracture(path, pointsToDraw, crack.weight);
-
-            crack.branches.forEach((branch) => {
-              if (crackProgress < branch.startProgress) return;
-              const branchProgress = Math.min(1, (crackProgress - branch.startProgress) / 0.34);
-              const branchPointsToDraw = Math.ceil(branch.points.length * branchProgress);
-              drawFracture(branch.points, branchPointsToDraw, crack.weight * 0.72, true);
-            });
+            // Stroke 3: Cut Edge Highlight
+            fCtx.save();
+            fCtx.beginPath();
+            fCtx.moveTo(mainCrk.points[0].x + 1, mainCrk.points[0].y - 1);
+            for (let k = 1; k < drawCount; k++) {
+              fCtx.lineTo(mainCrk.points[k].x + 1, mainCrk.points[k].y - 1);
+            }
+            fCtx.strokeStyle = theme.edgeColor;
+            fCtx.lineWidth = 1;
+            fCtx.lineCap = "round";
+            fCtx.lineJoin = "round";
+            fCtx.stroke();
+            fCtx.restore();
           });
 
-          // Draw particles
-          particles.forEach((p) => {
-            ctx.save();
-            ctx.translate(p.x, p.y);
-            ctx.rotate(p.rotation);
+          // Render Branch Fractures
+          fractureModel.branchFractures.forEach((bCrk) => {
+            if (postImpactTime < bCrk.startDelay) return;
+            const progress = Math.min(1.0, (postImpactTime - bCrk.startDelay) / 120);
+            if (progress <= 0) return;
 
-            const size = Math.max(1, p.size * (1.0 + p.z * 0.05));
+            const drawCount = Math.max(2, Math.floor(progress * bCrk.points.length));
 
-            ctx.fillStyle = p.color;
-            ctx.globalAlpha = p.opacity;
-
-            ctx.beginPath();
-            ctx.moveTo(-size / 2, -size / 2);
-            ctx.lineTo(size / 2, -size / 3);
-            ctx.lineTo(size / 3, size / 2);
-            ctx.lineTo(-size / 2, size / 2);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-
-            ctx.restore();
+            fCtx.save();
+            fCtx.beginPath();
+            fCtx.moveTo(bCrk.points[0].x, bCrk.points[0].y);
+            for (let k = 1; k < drawCount; k++) {
+              fCtx.lineTo(bCrk.points[k].x, bCrk.points[k].y);
+            }
+            fCtx.strokeStyle = theme.edgeColor;
+            fCtx.lineWidth = 1.5;
+            fCtx.lineCap = "round";
+            fCtx.stroke();
+            fCtx.restore();
           });
-
-          ctx.restore();
         }
 
-        // E. Fade out and Recovery
-        if (simTime >= recoveryStartTime) {
-          const fadeProgress = (simTime - recoveryStartTime) / (totalDuration - recoveryStartTime);
-          sword.style.opacity = Math.max(0, 1 - fadeProgress);
-          canvas.style.opacity = Math.max(0, 1 - fadeProgress * 1.5);
-          overlay.style.opacity = Math.max(0, 1 - fadeProgress);
+        // D. Debris Particles & Shadow Physics
+        if (simTime >= tImpact + hitStopDuration && !reducedMotion) {
+          const dtSec = dt / 1000;
+          const postHitSec = (simTime - (tImpact + hitStopDuration)) / 1000;
 
-          if (!reducedMotion) {
-            clone.style.transform = `perspective(600px) rotateX(${Math.max(0, 6 * (1 - fadeProgress))}deg)`;
-          }
+          debrisDOMs.forEach((item) => {
+            const deb = item.data;
+            deb.x += deb.vx * dtSec;
+            deb.y += deb.vy * dtSec;
+            deb.vz -= deb.gravity * dtSec;
+            deb.rotation += deb.rotSpeed * dtSec;
+
+            const curZ = Math.max(0, deb.vz);
+            const scale = deb.scale * (1 + curZ / 300) * deb.depth;
+
+            item.el.style.transform = `translate(${deb.x - impactX}px, ${deb.y - impactY - curZ}px) rotate(${deb.rotation}deg) scale(${scale})`;
+            item.shadowEl.style.transform = `translate(${deb.x - impactX}px, ${deb.y - impactY}px) scale(${deb.scale * 0.8})`;
+            item.shadowEl.style.opacity = Math.max(0, 0.6 - curZ / 250);
+          });
+        }
+
+        // E. Dust Cloud Canvas Drawing
+        if (simTime >= tImpact + hitStopDuration) {
+          const dustTime = (simTime - (tImpact + hitStopDuration)) / 1000;
+          dCtx.clearRect(0, 0, dustCanvas.width, dustCanvas.height);
+
+          fractureModel.dust.forEach((d) => {
+            const progress = Math.min(1.0, dustTime * d.expandRate);
+            const r = d.size * (0.3 + progress * 0.7);
+            const alpha = d.maxOpacity * (1 - progress);
+            if (alpha <= 0) return;
+
+            const currX = impactX + (d.targetX - impactX) * progress;
+            const currY = impactY + (d.targetY - impactY) * progress;
+
+            dCtx.save();
+            dCtx.beginPath();
+            dCtx.arc(currX, currY, r, 0, Math.PI * 2);
+            dCtx.fillStyle = theme.dustColor;
+            dCtx.globalAlpha = alpha;
+            dCtx.fill();
+            dCtx.restore();
+          });
+        }
+
+        // F. Fadeout Phase
+        if (simTime > totalDuration - 300) {
+          const fadeP = (totalDuration - simTime) / 300;
+          overlay.style.opacity = Math.max(0, fadeP);
         }
 
         activeSession.animationFrameId = requestAnimationFrame(tick);
       }
 
-      // Start tick loop
       activeSession.animationFrameId = requestAnimationFrame(tick);
     });
   }
 
-  // Cancel immediately
   function cancel() {
-    if (activeSession) {
-      finishSession("cancelled");
-    }
+    finishSession("cancelled");
   }
 
-  function destroy() {
-    cancel();
-  }
-
-  // Export window namespace
+  // Export module API
   const UltimateVfx = {
     preload,
     canPlay,
     prefersReducedMotion,
+    chooseVfxQuality,
+    buildFractureModel,
     playGreatswordImpact,
-    cancel,
-    destroy
+    cancel
   };
 
-  if (root) {
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = UltimateVfx;
+  } else {
     root.UltimateVfx = UltimateVfx;
   }
-})(typeof window !== "undefined" ? window : globalThis);
+})(typeof window !== "undefined" ? window : this);
