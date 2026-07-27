@@ -422,6 +422,80 @@ async function runTests() {
   assert.strictEqual(modelReduced.branchFractures.length, 0, "Reduced quality should have 0 branch cracks");
   console.log("Pass: Quality tier limits verified.");
 
+  // Test 13: Greatsword image rotation and impact anchor alignment
+  console.log("Test 13: Greatsword orientation & anchor test starts...");
+  const cssText = fs.readFileSync(path.join(projectDir, "ultimate-vfx.css"), "utf8");
+
+  assert.strictEqual(
+    cssText.includes(".ultimate-vfx-greatsword-img") && cssText.includes("rotate(180deg)"),
+    true,
+    "Greatsword image child element must be rotated 180deg so blade tip lands first"
+  );
+  assert.strictEqual(
+    cssText.includes("margin-top: -280px"),
+    true,
+    "Greatsword wrapper margin-top must be -280px for bottom-center alignment"
+  );
+  assert.strictEqual(
+    cssText.includes(".ultimate-vfx-greatsword-fallback") && cssText.includes("transform: none"),
+    true,
+    "Greatsword CSS fallback element must not be double-rotated"
+  );
+  console.log("Pass: Greatsword orientation & anchor verified.");
+
+  // Test 14: Full canonical game legion theme mapping
+  console.log("Test 14: Canonical game legion theme mapping test starts...");
+  const canonicalMap = {
+    skeleton: "undead",
+    corpse: "corpse",
+    beast: "beast",
+    plague: "plague",
+    ice: "ice",
+    summon: "summon",
+    demon: "demon",
+    insect: "insect",
+    plant: "plant",
+    element: "elemental"
+  };
+
+  for (const [legionKey, expectedThemeName] of Object.entries(canonicalMap)) {
+    const theme = UltimateVfx.getLegionTheme({ attackerLegions: [legionKey] });
+    assert.strictEqual(theme.name, expectedThemeName, `Legion '${legionKey}' should map to theme '${expectedThemeName}'`);
+    assert.notStrictEqual(theme.name, "default", `Legion '${legionKey}' should not fall back to default theme`);
+  }
+
+  const unknownTheme = UltimateVfx.getLegionTheme({ attackerLegions: ["unknown-legion"] });
+  assert.strictEqual(unknownTheme.name, "default", "Unknown legion key should return default theme");
+  console.log("Pass: Canonical game legion theme mapping verified.");
+
+  // Test 15: Multi-legion priority rules
+  console.log("Test 15: Multi-legion priority rules test starts...");
+  assert.strictEqual(UltimateVfx.getLegionTheme({ attackerLegions: ["plant", "element"] }).name, "elemental");
+  assert.strictEqual(UltimateVfx.getLegionTheme({ attackerLegions: ["ice", "beast"] }).name, "ice");
+  assert.strictEqual(UltimateVfx.getLegionTheme({ attackerLegions: ["demon", "skeleton"] }).name, "demon");
+  console.log("Pass: Multi-legion priority rules verified.");
+
+  // Test 16: 4-Tier auto quality selection
+  console.log("Test 16: 4-Tier auto quality selection test starts...");
+  assert.strictEqual(UltimateVfx.chooseVfxQuality({ reducedMotion: true, deviceMemory: 8, hardwareConcurrency: 8 }), "reduced");
+  assert.strictEqual(UltimateVfx.chooseVfxQuality({ reducedMotion: false, saveData: true, deviceMemory: 8, hardwareConcurrency: 8 }), "low");
+  assert.strictEqual(UltimateVfx.chooseVfxQuality({ reducedMotion: false, deviceMemory: 3, hardwareConcurrency: 8 }), "low");
+  assert.strictEqual(UltimateVfx.chooseVfxQuality({ reducedMotion: false, deviceMemory: 8, hardwareConcurrency: 4 }), "low");
+  assert.strictEqual(UltimateVfx.chooseVfxQuality({ reducedMotion: false, deviceMemory: undefined, hardwareConcurrency: 8 }), "medium");
+  assert.strictEqual(UltimateVfx.chooseVfxQuality({ reducedMotion: false, deviceMemory: 4, hardwareConcurrency: 8 }), "medium");
+  assert.strictEqual(UltimateVfx.chooseVfxQuality({ reducedMotion: false, deviceMemory: 8, hardwareConcurrency: 8 }), "high");
+  console.log("Pass: 4-Tier auto quality selection verified.");
+
+  // Test 17: Service worker cache version & static asset query string
+  console.log("Test 17: Cache version & asset query parameter test starts...");
+  const swText = fs.readFileSync(path.join(projectDir, "service-worker.js"), "utf8");
+  const htmlText = fs.readFileSync(path.join(projectDir, "index.html"), "utf8");
+
+  assert.strictEqual(swText.includes("necromancer-expedition-v23"), true, "service-worker.js CACHE_NAME must be v23");
+  assert.strictEqual(swText.includes("20260728-13"), true, "service-worker.js APP_SHELL must contain 20260728-13 query parameters");
+  assert.strictEqual(htmlText.includes("20260728-13"), true, "index.html must contain 20260728-13 asset query parameters");
+  console.log("Pass: Cache version & asset query parameter verified.");
+
   console.log("\n✅ All Ultimate VFX unit tests passed successfully!");
 }
 

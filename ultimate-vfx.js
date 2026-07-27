@@ -1,4 +1,4 @@
-/* ultimate-vfx.js v21 - Shattered Board Crater VFX */
+/* ultimate-vfx.js v23 - Shattered Board Crater VFX */
 (function (root) {
   let activeSession = null;
   let preloadPromise = null;
@@ -188,14 +188,36 @@
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }
 
-  // Choose automatic quality tier based on device hardware and reduced motion setting
-  function chooseVfxQuality() {
-    if (prefersReducedMotion()) return "reduced";
-    if (typeof navigator !== "undefined") {
-      if (navigator.deviceMemory && navigator.deviceMemory <= 3) return "low";
-      if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) return "low";
+  // 4-Tier Automatic Quality Selector
+  const VALID_VFX_QUALITIES = Object.freeze(new Set(["high", "medium", "low", "reduced"]));
+
+  function normalizeQuality(q) {
+    return VALID_VFX_QUALITIES.has(q) ? q : "medium";
+  }
+
+  function chooseVfxQuality(environment = {}) {
+    const reducedMotion = environment.reducedMotion ?? prefersReducedMotion();
+    if (reducedMotion) return "reduced";
+
+    const nav = environment.navigator ?? (typeof navigator !== "undefined" ? navigator : {});
+    const memory = Number.isFinite(environment.deviceMemory) ? environment.deviceMemory : nav.deviceMemory;
+    const cores = Number.isFinite(environment.hardwareConcurrency) ? environment.hardwareConcurrency : nav.hardwareConcurrency;
+    const saveData = environment.saveData ?? nav.connection?.saveData ?? false;
+
+    if (saveData) return "low";
+    if ((Number.isFinite(memory) && memory <= 3) || (Number.isFinite(cores) && cores <= 4)) {
+      return "low";
     }
-    return "high";
+    if (!Number.isFinite(memory) || !Number.isFinite(cores)) {
+      return "medium";
+    }
+    if (memory <= 6 || cores <= 6) {
+      return "medium";
+    }
+    if (memory >= 8 && cores >= 8) {
+      return "high";
+    }
+    return "medium";
   }
 
   // Seeded Pseudo-Random Generator (Mulberry32)
@@ -209,42 +231,46 @@
     };
   }
 
-  // Multi-legion priority color theme selector
+  // Canonical Game Legion Keys & Priority
+  const LEGION_ALIASES = Object.freeze({
+    undead: "skeleton",
+    elemental: "element"
+  });
+
+  function normalizeLegionKey(key) {
+    return LEGION_ALIASES[key] || key;
+  }
+
+  const VFX_LEGION_PRIORITY = Object.freeze([
+    "demon", "ice", "plague", "skeleton", "element",
+    "plant", "insect", "corpse", "beast", "summon"
+  ]);
+
+  const VFX_LEGION_THEMES = Object.freeze({
+    demon: { name: "demon", impactColor: "#d03030", innerColor: "#4a0808", edgeColor: "#ff7766", dustColor: "rgba(180, 50, 40, 0.7)" },
+    ice: { name: "ice", impactColor: "#70d0ff", innerColor: "#08304a", edgeColor: "#e0f8ff", dustColor: "rgba(150, 220, 255, 0.7)" },
+    plague: { name: "plague", impactColor: "#40aa55", innerColor: "#0a3a14", edgeColor: "#a5ffb8", dustColor: "rgba(80, 160, 90, 0.7)" },
+    skeleton: { name: "undead", impactColor: "#a070e0", innerColor: "#28084a", edgeColor: "#e5c0ff", dustColor: "rgba(140, 100, 190, 0.7)" },
+    element: { name: "elemental", impactColor: "#ffaa30", innerColor: "#4a2808", edgeColor: "#ffebaa", dustColor: "rgba(230, 170, 60, 0.7)" },
+    plant: { name: "plant", impactColor: "#85cc45", innerColor: "#1a3808", edgeColor: "#dcff9e", dustColor: "rgba(130, 190, 70, 0.7)" },
+    insect: { name: "insect", impactColor: "#d0a050", innerColor: "#3a280a", edgeColor: "#ffecb0", dustColor: "rgba(190, 150, 80, 0.7)" },
+    corpse: { name: "corpse", impactColor: "#803020", innerColor: "#30100a", edgeColor: "#d08070", dustColor: "rgba(110, 60, 50, 0.7)" },
+    beast: { name: "beast", impactColor: "#e07830", innerColor: "#3a1a08", edgeColor: "#ffd4aa", dustColor: "rgba(200, 130, 70, 0.7)" },
+    summon: { name: "summon", impactColor: "#30d0c0", innerColor: "#083a38", edgeColor: "#b0ffff", dustColor: "rgba(70, 200, 190, 0.7)" },
+    default: { name: "default", impactColor: "#d6b36a", innerColor: "#2a2010", edgeColor: "#fff0cd", dustColor: "rgba(188, 174, 148, 0.7)" }
+  });
+
   function getLegionTheme(options = {}) {
-    const legions = options.attackerLegions || [];
-    const priorityOrder = [
-      "demon", "ice", "plague", "undead", "elemental",
-      "plant", "insect", "corpse", "beast", "summon"
-    ];
+    const rawLegions = Array.isArray(options.attackerLegions) ? options.attackerLegions : [];
+    const legions = rawLegions.map(normalizeLegionKey);
 
-    let matched = "default";
-    for (const key of priorityOrder) {
-      if (legions.includes(key)) {
-        matched = key;
-        break;
-      }
-    }
-
-    const themes = {
-      demon: { name: "demon", impactColor: "#d03030", innerColor: "#4a0808", edgeColor: "#ff7766", dustColor: "rgba(180, 50, 40, 0.7)" },
-      ice: { name: "ice", impactColor: "#70d0ff", innerColor: "#08304a", edgeColor: "#e0f8ff", dustColor: "rgba(150, 220, 255, 0.7)" },
-      plague: { name: "plague", impactColor: "#40aa55", innerColor: "#0a3a14", edgeColor: "#a5ffb8", dustColor: "rgba(80, 160, 90, 0.7)" },
-      undead: { name: "undead", impactColor: "#a070e0", innerColor: "#28084a", edgeColor: "#e5c0ff", dustColor: "rgba(140, 100, 190, 0.7)" },
-      corpse: { name: "corpse", impactColor: "#803020", innerColor: "#30100a", edgeColor: "#d08070", dustColor: "rgba(110, 60, 50, 0.7)" },
-      insect: { name: "insect", impactColor: "#d0a050", innerColor: "#3a280a", edgeColor: "#ffecb0", dustColor: "rgba(190, 150, 80, 0.7)" },
-      plant: { name: "plant", impactColor: "#85cc45", innerColor: "#1a3808", edgeColor: "#dcff9e", dustColor: "rgba(130, 190, 70, 0.7)" },
-      elemental: { name: "elemental", impactColor: "#ffaa30", innerColor: "#4a2808", edgeColor: "#ffebaa", dustColor: "rgba(230, 170, 60, 0.7)" },
-      beast: { name: "beast", impactColor: "#e07830", innerColor: "#3a1a08", edgeColor: "#ffd4aa", dustColor: "rgba(200, 130, 70, 0.7)" },
-      summon: { name: "summon", impactColor: "#30d0c0", innerColor: "#083a38", edgeColor: "#b0ffff", dustColor: "rgba(70, 200, 190, 0.7)" },
-      default: { name: "default", impactColor: "#d6b36a", innerColor: "#2a2010", edgeColor: "#fff0cd", dustColor: "rgba(188, 174, 148, 0.7)" }
-    };
-
-    return themes[matched] || themes.default;
+    const matched = VFX_LEGION_PRIORITY.find((key) => legions.includes(key));
+    return VFX_LEGION_THEMES[matched] || VFX_LEGION_THEMES.default;
   }
 
   // Build deterministic Shattered Board Crater Model
   function buildFractureModel(options = {}) {
-    const quality = options.quality || "high";
+    const quality = normalizeQuality(options.quality || "high");
     const seed = options.debugSeed ?? ((options.attackerId || 1) * 31 + (options.targetId || 1) * 17 + (options.battleToken || 1) * 13 + (options.timestamp || 0));
     const random = createSeededRandom(seed);
 
@@ -261,7 +287,7 @@
       medium: { craterPieces: 4, mainCracks: 4, branchCracks: 7, debris: 10, dust: 14 },
       low: { craterPieces: 3, mainCracks: 3, branchCracks: 3, debris: 5, dust: 7 },
       reduced: { craterPieces: 1, mainCracks: 2, branchCracks: 0, debris: 1, dust: 2 }
-    }[quality] || { craterPieces: 4, mainCracks: 4, branchCracks: 6, debris: 9, dust: 12 };
+    }[quality] || { craterPieces: 4, mainCracks: 4, branchCracks: 7, debris: 10, dust: 14 };
 
     const baseRadius = minCellDim * (quality === "reduced" ? 0.2 : 0.32) * (isKill ? 1.1 : 1.0);
     const pointCount = 10;
@@ -288,7 +314,6 @@
         pts.push(craterPolygon[j % pointCount]);
       }
 
-      // Convert points to polygon string for CSS clip-path (relative to cell box)
       const relPts = pts.map(p => ({
         x: p.x - (impactX - baseRadius * 1.5),
         y: p.y - (impactY - baseRadius * 1.5)
@@ -304,7 +329,7 @@
         tiltY: -10 + random() * 20,
         rotZ: -5 + random() * 10,
         delay: Math.floor(random() * 35),
-        isFront: i < 2 // Front pieces layer over the sword tip
+        isFront: i < 2
       });
     }
 
@@ -490,7 +515,8 @@
         attackerId,
         targetId,
         battleToken,
-        debugSeed
+        debugSeed,
+        quality: explicitQuality
       } = options;
 
       if (!boardElement || !boardElement.parentNode) {
@@ -527,16 +553,14 @@
         state.isRolling = true;
       }
 
-      const quality = reducedMotion ? "reduced" : chooseVfxQuality();
+      const quality = reducedMotion ? "reduced" : normalizeQuality(explicitQuality || chooseVfxQuality());
       const theme = getLegionTheme(options);
 
-      // Measurements
       const wrapRect = boardElement.parentNode.getBoundingClientRect();
       const cellRect = targetCellEl.getBoundingClientRect();
       const impactX = cellRect.left - wrapRect.left + cellRect.width / 2;
       const impactY = cellRect.top - wrapRect.top + cellRect.height / 2;
 
-      // Build deterministic fracture model
       const fractureModel = buildFractureModel({
         quality,
         debugSeed,
@@ -553,7 +577,6 @@
       });
       activeSession.fractureModel = fractureModel;
 
-      // Create overlay container
       const overlay = document.createElement("div");
       overlay.className = `ultimate-vfx-overlay ${reducedMotion ? "is-reduced-motion" : ""} quality-${quality}`;
       overlay.style.setProperty("--impact-color", theme.impactColor);
@@ -562,14 +585,12 @@
       overlay.style.setProperty("--dust-color", theme.dustColor);
       activeSession.overlay = overlay;
 
-      // Duplicate board clone for 3D crater depth
       const clone = boardElement.cloneNode(true);
       clone.removeAttribute("id");
       clone.className = (clone.className || "") + " ultimate-vfx-board-clone";
       overlay.appendChild(clone);
       activeSession.clone = clone;
 
-      // 2.5D Crater Layer & Pieces
       const craterBoxSize = fractureModel.baseRadius * 3;
       const craterLayer = document.createElement("div");
       craterLayer.className = "ultimate-vfx-crater-layer";
@@ -597,7 +618,6 @@
       });
       overlay.appendChild(craterLayer);
 
-      // Fracture Canvas (Main & Branch Cracks)
       const fractureCanvas = document.createElement("canvas");
       fractureCanvas.className = "ultimate-vfx-fracture-canvas";
       fractureCanvas.width = wrapRect.width;
@@ -605,7 +625,6 @@
       overlay.appendChild(fractureCanvas);
       const fCtx = fractureCanvas.getContext("2d");
 
-      // Dust Canvas
       const dustCanvas = document.createElement("canvas");
       dustCanvas.className = "ultimate-vfx-dust-canvas";
       dustCanvas.width = wrapRect.width;
@@ -613,7 +632,6 @@
       overlay.appendChild(dustCanvas);
       const dCtx = dustCanvas.getContext("2d");
 
-      // Debris Layer DOMs
       const debrisLayer = document.createElement("div");
       debrisLayer.className = "ultimate-vfx-debris-layer";
       overlay.appendChild(debrisLayer);
@@ -637,19 +655,16 @@
         debrisDOMs.push({ el: dEl, shadowEl: sEl, data: deb });
       });
 
-      // Impact Flash
       const flash = document.createElement("div");
       flash.className = "ultimate-vfx-flash";
       overlay.appendChild(flash);
 
-      // Reticle
       const reticle = document.createElement("div");
       reticle.className = "ultimate-vfx-reticle";
       reticle.style.left = `${impactX}px`;
       reticle.style.top = `${impactY}px`;
       overlay.appendChild(reticle);
 
-      // Greatsword Element
       const sword = document.createElement("div");
       sword.className = "ultimate-vfx-greatsword";
       sword.style.left = `${impactX}px`;
@@ -670,16 +685,13 @@
       }
       overlay.appendChild(sword);
 
-      // Append overlay to board container
       boardElement.parentNode.appendChild(overlay);
       boardElement.style.opacity = "0";
 
-      // Timeline Durations
       const hitStopDuration = isKill ? 80 : 60;
       const totalDuration = isKill ? 1350 : 1200;
       const tImpact = reducedMotion ? 150 : 430;
 
-      // Start Rise & Fall Audio
       playFocusRiseSound();
       const whooshTimerId = setTimeout(() => {
         playWhooshSound();
@@ -690,13 +702,11 @@
         reticle.classList.add("is-active");
       });
 
-      // Safety timeout
       activeSession.safetyTimeoutId = setTimeout(() => {
         console.warn("Ultimate VFX safety timeout triggered.");
         finishSession("safety_timeout");
       }, 3500);
 
-      // Animation loop properties
       let lastTime = performance.now();
       let simTime = 0;
       let hasImpacted = false;
@@ -717,7 +727,6 @@
           return;
         }
 
-        // A. Pre-impact Reticle & Drop
         if (simTime < tImpact) {
           const dropProgress = Math.max(0, simTime / tImpact);
           const easedP = Math.pow(dropProgress, 3.5);
@@ -741,7 +750,6 @@
           shadow.style.transform = `translate(-50%, -50%) scale(${easedP})`;
         }
 
-        // B. Impact Moment
         if (simTime >= tImpact && !hasImpacted) {
           hasImpacted = true;
           if (activeSession) {
@@ -750,37 +758,31 @@
           sword.style.transform = "translate(0, 0) rotateZ(0deg) scale(1)";
           shadow.style.transform = "translate(-50%, -50%) scale(1)";
 
-          // Trigger hit stop
           activeSession.isHitStop = true;
           overlay.classList.add("ultimate-vfx-is-hit-stop");
           playImpactSound();
 
-          // Sinking crater pieces
           pieceDOMs.forEach((pDOM) => {
             pDOM.classList.add("is-sunk");
           });
 
-          // Impact Flash
           flash.classList.add("is-active");
           const flashTimerId = setTimeout(() => {
             flash.classList.remove("is-active");
           }, 120);
           activeSession.timerIds.push(flashTimerId);
 
-          // Hit stop timeout
           const hitStopTimeoutId = setTimeout(() => {
             if (!activeSession || activeSession.completed) return;
             activeSession.isHitStop = false;
             overlay.classList.remove("ultimate-vfx-is-hit-stop");
 
-            // Execute impact callback
             try {
               onImpact();
             } catch (e) {
               console.error("VFX onImpact callback error:", e);
             }
 
-            // Sword shake
             if (!reducedMotion) {
               sword.classList.add("ultimate-vfx-sword-shake");
             }
@@ -788,12 +790,10 @@
           activeSession.timerIds.push(hitStopTimeoutId);
         }
 
-        // C. Fracture Lines Drawing (Sequential 3-Stroke Crack)
         if (simTime >= tImpact) {
           const postImpactTime = simTime - tImpact;
           fCtx.clearRect(0, 0, fractureCanvas.width, fractureCanvas.height);
 
-          // Render Main Fractures
           fractureModel.mainFractures.forEach((mainCrk) => {
             if (postImpactTime < mainCrk.startDelay) return;
             const progress = Math.min(1.0, (postImpactTime - mainCrk.startDelay) / 180);
@@ -802,7 +802,6 @@
             const totalPoints = mainCrk.points.length;
             const drawCount = Math.max(2, Math.floor(progress * totalPoints));
 
-            // Stroke 1: Deep Dark Shadow
             fCtx.save();
             fCtx.beginPath();
             fCtx.moveTo(mainCrk.points[0].x, mainCrk.points[0].y + 2);
@@ -816,7 +815,6 @@
             fCtx.stroke();
             fCtx.restore();
 
-            // Stroke 2: Inner Fissure (Legion Theme Color)
             fCtx.save();
             fCtx.beginPath();
             fCtx.moveTo(mainCrk.points[0].x, mainCrk.points[0].y);
@@ -830,7 +828,6 @@
             fCtx.stroke();
             fCtx.restore();
 
-            // Stroke 3: Cut Edge Highlight
             fCtx.save();
             fCtx.beginPath();
             fCtx.moveTo(mainCrk.points[0].x + 1, mainCrk.points[0].y - 1);
@@ -845,7 +842,6 @@
             fCtx.restore();
           });
 
-          // Render Branch Fractures
           fractureModel.branchFractures.forEach((bCrk) => {
             if (postImpactTime < bCrk.startDelay) return;
             const progress = Math.min(1.0, (postImpactTime - bCrk.startDelay) / 120);
@@ -867,11 +863,8 @@
           });
         }
 
-        // D. Debris Particles & Shadow Physics
         if (simTime >= tImpact + hitStopDuration && !reducedMotion) {
           const dtSec = dt / 1000;
-          const postHitSec = (simTime - (tImpact + hitStopDuration)) / 1000;
-
           debrisDOMs.forEach((item) => {
             const deb = item.data;
             deb.x += deb.vx * dtSec;
@@ -888,7 +881,6 @@
           });
         }
 
-        // E. Dust Cloud Canvas Drawing
         if (simTime >= tImpact + hitStopDuration) {
           const dustTime = (simTime - (tImpact + hitStopDuration)) / 1000;
           dCtx.clearRect(0, 0, dustCanvas.width, dustCanvas.height);
@@ -912,7 +904,6 @@
           });
         }
 
-        // F. Fadeout Phase
         if (simTime > totalDuration - 300) {
           const fadeP = (totalDuration - simTime) / 300;
           overlay.style.opacity = Math.max(0, fadeP);
@@ -936,6 +927,8 @@
     prefersReducedMotion,
     chooseVfxQuality,
     buildFractureModel,
+    getLegionTheme,
+    normalizeLegionKey,
     playGreatswordImpact,
     cancel
   };

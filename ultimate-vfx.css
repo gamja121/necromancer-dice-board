@@ -1,4 +1,4 @@
-/* 2.5D Shattered Board Crater VFX v21 */
+/* 2.5D Shattered Board Crater VFX v23 */
 :root {
   --impact-color: #d6b36a;
   --fracture-dark: rgba(3, 3, 4, 0.96);
@@ -32,7 +32,6 @@
   transform-style: preserve-3d;
 }
 
-/* 2.5D Crater Layer & Sinking Wedge Pieces */
 .ultimate-vfx-crater-layer {
   position: absolute;
   pointer-events: none;
@@ -82,7 +81,6 @@
   z-index: 5;
 }
 
-/* Fracture & Dust Canvases */
 .ultimate-vfx-fracture-canvas,
 .ultimate-vfx-dust-canvas {
   position: absolute;
@@ -101,7 +99,6 @@
   z-index: 14;
 }
 
-/* Debris Particles Layer */
 .ultimate-vfx-debris-layer {
   position: absolute;
   top: 0;
@@ -136,7 +133,6 @@
   will-change: transform, opacity;
 }
 
-/* Flash Overlay */
 .ultimate-vfx-flash {
   position: absolute;
   top: 0;
@@ -154,7 +150,6 @@
   opacity: 1;
 }
 
-/* Reticle */
 .ultimate-vfx-reticle {
   position: absolute;
   width: 90px;
@@ -176,29 +171,35 @@
   transform: scale(1);
 }
 
-/* Greatsword */
+/* Greatsword Parent & Child Rotation Fix */
 .ultimate-vfx-greatsword {
   position: absolute;
   width: 140px;
   height: 280px;
   margin-left: -70px;
-  margin-top: -245px;
-  transform-origin: 50% 87.5%;
+  margin-top: -280px;
+  --sword-impact-x: 50%;
+  --sword-impact-y: 100%;
+  transform-origin: var(--sword-impact-x) var(--sword-impact-y);
   pointer-events: none;
   z-index: 10;
   will-change: transform, opacity;
 }
 
 .ultimate-vfx-greatsword-img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
+  transform: rotate(180deg);
+  transform-origin: 50% 50%;
   filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.7));
+  pointer-events: none;
 }
 
 .ultimate-vfx-greatsword-shadow {
   position: absolute;
-  top: 87.5%;
+  top: 100%;
   left: 50%;
   width: 80px;
   height: 24px;
@@ -211,7 +212,6 @@
   pointer-events: none;
 }
 
-/* Damped 2-cycle Sword Vibration on Impact */
 .ultimate-vfx-sword-shake {
   animation: ultimate-sword-vibrate 0.25s ease-out;
 }
@@ -224,7 +224,6 @@
   100% { transform: translate(0, 0) rotateZ(0deg); }
 }
 
-/* Hit stop CSS rule */
 .ultimate-vfx-is-hit-stop,
 .ultimate-vfx-is-hit-stop * {
   animation-play-state: paused !important;
@@ -237,4 +236,5 @@
   clip-path: polygon(50% 100%, 90% 88%, 90% 8%, 100% 8%, 100% 0%, 0% 0%, 0% 8%, 10% 8%, 10% 88%);
   border: 2px solid #111;
   box-sizing: border-box;
+  transform: none;
 }
