@@ -1663,6 +1663,7 @@ function createCampaignUnit(type, owner, row, col) {
 }
 
 function resetCampaign() {
+  if (typeof state !== 'undefined') state.battleToken = (state.battleToken || 0) + 1;
   if (window.UltimateVfx) window.UltimateVfx.cancel();
   stopBattleMusic();
   if (rewardDialog.open) rewardDialog.close();
@@ -2023,8 +2024,22 @@ async function attackTarget(attacker, target) {
 
   const attackCells = [{ row: target.row, col: target.col }];
   const targets = [target];
+  const currentBattleToken = state.battleToken || 0;
+  const attackerId = attacker.id;
+  const targetId = target.id;
 
-  await playAttackEffect(attacker, targets, damage, attackCells, rolledDamage);
+  const effectResult = await playAttackEffect(attacker, targets, damage, attackCells, rolledDamage);
+
+  if (
+    effectResult?.aborted ||
+    state.phase !== "battle" ||
+    (state.battleToken || 0) !== currentBattleToken ||
+    !state.units.some((u) => u.id === attackerId) ||
+    !state.units.some((u) => u.id === targetId)
+  ) {
+    state.effects = emptyCombatEffects();
+    return;
+  }
 
   target.hp -= damage;
   if (target.hp > 0) maybeApplyPlantTotemHeal(target);
@@ -2490,8 +2505,9 @@ async function playAttackEffect(attacker, targets, damage, attackCells, rolledDa
 
   if (canTriggerUltimate) {
     let impactTriggered = false;
+    let vfxResult = null;
     try {
-      await window.UltimateVfx.playGreatswordImpact({
+      vfxResult = await window.UltimateVfx.playGreatswordImpact({
         boardElement: boardEl,
         targetCell,
         attackerOwner: attacker.owner,
@@ -2534,7 +2550,11 @@ async function playAttackEffect(attacker, targets, damage, attackCells, rolledDa
       await wait(150);
       state.effects = emptyCombatEffects();
     }
-    return;
+
+    if (vfxResult?.reason === "cancelled" || vfxResult?.reason === "superseded") {
+      return { aborted: true, reason: vfxResult.reason };
+    }
+    return { aborted: false, reason: vfxResult?.reason || "complete" };
   }
 
   state.effects = { ...baseEffect, phase: "windup" };
@@ -2575,6 +2595,7 @@ async function playAttackEffect(attacker, targets, damage, attackCells, rolledDa
   render();
   await wait(150);
   state.effects = emptyCombatEffects();
+  return { aborted: false, reason: "complete" };
 }
 
 function tryCorpseTotemRevival(unit) {
@@ -4584,6 +4605,7 @@ function renderLegacyCampaignMap() {
 }
 
 function setupBattleBoardState(encounter) {
+  if (typeof state !== 'undefined') state.battleToken = (state.battleToken || 0) + 1;
   ensureAudioContext();
   playSfx("ui");
 

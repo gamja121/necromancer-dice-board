@@ -192,7 +192,6 @@
 .ultimate-vfx-is-hit-stop,
 .ultimate-vfx-is-hit-stop * {
   animation-play-state: paused !important;
-  transition-duration: 0s !important;
 }
 
 .ultimate-vfx-greatsword-fallback {

@@ -254,7 +254,7 @@
     }
 
     activeSession = null;
-    session.resolve({ reason });
+    session.resolve({ reason, impactTriggered: session.impactTriggered === true });
   }
 
   // Main animation play
@@ -303,6 +303,7 @@
         overlay: null,
         clone: null,
         isHitStop: false,
+        impactTriggered: false,
         completed: false
       };
 
@@ -530,6 +531,9 @@
         // C. Impact Moment
         if (simTime >= tImpact && !hasImpacted) {
           hasImpacted = true;
+          if (activeSession) {
+            activeSession.impactTriggered = true;
+          }
           sword.style.transform = "translate(0, 0) rotateZ(0deg) scale(1)";
           shadow.style.transform = "translate(-50%, -50%) scale(1)";
 

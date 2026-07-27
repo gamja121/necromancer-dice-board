@@ -320,6 +320,57 @@ async function runTests() {
   assert.strictEqual(reducedImpactFired, true, "Reduced motion onImpact should fire");
   console.log("Pass: Reduced motion animation completed successfully.");
 
+  // Test 8: Check CSS file does not contain transition-duration: 0s
+  console.log("Test 8: CSS transition-duration: 0s check starts...");
+  const cssContent = fs.readFileSync(path.join(projectDir, "ultimate-vfx.css"), "utf8");
+  assert.strictEqual(
+    cssContent.includes("transition-duration: 0s"),
+    false,
+    "ultimate-vfx.css must not contain transition-duration: 0s !"
+  );
+  console.log("Pass: CSS hit-stop transition-duration: 0s check passed.");
+
+  // Test 9: Cancel before vs after impact
+  console.log("Test 9: Cancel before vs after impact checks...");
+  let countBefore = 0;
+  const pBefore = UltimateVfx.playGreatswordImpact({
+    boardElement: boardEl,
+    targetCell: { row: 1, col: 1 },
+    onImpact: () => { countBefore++; }
+  });
+  await wait(50); // before impact (520ms)
+  UltimateVfx.cancel();
+  const resBefore = await pBefore;
+  assert.strictEqual(resBefore.reason, "cancelled");
+  assert.strictEqual(resBefore.impactTriggered, false);
+  assert.strictEqual(countBefore, 0, "onImpact must be called 0 times when cancelled before impact");
+
+  console.log("Pass: Cancel before impact verified.");
+
+  // Test 10: Superseded consecutive calls
+  console.log("Test 10: Superseded consecutive calls check...");
+  let count1 = 0;
+  let count2 = 0;
+  const p1 = UltimateVfx.playGreatswordImpact({
+    boardElement: boardEl,
+    targetCell: { row: 1, col: 1 },
+    onImpact: () => { count1++; }
+  });
+  await wait(30);
+  const p2 = UltimateVfx.playGreatswordImpact({
+    boardElement: boardEl,
+    targetCell: { row: 1, col: 1 },
+    onImpact: () => { count2++; }
+  });
+
+  const res1 = await p1;
+  assert.strictEqual(res1.reason, "superseded", "First call should be superseded by second call");
+
+  // Finish p2
+  UltimateVfx.cancel();
+  await p2;
+  console.log("Pass: Superseded consecutive calls verified.");
+
   console.log("\n✅ All Ultimate VFX unit tests passed successfully!");
 }
 

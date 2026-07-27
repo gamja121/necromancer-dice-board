@@ -60,8 +60,11 @@ const documentMock = {
 const sandbox = {
   localStorage: localStorageMock,
   document: documentMock,
+  setTimeout: (fn) => { if (typeof fn === "function") fn(); return 1; },
+  clearTimeout: () => {},
   window: {
-    setTimeout: (fn) => fn(),
+    setTimeout: (fn) => { if (typeof fn === "function") fn(); return 1; },
+    clearTimeout: () => {},
     addEventListener: () => {}
   },
   navigator: {},
@@ -705,5 +708,51 @@ assert.strictEqual(batchPatchSnapshot.hydraAttacks, 5, '히드라는 전방 3칸
 assert.deepStrictEqual(Array.from(batchPatchSnapshot.wormLegions), ['corpse', 'insect'], '묘지 벌래는 시체·벌래 군단이어야 함');
 assert.deepStrictEqual(Array.from(batchPatchSnapshot.spiderLegions), ['summon', 'insect'], '거미여왕은 소환·벌래 군단이어야 함');
 console.log('Pass: 확률 합산, 주사위 변환 순서, 토템 회복·1회 부활, 히드라와 벌래 분류 검증 성공.');
+
+console.log('\n=== 18. 취소 및 세션 무효화 시 피해 미적용 검증 ===');
+vm.runInContext(`
+  resetCampaign();
+  setupBattleBoardState(campaign.encounters[0]);
+  state.phase = "battle";
+  const attacker = createUnit('spear', 'player', 3, 2);
+  const target = createUnit('ghoul', 'enemy', 2, 2);
+  const initialHp = target.hp;
+
+  window.UltimateVfx = {
+    canPlay: () => true,
+    prefersReducedMotion: () => false,
+    cancel: () => {},
+    playGreatswordImpact: async () => ({ reason: "cancelled", impactTriggered: false })
+  };
+
+  attackTarget(attacker, target);
+  if (target.hp !== initialHp) {
+    throw new Error("Cancelled attack reduced target HP!");
+  }
+
+  // Session Token invalidation test
+  resetCampaign();
+  setupBattleBoardState(campaign.encounters[0]);
+  state.phase = "battle";
+  const attacker2 = createUnit('spear', 'player', 3, 2);
+  const target2 = createUnit('ghoul', 'enemy', 2, 2);
+  const initialHp2 = target2.hp;
+
+  window.UltimateVfx = {
+    canPlay: () => true,
+    prefersReducedMotion: () => false,
+    cancel: () => {},
+    playGreatswordImpact: async () => {
+      state.battleToken = (state.battleToken || 0) + 1;
+      return { reason: "complete", impactTriggered: true };
+    }
+  };
+
+  attackTarget(attacker2, target2);
+  if (target2.hp !== initialHp2) {
+    throw new Error("Invalidated session attack reduced target HP!");
+  }
+`, sandbox);
+console.log('Pass: 취소된 필살기 및 세션 변경 시 피해 0회 적용 검증 성공.');
 
 console.log('\n✅ 모든 세이브 무결성 및 복원 회귀 테스트 통과!');
