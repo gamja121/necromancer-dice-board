@@ -491,10 +491,38 @@ async function runTests() {
   const swText = fs.readFileSync(path.join(projectDir, "service-worker.js"), "utf8");
   const htmlText = fs.readFileSync(path.join(projectDir, "index.html"), "utf8");
 
-  assert.strictEqual(swText.includes("necromancer-expedition-v23"), true, "service-worker.js CACHE_NAME must be v23");
-  assert.strictEqual(swText.includes("20260728-13"), true, "service-worker.js APP_SHELL must contain 20260728-13 query parameters");
-  assert.strictEqual(htmlText.includes("20260728-13"), true, "index.html must contain 20260728-13 asset query parameters");
+  assert.strictEqual(swText.includes("necromancer-expedition-v24"), true, "service-worker.js CACHE_NAME must be v24");
+  assert.strictEqual(swText.includes("20260728-14"), true, "service-worker.js APP_SHELL must contain 20260728-14 VFX query parameters");
+  assert.strictEqual(htmlText.includes("20260728-14"), true, "index.html must contain 20260728-14 VFX asset query parameters");
   console.log("Pass: Cache version & asset query parameter verified.");
+
+  // Test 18: Greatsword asset path and dark-background visibility fallback
+  console.log("Test 18: Greatsword asset path & dark visibility test starts...");
+  const jsText = fs.readFileSync(path.join(projectDir, "ultimate-vfx.js"), "utf8");
+  const swordAssetPath = path.join(projectDir, "assets", "vfx", "greatsword.png");
+  assert.strictEqual(fs.existsSync(swordAssetPath), true, "Greatsword PNG must exist at assets/vfx/greatsword.png");
+  assert.strictEqual(
+    jsText.includes('img.src = "./assets/vfx/greatsword.png"'),
+    true,
+    "VFX preloader must request the deployed greatsword asset path"
+  );
+  assert.strictEqual(
+    swText.includes("./assets/vfx/greatsword.png"),
+    true,
+    "Service worker must cache the same greatsword asset path"
+  );
+  assert.strictEqual(
+    cssText.includes("brightness(1.18)") &&
+      cssText.includes("drop-shadow(0 0 2px rgba(255, 255, 255, 0.92))"),
+    true,
+    "Greatsword image must retain a bright edge on dark backgrounds"
+  );
+  assert.strictEqual(
+    cssText.includes("#f5f5f5") && cssText.includes("#ffffff"),
+    true,
+    "CSS fallback sword must use a light silver silhouette"
+  );
+  console.log("Pass: Greatsword asset path & dark visibility verified.");
 
   console.log("\n✅ All Ultimate VFX unit tests passed successfully!");
 }

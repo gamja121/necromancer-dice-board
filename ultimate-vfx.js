@@ -166,7 +166,7 @@
         return;
       }
       const img = new Image();
-      img.src = "./greatsword.png";
+      img.src = "./assets/vfx/greatsword.png";
       img.onload = () => {
         swordImage = img;
         resolve(img);
