@@ -328,6 +328,11 @@ async function runTests() {
     false,
     "ultimate-vfx.css must not contain transition-duration: 0s !"
   );
+  assert.strictEqual(
+    cssContent.includes(".ultimate-vfx-greatsword::before") && cssContent.includes("transform: rotate(180deg)"),
+    true,
+    "Greatsword artwork must be inverted so the blade tip reaches the target first"
+  );
   console.log("Pass: CSS hit-stop transition-duration: 0s check passed.");
 
   // Test 9: Cancel before vs after impact

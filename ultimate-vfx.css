@@ -66,15 +66,23 @@
   position: absolute;
   width: 140px;
   height: 280px;
-  background-image: url('assets/vfx/greatsword.png');
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: bottom center;
   pointer-events: none;
   transform-origin: bottom center;
   z-index: 100;
   opacity: 0;
   filter: drop-shadow(0 0 10px rgba(197, 51, 47, 0.5));
+}
+
+.ultimate-vfx-greatsword::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url('assets/vfx/greatsword.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transform: rotate(180deg);
+  transform-origin: center;
 }
 
 .ultimate-vfx-shadow {
@@ -195,8 +203,10 @@
 }
 
 .ultimate-vfx-greatsword-fallback {
-  background: linear-gradient(90deg, #333 0%, #777 35%, #999 50%, #777 65%, #333 100%) !important;
-  clip-path: polygon(50% 100%, 90% 88%, 90% 8%, 100% 8%, 100% 0%, 0% 0%, 0% 8%, 10% 8%, 10% 88%);
-  border: 2px solid #111;
-  box-sizing: border-box;
+  filter: drop-shadow(0 0 12px rgba(197, 51, 47, 0.65));
+}
+
+.ultimate-vfx-greatsword-fallback::before {
+  background: linear-gradient(90deg, #262626 0%, #777 34%, #d7d7d7 50%, #777 66%, #262626 100%);
+  clip-path: polygon(50% 0%, 88% 12%, 88% 91%, 100% 91%, 100% 100%, 0% 100%, 0% 91%, 12% 91%, 12% 12%);
 }

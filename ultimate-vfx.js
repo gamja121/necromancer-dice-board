@@ -403,23 +403,63 @@
       let hasImpacted = false;
       let whooshPlayed = false;
 
-      // Generate crack paths
-      const crackCount = reducedMotion ? 3 : (7 + Math.floor(Math.random() * 4));
+      // Generate layered, branching fracture paths once so every frame is stable.
+      const craterPoints = [];
+      const craterPointCount = reducedMotion ? 7 : 11;
+      for (let i = 0; i < craterPointCount; i++) {
+        const angle = (i / craterPointCount) * Math.PI * 2;
+        const radius = cellWidth * (0.12 + Math.random() * 0.1);
+        craterPoints.push({
+          x: centerX + Math.cos(angle) * radius,
+          y: centerY + Math.sin(angle) * radius * 0.62
+        });
+      }
+
+      const crackCount = reducedMotion ? 4 : (8 + Math.floor(Math.random() * 3));
       for (let i = 0; i < crackCount; i++) {
-        const angle = (i / crackCount) * Math.PI * 2 + (Math.random() * 0.4 - 0.2);
-        const segments = reducedMotion ? 2 : (3 + Math.floor(Math.random() * 3));
+        const angle = (i / crackCount) * Math.PI * 2 + (Math.random() * 0.34 - 0.17);
+        const segments = reducedMotion ? 3 : (5 + Math.floor(Math.random() * 3));
         const path = [{ x: centerX, y: centerY }];
+        const branches = [];
         let curX = centerX;
         let curY = centerY;
-        const maxRadius = cellWidth * (reducedMotion ? 0.8 : 1.15);
+        const maxRadius = cellWidth * (reducedMotion ? 0.9 : (1.35 + Math.random() * 0.4));
         const segLen = maxRadius / segments;
         for (let j = 1; j <= segments; j++) {
-          const segAngle = angle + (Math.random() * 0.3 - 0.15);
-          curX += Math.cos(segAngle) * segLen;
-          curY += Math.sin(segAngle) * segLen;
+          const segAngle = angle + (Math.random() * 0.62 - 0.31);
+          const lengthJitter = 0.72 + Math.random() * 0.5;
+          curX += Math.cos(segAngle) * segLen * lengthJitter;
+          curY += Math.sin(segAngle) * segLen * lengthJitter;
           path.push({ x: curX, y: curY });
+
+          if (!reducedMotion && j > 1 && j < segments && Math.random() < 0.58) {
+            const branchAngle = segAngle + (Math.random() < 0.5 ? -1 : 1) * (0.48 + Math.random() * 0.45);
+            const branchLength = segLen * (0.75 + Math.random() * 0.9);
+            const branchMid = {
+              x: curX + Math.cos(branchAngle) * branchLength * 0.48,
+              y: curY + Math.sin(branchAngle) * branchLength * 0.48
+            };
+            branches.push({
+              startProgress: j / segments,
+              points: [
+                { x: curX, y: curY },
+                {
+                  x: branchMid.x + (Math.random() * 8 - 4),
+                  y: branchMid.y + (Math.random() * 8 - 4)
+                },
+                {
+                  x: curX + Math.cos(branchAngle) * branchLength,
+                  y: curY + Math.sin(branchAngle) * branchLength
+                }
+              ]
+            });
+          }
         }
-        cracks.push(path);
+        cracks.push({
+          points: path,
+          branches,
+          weight: 0.78 + Math.random() * 0.5
+        });
       }
 
       // Generate particles
@@ -614,34 +654,81 @@
           ctx.save();
           ctx.scale(2, 2);
 
-          // Draw cracks
+          // Draw a layered crater and branching floor fractures.
           ctx.lineCap = "round";
           ctx.lineJoin = "round";
 
-          cracks.forEach((path) => {
+          if (crackProgress > 0.03 && craterPoints.length > 2) {
+            const craterScale = Math.min(1, crackProgress * 2.8);
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.scale(craterScale, craterScale);
+            ctx.translate(-centerX, -centerY);
+            ctx.beginPath();
+            ctx.moveTo(craterPoints[0].x, craterPoints[0].y);
+            for (let i = 1; i < craterPoints.length; i++) {
+              ctx.lineTo(craterPoints[i].x, craterPoints[i].y);
+            }
+            ctx.closePath();
+            ctx.fillStyle = "rgba(7, 5, 5, 0.94)";
+            ctx.fill();
+            ctx.lineWidth = 5.5;
+            ctx.strokeStyle = "rgba(20, 12, 10, 0.95)";
+            ctx.stroke();
+            ctx.lineWidth = 1.6;
+            ctx.strokeStyle = isKill ? "rgba(255, 63, 48, 0.95)" : "rgba(230, 166, 92, 0.82)";
+            ctx.stroke();
+            ctx.restore();
+          }
+
+          function traceFracture(points, pointsToDraw, offsetX = 0, offsetY = 0) {
+            if (pointsToDraw < 2) return;
+            ctx.beginPath();
+            ctx.moveTo(points[0].x + offsetX, points[0].y + offsetY);
+            for (let j = 1; j < pointsToDraw; j++) {
+              ctx.lineTo(points[j].x + offsetX, points[j].y + offsetY);
+            }
+          }
+
+          function drawFracture(points, pointsToDraw, weight, branch = false) {
+            if (pointsToDraw < 2) return;
+            const width = (branch ? 3.4 : 7.2) * weight;
+
+            traceFracture(points, pointsToDraw, 1.5, 1.8);
+            ctx.lineWidth = width + 2.4;
+            ctx.strokeStyle = "rgba(0, 0, 0, 0.46)";
+            ctx.stroke();
+
+            traceFracture(points, pointsToDraw);
+            ctx.lineWidth = width;
+            ctx.strokeStyle = "rgba(10, 7, 7, 0.96)";
+            ctx.stroke();
+
+            traceFracture(points, pointsToDraw);
+            ctx.lineWidth = Math.max(1.2, width * 0.38);
+            ctx.strokeStyle = isKill ? "rgba(124, 18, 16, 0.94)" : "rgba(74, 43, 26, 0.9)";
+            ctx.stroke();
+
+            traceFracture(points, pointsToDraw, -0.9, -1.05);
+            ctx.lineWidth = branch ? 0.75 : 1.15;
+            ctx.strokeStyle = isKill ? "rgba(255, 82, 60, 0.78)" : "rgba(255, 218, 170, 0.58)";
+            ctx.stroke();
+          }
+
+          cracks.forEach((crack) => {
+            const path = crack.points;
             if (path.length < 2) return;
             const pointsToDraw = Math.ceil(path.length * crackProgress);
             if (pointsToDraw < 2) return;
 
-            // Outer dark contour
-            ctx.beginPath();
-            ctx.moveTo(path[0].x, path[0].y);
-            for (let j = 1; j < pointsToDraw; j++) {
-              ctx.lineTo(path[j].x, path[j].y);
-            }
-            ctx.lineWidth = 3.5;
-            ctx.strokeStyle = "rgba(17, 17, 17, 0.85)";
-            ctx.stroke();
+            drawFracture(path, pointsToDraw, crack.weight);
 
-            // Inner colored contour
-            ctx.beginPath();
-            ctx.moveTo(path[0].x, path[0].y);
-            for (let j = 1; j < pointsToDraw; j++) {
-              ctx.lineTo(path[j].x, path[j].y);
-            }
-            ctx.lineWidth = 1.2;
-            ctx.strokeStyle = isKill ? "#ff332f" : "#fff";
-            ctx.stroke();
+            crack.branches.forEach((branch) => {
+              if (crackProgress < branch.startProgress) return;
+              const branchProgress = Math.min(1, (crackProgress - branch.startProgress) / 0.34);
+              const branchPointsToDraw = Math.ceil(branch.points.length * branchProgress);
+              drawFracture(branch.points, branchPointsToDraw, crack.weight * 0.72, true);
+            });
           });
 
           // Draw particles
