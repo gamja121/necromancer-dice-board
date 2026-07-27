@@ -1663,6 +1663,7 @@ function createCampaignUnit(type, owner, row, col) {
 }
 
 function resetCampaign() {
+  if (window.UltimateVfx) window.UltimateVfx.cancel();
   stopBattleMusic();
   if (rewardDialog.open) rewardDialog.close();
   battleScreen.classList.remove("is-victorious");
@@ -2023,7 +2024,7 @@ async function attackTarget(attacker, target) {
   const attackCells = [{ row: target.row, col: target.col }];
   const targets = [target];
 
-  await playAttackEffect(attacker, targets, damage, attackCells);
+  await playAttackEffect(attacker, targets, damage, attackCells, rolledDamage);
 
   target.hp -= damage;
   if (target.hp > 0) maybeApplyPlantTotemHeal(target);
@@ -2462,7 +2463,7 @@ function emptyCombatEffects() {
   };
 }
 
-async function playAttackEffect(attacker, targets, damage, attackCells) {
+async function playAttackEffect(attacker, targets, damage, attackCells, rolledDamage = null) {
   const attackStyle = attackStyleFor(attacker);
   const theme = combatThemeFor(attacker);
   const targetCell = targets[0]
@@ -2482,6 +2483,41 @@ async function playAttackEffect(attacker, targets, damage, attackCells) {
     isMiss: damage === 0,
     isPowerHit: damage >= 3,
   };
+
+  const target = targets[0];
+  const isKill = target && (target.hp - damage <= 0);
+  const canTriggerUltimate = (rolledDamage !== null) && (damage > 0) && (state.phase === "battle") && (rolledDamage === 3 || isKill) && (window.UltimateVfx && window.UltimateVfx.canPlay());
+
+  if (canTriggerUltimate) {
+    await window.UltimateVfx.playGreatswordImpact({
+      boardElement: boardEl,
+      targetCell,
+      attackerOwner: attacker.owner,
+      damage: damage,
+      isKill: isKill,
+      onImpact: async () => {
+        playAttackImpactSfx(attackStyle, theme, damage, attacker);
+        state.effects = {
+          ...baseEffect,
+          phase: "impact",
+          blastCells: attackCells || [],
+          hitIds: targets.map((unit) => unit.id),
+          damages: targets.map((unit) => ({ row: unit.row, col: unit.col, value: damage })),
+        };
+        render();
+      }
+    });
+
+    state.effects = {
+      ...baseEffect,
+      phase: "aftermath",
+      attackerId: null,
+    };
+    render();
+    await wait(150);
+    state.effects = emptyCombatEffects();
+    return;
+  }
 
   state.effects = { ...baseEffect, phase: "windup" };
   render();
