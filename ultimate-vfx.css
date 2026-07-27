@@ -188,3 +188,16 @@
   0% { opacity: 0.95; }
   100% { opacity: 0; }
 }
+
+.ultimate-vfx-is-hit-stop,
+.ultimate-vfx-is-hit-stop * {
+  animation-play-state: paused !important;
+  transition-duration: 0s !important;
+}
+
+.ultimate-vfx-greatsword-fallback {
+  background: linear-gradient(90deg, #333 0%, #777 35%, #999 50%, #777 65%, #333 100%) !important;
+  clip-path: polygon(50% 100%, 90% 88%, 90% 8%, 100% 8%, 100% 0%, 0% 0%, 0% 8%, 10% 8%, 10% 88%);
+  border: 2px solid #111;
+  box-sizing: border-box;
+}

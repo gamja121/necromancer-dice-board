@@ -1,14 +1,11 @@
 /* ultimate-vfx.js */
 (function (root) {
-  let activeAnimationId = null;
-  let activeOverlay = null;
-  let activeClone = null;
-  let isCancelled = false;
+  let activeSession = null;
   let preloadPromise = null;
   let swordImage = null;
+  let audioCtx = null;
 
   // Sound context and synth functions
-  let audioCtx = null;
   function ensureAudioContext() {
     if (typeof state !== "undefined" && (state.musicMuted || (state.sfxVolume ?? 1) <= 0)) {
       return null;
@@ -29,6 +26,12 @@
     return 0.6;
   }
 
+  function trackAudioNode(node) {
+    if (activeSession && activeSession.audioNodes) {
+      activeSession.audioNodes.push(node);
+    }
+  }
+
   function playFocusRiseSound() {
     const ctx = ensureAudioContext();
     if (!ctx) return;
@@ -36,6 +39,9 @@
     const now = ctx.currentTime;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
+
+    trackAudioNode(osc);
+    trackAudioNode(gain);
 
     osc.type = "sine";
     osc.frequency.setValueAtTime(75, now);
@@ -58,6 +64,9 @@
     const now = ctx.currentTime;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
+
+    trackAudioNode(osc);
+    trackAudioNode(gain);
 
     osc.type = "triangle";
     osc.frequency.setValueAtTime(680, now);
@@ -82,6 +91,9 @@
     // Heavy thud
     const thud = ctx.createOscillator();
     const thudGain = ctx.createGain();
+    trackAudioNode(thud);
+    trackAudioNode(thudGain);
+
     thud.type = "triangle";
     thud.frequency.setValueAtTime(135, now);
     thud.frequency.exponentialRampToValueAtTime(35, now + 0.24);
@@ -97,6 +109,9 @@
     ringFreqs.forEach((f, idx) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
+      trackAudioNode(osc);
+      trackAudioNode(gain);
+
       osc.type = "sine";
       osc.frequency.setValueAtTime(f, now);
       gain.gain.setValueAtTime(0.025 * vol * (1 - idx * 0.25), now);
@@ -121,14 +136,17 @@
       }
 
       const noise = ctx.createBufferSource();
+      trackAudioNode(noise);
       noise.buffer = buffer;
 
       const filter = ctx.createBiquadFilter();
+      trackAudioNode(filter);
       filter.type = "bandpass";
       filter.frequency.setValueAtTime(340, now);
       filter.Q.setValueAtTime(2.2, now);
 
       const gain = ctx.createGain();
+      trackAudioNode(gain);
       gain.gain.setValueAtTime(0.07 * vol, now);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
 
@@ -151,6 +169,9 @@
   function playDebrisClick(ctx, time, vol) {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
+    trackAudioNode(osc);
+    trackAudioNode(gain);
+
     osc.type = "sine";
     osc.frequency.setValueAtTime(1400 + Math.random() * 1200, time);
     gain.gain.setValueAtTime(0.004 * vol, time);
@@ -165,7 +186,12 @@
   function preload() {
     if (preloadPromise) return preloadPromise;
     preloadPromise = new Promise((resolve) => {
-      swordImage = new Image();
+      const ImageClass = typeof Image !== "undefined" ? Image : (typeof window !== "undefined" ? window.Image : null);
+      if (!ImageClass) {
+        resolve(false);
+        return;
+      }
+      swordImage = new ImageClass();
       swordImage.src = "assets/vfx/greatsword.png";
       swordImage.onload = () => resolve(true);
       swordImage.onerror = () => {
@@ -178,39 +204,82 @@
 
   // Check if animation is permitted
   function canPlay() {
-    if (typeof state !== "undefined" && state.reducedMotion) return false;
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (mediaQuery.matches) return false;
-    return true;
+    return !activeSession;
+  }
+
+  function prefersReducedMotion() {
+    if (typeof window === "undefined" || !window.matchMedia) return false;
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  // Session common cleanup and resolve
+  function finishSession(reason = "complete") {
+    const session = activeSession;
+    if (!session || session.completed) return;
+
+    session.completed = true;
+
+    if (session.animationFrameId) {
+      cancelAnimationFrame(session.animationFrameId);
+    }
+    if (session.safetyTimeoutId) {
+      clearTimeout(session.safetyTimeoutId);
+    }
+    session.timerIds.forEach((id) => clearTimeout(id));
+
+    // Cleanup and stop audio nodes safely
+    session.audioNodes.forEach((node) => {
+      try {
+        node.stop();
+      } catch (e) {}
+      try {
+        node.disconnect();
+      } catch (e) {}
+    });
+
+    // Remove DOM overlays
+    if (session.overlay && session.overlay.parentNode) {
+      session.overlay.parentNode.removeChild(session.overlay);
+    }
+    if (session.clone && session.clone.parentNode) {
+      session.clone.parentNode.removeChild(session.clone);
+    }
+
+    if (session.boardElement) {
+      session.boardElement.style.opacity = "";
+    }
+
+    if (typeof state !== "undefined") {
+      state.isRolling = false;
+    }
+
+    activeSession = null;
+    session.resolve({ reason });
   }
 
   // Main animation play
   function playGreatswordImpact(options = {}) {
     return new Promise((resolve) => {
+      // If there's an active session, supersede it cleanly
+      if (activeSession) {
+        finishSession("superseded");
+      }
+
       const {
         boardElement,
         targetCell,
         attackerOwner = "player",
         damage = 3,
         isKill = false,
-        onImpact = () => {}
+        onImpact = () => {},
+        reducedMotion = prefersReducedMotion()
       } = options;
 
       if (!boardElement) {
         onImpact();
-        resolve();
+        resolve({ reason: "missing_board" });
         return;
       }
-
-      isCancelled = false;
-
-      // Lock standard user input flag in state if possible
-      if (typeof state !== "undefined") {
-        state.isRolling = true; // locks inputs
-      }
-
-      // Check prefers-reduced-motion option
-      const reducedMotion = !canPlay();
 
       // Find target cell element
       const targetCellEl = boardElement.querySelector(
@@ -219,26 +288,40 @@
 
       if (!targetCellEl) {
         onImpact();
-        if (typeof state !== "undefined") {
-          state.isRolling = false;
-        }
-        resolve();
+        resolve({ reason: "missing_target_cell" });
         return;
+      }
+
+      // Initialise activeSession
+      activeSession = {
+        resolve,
+        boardElement,
+        animationFrameId: null,
+        safetyTimeoutId: null,
+        timerIds: [],
+        audioNodes: [],
+        overlay: null,
+        clone: null,
+        isHitStop: false,
+        completed: false
+      };
+
+      if (typeof state !== "undefined") {
+        state.isRolling = true; // Lock inputs
       }
 
       const boardRect = boardElement.getBoundingClientRect();
       const wrapRect = boardElement.parentNode.getBoundingClientRect();
 
-      // Sound trigger: Focus phase
+      // Audio trigger: Focus phase
       playFocusRiseSound();
 
       // Dim overlay
       const overlay = document.createElement("div");
       overlay.className = "ultimate-vfx-dim-overlay";
       document.body.appendChild(overlay);
-      activeOverlay = overlay;
-      // Trigger reflow
-      overlay.offsetHeight;
+      activeSession.overlay = overlay;
+      overlay.offsetHeight; // trigger reflow
       overlay.classList.add("is-active");
 
       // Clone board
@@ -252,7 +335,7 @@
       clone.style.height = `${boardRect.height}px`;
       clone.style.margin = "0";
       boardElement.parentNode.appendChild(clone);
-      activeClone = clone;
+      activeSession.clone = clone;
 
       // Hide original board
       boardElement.style.opacity = "0";
@@ -289,6 +372,13 @@
       // Sword & Shadow setup
       const sword = document.createElement("div");
       sword.className = "ultimate-vfx-greatsword";
+      
+      // Fallback check if greatsword image is not loaded
+      const isImgReady = swordImage && swordImage.complete && swordImage.naturalWidth > 0;
+      if (!isImgReady) {
+        sword.classList.add("ultimate-vfx-greatsword-fallback");
+      }
+      
       sword.style.left = `${centerX - 70}px`; // 140px / 2
       sword.style.top = `${centerY - 280}px`; // origin bottom center, so bottom matches centerY
       clone.appendChild(sword);
@@ -299,12 +389,12 @@
       shadow.style.top = `${centerY}px`;
       clone.appendChild(shadow);
 
-      // Animation parameters
-      const startTime = performance.now();
-      const focusDuration = 180;
-      const dropDuration = 340;
-      const totalDuration = 1450;
-      const tImpact = focusDuration + dropDuration; // 520ms
+      // Duration configs based on reducedMotion
+      const focusDuration = reducedMotion ? 100 : 180;
+      const dropDuration = reducedMotion ? 150 : 340;
+      const tImpact = focusDuration + dropDuration;
+      const totalDuration = reducedMotion ? 600 : 1450;
+      const recoveryStartTime = reducedMotion ? 400 : 1100;
 
       let particles = [];
       let cracks = [];
@@ -313,14 +403,14 @@
       let whooshPlayed = false;
 
       // Generate crack paths
-      const crackCount = 7 + Math.floor(Math.random() * 4);
+      const crackCount = reducedMotion ? 3 : (7 + Math.floor(Math.random() * 4));
       for (let i = 0; i < crackCount; i++) {
         const angle = (i / crackCount) * Math.PI * 2 + (Math.random() * 0.4 - 0.2);
-        const segments = 3 + Math.floor(Math.random() * 3);
+        const segments = reducedMotion ? 2 : (3 + Math.floor(Math.random() * 3));
         const path = [{ x: centerX, y: centerY }];
         let curX = centerX;
         let curY = centerY;
-        const maxRadius = cellWidth * 1.15;
+        const maxRadius = cellWidth * (reducedMotion ? 0.8 : 1.15);
         const segLen = maxRadius / segments;
         for (let j = 1; j <= segments; j++) {
           const segAngle = angle + (Math.random() * 0.3 - 0.15);
@@ -333,17 +423,17 @@
 
       // Generate particles
       function spawnParticles() {
-        const pCount = reducedMotion ? 2 : (9 + Math.floor(Math.random() * 5));
+        const pCount = reducedMotion ? 1 : (9 + Math.floor(Math.random() * 5));
         for (let i = 0; i < pCount; i++) {
           const angle = Math.random() * Math.PI * 2;
           const speed = 2.5 + Math.random() * 4.5;
-          const vZ = 4.0 + Math.random() * 6.5; // moves towards camera
+          const vZ = 4.0 + Math.random() * 6.5;
           particles.push({
             x: centerX,
             y: centerY,
             z: 0,
             vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed - 2.5, // initial upward arc
+            vy: Math.sin(angle) * speed - 2.5,
             vz: vZ,
             gravity: 0.22,
             size: 3.5 + Math.random() * 7,
@@ -355,102 +445,114 @@
         }
       }
 
-      // 2초 안전 타임아웃
-      const safetyTimeout = setTimeout(() => {
-        console.warn("Ultimate VFX safety timeout triggered.");
-        cleanup();
-      }, 2000);
+      function spawnShockwaves() {
+        const shockwave = document.createElement("div");
+        shockwave.className = "ultimate-vfx-shockwave";
+        shockwave.style.left = `${centerX}px`;
+        shockwave.style.top = `${centerY}px`;
+        clone.appendChild(shockwave);
 
-      function tick(now) {
-        if (isCancelled) return;
-        const elapsed = now - startTime;
-
-        if (elapsed >= totalDuration) {
-          cleanup();
-          return;
-        }
-
-        // A. Focus Phase (0 ~ 180ms)
-        if (elapsed < focusDuration) {
-          const p = elapsed / focusDuration;
-          if (!reducedMotion) {
-            clone.style.transform = `perspective(600px) rotateX(${p * 6}deg)`;
-          }
-        }
-
-        // B. Sword Drop Phase (180 ~ 520ms)
-        if (elapsed >= focusDuration && elapsed < tImpact) {
-          if (!whooshPlayed) {
-            playWhooshSound();
-            whooshPlayed = true;
-          }
-          reticle.style.opacity = Math.max(0, 1 - (elapsed - focusDuration) / 100);
-
-          const dropProgress = (elapsed - focusDuration) / dropDuration;
-          
-          // Eased drop using easeInCubic for speed acceleration in last 60ms
-          const easedP = Math.pow(dropProgress, 3.5);
-
-          // Sword transform coordinates
-          const tx = 160 * (1 - easedP);
-          const ty = -320 * (1 - easedP);
-          const scale = 1.0 + 1.2 * (1 - easedP);
-          const rotZ = -45 * (1 - easedP);
-          const rotY = -12 * (1 - easedP);
-
-          sword.style.opacity = Math.min(1, dropProgress * 2.5);
-          sword.style.transform = `translate(${tx}px, ${ty}px) rotateZ(${rotZ}deg) rotateY(${rotY}deg) scale(${scale})`;
-
-          // Shadow transform
-          const shadowScale = easedP;
-          shadow.style.opacity = easedP * 0.7;
-          shadow.style.transform = `translate(-50%, -50%) scale(${shadowScale})`;
-        }
-
-        // C. Impact Moment (520ms)
-        if (elapsed >= tImpact && !hasImpacted) {
-          hasImpacted = true;
-          sword.style.transform = "translate(0, 0) rotateZ(0deg) scale(1)";
-          shadow.style.transform = "translate(-50%, -50%) scale(1)";
-
-          // Trigger game impact callback (shows damage, etc.)
-          onImpact();
-
-          // Synth sound and vibration
-          playImpactSound();
-          if (typeof state !== "undefined" && state.vibrationEnabled && !state.musicMuted && navigator.vibrate) {
-            navigator.vibrate(24);
-          }
-
-          // Visual shockwave
-          const shockwave = document.createElement("div");
-          shockwave.className = "ultimate-vfx-shockwave";
-          shockwave.style.left = `${centerX}px`;
-          shockwave.style.top = `${centerY}px`;
-          clone.appendChild(shockwave);
-
+        if (!reducedMotion) {
           const shockwave2 = document.createElement("div");
           shockwave2.className = "ultimate-vfx-shockwave-double";
           shockwave2.style.left = `${centerX}px`;
           shockwave2.style.top = `${centerY}px`;
           clone.appendChild(shockwave2);
+        }
+      }
+
+      // Safety timeout
+      activeSession.safetyTimeoutId = setTimeout(() => {
+        console.warn("Ultimate VFX safety timeout triggered.");
+        finishSession("safety_timeout");
+      }, 3500);
+
+      let lastTime = performance.now();
+      let simTime = 0;
+
+      function tick(now) {
+        if (!activeSession || activeSession.completed) return;
+
+        const currentNow = (typeof now === "number" && now > 0) ? now : performance.now();
+        const dt = Math.max(0, currentNow - lastTime);
+        lastTime = currentNow;
+
+        if (!activeSession.isHitStop) {
+          simTime += dt;
+        }
+
+        if (simTime >= totalDuration) {
+          finishSession("complete");
+          return;
+        }
+
+        // A. Focus Phase
+        if (simTime < focusDuration) {
+          const p = simTime / focusDuration;
+          if (!reducedMotion) {
+            clone.style.transform = `perspective(600px) rotateX(${p * 6}deg)`;
+          }
+        }
+
+        // B. Sword Drop Phase
+        if (simTime >= focusDuration && simTime < tImpact) {
+          if (!whooshPlayed) {
+            playWhooshSound();
+            whooshPlayed = true;
+          }
+          reticle.style.opacity = Math.max(0, 1 - (simTime - focusDuration) / 100);
+
+          const dropProgress = (simTime - focusDuration) / dropDuration;
+          const easedP = Math.pow(dropProgress, 3.5);
+
+          if (reducedMotion) {
+            const tx = 50 * (1 - easedP);
+            const ty = -100 * (1 - easedP);
+            const scale = 1.0 + 0.4 * (1 - easedP);
+            const rotZ = -20 * (1 - easedP);
+            sword.style.opacity = Math.min(1, dropProgress * 3.0);
+            sword.style.transform = `translate(${tx}px, ${ty}px) rotateZ(${rotZ}deg) scale(${scale})`;
+          } else {
+            const tx = 160 * (1 - easedP);
+            const ty = -320 * (1 - easedP);
+            const scale = 1.0 + 1.2 * (1 - easedP);
+            const rotZ = -45 * (1 - easedP);
+            const rotY = -12 * (1 - easedP);
+            sword.style.opacity = Math.min(1, dropProgress * 2.5);
+            sword.style.transform = `translate(${tx}px, ${ty}px) rotateZ(${rotZ}deg) rotateY(${rotY}deg) scale(${scale})`;
+          }
+
+          const shadowScale = easedP;
+          shadow.style.opacity = easedP * 0.7;
+          shadow.style.transform = `translate(-50%, -50%) scale(${shadowScale})`;
+        }
+
+        // C. Impact Moment
+        if (simTime >= tImpact && !hasImpacted) {
+          hasImpacted = true;
+          sword.style.transform = "translate(0, 0) rotateZ(0deg) scale(1)";
+          shadow.style.transform = "translate(-50%, -50%) scale(1)";
+
+          // Trigger game impact callback
+          onImpact();
+
+          // Synth sound and vibration
+          playImpactSound();
+          if (typeof state !== "undefined" && state.vibrationEnabled && !state.musicMuted && navigator.vibrate) {
+            navigator.vibrate(reducedMotion ? 12 : 24);
+          }
+
+          // Trigger hit stop freeze
+          activeSession.isHitStop = true;
+          clone.classList.add("ultimate-vfx-is-hit-stop");
 
           // Flash
           const flash = document.createElement("div");
           flash.className = "ultimate-vfx-flash";
           clone.appendChild(flash);
-          flash.offsetHeight; // force reflow
+          flash.offsetHeight;
           flash.classList.add("is-active");
 
-          // Shake board
-          if (!reducedMotion) {
-            clone.classList.add("ultimate-vfx-shake");
-            setTimeout(() => {
-              clone.classList.remove("ultimate-vfx-shake");
-            }, 140);
-          }
-
-          // 처치 시 붉은 잔광 추가
           if (isKill) {
             const glow = document.createElement("div");
             glow.className = "ultimate-vfx-killed-glow";
@@ -461,18 +563,35 @@
             clone.appendChild(glow);
           }
 
-          // Spawn particles
-          spawnParticles();
+          const hitStopDuration = reducedMotion ? 35 : (isKill ? 80 : 60);
+
+          const hitStopTimeoutId = setTimeout(() => {
+            if (!activeSession || activeSession.completed) return;
+            activeSession.isHitStop = false;
+            if (activeSession.clone) {
+              activeSession.clone.classList.remove("ultimate-vfx-is-hit-stop");
+              if (!reducedMotion) {
+                activeSession.clone.classList.add("ultimate-vfx-shake");
+                const shakeTimeoutId = setTimeout(() => {
+                  if (activeSession && activeSession.clone) {
+                    activeSession.clone.classList.remove("ultimate-vfx-shake");
+                  }
+                }, 140);
+                activeSession.timerIds.push(shakeTimeoutId);
+              }
+            }
+            // Spawn shockwave and particles now
+            spawnShockwaves();
+            spawnParticles();
+          }, hitStopDuration);
+          activeSession.timerIds.push(hitStopTimeoutId);
         }
 
-        // D. Crack & Particles rendering (520 ~ 1100ms)
-        if (elapsed >= tImpact) {
-          // Freeze frame simulation for the first 60ms
-          const isFreezing = (elapsed < tImpact + 60);
-
-          if (!isFreezing) {
+        // D. Crack & Particles rendering
+        if (simTime >= tImpact) {
+          if (!activeSession.isHitStop) {
             // Update crack growth
-            crackProgress = Math.min(1.0, crackProgress + 0.045);
+            crackProgress = Math.min(1.0, crackProgress + (reducedMotion ? 0.08 : 0.045));
 
             // Update particles
             particles.forEach((p) => {
@@ -486,7 +605,7 @@
             particles = particles.filter((p) => p.opacity > 0);
           }
 
-          // Clear canvas (scale 2x for retina)
+          // Clear and scale canvas
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           ctx.save();
           ctx.scale(2, 2);
@@ -500,7 +619,7 @@
             const pointsToDraw = Math.ceil(path.length * crackProgress);
             if (pointsToDraw < 2) return;
 
-            // Outer dark crack contour
+            // Outer dark contour
             ctx.beginPath();
             ctx.moveTo(path[0].x, path[0].y);
             for (let j = 1; j < pointsToDraw; j++) {
@@ -510,7 +629,7 @@
             ctx.strokeStyle = "rgba(17, 17, 17, 0.85)";
             ctx.stroke();
 
-            // Inner colored crack contour
+            // Inner colored contour
             ctx.beginPath();
             ctx.moveTo(path[0].x, path[0].y);
             for (let j = 1; j < pointsToDraw; j++) {
@@ -521,21 +640,17 @@
             ctx.stroke();
           });
 
-          // Draw debris particles
+          // Draw particles
           particles.forEach((p) => {
             ctx.save();
             ctx.translate(p.x, p.y);
             ctx.rotate(p.rotation);
 
-            // Adjust scale factor based on simulated depth
-            const dFactor = 100 / (100 + p.z); // goes smaller as it moves away, larger if vz is negative
-            // We want debris to fly out towards the camera, so vz makes it look closer initially
             const size = Math.max(1, p.size * (1.0 + p.z * 0.05));
 
             ctx.fillStyle = p.color;
             ctx.globalAlpha = p.opacity;
 
-            // Draw a jagged stone shape (polygon)
             ctx.beginPath();
             ctx.moveTo(-size / 2, -size / 2);
             ctx.lineTo(size / 2, -size / 3);
@@ -544,7 +659,6 @@
             ctx.closePath();
             ctx.fill();
 
-            // Tiny highlight on stone
             ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
             ctx.lineWidth = 0.5;
             ctx.stroke();
@@ -555,9 +669,9 @@
           ctx.restore();
         }
 
-        // E. Fade out and Recovery (1100 ~ 1450ms)
-        if (elapsed >= 1100) {
-          const fadeProgress = (elapsed - 1100) / (totalDuration - 1100);
+        // E. Fade out and Recovery
+        if (simTime >= recoveryStartTime) {
+          const fadeProgress = (simTime - recoveryStartTime) / (totalDuration - recoveryStartTime);
           sword.style.opacity = Math.max(0, 1 - fadeProgress);
           canvas.style.opacity = Math.max(0, 1 - fadeProgress * 1.5);
           overlay.style.opacity = Math.max(0, 1 - fadeProgress);
@@ -567,69 +681,18 @@
           }
         }
 
-        activeAnimationId = requestAnimationFrame(tick);
+        activeSession.animationFrameId = requestAnimationFrame(tick);
       }
 
-      function cleanup() {
-        if (isCancelled) return;
-        isCancelled = true;
-        clearTimeout(safetyTimeout);
-        if (activeAnimationId) {
-          cancelAnimationFrame(activeAnimationId);
-          activeAnimationId = null;
-        }
-
-        // Remove overlay
-        if (overlay && overlay.parentNode) {
-          overlay.parentNode.removeChild(overlay);
-        }
-        activeOverlay = null;
-
-        // Remove clone and restore board opacity
-        if (clone && clone.parentNode) {
-          clone.parentNode.removeChild(clone);
-        }
-        activeClone = null;
-
-        boardElement.style.opacity = "1";
-
-        // Unlock inputs
-        if (typeof state !== "undefined") {
-          state.isRolling = false;
-        }
-
-        resolve();
-      }
-
-      // Start the animation loop
-      activeAnimationId = requestAnimationFrame(tick);
+      // Start tick loop
+      activeSession.animationFrameId = requestAnimationFrame(tick);
     });
   }
 
-  // Cancel immediately on reset
+  // Cancel immediately
   function cancel() {
-    isCancelled = true;
-    if (activeAnimationId) {
-      cancelAnimationFrame(activeAnimationId);
-      activeAnimationId = null;
-    }
-    if (activeOverlay && activeOverlay.parentNode) {
-      activeOverlay.parentNode.removeChild(activeOverlay);
-    }
-    activeOverlay = null;
-
-    if (activeClone && activeClone.parentNode) {
-      activeClone.parentNode.removeChild(activeClone);
-    }
-    activeClone = null;
-
-    const board = document.getElementById("board");
-    if (board) {
-      board.style.opacity = "1";
-    }
-
-    if (typeof state !== "undefined") {
-      state.isRolling = false;
+    if (activeSession) {
+      finishSession("cancelled");
     }
   }
 
@@ -637,10 +700,11 @@
     cancel();
   }
 
-  // Export
+  // Export window namespace
   const UltimateVfx = {
     preload,
     canPlay,
+    prefersReducedMotion,
     playGreatswordImpact,
     cancel,
     destroy

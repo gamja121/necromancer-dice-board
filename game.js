@@ -2489,13 +2489,31 @@ async function playAttackEffect(attacker, targets, damage, attackCells, rolledDa
   const canTriggerUltimate = (rolledDamage !== null) && (damage > 0) && (state.phase === "battle") && (rolledDamage === 3 || isKill) && (window.UltimateVfx && window.UltimateVfx.canPlay());
 
   if (canTriggerUltimate) {
-    await window.UltimateVfx.playGreatswordImpact({
-      boardElement: boardEl,
-      targetCell,
-      attackerOwner: attacker.owner,
-      damage: damage,
-      isKill: isKill,
-      onImpact: async () => {
+    let impactTriggered = false;
+    try {
+      await window.UltimateVfx.playGreatswordImpact({
+        boardElement: boardEl,
+        targetCell,
+        attackerOwner: attacker.owner,
+        damage: damage,
+        isKill: isKill,
+        reducedMotion: window.UltimateVfx.prefersReducedMotion(),
+        onImpact: async () => {
+          impactTriggered = true;
+          playAttackImpactSfx(attackStyle, theme, damage, attacker);
+          state.effects = {
+            ...baseEffect,
+            phase: "impact",
+            blastCells: attackCells || [],
+            hitIds: targets.map((unit) => unit.id),
+            damages: targets.map((unit) => ({ row: unit.row, col: unit.col, value: damage })),
+          };
+          render();
+        }
+      });
+    } catch (error) {
+      console.warn("Ultimate VFX execution failed, falling back:", error);
+      if (!impactTriggered) {
         playAttackImpactSfx(attackStyle, theme, damage, attacker);
         state.effects = {
           ...baseEffect,
@@ -2506,16 +2524,16 @@ async function playAttackEffect(attacker, targets, damage, attackCells, rolledDa
         };
         render();
       }
-    });
-
-    state.effects = {
-      ...baseEffect,
-      phase: "aftermath",
-      attackerId: null,
-    };
-    render();
-    await wait(150);
-    state.effects = emptyCombatEffects();
+    } finally {
+      state.effects = {
+        ...baseEffect,
+        phase: "aftermath",
+        attackerId: null,
+      };
+      render();
+      await wait(150);
+      state.effects = emptyCombatEffects();
+    }
     return;
   }
 
@@ -4791,6 +4809,10 @@ function initGameApp() {
   continueCampaignBtn.disabled = (validSave === null);
   
   render();
+
+  if (window.UltimateVfx) {
+    window.UltimateVfx.preload().catch((err) => console.warn("Failed to preload ultimate VFX assets:", err));
+  }
 }
 
 function handleResetBtnClick() {
