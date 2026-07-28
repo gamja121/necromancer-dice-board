@@ -1,9 +1,10 @@
-/* ultimate-vfx.js v26 - 4-Style 2.5D Ultimate VFX Suite */
+/* ultimate-vfx.js v27 - calibrated weapon anchors and illustrated claw rake */
 (function (root) {
   let activeSession = null;
   let preloadPromise = null;
   let swordImage = null;
   let spearImage = null;
+  let clawImage = null;
   let audioCtx = null;
 
   function ensureAudioContext() {
@@ -169,14 +170,14 @@
         if (loaded >= 2) resolve(swordImage);
       };
       const img1 = new Image();
-      img1.src = "./greatsword.png";
+      img1.src = "./assets/vfx/greatsword.png";
       img1.onload = () => { swordImage = img1; checkDone(); };
       img1.onerror = () => { swordImage = null; checkDone(); };
 
       const img2 = new Image();
-      img2.src = "./spear.png";
-      img2.onload = () => { spearImage = img2; checkDone(); };
-      img2.onerror = () => { spearImage = null; checkDone(); };
+      img2.src = "./assets/vfx/claw-rake.png";
+      img2.onload = () => { clawImage = img2; checkDone(); };
+      img2.onerror = () => { clawImage = null; checkDone(); };
     });
     return preloadPromise;
   }
@@ -642,15 +643,18 @@
       shadow.className = "ultimate-vfx-greatsword-shadow";
       sword.appendChild(shadow);
 
+      const swordVisual = document.createElement("div");
+      swordVisual.className = "ultimate-vfx-greatsword-visual";
       if (swordImage) {
         const imgEl = swordImage.cloneNode(true);
         imgEl.className = "ultimate-vfx-greatsword-img";
-        sword.appendChild(imgEl);
+        swordVisual.appendChild(imgEl);
       } else {
         const fallbackEl = document.createElement("div");
         fallbackEl.className = "ultimate-vfx-greatsword-fallback";
-        sword.appendChild(fallbackEl);
+        swordVisual.appendChild(fallbackEl);
       }
+      sword.appendChild(swordVisual);
       overlay.appendChild(sword);
 
       boardElement.parentNode.appendChild(overlay);
@@ -869,12 +873,12 @@
     });
   }
 
-  // 3. CLAW (SLASH MARKS) IMPACK RENDERER
+  // 3. CLAW (ILLUSTRATED RAKE) IMPACT RENDERER
   function playClawImpact(options = {}) {
     return new Promise((resolve) => {
       if (activeSession) finishSession("superseded");
       const {
-        boardElement, targetCell, onImpact = () => {}, reducedMotion = prefersReducedMotion()
+        boardElement, targetCell, onImpact = () => {}, reducedMotion = prefersReducedMotion(), isKill = false
       } = options;
 
       if (!boardElement || !boardElement.parentNode) { onImpact(); resolve({ reason: "missing_board", impactTriggered: true }); return; }
@@ -894,32 +898,75 @@
       const impactY = cellRect.top - wrapRect.top + cellRect.height / 2;
 
       const overlay = document.createElement("div");
-      overlay.className = "ultimate-vfx-overlay style-claw";
+      overlay.className = `ultimate-vfx-overlay style-claw ${reducedMotion ? "is-reduced-motion" : ""}`;
       overlay.style.setProperty("--impact-color", theme.impactColor);
+      overlay.style.setProperty("--fracture-inner", theme.innerColor);
       activeSession.overlay = overlay;
 
       const clone = boardElement.cloneNode(true);
       clone.className = (clone.className || "") + " ultimate-vfx-board-clone";
+      clone.style.transformOrigin = `${impactX}px ${impactY}px`;
       overlay.appendChild(clone);
       activeSession.clone = clone;
 
-      const clawBox = document.createElement("div");
-      clawBox.className = "ultimate-vfx-claw-container";
-      clawBox.style.left = `${impactX}px`;
-      clawBox.style.top = `${impactY}px`;
+      const clawRig = document.createElement("div");
+      clawRig.className = "ultimate-vfx-claw-rig";
+      clawRig.style.left = `${impactX}px`;
+      clawRig.style.top = `${impactY}px`;
+
+      const clawHand = document.createElement("div");
+      clawHand.className = "ultimate-vfx-claw-hand";
+      if (clawImage) {
+        const clawImg = clawImage.cloneNode(true);
+        clawImg.className = "ultimate-vfx-claw-img";
+        clawHand.appendChild(clawImg);
+      } else {
+        const clawFallback = document.createElement("div");
+        clawFallback.className = "ultimate-vfx-claw-fallback";
+        clawHand.appendChild(clawFallback);
+      }
+      clawRig.appendChild(clawHand);
+      overlay.appendChild(clawRig);
+
+      const gougeBox = document.createElement("div");
+      gougeBox.className = "ultimate-vfx-claw-gouges";
+      gougeBox.style.left = `${impactX}px`;
+      gougeBox.style.top = `${impactY}px`;
 
       for (let i = 0; i < 3; i++) {
         const mark = document.createElement("div");
-        mark.className = `ultimate-vfx-claw-mark claw-line-${i + 1}`;
-        clawBox.appendChild(mark);
+        mark.className = `ultimate-vfx-claw-gouge claw-line-${i + 1}`;
+        mark.style.setProperty("--gouge-delay", `${i * 42}ms`);
+        gougeBox.appendChild(mark);
       }
-      overlay.appendChild(clawBox);
+      overlay.appendChild(gougeBox);
+
+      const flash = document.createElement("div");
+      flash.className = "ultimate-vfx-flash ultimate-vfx-claw-flash";
+      overlay.appendChild(flash);
+
+      const inkBurst = document.createElement("div");
+      inkBurst.className = "ultimate-vfx-claw-ink-burst";
+      inkBurst.style.left = `${impactX}px`;
+      inkBurst.style.top = `${impactY}px`;
+      const particleCount = reducedMotion ? 3 : 11;
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement("i");
+        const angle = -2.65 + (i / Math.max(1, particleCount - 1)) * 1.9;
+        const distance = 34 + (i % 4) * 13;
+        particle.style.setProperty("--ink-x", `${Math.cos(angle) * distance}px`);
+        particle.style.setProperty("--ink-y", `${Math.sin(angle) * distance}px`);
+        particle.style.setProperty("--ink-rot", `${-80 + i * 23}deg`);
+        inkBurst.appendChild(particle);
+      }
+      overlay.appendChild(inkBurst);
 
       boardElement.parentNode.appendChild(overlay);
       boardElement.style.opacity = "0";
 
-      const totalDuration = 1000;
-      const tImpact = reducedMotion ? 150 : 300;
+      const totalDuration = reducedMotion ? 720 : (isKill ? 1320 : 1160);
+      const tImpact = reducedMotion ? 180 : 430;
+      const hitStopDuration = reducedMotion ? 30 : (isKill ? 75 : 55);
 
       playFocusRiseSound();
       activeSession.safetyTimeoutId = setTimeout(() => finishSession("safety_timeout"), 3500);
@@ -936,16 +983,53 @@
         if (!activeSession.isHitStop) simTime += dt;
         if (simTime >= totalDuration) { finishSession("complete"); return; }
 
+        if (simTime < tImpact) {
+          const windup = Math.min(1, simTime / tImpact);
+          const eased = 1 - Math.pow(1 - windup, 3);
+          clawHand.style.opacity = Math.min(1, windup * 3);
+          clawHand.style.transform = reducedMotion
+            ? `translate(${38 * (1 - eased)}px, ${-42 * (1 - eased)}px) rotate(${-13 + 8 * eased}deg) scale(${1.08 - 0.08 * eased})`
+            : `translate(${150 * (1 - eased)}px, ${-175 * (1 - eased)}px) rotate(${-28 + 19 * eased}deg) scale(${1.5 - 0.34 * eased})`;
+          if (!reducedMotion) {
+            clone.style.transform = `perspective(920px) rotateX(${4 + windup * 2.5}deg) rotateZ(${(1 - windup) * 1.4}deg) scale(1.012)`;
+          }
+        }
+
         if (simTime >= tImpact && !hasImpacted) {
           hasImpacted = true;
           activeSession.impactTriggered = true;
-          clawBox.classList.add("is-active");
+          activeSession.isHitStop = true;
+          overlay.classList.add("ultimate-vfx-is-hit-stop");
+          clawHand.classList.add("is-contact");
+          flash.classList.add("is-active");
           playImpactSound();
-          try { onImpact(); } catch (e) {}
+
+          const hitStopTimer = setTimeout(() => {
+            if (!activeSession || activeSession.completed) return;
+            activeSession.isHitStop = false;
+            overlay.classList.remove("ultimate-vfx-is-hit-stop");
+            gougeBox.classList.add("is-raking");
+            inkBurst.classList.add("is-active");
+            clone.classList.add("ultimate-vfx-claw-board-hit");
+            try { onImpact(); } catch (e) {}
+          }, hitStopDuration);
+          activeSession.timerIds.push(hitStopTimer);
         }
 
-        if (simTime > totalDuration - 250) {
-          overlay.style.opacity = Math.max(0, (totalDuration - simTime) / 250);
+        if (simTime >= tImpact) {
+          const rakeTime = simTime - tImpact;
+          const rakeProgress = Math.min(1, rakeTime / (reducedMotion ? 180 : 310));
+          const rakeEase = 1 - Math.pow(1 - rakeProgress, 3);
+          clawHand.style.transform = reducedMotion
+            ? `translate(${-38 * rakeEase}px, ${30 * rakeEase}px) rotate(${-5 - 8 * rakeEase}deg) scale(${1 - 0.08 * rakeEase})`
+            : `translate(${-125 * rakeEase}px, ${105 * rakeEase}px) rotate(${-9 - 17 * rakeEase}deg) scale(${1.16 - 0.19 * rakeEase})`;
+          if (rakeTime > 250) {
+            clawHand.style.opacity = Math.max(0, 1 - (rakeTime - 250) / 260);
+          }
+        }
+
+        if (simTime > totalDuration - 300) {
+          overlay.style.opacity = Math.max(0, (totalDuration - simTime) / 300);
         }
         activeSession.animationFrameId = requestAnimationFrame(tick);
       }

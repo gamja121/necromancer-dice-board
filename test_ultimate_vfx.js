@@ -432,9 +432,11 @@ async function runTests() {
     "Greatsword image child element must be rotated 180deg so blade tip lands first"
   );
   assert.strictEqual(
-    cssText.includes("margin-top: -280px"),
+    cssText.includes(".ultimate-vfx-greatsword-visual") &&
+      cssText.includes("transform: translate(-50%, -97%)") &&
+      cssText.includes("transform-origin: 50% 97%"),
     true,
-    "Greatsword wrapper margin-top must be -280px for bottom-center alignment"
+    "Greatsword visual blade tip must be calibrated to the zero-size impact anchor"
   );
   assert.strictEqual(
     cssText.includes(".ultimate-vfx-greatsword-fallback") && cssText.includes("transform: none"),
@@ -491,9 +493,9 @@ async function runTests() {
   const swText = fs.readFileSync(path.join(projectDir, "service-worker.js"), "utf8");
   const htmlText = fs.readFileSync(path.join(projectDir, "index.html"), "utf8");
 
-  assert.strictEqual(swText.includes("necromancer-expedition-v26"), true, "service-worker.js CACHE_NAME must be v25");
-  assert.strictEqual(swText.includes("20260728-14"), true, "service-worker.js APP_SHELL must contain 20260728-14 VFX query parameters");
-  assert.strictEqual(htmlText.includes("20260728-14"), true, "index.html must contain 20260728-14 VFX asset query parameters");
+  assert.strictEqual(swText.includes("necromancer-expedition-v27"), true, "service-worker.js CACHE_NAME must be v27");
+  assert.strictEqual(swText.includes("20260728-16"), true, "service-worker.js APP_SHELL must contain 20260728-16 VFX query parameters");
+  assert.strictEqual(htmlText.includes("20260728-16"), true, "index.html must contain 20260728-16 VFX asset query parameters");
   console.log("Pass: Cache version & asset query parameter verified.");
 
   // Test 18: Greatsword asset path and dark-background visibility fallback
@@ -502,7 +504,7 @@ async function runTests() {
   const swordAssetPath = path.join(projectDir, "assets", "vfx", "greatsword.png");
   assert.strictEqual(fs.existsSync(swordAssetPath), true, "Greatsword PNG must exist at assets/vfx/greatsword.png");
   assert.strictEqual(
-    jsText.includes('img1.src = "./greatsword.png"') || jsText.includes('img.src = "./greatsword.png"'),
+    jsText.includes('img1.src = "./assets/vfx/greatsword.png"'),
     true,
     "VFX preloader must request the deployed greatsword asset path"
   );
@@ -522,6 +524,14 @@ async function runTests() {
     "CSS fallback sword styling present"
   );
   console.log("Pass: Greatsword asset path & dark visibility verified.");
+
+  // Test 18b: illustrated claw asset and rake sequence
+  const clawAssetPath = path.join(projectDir, "assets", "vfx", "claw-rake.png");
+  assert.strictEqual(fs.existsSync(clawAssetPath), true, "Illustrated claw PNG must exist");
+  assert.strictEqual(jsText.includes('img2.src = "./assets/vfx/claw-rake.png"'), true, "Claw preloader path must be deployable");
+  assert.strictEqual(cssText.includes(".ultimate-vfx-claw-hand"), true, "Claw hand staging must exist");
+  assert.strictEqual(cssText.includes("ultimate-claw-carve"), true, "Sequential claw carving animation must exist");
+  assert.strictEqual(swText.includes("./assets/vfx/claw-rake.png"), true, "Service worker must cache the claw asset");
 
   console.log("\n✅ All Ultimate VFX unit tests passed successfully!");
   // Test 19: Target-pivot board perspective tilt restoration
