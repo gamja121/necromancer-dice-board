@@ -491,9 +491,9 @@ async function runTests() {
   const swText = fs.readFileSync(path.join(projectDir, "service-worker.js"), "utf8");
   const htmlText = fs.readFileSync(path.join(projectDir, "index.html"), "utf8");
 
-  assert.strictEqual(swText.includes("necromancer-expedition-v24"), true, "service-worker.js CACHE_NAME must be v24");
-  assert.strictEqual(swText.includes("20260728-14"), true, "service-worker.js APP_SHELL must contain 20260728-14 VFX query parameters");
-  assert.strictEqual(htmlText.includes("20260728-14"), true, "index.html must contain 20260728-14 VFX asset query parameters");
+  assert.strictEqual(swText.includes("necromancer-expedition-v25"), true, "service-worker.js CACHE_NAME must be v25");
+  assert.strictEqual(swText.includes("20260728-15"), true, "service-worker.js APP_SHELL must contain 20260728-15 VFX query parameters");
+  assert.strictEqual(htmlText.includes("20260728-15"), true, "index.html must contain 20260728-15 VFX asset query parameters");
   console.log("Pass: Cache version & asset query parameter verified.");
 
   // Test 18: Greatsword asset path and dark-background visibility fallback
@@ -525,6 +525,27 @@ async function runTests() {
   console.log("Pass: Greatsword asset path & dark visibility verified.");
 
   console.log("\n✅ All Ultimate VFX unit tests passed successfully!");
+  // Test 19: Target-pivot board perspective tilt restoration
+  console.log("Test 19: Target-pivot board tilt restoration starts...");
+  assert.strictEqual(
+    jsText.includes("clone.style.transformOrigin = `${impactX}px ${impactY}px`"),
+    true,
+    "Board clone must pivot around the impacted target cell"
+  );
+  assert.strictEqual(
+    jsText.includes("perspective(820px)") &&
+      jsText.includes('quality === "medium"') &&
+      jsText.includes("baseTilt"),
+    true,
+    "Board clone must restore quality-scaled perspective tilt"
+  );
+  assert.strictEqual(
+    cssText.includes("will-change: transform, filter") &&
+      cssText.includes("backface-visibility: hidden"),
+    true,
+    "Board clone must retain stable GPU-oriented transform styling"
+  );
+  console.log("Pass: Target-pivot board perspective tilt verified.");
 }
 
 runTests().catch((err) => {

@@ -30,6 +30,9 @@
   pointer-events: none;
   opacity: 1;
   transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform, filter;
+  filter: drop-shadow(0 14px 12px rgba(0, 0, 0, 0.26));
 }
 
 .ultimate-vfx-crater-layer {

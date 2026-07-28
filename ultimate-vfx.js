@@ -588,6 +588,7 @@
       const clone = boardElement.cloneNode(true);
       clone.removeAttribute("id");
       clone.className = (clone.className || "") + " ultimate-vfx-board-clone";
+      clone.style.transformOrigin = `${impactX}px ${impactY}px`;
       overlay.appendChild(clone);
       activeSession.clone = clone;
 
@@ -710,6 +711,14 @@
       let lastTime = performance.now();
       let simTime = 0;
       let hasImpacted = false;
+      const baseTilt = reducedMotion
+        ? 0
+        : quality === "high"
+          ? 6
+          : quality === "medium"
+            ? 4.8
+            : 3.2;
+      const tiltDirection = attackerOwner === "enemy" ? 1 : -1;
 
       function tick(now) {
         if (!activeSession || activeSession.completed) return;
@@ -725,6 +734,30 @@
         if (simTime >= totalDuration) {
           finishSession("complete");
           return;
+        }
+
+        if (baseTilt > 0) {
+          let tiltFactor;
+          if (simTime < tImpact) {
+            const focusProgress = Math.min(1, simTime / tImpact);
+            tiltFactor = 1 - Math.pow(1 - focusProgress, 3);
+          } else {
+            const settleProgress = Math.min(
+              1,
+              Math.max(0, simTime - tImpact - hitStopDuration) / 620
+            );
+            tiltFactor = 1 - (0.82 * (1 - Math.pow(1 - settleProgress, 3)));
+          }
+          if (simTime > totalDuration - 300) {
+            tiltFactor *= Math.max(0, (totalDuration - simTime) / 300);
+          }
+          const impactKick = hasImpacted ? 1.15 : 1;
+          const rotateX = baseTilt * tiltFactor * impactKick;
+          const rotateZ = tiltDirection * baseTilt * 0.12 * tiltFactor;
+          const scale = 1 - (0.009 * tiltFactor);
+          clone.style.transform =
+            `perspective(820px) rotateX(${rotateX.toFixed(2)}deg) ` +
+            `rotateZ(${rotateZ.toFixed(2)}deg) scale(${scale.toFixed(4)})`;
         }
 
         if (simTime < tImpact) {

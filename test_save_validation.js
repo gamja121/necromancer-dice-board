@@ -710,6 +710,23 @@ assert.deepStrictEqual(Array.from(batchPatchSnapshot.spiderLegions), ['summon', 
 console.log('Pass: 확률 합산, 주사위 변환 순서, 토템 회복·1회 부활, 히드라와 벌래 분류 검증 성공.');
 
 console.log('\n=== 18. 취소 및 세션 무효화 시 피해 미적용 검증 ===');
+console.log('\n=== 18A. Ultimate maximum-face trigger verification ===');
+const ultimateRollSnapshot = vm.runInContext(`(() => ({
+  deathKnightMax: isMaximumAttackRoll(3, [0, 1, 1, 2, 2, 3]),
+  deathKnightTwo: isMaximumAttackRoll(2, [0, 1, 1, 2, 2, 3]),
+  weakUnitMaxTwo: isMaximumAttackRoll(2, [0, 0, 1, 1, 2, 2]),
+  zeroOnly: isMaximumAttackRoll(0, [0, 0, 0, 0, 0, 0]),
+  invalidDice: isMaximumAttackRoll(3, null),
+  killShortcutRemoved: !playAttackEffect.toString().includes('rolledDamage === 3 || isKill')
+}))()`, sandbox);
+assert.strictEqual(ultimateRollSnapshot.deathKnightMax, true, 'Death Knight must trigger the ultimate on its actual maximum face.');
+assert.strictEqual(ultimateRollSnapshot.deathKnightTwo, false, 'Death Knight face 2 must not trigger the ultimate, including on a killing blow.');
+assert.strictEqual(ultimateRollSnapshot.weakUnitMaxTwo, true, 'A unit whose actual maximum is 2 must trigger on face 2.');
+assert.strictEqual(ultimateRollSnapshot.zeroOnly, false, 'A zero-only non-attacker must not trigger the ultimate.');
+assert.strictEqual(ultimateRollSnapshot.invalidDice, false, 'Missing attack dice must not trigger the ultimate.');
+assert.strictEqual(ultimateRollSnapshot.killShortcutRemoved, true, 'Kill status must not bypass the maximum-face rule.');
+console.log('Pass: Ultimate VFX is restricted to the positive maximum face of the effective attack die.');
+
 async function verifyCancelledAndInvalidatedAttacks() {
   const result = await vm.runInContext(`(async () => {
     resetCampaign();

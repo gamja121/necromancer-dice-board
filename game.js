@@ -954,6 +954,16 @@ function effectiveAttackDice(unit) {
   return dice;
 }
 
+function isMaximumAttackRoll(rolledDamage, attackDice) {
+  if (!Number.isFinite(rolledDamage) || !Array.isArray(attackDice) || !attackDice.length) {
+    return false;
+  }
+  const validFaces = attackDice.filter(Number.isFinite);
+  if (!validFaces.length) return false;
+  const maximumFace = Math.max(...validFaces);
+  return maximumFace > 0 && rolledDamage === maximumFace;
+}
+
 function corpseSummonBonus(owner) {
   return isLegionActive(owner, "corpse") ? 1 : 0;
 }
@@ -2028,7 +2038,7 @@ async function attackTarget(attacker, target) {
   const attackerId = attacker.id;
   const targetId = target.id;
 
-  const effectResult = await playAttackEffect(attacker, targets, damage, attackCells, rolledDamage);
+  const effectResult = await playAttackEffect(attacker, targets, damage, attackCells, rolledDamage, attackDice);
 
   const isSameBattle =
     state.phase === "battle" &&
@@ -2488,7 +2498,7 @@ function emptyCombatEffects() {
   };
 }
 
-async function playAttackEffect(attacker, targets, damage, attackCells, rolledDamage = null) {
+async function playAttackEffect(attacker, targets, damage, attackCells, rolledDamage = null, attackDice = null) {
   const attackStyle = attackStyleFor(attacker);
   const theme = combatThemeFor(attacker);
   const targetCell = targets[0]
@@ -2511,7 +2521,12 @@ async function playAttackEffect(attacker, targets, damage, attackCells, rolledDa
 
   const target = targets[0];
   const isKill = target && (target.hp - damage <= 0);
-  const canTriggerUltimate = (rolledDamage !== null) && (damage > 0) && (state.phase === "battle") && (rolledDamage === 3 || isKill) && (window.UltimateVfx && window.UltimateVfx.canPlay());
+  const canTriggerUltimate =
+    damage > 0 &&
+    state.phase === "battle" &&
+    isMaximumAttackRoll(rolledDamage, attackDice) &&
+    window.UltimateVfx &&
+    window.UltimateVfx.canPlay();
 
   if (canTriggerUltimate) {
     const effectBattleToken = state.battleToken || 0;
