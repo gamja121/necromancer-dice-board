@@ -1,11 +1,11 @@
-/* ultimate-vfx.js v23 - Shattered Board Crater VFX */
+/* ultimate-vfx.js v26 - 4-Style 2.5D Ultimate VFX Suite */
 (function (root) {
   let activeSession = null;
   let preloadPromise = null;
   let swordImage = null;
+  let spearImage = null;
   let audioCtx = null;
 
-  // Sound context and synth functions
   function ensureAudioContext() {
     if (typeof state !== "undefined" && (state.musicMuted || (state.sfxVolume ?? 1) <= 0)) {
       return null;
@@ -32,6 +32,7 @@
     }
   }
 
+  // Common Sound Synthesizers
   function playFocusRiseSound() {
     const ctx = ensureAudioContext();
     if (!ctx) return;
@@ -88,7 +89,6 @@
     const vol = getVolume();
     const now = ctx.currentTime;
 
-    // Heavy thud
     const thud = ctx.createOscillator();
     const thudGain = ctx.createGain();
     trackAudioNode(thud);
@@ -104,7 +104,6 @@
     thud.start(now);
     thud.stop(now + 0.26);
 
-    // Metallic ring
     const ringFreqs = [880, 1340, 2200];
     ringFreqs.forEach((f, idx) => {
       const osc = ctx.createOscillator();
@@ -157,7 +156,6 @@
     } catch (e) {}
   }
 
-  // Preloading image asset
   function preload() {
     if (preloadPromise) return preloadPromise;
     preloadPromise = new Promise((resolve) => {
@@ -165,16 +163,20 @@
         resolve(null);
         return;
       }
-      const img = new Image();
-      img.src = "./assets/vfx/greatsword.png";
-      img.onload = () => {
-        swordImage = img;
-        resolve(img);
+      let loaded = 0;
+      const checkDone = () => {
+        loaded++;
+        if (loaded >= 2) resolve(swordImage);
       };
-      img.onerror = () => {
-        swordImage = null;
-        resolve(null);
-      };
+      const img1 = new Image();
+      img1.src = "./greatsword.png";
+      img1.onload = () => { swordImage = img1; checkDone(); };
+      img1.onerror = () => { swordImage = null; checkDone(); };
+
+      const img2 = new Image();
+      img2.src = "./spear.png";
+      img2.onload = () => { spearImage = img2; checkDone(); };
+      img2.onerror = () => { spearImage = null; checkDone(); };
     });
     return preloadPromise;
   }
@@ -188,7 +190,6 @@
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }
 
-  // 4-Tier Automatic Quality Selector
   const VALID_VFX_QUALITIES = Object.freeze(new Set(["high", "medium", "low", "reduced"]));
 
   function normalizeQuality(q) {
@@ -220,7 +221,6 @@
     return "medium";
   }
 
-  // Seeded Pseudo-Random Generator (Mulberry32)
   function createSeededRandom(seed) {
     let s = seed >>> 0;
     return function () {
@@ -231,7 +231,6 @@
     };
   }
 
-  // Canonical Game Legion Keys & Priority
   const LEGION_ALIASES = Object.freeze({
     undead: "skeleton",
     elemental: "element"
@@ -268,7 +267,6 @@
     return VFX_LEGION_THEMES[matched] || VFX_LEGION_THEMES.default;
   }
 
-  // Build deterministic Shattered Board Crater Model
   function buildFractureModel(options = {}) {
     const quality = normalizeQuality(options.quality || "high");
     const seed = options.debugSeed ?? ((options.attackerId || 1) * 31 + (options.targetId || 1) * 17 + (options.battleToken || 1) * 13 + (options.timestamp || 0));
@@ -281,7 +279,6 @@
     const minCellDim = Math.min(cellWidth, cellHeight);
     const isKill = options.isKill === true;
 
-    // Quality tier counts
     const limits = {
       high: { craterPieces: 5, mainCracks: 5, branchCracks: 10, debris: 14, dust: 18 },
       medium: { craterPieces: 4, mainCracks: 4, branchCracks: 7, debris: 10, dust: 14 },
@@ -303,7 +300,6 @@
       });
     }
 
-    // Split crater polygon into wedge pieces
     const craterPieces = [];
     const pieceCount = limits.craterPieces;
     for (let i = 0; i < pieceCount; i++) {
@@ -333,7 +329,6 @@
       });
     }
 
-    // Generate main fracture polylines
     const mainFractures = [];
     const mainCount = limits.mainCracks;
     const baseAngle = options.attackAngle || (Math.PI / 4);
@@ -365,7 +360,6 @@
       });
     }
 
-    // Generate branch fractures
     const branchFractures = [];
     if (limits.branchCracks > 0) {
       mainFractures.forEach((mainCrk) => {
@@ -402,7 +396,6 @@
       });
     }
 
-    // Generate debris particles
     const debris = [];
     for (let i = 0; i < limits.debris; i++) {
       const angle = random() * Math.PI * 2;
@@ -429,7 +422,6 @@
       });
     }
 
-    // Generate dust cloud particles
     const dust = [];
     for (let i = 0; i < limits.dust; i++) {
       const angle = random() * Math.PI * 2;
@@ -459,7 +451,6 @@
     };
   }
 
-  // Session common cleanup and resolve
   function finishSession(reason = "complete") {
     const session = activeSession;
     if (!session || session.completed) return;
@@ -497,26 +488,29 @@
     session.resolve({ reason, impactTriggered: session.impactTriggered === true });
   }
 
-  // Main animation play
+  // TOP ROUTER: playUltimateImpact
+  function playUltimateImpact(options = {}) {
+    const style = options.style || "greatsword";
+    switch (style) {
+      case "pierce":
+        return playPierceImpact(options);
+      case "claw":
+        return playClawImpact(options);
+      case "magic":
+        return playMagicImpact(options);
+      default:
+        return playGreatswordImpact(options);
+    }
+  }
+
+  // 1. GREATSWORD IMPACK RENDERER
   function playGreatswordImpact(options = {}) {
     return new Promise((resolve) => {
-      if (activeSession) {
-        finishSession("superseded");
-      }
+      if (activeSession) finishSession("superseded");
 
       const {
-        boardElement,
-        targetCell,
-        attackerOwner = "player",
-        damage = 3,
-        isKill = false,
-        onImpact = () => {},
-        reducedMotion = prefersReducedMotion(),
-        attackerId,
-        targetId,
-        battleToken,
-        debugSeed,
-        quality: explicitQuality
+        boardElement, targetCell, attackerOwner = "player", damage = 3, isKill = false,
+        onImpact = () => {}, reducedMotion = prefersReducedMotion(), attackerId, targetId, battleToken, debugSeed, quality: explicitQuality
       } = options;
 
       if (!boardElement || !boardElement.parentNode) {
@@ -524,11 +518,7 @@
         resolve({ reason: "missing_board", impactTriggered: true });
         return;
       }
-
-      const targetCellEl = boardElement.querySelector(
-        `[data-row="${targetCell.row}"][data-col="${targetCell.col}"]`
-      );
-
+      const targetCellEl = boardElement.querySelector(`[data-row="${targetCell.row}"][data-col="${targetCell.col}"]`);
       if (!targetCellEl) {
         onImpact();
         resolve({ reason: "missing_target_cell", impactTriggered: true });
@@ -536,22 +526,11 @@
       }
 
       activeSession = {
-        resolve,
-        boardElement,
-        animationFrameId: null,
-        safetyTimeoutId: null,
-        timerIds: [],
-        audioNodes: [],
-        overlay: null,
-        clone: null,
-        isHitStop: false,
-        impactTriggered: false,
-        completed: false
+        style: "greatsword", resolve, boardElement, animationFrameId: null, safetyTimeoutId: null,
+        timerIds: [], audioNodes: [], overlay: null, clone: null, isHitStop: false, impactTriggered: false, completed: false
       };
 
-      if (typeof state !== "undefined") {
-        state.isRolling = true;
-      }
+      if (typeof state !== "undefined") state.isRolling = true;
 
       const quality = reducedMotion ? "reduced" : normalizeQuality(explicitQuality || chooseVfxQuality());
       const theme = getLegionTheme(options);
@@ -562,23 +541,14 @@
       const impactY = cellRect.top - wrapRect.top + cellRect.height / 2;
 
       const fractureModel = buildFractureModel({
-        quality,
-        debugSeed,
-        attackerId,
-        targetId,
-        battleToken,
-        timestamp: Date.now(),
-        impactX,
-        impactY,
-        cellWidth: cellRect.width,
-        cellHeight: cellRect.height,
-        isKill,
+        quality, debugSeed, attackerId, targetId, battleToken, timestamp: Date.now(),
+        impactX, impactY, cellWidth: cellRect.width, cellHeight: cellRect.height, isKill,
         attackAngle: attackerOwner === "player" ? (Math.PI / 4) : (-Math.PI / 4)
       });
       activeSession.fractureModel = fractureModel;
 
       const overlay = document.createElement("div");
-      overlay.className = `ultimate-vfx-overlay ${reducedMotion ? "is-reduced-motion" : ""} quality-${quality}`;
+      overlay.className = `ultimate-vfx-overlay ${reducedMotion ? "is-reduced-motion" : ""} quality-${quality} style-greatsword`;
       overlay.style.setProperty("--impact-color", theme.impactColor);
       overlay.style.setProperty("--fracture-inner", theme.innerColor);
       overlay.style.setProperty("--fracture-edge", theme.edgeColor);
@@ -643,14 +613,11 @@
         dEl.className = "ultimate-vfx-debris-piece";
         dEl.style.width = `${deb.size}px`;
         dEl.style.height = `${deb.size}px`;
-
         const clipPts = deb.vertices.map(v => `${((v.x + 0.5) * 100).toFixed(0)}% ${((v.y + 0.5) * 100).toFixed(0)}%`).join(", ");
         dEl.style.clipPath = `polygon(${clipPts})`;
         dEl.style.webkitClipPath = `polygon(${clipPts})`;
-
         const sEl = document.createElement("div");
         sEl.className = "ultimate-vfx-debris-shadow";
-
         debrisLayer.appendChild(sEl);
         debrisLayer.appendChild(dEl);
         debrisDOMs.push({ el: dEl, shadowEl: sEl, data: deb });
@@ -694,100 +661,45 @@
       const tImpact = reducedMotion ? 150 : 430;
 
       playFocusRiseSound();
-      const whooshTimerId = setTimeout(() => {
-        playWhooshSound();
-      }, Math.max(0, tImpact - 220));
+      const whooshTimerId = setTimeout(() => playWhooshSound(), Math.max(0, tImpact - 220));
       activeSession.timerIds.push(whooshTimerId);
 
-      requestAnimationFrame(() => {
-        reticle.classList.add("is-active");
-      });
+      requestAnimationFrame(() => reticle.classList.add("is-active"));
 
       activeSession.safetyTimeoutId = setTimeout(() => {
-        console.warn("Ultimate VFX safety timeout triggered.");
         finishSession("safety_timeout");
       }, 3500);
 
       let lastTime = performance.now();
       let simTime = 0;
       let hasImpacted = false;
-      const baseTilt = reducedMotion
-        ? 0
-        : quality === "high"
-          ? 6
-          : quality === "medium"
-            ? 4.8
-            : 3.2;
-      const tiltDirection = attackerOwner === "enemy" ? 1 : -1;
 
       function tick(now) {
         if (!activeSession || activeSession.completed) return;
-
         const currentNow = (typeof now === "number" && now > 0) ? now : performance.now();
         const dt = Math.max(0, currentNow - lastTime);
         lastTime = currentNow;
 
-        if (!activeSession.isHitStop) {
-          simTime += dt;
-        }
-
-        if (simTime >= totalDuration) {
-          finishSession("complete");
-          return;
-        }
-
-        if (baseTilt > 0) {
-          let tiltFactor;
-          if (simTime < tImpact) {
-            const focusProgress = Math.min(1, simTime / tImpact);
-            tiltFactor = 1 - Math.pow(1 - focusProgress, 3);
-          } else {
-            const settleProgress = Math.min(
-              1,
-              Math.max(0, simTime - tImpact - hitStopDuration) / 620
-            );
-            tiltFactor = 1 - (0.82 * (1 - Math.pow(1 - settleProgress, 3)));
-          }
-          if (simTime > totalDuration - 300) {
-            tiltFactor *= Math.max(0, (totalDuration - simTime) / 300);
-          }
-          const impactKick = hasImpacted ? 1.15 : 1;
-          const rotateX = baseTilt * tiltFactor * impactKick;
-          const rotateZ = tiltDirection * baseTilt * 0.12 * tiltFactor;
-          const scale = 1 - (0.009 * tiltFactor);
-          clone.style.transform =
-            `perspective(820px) rotateX(${rotateX.toFixed(2)}deg) ` +
-            `rotateZ(${rotateZ.toFixed(2)}deg) scale(${scale.toFixed(4)})`;
-        }
+        if (!activeSession.isHitStop) simTime += dt;
+        if (simTime >= totalDuration) { finishSession("complete"); return; }
 
         if (simTime < tImpact) {
           const dropProgress = Math.max(0, simTime / tImpact);
           const easedP = Math.pow(dropProgress, 3.5);
-
           if (reducedMotion) {
-            const tx = 40 * (1 - easedP);
-            const ty = -100 * (1 - easedP);
             sword.style.opacity = Math.min(1, dropProgress * 3.0);
-            sword.style.transform = `translate(${tx}px, ${ty}px) scale(${1.0 + 0.3 * (1 - easedP)})`;
+            sword.style.transform = `translate(${40 * (1 - easedP)}px, ${-100 * (1 - easedP)}px) scale(${1.0 + 0.3 * (1 - easedP)})`;
           } else {
-            const tx = 160 * (1 - easedP);
-            const ty = -320 * (1 - easedP);
-            const scale = 1.0 + 1.2 * (1 - easedP);
-            const rotZ = -45 * (1 - easedP);
-            const rotY = -12 * (1 - easedP);
             sword.style.opacity = Math.min(1, dropProgress * 2.5);
-            sword.style.transform = `translate(${tx}px, ${ty}px) rotateZ(${rotZ}deg) rotateY(${rotY}deg) scale(${scale})`;
+            sword.style.transform = `translate(${160 * (1 - easedP)}px, ${-320 * (1 - easedP)}px) rotateZ(${-45 * (1 - easedP)}deg) rotateY(${-12 * (1 - easedP)}deg) scale(${1.0 + 1.2 * (1 - easedP)})`;
           }
-
           shadow.style.opacity = easedP * 0.7;
           shadow.style.transform = `translate(-50%, -50%) scale(${easedP})`;
         }
 
         if (simTime >= tImpact && !hasImpacted) {
           hasImpacted = true;
-          if (activeSession) {
-            activeSession.impactTriggered = true;
-          }
+          if (activeSession) activeSession.impactTriggered = true;
           sword.style.transform = "translate(0, 0) rotateZ(0deg) scale(1)";
           shadow.style.transform = "translate(-50%, -50%) scale(1)";
 
@@ -795,30 +707,17 @@
           overlay.classList.add("ultimate-vfx-is-hit-stop");
           playImpactSound();
 
-          pieceDOMs.forEach((pDOM) => {
-            pDOM.classList.add("is-sunk");
-          });
-
+          pieceDOMs.forEach((pDOM) => pDOM.classList.add("is-sunk"));
           flash.classList.add("is-active");
-          const flashTimerId = setTimeout(() => {
-            flash.classList.remove("is-active");
-          }, 120);
+          const flashTimerId = setTimeout(() => flash.classList.remove("is-active"), 120);
           activeSession.timerIds.push(flashTimerId);
 
           const hitStopTimeoutId = setTimeout(() => {
             if (!activeSession || activeSession.completed) return;
             activeSession.isHitStop = false;
             overlay.classList.remove("ultimate-vfx-is-hit-stop");
-
-            try {
-              onImpact();
-            } catch (e) {
-              console.error("VFX onImpact callback error:", e);
-            }
-
-            if (!reducedMotion) {
-              sword.classList.add("ultimate-vfx-sword-shake");
-            }
+            try { onImpact(); } catch (e) {}
+            if (!reducedMotion) sword.classList.add("ultimate-vfx-sword-shake");
           }, hitStopDuration);
           activeSession.timerIds.push(hitStopTimeoutId);
         }
@@ -826,125 +725,319 @@
         if (simTime >= tImpact) {
           const postImpactTime = simTime - tImpact;
           fCtx.clearRect(0, 0, fractureCanvas.width, fractureCanvas.height);
-
           fractureModel.mainFractures.forEach((mainCrk) => {
             if (postImpactTime < mainCrk.startDelay) return;
             const progress = Math.min(1.0, (postImpactTime - mainCrk.startDelay) / 180);
             if (progress <= 0) return;
-
-            const totalPoints = mainCrk.points.length;
-            const drawCount = Math.max(2, Math.floor(progress * totalPoints));
+            const drawCount = Math.max(2, Math.floor(progress * mainCrk.points.length));
 
             fCtx.save();
             fCtx.beginPath();
             fCtx.moveTo(mainCrk.points[0].x, mainCrk.points[0].y + 2);
-            for (let k = 1; k < drawCount; k++) {
-              fCtx.lineTo(mainCrk.points[k].x, mainCrk.points[k].y + 2);
-            }
+            for (let k = 1; k < drawCount; k++) fCtx.lineTo(mainCrk.points[k].x, mainCrk.points[k].y + 2);
             fCtx.strokeStyle = "rgba(0, 0, 0, 0.85)";
-            fCtx.lineWidth = 6;
-            fCtx.lineCap = "round";
-            fCtx.lineJoin = "round";
-            fCtx.stroke();
-            fCtx.restore();
+            fCtx.lineWidth = 6; fCtx.lineCap = "round"; fCtx.stroke(); fCtx.restore();
 
             fCtx.save();
             fCtx.beginPath();
             fCtx.moveTo(mainCrk.points[0].x, mainCrk.points[0].y);
-            for (let k = 1; k < drawCount; k++) {
-              fCtx.lineTo(mainCrk.points[k].x, mainCrk.points[k].y);
-            }
+            for (let k = 1; k < drawCount; k++) fCtx.lineTo(mainCrk.points[k].x, mainCrk.points[k].y);
             fCtx.strokeStyle = theme.impactColor;
-            fCtx.lineWidth = 3;
-            fCtx.lineCap = "round";
-            fCtx.lineJoin = "round";
-            fCtx.stroke();
-            fCtx.restore();
-
-            fCtx.save();
-            fCtx.beginPath();
-            fCtx.moveTo(mainCrk.points[0].x + 1, mainCrk.points[0].y - 1);
-            for (let k = 1; k < drawCount; k++) {
-              fCtx.lineTo(mainCrk.points[k].x + 1, mainCrk.points[k].y - 1);
-            }
-            fCtx.strokeStyle = theme.edgeColor;
-            fCtx.lineWidth = 1;
-            fCtx.lineCap = "round";
-            fCtx.lineJoin = "round";
-            fCtx.stroke();
-            fCtx.restore();
-          });
-
-          fractureModel.branchFractures.forEach((bCrk) => {
-            if (postImpactTime < bCrk.startDelay) return;
-            const progress = Math.min(1.0, (postImpactTime - bCrk.startDelay) / 120);
-            if (progress <= 0) return;
-
-            const drawCount = Math.max(2, Math.floor(progress * bCrk.points.length));
-
-            fCtx.save();
-            fCtx.beginPath();
-            fCtx.moveTo(bCrk.points[0].x, bCrk.points[0].y);
-            for (let k = 1; k < drawCount; k++) {
-              fCtx.lineTo(bCrk.points[k].x, bCrk.points[k].y);
-            }
-            fCtx.strokeStyle = theme.edgeColor;
-            fCtx.lineWidth = 1.5;
-            fCtx.lineCap = "round";
-            fCtx.stroke();
-            fCtx.restore();
-          });
-        }
-
-        if (simTime >= tImpact + hitStopDuration && !reducedMotion) {
-          const dtSec = dt / 1000;
-          debrisDOMs.forEach((item) => {
-            const deb = item.data;
-            deb.x += deb.vx * dtSec;
-            deb.y += deb.vy * dtSec;
-            deb.vz -= deb.gravity * dtSec;
-            deb.rotation += deb.rotSpeed * dtSec;
-
-            const curZ = Math.max(0, deb.vz);
-            const scale = deb.scale * (1 + curZ / 300) * deb.depth;
-
-            item.el.style.transform = `translate(${deb.x - impactX}px, ${deb.y - impactY - curZ}px) rotate(${deb.rotation}deg) scale(${scale})`;
-            item.shadowEl.style.transform = `translate(${deb.x - impactX}px, ${deb.y - impactY}px) scale(${deb.scale * 0.8})`;
-            item.shadowEl.style.opacity = Math.max(0, 0.6 - curZ / 250);
-          });
-        }
-
-        if (simTime >= tImpact + hitStopDuration) {
-          const dustTime = (simTime - (tImpact + hitStopDuration)) / 1000;
-          dCtx.clearRect(0, 0, dustCanvas.width, dustCanvas.height);
-
-          fractureModel.dust.forEach((d) => {
-            const progress = Math.min(1.0, dustTime * d.expandRate);
-            const r = d.size * (0.3 + progress * 0.7);
-            const alpha = d.maxOpacity * (1 - progress);
-            if (alpha <= 0) return;
-
-            const currX = impactX + (d.targetX - impactX) * progress;
-            const currY = impactY + (d.targetY - impactY) * progress;
-
-            dCtx.save();
-            dCtx.beginPath();
-            dCtx.arc(currX, currY, r, 0, Math.PI * 2);
-            dCtx.fillStyle = theme.dustColor;
-            dCtx.globalAlpha = alpha;
-            dCtx.fill();
-            dCtx.restore();
+            fCtx.lineWidth = 3; fCtx.lineCap = "round"; fCtx.stroke(); fCtx.restore();
           });
         }
 
         if (simTime > totalDuration - 300) {
-          const fadeP = (totalDuration - simTime) / 300;
-          overlay.style.opacity = Math.max(0, fadeP);
+          overlay.style.opacity = Math.max(0, (totalDuration - simTime) / 300);
         }
 
         activeSession.animationFrameId = requestAnimationFrame(tick);
       }
+      activeSession.animationFrameId = requestAnimationFrame(tick);
+    });
+  }
 
+  // 2. PIERCE (SPEAR/ARROW) IMPACK RENDERER
+  function playPierceImpact(options = {}) {
+    return new Promise((resolve) => {
+      if (activeSession) finishSession("superseded");
+      const {
+        boardElement, targetCell, sourceCell, attackerOwner = "player", isKill = false,
+        onImpact = () => {}, reducedMotion = prefersReducedMotion(), debugSeed
+      } = options;
+
+      if (!boardElement || !boardElement.parentNode) { onImpact(); resolve({ reason: "missing_board", impactTriggered: true }); return; }
+      const targetCellEl = boardElement.querySelector(`[data-row="${targetCell.row}"][data-col="${targetCell.col}"]`);
+      if (!targetCellEl) { onImpact(); resolve({ reason: "missing_target_cell", impactTriggered: true }); return; }
+
+      activeSession = {
+        style: "pierce", resolve, boardElement, animationFrameId: null, safetyTimeoutId: null,
+        timerIds: [], audioNodes: [], overlay: null, clone: null, isHitStop: false, impactTriggered: false, completed: false
+      };
+      if (typeof state !== "undefined") state.isRolling = true;
+
+      const theme = getLegionTheme(options);
+      const wrapRect = boardElement.parentNode.getBoundingClientRect();
+      const cellRect = targetCellEl.getBoundingClientRect();
+      const impactX = cellRect.left - wrapRect.left + cellRect.width / 2;
+      const impactY = cellRect.top - wrapRect.top + cellRect.height / 2;
+
+      let srcX = impactX - 200;
+      let srcY = impactY - 200;
+      if (sourceCell) {
+        const srcEl = boardElement.querySelector(`[data-row="${sourceCell.row}"][data-col="${sourceCell.col}"]`);
+        if (srcEl) {
+          const r = srcEl.getBoundingClientRect();
+          srcX = r.left - wrapRect.left + r.width / 2;
+          srcY = r.top - wrapRect.top + r.height / 2;
+        }
+      }
+
+      const dx = impactX - srcX;
+      const dy = impactY - srcY;
+      const angleRad = Math.atan2(dy, dx);
+      const angleDeg = (angleRad * 180) / Math.PI;
+
+      const overlay = document.createElement("div");
+      overlay.className = "ultimate-vfx-overlay style-pierce";
+      overlay.style.setProperty("--impact-color", theme.impactColor);
+      activeSession.overlay = overlay;
+
+      const clone = boardElement.cloneNode(true);
+      clone.className = (clone.className || "") + " ultimate-vfx-board-clone";
+      overlay.appendChild(clone);
+      activeSession.clone = clone;
+
+      const spear = document.createElement("div");
+      spear.className = "ultimate-vfx-pierce-weapon";
+      spear.style.left = `${impactX}px`;
+      spear.style.top = `${impactY}px`;
+      spear.style.transform = `rotate(${angleDeg + 90}deg)`;
+
+      if (spearImage) {
+        const img = spearImage.cloneNode(true);
+        img.className = "ultimate-vfx-pierce-img";
+        spear.appendChild(img);
+      } else {
+        const fallback = document.createElement("div");
+        fallback.className = "ultimate-vfx-pierce-fallback";
+        spear.appendChild(fallback);
+      }
+      overlay.appendChild(spear);
+
+      boardElement.parentNode.appendChild(overlay);
+      boardElement.style.opacity = "0";
+
+      const totalDuration = 1100;
+      const tImpact = reducedMotion ? 150 : 350;
+
+      playFocusRiseSound();
+      activeSession.safetyTimeoutId = setTimeout(() => finishSession("safety_timeout"), 3500);
+
+      let lastTime = performance.now();
+      let simTime = 0;
+      let hasImpacted = false;
+
+      function tick(now) {
+        if (!activeSession || activeSession.completed) return;
+        const currentNow = (typeof now === "number" && now > 0) ? now : performance.now();
+        const dt = Math.max(0, currentNow - lastTime);
+        lastTime = currentNow;
+        if (!activeSession.isHitStop) simTime += dt;
+        if (simTime >= totalDuration) { finishSession("complete"); return; }
+
+        if (simTime < tImpact) {
+          const p = Math.max(0, simTime / tImpact);
+          const dist = 300 * (1 - Math.pow(p, 3));
+          spear.style.transform = `translate(${-Math.cos(angleRad) * dist}px, ${-Math.sin(angleRad) * dist}px) rotate(${angleDeg + 90}deg) scale(${1 + (1 - p)})`;
+        }
+
+        if (simTime >= tImpact && !hasImpacted) {
+          hasImpacted = true;
+          activeSession.impactTriggered = true;
+          spear.style.transform = `translate(0, 0) rotate(${angleDeg + 90}deg) scale(1)`;
+          playImpactSound();
+          try { onImpact(); } catch (e) {}
+        }
+
+        if (simTime > totalDuration - 250) {
+          overlay.style.opacity = Math.max(0, (totalDuration - simTime) / 250);
+        }
+        activeSession.animationFrameId = requestAnimationFrame(tick);
+      }
+      activeSession.animationFrameId = requestAnimationFrame(tick);
+    });
+  }
+
+  // 3. CLAW (SLASH MARKS) IMPACK RENDERER
+  function playClawImpact(options = {}) {
+    return new Promise((resolve) => {
+      if (activeSession) finishSession("superseded");
+      const {
+        boardElement, targetCell, onImpact = () => {}, reducedMotion = prefersReducedMotion()
+      } = options;
+
+      if (!boardElement || !boardElement.parentNode) { onImpact(); resolve({ reason: "missing_board", impactTriggered: true }); return; }
+      const targetCellEl = boardElement.querySelector(`[data-row="${targetCell.row}"][data-col="${targetCell.col}"]`);
+      if (!targetCellEl) { onImpact(); resolve({ reason: "missing_target_cell", impactTriggered: true }); return; }
+
+      activeSession = {
+        style: "claw", resolve, boardElement, animationFrameId: null, safetyTimeoutId: null,
+        timerIds: [], audioNodes: [], overlay: null, clone: null, isHitStop: false, impactTriggered: false, completed: false
+      };
+      if (typeof state !== "undefined") state.isRolling = true;
+
+      const theme = getLegionTheme(options);
+      const wrapRect = boardElement.parentNode.getBoundingClientRect();
+      const cellRect = targetCellEl.getBoundingClientRect();
+      const impactX = cellRect.left - wrapRect.left + cellRect.width / 2;
+      const impactY = cellRect.top - wrapRect.top + cellRect.height / 2;
+
+      const overlay = document.createElement("div");
+      overlay.className = "ultimate-vfx-overlay style-claw";
+      overlay.style.setProperty("--impact-color", theme.impactColor);
+      activeSession.overlay = overlay;
+
+      const clone = boardElement.cloneNode(true);
+      clone.className = (clone.className || "") + " ultimate-vfx-board-clone";
+      overlay.appendChild(clone);
+      activeSession.clone = clone;
+
+      const clawBox = document.createElement("div");
+      clawBox.className = "ultimate-vfx-claw-container";
+      clawBox.style.left = `${impactX}px`;
+      clawBox.style.top = `${impactY}px`;
+
+      for (let i = 0; i < 3; i++) {
+        const mark = document.createElement("div");
+        mark.className = `ultimate-vfx-claw-mark claw-line-${i + 1}`;
+        clawBox.appendChild(mark);
+      }
+      overlay.appendChild(clawBox);
+
+      boardElement.parentNode.appendChild(overlay);
+      boardElement.style.opacity = "0";
+
+      const totalDuration = 1000;
+      const tImpact = reducedMotion ? 150 : 300;
+
+      playFocusRiseSound();
+      activeSession.safetyTimeoutId = setTimeout(() => finishSession("safety_timeout"), 3500);
+
+      let lastTime = performance.now();
+      let simTime = 0;
+      let hasImpacted = false;
+
+      function tick(now) {
+        if (!activeSession || activeSession.completed) return;
+        const currentNow = (typeof now === "number" && now > 0) ? now : performance.now();
+        const dt = Math.max(0, currentNow - lastTime);
+        lastTime = currentNow;
+        if (!activeSession.isHitStop) simTime += dt;
+        if (simTime >= totalDuration) { finishSession("complete"); return; }
+
+        if (simTime >= tImpact && !hasImpacted) {
+          hasImpacted = true;
+          activeSession.impactTriggered = true;
+          clawBox.classList.add("is-active");
+          playImpactSound();
+          try { onImpact(); } catch (e) {}
+        }
+
+        if (simTime > totalDuration - 250) {
+          overlay.style.opacity = Math.max(0, (totalDuration - simTime) / 250);
+        }
+        activeSession.animationFrameId = requestAnimationFrame(tick);
+      }
+      activeSession.animationFrameId = requestAnimationFrame(tick);
+    });
+  }
+
+  // 4. MAGIC (SPELL EXPLOSION) IMPACK RENDERER
+  function playMagicImpact(options = {}) {
+    return new Promise((resolve) => {
+      if (activeSession) finishSession("superseded");
+      const {
+        boardElement, targetCell, onImpact = () => {}, reducedMotion = prefersReducedMotion()
+      } = options;
+
+      if (!boardElement || !boardElement.parentNode) { onImpact(); resolve({ reason: "missing_board", impactTriggered: true }); return; }
+      const targetCellEl = boardElement.querySelector(`[data-row="${targetCell.row}"][data-col="${targetCell.col}"]`);
+      if (!targetCellEl) { onImpact(); resolve({ reason: "missing_target_cell", impactTriggered: true }); return; }
+
+      activeSession = {
+        style: "magic", resolve, boardElement, animationFrameId: null, safetyTimeoutId: null,
+        timerIds: [], audioNodes: [], overlay: null, clone: null, isHitStop: false, impactTriggered: false, completed: false
+      };
+      if (typeof state !== "undefined") state.isRolling = true;
+
+      const theme = getLegionTheme(options);
+      const wrapRect = boardElement.parentNode.getBoundingClientRect();
+      const cellRect = targetCellEl.getBoundingClientRect();
+      const impactX = cellRect.left - wrapRect.left + cellRect.width / 2;
+      const impactY = cellRect.top - wrapRect.top + cellRect.height / 2;
+
+      const overlay = document.createElement("div");
+      overlay.className = "ultimate-vfx-overlay style-magic";
+      overlay.style.setProperty("--impact-color", theme.impactColor);
+      activeSession.overlay = overlay;
+
+      const clone = boardElement.cloneNode(true);
+      clone.className = (clone.className || "") + " ultimate-vfx-board-clone";
+      overlay.appendChild(clone);
+      activeSession.clone = clone;
+
+      const magicBox = document.createElement("div");
+      magicBox.className = "ultimate-vfx-magic-container";
+      magicBox.style.left = `${impactX}px`;
+      magicBox.style.top = `${impactY}px`;
+
+      const circle1 = document.createElement("div");
+      circle1.className = "ultimate-vfx-magic-circle outer-ring";
+      const circle2 = document.createElement("div");
+      circle2.className = "ultimate-vfx-magic-circle inner-ring";
+      const core = document.createElement("div");
+      core.className = "ultimate-vfx-magic-core";
+
+      magicBox.appendChild(circle1);
+      magicBox.appendChild(circle2);
+      magicBox.appendChild(core);
+      overlay.appendChild(magicBox);
+
+      boardElement.parentNode.appendChild(overlay);
+      boardElement.style.opacity = "0";
+
+      const totalDuration = 1150;
+      const tImpact = reducedMotion ? 150 : 380;
+
+      playFocusRiseSound();
+      activeSession.safetyTimeoutId = setTimeout(() => finishSession("safety_timeout"), 3500);
+
+      let lastTime = performance.now();
+      let simTime = 0;
+      let hasImpacted = false;
+
+      function tick(now) {
+        if (!activeSession || activeSession.completed) return;
+        const currentNow = (typeof now === "number" && now > 0) ? now : performance.now();
+        const dt = Math.max(0, currentNow - lastTime);
+        lastTime = currentNow;
+        if (!activeSession.isHitStop) simTime += dt;
+        if (simTime >= totalDuration) { finishSession("complete"); return; }
+
+        if (simTime >= tImpact && !hasImpacted) {
+          hasImpacted = true;
+          activeSession.impactTriggered = true;
+          magicBox.classList.add("is-exploded");
+          playImpactSound();
+          try { onImpact(); } catch (e) {}
+        }
+
+        if (simTime > totalDuration - 250) {
+          overlay.style.opacity = Math.max(0, (totalDuration - simTime) / 250);
+        }
+        activeSession.animationFrameId = requestAnimationFrame(tick);
+      }
       activeSession.animationFrameId = requestAnimationFrame(tick);
     });
   }
@@ -953,7 +1046,6 @@
     finishSession("cancelled");
   }
 
-  // Export module API
   const UltimateVfx = {
     preload,
     canPlay,
@@ -962,7 +1054,11 @@
     buildFractureModel,
     getLegionTheme,
     normalizeLegionKey,
+    playUltimateImpact,
     playGreatswordImpact,
+    playPierceImpact,
+    playClawImpact,
+    playMagicImpact,
     cancel
   };
 

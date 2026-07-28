@@ -2533,7 +2533,9 @@ async function playAttackEffect(attacker, targets, damage, attackCells, rolledDa
     let impactTriggered = false;
     let vfxResult = null;
     try {
-      vfxResult = await window.UltimateVfx.playGreatswordImpact({
+      vfxResult = await window.UltimateVfx.playUltimateImpact({
+        style: ultimateStyleFor(attacker),
+        sourceCell: { row: attacker.row, col: attacker.col },
         boardElement: boardEl,
         targetCell,
         attackerOwner: attacker.owner,

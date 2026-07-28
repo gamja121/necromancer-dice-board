@@ -742,6 +742,7 @@ async function verifyCancelledAndInvalidatedAttacks() {
       canPlay: () => true,
       prefersReducedMotion: () => false,
       cancel: () => {},
+      playUltimateImpact: async () => ({ reason: "cancelled", impactTriggered: false }),
       playGreatswordImpact: async () => ({ reason: "cancelled", impactTriggered: false })
     };
 
@@ -759,6 +760,11 @@ async function verifyCancelledAndInvalidatedAttacks() {
       canPlay: () => true,
       prefersReducedMotion: () => false,
       cancel: () => {},
+      playUltimateImpact: async () => {
+        state.battleToken = (state.battleToken || 0) + 1;
+        state.effects = { phase: "new-battle-sentinel" };
+        return { reason: "complete", impactTriggered: true };
+      },
       playGreatswordImpact: async () => {
         state.battleToken = (state.battleToken || 0) + 1;
         state.effects = { phase: "new-battle-sentinel" };

@@ -260,3 +260,100 @@
     drop-shadow(0 0 2px rgba(255, 255, 255, 0.95))
     drop-shadow(0 10px 15px rgba(0, 0, 0, 0.8));
 }
+
+/* Style Pierce */
+.ultimate-vfx-pierce-weapon {
+  position: absolute;
+  width: 60px;
+  height: 240px;
+  margin-left: -30px;
+  margin-top: -210px;
+  transform-origin: 50% 87.5%;
+  pointer-events: none;
+  z-index: 10;
+}
+.ultimate-vfx-pierce-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.ultimate-vfx-pierce-fallback {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #fff 0%, #aaa 70%, #444 100%);
+  clip-path: polygon(50% 100%, 75% 85%, 60% 0%, 40% 0%, 25% 85%);
+}
+
+/* Style Claw */
+.ultimate-vfx-claw-container {
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  margin-left: -80px;
+  margin-top: -80px;
+  pointer-events: none;
+  z-index: 11;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.ultimate-vfx-claw-container.is-active {
+  opacity: 1;
+  transform: scale(1.2);
+}
+.ultimate-vfx-claw-mark {
+  position: absolute;
+  width: 100%;
+  height: 8px;
+  background: linear-gradient(90deg, transparent 0%, var(--impact-color) 40%, #fff 50%, var(--impact-color) 60%, transparent 100%);
+  border-radius: 4px;
+  box-shadow: 0 0 10px var(--impact-color);
+}
+.claw-line-1 { top: 25%; transform: rotate(-35deg); }
+.claw-line-2 { top: 50%; transform: rotate(-35deg); }
+.claw-line-3 { top: 75%; transform: rotate(-35deg); }
+
+/* Style Magic */
+.ultimate-vfx-magic-container {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  margin-left: -100px;
+  margin-top: -100px;
+  pointer-events: none;
+  z-index: 11;
+}
+.ultimate-vfx-magic-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border: 2px dashed var(--impact-color);
+  border-radius: 50%;
+  box-shadow: 0 0 15px var(--impact-color);
+  transform: translate(-50%, -50%) rotate(0deg);
+  animation: ultimate-magic-spin 3s linear infinite;
+}
+.outer-ring { width: 180px; height: 180px; }
+.inner-ring { width: 110px; height: 110px; animation-direction: reverse; }
+.ultimate-vfx-magic-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30px;
+  height: 30px;
+  margin-left: -15px;
+  margin-top: -15px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, var(--impact-color) 60%, transparent 100%);
+  opacity: 0.5;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.ultimate-vfx-magic-container.is-exploded .ultimate-vfx-magic-core {
+  transform: scale(5);
+  opacity: 1;
+}
+
+@keyframes ultimate-magic-spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}

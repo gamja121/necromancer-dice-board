@@ -5,12 +5,14 @@
 
 var UNIT_TYPES = {
   summoner: {
+    ultimateStyle: "magic",
     label: "소환사",
     hp: 5,
     dice: [0, 1, 1, 1, 2, 2],
     image: "assets/summoner.jpg",
   },
   spear: {
+    ultimateStyle: "pierce",
     label: "해골 창병",
     legion: "skeleton",
     grade: "normal",
@@ -19,6 +21,7 @@ var UNIT_TYPES = {
     image: "assets/skeleton-spear.jpg",
   },
   archer: {
+    ultimateStyle: "pierce",
     label: "해골 궁수",
     legion: "skeleton",
     grade: "normal",
@@ -27,6 +30,7 @@ var UNIT_TYPES = {
     image: "assets/skeleton-archer.jpg",
   },
   knight: {
+    ultimateStyle: "greatsword",
     label: "죽음의 기사",
     legion: "skeleton",
     grade: "advanced",
@@ -35,6 +39,7 @@ var UNIT_TYPES = {
     image: "assets/death-knight.jpg",
   },
   worm: {
+    ultimateStyle: "claw",
     label: "묘지 벌래",
     legion: ["corpse", "insect"],
     grade: "normal",
@@ -67,6 +72,7 @@ var UNIT_TYPES = {
     image: "assets/ogre.jpg",
   },
   plague: {
+    ultimateStyle: "magic",
     label: "역병술사",
     legion: "plague",
     grade: "advanced",
@@ -99,6 +105,7 @@ var UNIT_TYPES = {
     image: "assets/minotaur.jpg",
   },
   yeti: {
+    ultimateStyle: "claw",
     label: "설인",
     legion: ["beast", "ice"],
     grade: "normal",
@@ -356,6 +363,7 @@ var UNIT_TYPES = {
 
 var ENCOUNTER_UNIT_META = {
   spear: {
+    ultimateStyle: "pierce",
     cost: 2.0,
     minStage: 1,
     roles: ["frontline"],
@@ -374,6 +382,7 @@ var ENCOUNTER_UNIT_META = {
     directSpawn: true,
   },
   worm: {
+    ultimateStyle: "claw",
     cost: 2.5,
     minStage: 1,
     roles: ["frontline"],
@@ -410,6 +419,7 @@ var ENCOUNTER_UNIT_META = {
     directSpawn: true,
   },
   yeti: {
+    ultimateStyle: "claw",
     cost: 2.5,
     minStage: 1,
     roles: ["frontline", "status"],
@@ -446,6 +456,7 @@ var ENCOUNTER_UNIT_META = {
     directSpawn: true,
   },
   knight: {
+    ultimateStyle: "greatsword",
     cost: 4.0,
     minStage: 1,
     roles: ["frontline", "heavy"],
@@ -804,11 +815,28 @@ if (typeof globalThis !== "undefined") {
   globalThis.UNIT_TYPES = UNIT_TYPES;
   globalThis.ENCOUNTER_UNIT_META = ENCOUNTER_UNIT_META;
   globalThis.validateUnitRegistry = validateUnitRegistry;
+  globalThis.ultimateStyleFor = ultimateStyleFor;
 }
+var ULTIMATE_STYLES = new Set(["greatsword", "pierce", "claw", "magic"]);
+
+function ultimateStyleFor(unit) {
+  if (!unit) return "greatsword";
+  const explicit = (typeof UNIT_TYPES !== "undefined" && UNIT_TYPES[unit.type]) ? UNIT_TYPES[unit.type].ultimateStyle : null;
+  if (ULTIMATE_STYLES.has(explicit)) return explicit;
+
+  const attackStyle = typeof attackStyleFor === "function" ? attackStyleFor(unit) : "melee";
+  if (attackStyle === "projectile") return "pierce";
+  if (attackStyle === "magic") return "magic";
+  if (attackStyle === "claw" || attackStyle === "bite") return "claw";
+  return "greatsword";
+}
+
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     UNIT_TYPES,
     ENCOUNTER_UNIT_META,
     validateUnitRegistry,
+    ultimateStyleFor,
+    ULTIMATE_STYLES
   };
 }
