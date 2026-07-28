@@ -717,6 +717,10 @@ const ultimateRollSnapshot = vm.runInContext(`(() => ({
   weakUnitMaxTwo: isMaximumAttackRoll(2, [0, 0, 1, 1, 2, 2]),
   zeroOnly: isMaximumAttackRoll(0, [0, 0, 0, 0, 0, 0]),
   invalidDice: isMaximumAttackRoll(3, null),
+  normalBlocked: isUltimateEligibleUnit({ type: 'spear' }),
+  advancedAllowed: isUltimateEligibleUnit({ type: 'knight' }),
+  heroAllowed: isUltimateEligibleUnit({ type: 'hydra' }),
+  specialBlocked: isUltimateEligibleUnit({ type: 'spiderling' }),
   killShortcutRemoved: !playAttackEffect.toString().includes('rolledDamage === 3 || isKill')
 }))()`, sandbox);
 assert.strictEqual(ultimateRollSnapshot.deathKnightMax, true, 'Death Knight must trigger the ultimate on its actual maximum face.');
@@ -724,6 +728,10 @@ assert.strictEqual(ultimateRollSnapshot.deathKnightTwo, false, 'Death Knight fac
 assert.strictEqual(ultimateRollSnapshot.weakUnitMaxTwo, true, 'A unit whose actual maximum is 2 must trigger on face 2.');
 assert.strictEqual(ultimateRollSnapshot.zeroOnly, false, 'A zero-only non-attacker must not trigger the ultimate.');
 assert.strictEqual(ultimateRollSnapshot.invalidDice, false, 'Missing attack dice must not trigger the ultimate.');
+assert.strictEqual(ultimateRollSnapshot.normalBlocked, false, 'Normal units must never trigger an ultimate.');
+assert.strictEqual(ultimateRollSnapshot.advancedAllowed, true, 'Advanced units must be eligible for maximum-face ultimates.');
+assert.strictEqual(ultimateRollSnapshot.heroAllowed, true, 'Hero units must be eligible for maximum-face ultimates.');
+assert.strictEqual(ultimateRollSnapshot.specialBlocked, false, 'Special summons must never trigger an ultimate.');
 assert.strictEqual(ultimateRollSnapshot.killShortcutRemoved, true, 'Kill status must not bypass the maximum-face rule.');
 console.log('Pass: Ultimate VFX is restricted to the positive maximum face of the effective attack die.');
 

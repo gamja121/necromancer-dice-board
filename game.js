@@ -964,6 +964,11 @@ function isMaximumAttackRoll(rolledDamage, attackDice) {
   return maximumFace > 0 && rolledDamage === maximumFace;
 }
 
+function isUltimateEligibleUnit(unit) {
+  const grade = unit && UNIT_TYPES[unit.type]?.grade;
+  return grade === "advanced" || grade === "hero";
+}
+
 function corpseSummonBonus(owner) {
   return isLegionActive(owner, "corpse") ? 1 : 0;
 }
@@ -2524,6 +2529,7 @@ async function playAttackEffect(attacker, targets, damage, attackCells, rolledDa
   const canTriggerUltimate =
     damage > 0 &&
     state.phase === "battle" &&
+    isUltimateEligibleUnit(attacker) &&
     isMaximumAttackRoll(rolledDamage, attackDice) &&
     window.UltimateVfx &&
     window.UltimateVfx.canPlay();

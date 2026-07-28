@@ -1,10 +1,11 @@
-/* ultimate-vfx.js v27 - calibrated weapon anchors and illustrated claw rake */
+/* ultimate-vfx.js v28 - illustrated ultimate suite */
 (function (root) {
   let activeSession = null;
   let preloadPromise = null;
   let swordImage = null;
   let spearImage = null;
   let clawImage = null;
+  let magicImage = null;
   let audioCtx = null;
 
   function ensureAudioContext() {
@@ -167,7 +168,7 @@
       let loaded = 0;
       const checkDone = () => {
         loaded++;
-        if (loaded >= 2) resolve(swordImage);
+        if (loaded >= 4) resolve(swordImage);
       };
       const img1 = new Image();
       img1.src = "./assets/vfx/greatsword.png";
@@ -178,6 +179,16 @@
       img2.src = "./assets/vfx/claw-rake.png";
       img2.onload = () => { clawImage = img2; checkDone(); };
       img2.onerror = () => { clawImage = null; checkDone(); };
+
+      const img3 = new Image();
+      img3.src = "./assets/vfx/brutal-spear.png";
+      img3.onload = () => { spearImage = img3; checkDone(); };
+      img3.onerror = () => { spearImage = null; checkDone(); };
+
+      const img4 = new Image();
+      img4.src = "./assets/vfx/forbidden-magic.png";
+      img4.onload = () => { magicImage = img4; checkDone(); };
+      img4.onerror = () => { magicImage = null; checkDone(); };
     });
     return preloadPromise;
   }
@@ -801,6 +812,7 @@
       const dy = impactY - srcY;
       const angleRad = Math.atan2(dy, dx);
       const angleDeg = (angleRad * 180) / Math.PI;
+      const spearRotation = angleDeg - 135;
 
       const overlay = document.createElement("div");
       overlay.className = "ultimate-vfx-overlay style-pierce";
@@ -816,17 +828,20 @@
       spear.className = "ultimate-vfx-pierce-weapon";
       spear.style.left = `${impactX}px`;
       spear.style.top = `${impactY}px`;
-      spear.style.transform = `rotate(${angleDeg + 90}deg)`;
+      spear.style.transform = `rotate(${spearRotation}deg)`;
 
+      const spearVisual = document.createElement("div");
+      spearVisual.className = "ultimate-vfx-pierce-visual";
       if (spearImage) {
         const img = spearImage.cloneNode(true);
         img.className = "ultimate-vfx-pierce-img";
-        spear.appendChild(img);
+        spearVisual.appendChild(img);
       } else {
         const fallback = document.createElement("div");
         fallback.className = "ultimate-vfx-pierce-fallback";
-        spear.appendChild(fallback);
+        spearVisual.appendChild(fallback);
       }
+      spear.appendChild(spearVisual);
       overlay.appendChild(spear);
 
       boardElement.parentNode.appendChild(overlay);
@@ -853,13 +868,13 @@
         if (simTime < tImpact) {
           const p = Math.max(0, simTime / tImpact);
           const dist = 300 * (1 - Math.pow(p, 3));
-          spear.style.transform = `translate(${-Math.cos(angleRad) * dist}px, ${-Math.sin(angleRad) * dist}px) rotate(${angleDeg + 90}deg) scale(${1 + (1 - p)})`;
+          spear.style.transform = `translate(${-Math.cos(angleRad) * dist}px, ${-Math.sin(angleRad) * dist}px) rotate(${spearRotation}deg) scale(${1 + (1 - p) * 0.65})`;
         }
 
         if (simTime >= tImpact && !hasImpacted) {
           hasImpacted = true;
           activeSession.impactTriggered = true;
-          spear.style.transform = `translate(0, 0) rotate(${angleDeg + 90}deg) scale(1)`;
+          spear.style.transform = `translate(0, 0) rotate(${spearRotation}deg) scale(1)`;
           playImpactSound();
           try { onImpact(); } catch (e) {}
         }
@@ -1083,6 +1098,15 @@
       const core = document.createElement("div");
       core.className = "ultimate-vfx-magic-core";
 
+      if (magicImage) {
+        const magicArt = magicImage.cloneNode(true);
+        magicArt.className = "ultimate-vfx-magic-art";
+        magicBox.appendChild(magicArt);
+      } else {
+        const magicFallback = document.createElement("div");
+        magicFallback.className = "ultimate-vfx-magic-art-fallback";
+        magicBox.appendChild(magicFallback);
+      }
       magicBox.appendChild(circle1);
       magicBox.appendChild(circle2);
       magicBox.appendChild(core);
@@ -1109,9 +1133,17 @@
         if (!activeSession.isHitStop) simTime += dt;
         if (simTime >= totalDuration) { finishSession("complete"); return; }
 
+        if (simTime < tImpact) {
+          const charge = Math.min(1, simTime / tImpact);
+          const eased = 1 - Math.pow(1 - charge, 3);
+          magicBox.style.opacity = Math.min(1, charge * 3);
+          magicBox.style.transform = `translate(-50%, -50%) scale(${0.38 + eased * 0.62}) rotate(${(1 - eased) * -12}deg)`;
+        }
+
         if (simTime >= tImpact && !hasImpacted) {
           hasImpacted = true;
           activeSession.impactTriggered = true;
+          magicBox.style.transform = "translate(-50%, -50%) scale(1) rotate(0deg)";
           magicBox.classList.add("is-exploded");
           playImpactSound();
           try { onImpact(); } catch (e) {}

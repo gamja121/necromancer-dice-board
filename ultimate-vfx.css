@@ -270,24 +270,41 @@
 /* Style Pierce */
 .ultimate-vfx-pierce-weapon {
   position: absolute;
-  width: 60px;
-  height: 240px;
-  margin-left: -30px;
-  margin-top: -210px;
-  transform-origin: 50% 87.5%;
+  width: 0;
+  height: 0;
+  transform-origin: 0 0;
   pointer-events: none;
-  z-index: 10;
+  z-index: 13;
+  will-change: transform, opacity;
+}
+.ultimate-vfx-pierce-visual {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: clamp(270px, 62vw, 390px);
+  aspect-ratio: 1.5;
+  transform: translate(-3%, -82%);
+  transform-origin: 3% 82%;
 }
 .ultimate-vfx-pierce-img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
+  color-scheme: light only;
+  forced-color-adjust: none;
+  filter:
+    brightness(1.15)
+    contrast(1.12)
+    drop-shadow(0 0 3px rgba(255,255,255,.88))
+    drop-shadow(0 16px 18px rgba(0,0,0,.92));
 }
 .ultimate-vfx-pierce-fallback {
   width: 100%;
   height: 100%;
-  background: linear-gradient(180deg, #fff 0%, #aaa 70%, #444 100%);
-  clip-path: polygon(50% 100%, 75% 85%, 60% 0%, 40% 0%, 25% 85%);
+  background: linear-gradient(145deg, #fff 0%, #333 38%, #ddd 58%, #090909 100%);
+  clip-path: polygon(0 82%, 35% 47%, 46% 25%, 100% 0, 58% 39%, 42% 61%);
+  filter: drop-shadow(0 0 3px #fff) drop-shadow(0 14px 18px #000);
 }
 
 /* Style Claw: illustrated wind-up, weighty rake, then persistent gouges. */
@@ -430,12 +447,36 @@
 /* Style Magic */
 .ultimate-vfx-magic-container {
   position: absolute;
-  width: 200px;
-  height: 200px;
-  margin-left: -100px;
-  margin-top: -100px;
+  width: clamp(220px, 54vw, 330px);
+  height: clamp(220px, 54vw, 330px);
+  margin: 0;
   pointer-events: none;
-  z-index: 11;
+  z-index: 13;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(.38);
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+}
+.ultimate-vfx-magic-art,
+.ultimate-vfx-magic-art-fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  z-index: 2;
+  color-scheme: light only;
+  forced-color-adjust: none;
+  filter:
+    brightness(1.13)
+    contrast(1.12)
+    drop-shadow(0 0 5px rgba(255,255,255,.78))
+    drop-shadow(0 0 17px var(--impact-color))
+    drop-shadow(0 18px 21px rgba(0,0,0,.92));
+}
+.ultimate-vfx-magic-art-fallback {
+  background: radial-gradient(circle, #fff 0 7%, var(--impact-color) 9% 26%, #090909 28% 48%, transparent 50%);
+  clip-path: polygon(50% 0, 61% 28%, 88% 12%, 72% 39%, 100% 50%, 70% 62%, 89% 90%, 60% 72%, 50% 100%, 39% 72%, 12% 90%, 29% 61%, 0 50%, 29% 39%, 11% 12%, 40% 28%);
 }
 .ultimate-vfx-magic-circle {
   position: absolute;
@@ -446,6 +487,7 @@
   box-shadow: 0 0 15px var(--impact-color);
   transform: translate(-50%, -50%) rotate(0deg);
   animation: ultimate-magic-spin 3s linear infinite;
+  z-index: 1;
 }
 .outer-ring { width: 180px; height: 180px; }
 .inner-ring { width: 110px; height: 110px; animation-direction: reverse; }
@@ -461,10 +503,20 @@
   background: radial-gradient(circle, #fff 0%, var(--impact-color) 60%, transparent 100%);
   opacity: 0.5;
   transition: transform 0.2s ease, opacity 0.2s ease;
+  z-index: 3;
+}
+.ultimate-vfx-magic-container.is-exploded .ultimate-vfx-magic-art {
+  animation: ultimate-magic-art-burst 360ms cubic-bezier(.08,.76,.18,1) both;
 }
 .ultimate-vfx-magic-container.is-exploded .ultimate-vfx-magic-core {
   transform: scale(5);
   opacity: 1;
+}
+
+@keyframes ultimate-magic-art-burst {
+  0% { transform: scale(1); filter: brightness(1.15) contrast(1.12) drop-shadow(0 0 8px var(--impact-color)); }
+  20% { transform: scale(1.16); filter: brightness(1.75) contrast(1.2) drop-shadow(0 0 22px var(--impact-color)); }
+  100% { transform: scale(.94); filter: brightness(1.05) contrast(1.15) drop-shadow(0 0 5px var(--impact-color)); }
 }
 
 @keyframes ultimate-magic-spin {

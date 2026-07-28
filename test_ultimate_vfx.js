@@ -493,9 +493,9 @@ async function runTests() {
   const swText = fs.readFileSync(path.join(projectDir, "service-worker.js"), "utf8");
   const htmlText = fs.readFileSync(path.join(projectDir, "index.html"), "utf8");
 
-  assert.strictEqual(swText.includes("necromancer-expedition-v27"), true, "service-worker.js CACHE_NAME must be v27");
-  assert.strictEqual(swText.includes("20260728-16"), true, "service-worker.js APP_SHELL must contain 20260728-16 VFX query parameters");
-  assert.strictEqual(htmlText.includes("20260728-16"), true, "index.html must contain 20260728-16 VFX asset query parameters");
+  assert.strictEqual(swText.includes("necromancer-expedition-v28"), true, "service-worker.js CACHE_NAME must be v28");
+  assert.strictEqual(swText.includes("20260728-17"), true, "service-worker.js APP_SHELL must contain 20260728-17 VFX query parameters");
+  assert.strictEqual(htmlText.includes("20260728-17"), true, "index.html must contain 20260728-17 VFX asset query parameters");
   console.log("Pass: Cache version & asset query parameter verified.");
 
   // Test 18: Greatsword asset path and dark-background visibility fallback
@@ -532,6 +532,18 @@ async function runTests() {
   assert.strictEqual(cssText.includes(".ultimate-vfx-claw-hand"), true, "Claw hand staging must exist");
   assert.strictEqual(cssText.includes("ultimate-claw-carve"), true, "Sequential claw carving animation must exist");
   assert.strictEqual(swText.includes("./assets/vfx/claw-rake.png"), true, "Service worker must cache the claw asset");
+
+  // Test 18c: illustrated pierce and magic assets
+  const spearAssetPath = path.join(projectDir, "assets", "vfx", "brutal-spear.png");
+  const magicAssetPath = path.join(projectDir, "assets", "vfx", "forbidden-magic.png");
+  assert.strictEqual(fs.existsSync(spearAssetPath), true, "Illustrated spear PNG must exist");
+  assert.strictEqual(fs.existsSync(magicAssetPath), true, "Illustrated magic PNG must exist");
+  assert.strictEqual(jsText.includes('img3.src = "./assets/vfx/brutal-spear.png"'), true, "Spear preloader path must be deployable");
+  assert.strictEqual(jsText.includes('img4.src = "./assets/vfx/forbidden-magic.png"'), true, "Magic preloader path must be deployable");
+  assert.strictEqual(cssText.includes(".ultimate-vfx-pierce-visual"), true, "Pierce art must use a calibrated impact anchor");
+  assert.strictEqual(cssText.includes(".ultimate-vfx-magic-art"), true, "Magic renderer must stage the illustrated art");
+  assert.strictEqual(swText.includes("./assets/vfx/brutal-spear.png"), true, "Service worker must cache the spear asset");
+  assert.strictEqual(swText.includes("./assets/vfx/forbidden-magic.png"), true, "Service worker must cache the magic asset");
 
   console.log("\n✅ All Ultimate VFX unit tests passed successfully!");
   // Test 19: Target-pivot board perspective tilt restoration
