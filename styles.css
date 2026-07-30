@@ -4420,6 +4420,39 @@ dialog::backdrop {
   background: #d8d2c5;
 }
 
+.map-route-shell.is-loading::before {
+  content: "원정 지도를 펼치는 중";
+  position: absolute;
+  z-index: 30;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(246, 243, 235, .94);
+  color: #111;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.map-route-shell.is-loading::after {
+  content: "";
+  position: absolute;
+  z-index: 31;
+  top: calc(50% + 28px);
+  left: 50%;
+  width: 30px;
+  height: 30px;
+  margin-left: -15px;
+  border: 3px solid rgba(17, 17, 17, .22);
+  border-top-color: #111;
+  border-radius: 50%;
+  animation: mapLoadingSpin .8s linear infinite;
+}
+
+@keyframes mapLoadingSpin {
+  to { transform: rotate(360deg); }
+}
+
 .map-route-toolbar {
   position: absolute;
   z-index: 20;
@@ -4502,7 +4535,7 @@ dialog::backdrop {
   height: 2140px;
   overflow: hidden;
   background-color: #f6f3eb;
-  background-image: url("assets/campaign-map-expedition.png");
+  background-image: url("assets/campaign-map-expedition.jpg");
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -4811,7 +4844,7 @@ dialog::backdrop {
   min-height: 520px;
   border-right: 3px solid #111;
   background-color: #e7e2d6;
-  background-image: url("assets/campaign-map-expedition.png");
+  background-image: url("assets/campaign-map-expedition.jpg");
   background-repeat: no-repeat;
   background-size: 1100px auto;
   background-position: 12% 82%;

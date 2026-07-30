@@ -1,16 +1,16 @@
-const CACHE_NAME = "necromancer-expedition-v30";
+const CACHE_NAME = "necromancer-expedition-v31";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=20260731-19",
-  "./ultimate-vfx.css?v=20260731-19",
+  "./styles.css?v=20260731-20",
+  "./ultimate-vfx.css?v=20260731-20",
   "./unit-data.js?v=20260726-10",
   "./encounter-generator.js?v=20260726-10",
-  "./ultimate-vfx.js?v=20260731-19",
-  "./game.js?v=20260731-19",
+  "./ultimate-vfx.js?v=20260731-20",
+  "./game.js?v=20260731-20",
   "./manifest.webmanifest?v=20260726-10",
   "./assets/app-icon-192.png",
-  "./assets/campaign-map-expedition.png",
+  "./assets/campaign-map-expedition.jpg",
   "./assets/vfx/greatsword.png",
   "./assets/vfx/claw-rake.png",
   "./assets/vfx/brutal-spear.png",

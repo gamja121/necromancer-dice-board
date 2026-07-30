@@ -276,6 +276,7 @@ const SFX_VIBRATION = {
 };
 const sfxTemplates = new Map();
 const pieceImageCache = new Map();
+let expeditionMapReady = false;
 const PLAYERS = {
   player: { label: "플레이어", dir: -1, homeRows: [3, 4], goalRow: 0 },
   enemy: { label: "상대", dir: 1, homeRows: [0, 1], goalRow: 4 },
@@ -4601,6 +4602,34 @@ function bindExpeditionMapDrag(scroller) {
   scroller.addEventListener("pointercancel", release);
 }
 
+function prepareExpeditionMapImage() {
+  const shell = typeof mapRoute?.closest === "function"
+    ? mapRoute.closest(".map-route-shell")
+    : null;
+  if (!shell || expeditionMapReady) {
+    shell?.classList.remove("is-loading");
+    shell?.removeAttribute("aria-busy");
+    return;
+  }
+  shell.classList.add("is-loading");
+  shell.setAttribute("aria-busy", "true");
+  const image = new Image();
+  const finish = () => {
+    expeditionMapReady = true;
+    shell.classList.remove("is-loading");
+    shell.removeAttribute("aria-busy");
+  };
+  image.onload = () => {
+    if (typeof image.decode === "function") {
+      image.decode().catch(() => {}).finally(finish);
+    } else {
+      finish();
+    }
+  };
+  image.onerror = finish;
+  image.src = "assets/campaign-map-expedition.jpg";
+}
+
 function showInterludeResult(spec, resultText) {
   if (!storyDialog || !storyResult || !storyResultText) {
     showDialog("탐험 결과", resultText, [{ label: "계속", onClick: () => render() }]);
@@ -4748,8 +4777,7 @@ function renderCampaignMap() {
     const enhancementLevel = enhancementLevelFor(type, progress);
     const item = document.createElement("span");
     item.className = "campaign-roster-unit";
-    item.innerHTML = `<img src="${def.image}" alt=""><span><b>${def.label}${enhancementLevel > 0 ? `<em class="enhancement-badge">+${enhancementLevel}강</em>` : ""}</b><small>HP ${progress.hp}/${progress.maxHp}</small></span>`;
-    applyPieceImage(item.querySelector("img"), def.image);
+    item.innerHTML = `<img src="${def.image}" alt="" loading="lazy" decoding="async"><span><b>${def.label}${enhancementLevel > 0 ? `<em class="enhancement-badge">+${enhancementLevel}강</em>` : ""}</b><small>HP ${progress.hp}/${progress.maxHp}</small></span>`;
     campaignRosterEl.appendChild(item);
   });
 
@@ -4844,12 +4872,11 @@ function renderCampaignMap() {
       node.dataset.battleIndex = String(entry.index);
       node.innerHTML = `
         <span class="expedition-node-token">
-          <img src="${preview.image}" alt="">
+          <img src="${preview.image}" alt="" loading="lazy" decoding="async">
           <em>${entry.index + 1}</em>
         </span>
         <span class="expedition-node-caption">${encounter.boss ? "보스" : isElite ? "정예" : `전투 ${entry.index + 1}`}</span>
       `;
-      applyPieceImage(node.querySelector("img"), preview.image);
       if (available) {
         node.addEventListener("click", () => {
           openBattleBriefing(encounter, entry.index, () => enterGeneratedCampaignBattle(entry.index));
@@ -4861,6 +4888,7 @@ function renderCampaignMap() {
 
   mapRoute.appendChild(canvas);
   bindExpeditionMapDrag(mapRoute);
+  prepareExpeditionMapImage();
   const focusKey = `${campaign.battleIndex}:${pendingInterlude?.id || "battle"}`;
   if (mapRoute.dataset.focusKey !== focusKey) {
     mapRoute.dataset.focusKey = focusKey;
