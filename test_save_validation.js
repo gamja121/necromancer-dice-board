@@ -174,7 +174,11 @@ const corruptedSave = {
 storage['necromancer-campaign-save-v1'] = JSON.stringify(corruptedSave);
 sandbox.initGameApp();
 assert.strictEqual(sandbox.loadCampaignSave(), null, '손상된 세이브는 null을 반환해야 함');
-assert.strictEqual(elements.continueCampaignBtn.disabled, true, '손상 세이브의 경우 계속하기 버튼 비활성화');
+assert.strictEqual(
+  elements.continueCampaignBtn.disabled,
+  false,
+  '시작 화면에서는 무거운 정밀 검증을 미루고 저장 키가 있으면 계속하기를 표시'
+);
 const corruptionCases = [
   { name: '스테이지/전투 불일치', patch: { stageIndex: 2, battleIndex: 0 } },
   { name: '비정수 시드', patch: { runSeed: 1.5 } },

@@ -160,35 +160,26 @@
 
   function preload() {
     if (preloadPromise) return preloadPromise;
-    preloadPromise = new Promise((resolve) => {
+    preloadPromise = new Promise(async (resolve) => {
       if (typeof Image === "undefined") {
         resolve(null);
         return;
       }
-      let loaded = 0;
-      const checkDone = () => {
-        loaded++;
-        if (loaded >= 4) resolve(swordImage);
-      };
-      const img1 = new Image();
-      img1.src = "./assets/vfx/greatsword.png";
-      img1.onload = () => { swordImage = img1; checkDone(); };
-      img1.onerror = () => { swordImage = null; checkDone(); };
 
-      const img2 = new Image();
-      img2.src = "./assets/vfx/claw-rake.png";
-      img2.onload = () => { clawImage = img2; checkDone(); };
-      img2.onerror = () => { clawImage = null; checkDone(); };
+      const loadImage = (src) => new Promise((done) => {
+        const image = new Image();
+        image.onload = () => done(image);
+        image.onerror = () => done(null);
+        image.src = src;
+      });
 
-      const img3 = new Image();
-      img3.src = "./assets/vfx/brutal-spear.png";
-      img3.onload = () => { spearImage = img3; checkDone(); };
-      img3.onerror = () => { spearImage = null; checkDone(); };
-
-      const img4 = new Image();
-      img4.src = "./assets/vfx/forbidden-magic.png";
-      img4.onload = () => { magicImage = img4; checkDone(); };
-      img4.onerror = () => { magicImage = null; checkDone(); };
+      // Large transparent PNGs are decoded serially to avoid blocking
+      // memory-constrained Android browsers.
+      swordImage = await loadImage("./assets/vfx/greatsword.png");
+      clawImage = await loadImage("./assets/vfx/claw-rake.png");
+      spearImage = await loadImage("./assets/vfx/brutal-spear.png");
+      magicImage = await loadImage("./assets/vfx/forbidden-magic.png");
+      resolve(swordImage);
     });
     return preloadPromise;
   }

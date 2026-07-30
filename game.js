@@ -1926,6 +1926,12 @@ function closeBattleBriefing() {
 }
 
 function openBattleBriefing(encounter, battleIndex, onStart, legacy = false) {
+  if (window.UltimateVfx) {
+    window.UltimateVfx.preload().catch((error) => {
+      console.warn("Failed to preload ultimate VFX assets:", error);
+    });
+  }
+
   const briefing = buildEncounterBriefing(encounter, battleIndex, legacy);
   pendingBriefingStart = onStart;
   briefingBadge.textContent = briefing.kind;
@@ -5188,14 +5194,11 @@ function initGameApp() {
   state.winnerAnnounced = false;
   state.selectedTotem = null;
   
-  const validSave = loadCampaignSave();
-  continueCampaignBtn.disabled = (validSave === null);
+  // Keep first paint cheap on mobile. Full encounter/save validation runs only
+  // after the player explicitly asks to continue.
+  continueCampaignBtn.disabled = !hasSavedCampaign();
   
   render();
-
-  if (window.UltimateVfx) {
-    window.UltimateVfx.preload().catch((err) => console.warn("Failed to preload ultimate VFX assets:", err));
-  }
 }
 
 function handleResetBtnClick() {
@@ -5208,7 +5211,13 @@ function handleResetBtnClick() {
   }
 }
 
-continueCampaignBtn.addEventListener("click", () => {
+continueCampaignBtn.addEventListener("click", async () => {
+  const originalLabel = continueCampaignBtn.textContent;
+  continueCampaignBtn.disabled = true;
+  continueCampaignBtn.textContent = "불러오는 중...";
+
+  // Let the loading label paint before synchronous save validation starts.
+  await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)));
   const save = loadCampaignSave();
   if (save) {
     campaign.version = save.version;
@@ -5237,8 +5246,9 @@ continueCampaignBtn.addEventListener("click", () => {
       render();
     }
   } else {
-    resetCampaign();
-    autoSaveCampaign();
+    continueCampaignBtn.textContent = originalLabel;
+    continueCampaignBtn.disabled = true;
+    alert("저장 데이터를 불러오지 못했습니다. 새 원정을 시작해 주세요.");
   }
 });
 
@@ -5285,9 +5295,16 @@ window.addEventListener("appinstalled", () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js").catch((error) => {
-      console.error("Service worker registration failed:", error);
-    });
+    const registerWorker = () => {
+      navigator.serviceWorker.register("./service-worker.js").catch((error) => {
+        console.error("Service worker registration failed:", error);
+      });
+    };
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(registerWorker, { timeout: 4000 });
+    } else {
+      setTimeout(registerWorker, 2000);
+    }
   });
 }
 

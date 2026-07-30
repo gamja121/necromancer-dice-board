@@ -1,32 +1,16 @@
-const CACHE_NAME = "necromancer-expedition-v31";
+const CACHE_NAME = "necromancer-expedition-v32";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=20260731-20",
-  "./ultimate-vfx.css?v=20260731-20",
+  "./styles.css?v=20260731-21",
+  "./ultimate-vfx.css?v=20260731-21",
   "./unit-data.js?v=20260726-10",
   "./encounter-generator.js?v=20260726-10",
-  "./ultimate-vfx.js?v=20260731-20",
-  "./game.js?v=20260731-20",
+  "./ultimate-vfx.js?v=20260731-21",
+  "./game.js?v=20260731-21",
   "./manifest.webmanifest?v=20260726-10",
   "./assets/app-icon-192.png",
-  "./assets/campaign-map-expedition.jpg",
-  "./assets/vfx/greatsword.png",
-  "./assets/vfx/claw-rake.png",
-  "./assets/vfx/brutal-spear.png",
-  "./assets/vfx/forbidden-magic.png",
-  "./assets/app-icon-512.png",
-  "./assets/hydra.jpg",
-  "./assets/totem-insect.jpg",
-  "./assets/totem-demon.jpg",
-  "./assets/totem-plague.jpg",
-  "./assets/totem-corpse.jpg",
-  "./assets/totem-element.jpg",
-  "./assets/totem-plant.jpg",
-  "./assets/mummy-guardian.jpg",
-  "./assets/soul-reaper.jpg",
-  "./assets/bone-hound.jpg",
-  "./assets/mimic.jpg"
+  "./assets/app-icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {
