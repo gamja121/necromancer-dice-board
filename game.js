@@ -87,6 +87,138 @@ const INTERLUDE_SPECS = [
   { id: "forge-3", stage: 3, triggerBattleIndex: 26, type: "forge", label: "지옥불 대장간", subtitle: "체력이나 공격 주사위를 강화합니다." },
   { id: "event-3", stage: 3, triggerBattleIndex: 28, type: "event", label: "심연의 제단", subtitle: "예측할 수 없는 전리품이 기다립니다." },
 ];
+const EXPEDITION_MAP_X = [
+  14, 28, 43, 58, 73, 84, 69, 52, 34, 50,
+  66, 81, 70, 54, 37, 21, 34, 51, 69, 48,
+  31, 17, 30, 47, 64, 79, 86, 70, 84, 91,
+];
+const EXPEDITION_STAGE_LABELS = [
+  { label: "제1장 · 묘지 외곽", x: 13, y: 97 },
+  { label: "제2장 · 오염된 경계", x: 87, y: 61 },
+  { label: "제3장 · 악마의 왕좌", x: 12, y: 31 },
+];
+const INTERLUDE_STORIES = {
+  "rest-1": {
+    kicker: "첫 번째 밤",
+    location: "죽은 숲의 모닥불",
+    scene: "camp",
+    body: [
+      "해가 가라앉자 죽은 나무들이 서로의 그림자를 삼켰다. 원정대는 오래전에 버려진 순례자의 화톳불을 되살렸다.",
+      "불빛은 약하지만 이 밤을 그냥 흘려보낼 필요는 없다. 한 망자를 단련할 시간이 남아 있다.",
+    ],
+    choices: [
+      { key: "vitality", mark: "♥", title: "뼈와 살을 단련한다", detail: "무작위 원정대 한 명의 최대 체력 +1" },
+      { key: "dice", mark: "◆", title: "전투 동작을 반복한다", detail: "무작위 공격 주사위 한 면 강화" },
+    ],
+  },
+  "forge-1": {
+    kicker: "잊힌 불씨",
+    location: "버려진 대장간",
+    scene: "forge",
+    body: [
+      "숲 한복판에서 망치 소리가 들렸다. 문이 뜯긴 대장간 안에는 주인 없는 화로가 아직 붉게 숨 쉬고 있다.",
+      "녹슨 갑옷과 무뎌진 무기를 모두 손볼 시간은 없다. 무엇을 먼저 불길에 넣을지 정해야 한다.",
+    ],
+    choices: [
+      { key: "vitality", mark: "▣", title: "방어구를 보강한다", detail: "무작위 원정대 한 명의 최대 체력 +1" },
+      { key: "dice", mark: "⚒", title: "무기를 다시 벼린다", detail: "무작위 공격 주사위 한 면 강화" },
+    ],
+  },
+  "event-1": {
+    kicker: "이름 없는 자",
+    location: "수상한 묘비",
+    scene: "grave",
+    body: [
+      "길을 막은 묘비에는 이름 대신 여섯 개의 주사위 눈만 새겨져 있다. 흙 아래에서 손톱이 돌을 긁는 소리가 난다.",
+      "묘비 뒤쪽에는 낡은 토템의 흔적도 이어진다. 욕심을 부릴수록 깨어나는 것도 위험해질 것이다.",
+    ],
+    choices: [
+      { key: "corpse", mark: "☠", title: "무덤을 파헤친다", detail: "60% 확률로 새로운 유닛 영입" },
+      { key: "totem", mark: "†", title: "토템 흔적을 추적한다", detail: "새 토템 발견 또는 최대 체력 강화" },
+      { key: "leave", mark: "→", title: "침묵을 지키고 떠난다", detail: "아무 위험 없이 원정을 계속" },
+    ],
+  },
+  "rest-2": {
+    kicker: "얼음 아래의 숨",
+    location: "얼어붙은 샘",
+    scene: "ice",
+    body: [
+      "빙벽 사이에서 검푸른 샘이 맥박처럼 뛰고 있다. 물에 손을 넣자 오래된 전사들의 기억이 뼛속으로 스며든다.",
+      "한 번뿐인 축복이다. 육체를 굳힐지, 기억 속 전투법을 받아들일지 선택해야 한다.",
+    ],
+    choices: [
+      { key: "vitality", mark: "♥", title: "얼음물로 몸을 굳힌다", detail: "무작위 원정대 한 명의 최대 체력 +1" },
+      { key: "dice", mark: "◇", title: "전사의 기억을 받아들인다", detail: "무작위 공격 주사위 한 면 강화" },
+    ],
+  },
+  "forge-2": {
+    kicker: "서리의 망치",
+    location: "서리 대장간",
+    scene: "forge",
+    body: [
+      "얼음으로 봉인된 대장간의 모루는 불 대신 푸른 냉기를 토해낸다. 금속을 올리자 균열이 별자리처럼 번진다.",
+      "차가운 담금질은 견고한 갑주와 날카로운 무기 중 하나만 완성할 수 있다.",
+    ],
+    choices: [
+      { key: "vitality", mark: "▣", title: "서리 갑주를 만든다", detail: "무작위 원정대 한 명의 최대 체력 +1" },
+      { key: "dice", mark: "⚒", title: "빙결 칼날을 벼린다", detail: "무작위 공격 주사위 한 면 강화" },
+    ],
+  },
+  "event-2": {
+    kicker: "봉인된 속삭임",
+    location: "왕가의 무덤",
+    scene: "crypt",
+    body: [
+      "금이 간 석관마다 왕관을 쓴 해골이 누워 있다. 가장 깊은 곳의 관에서 누군가 당신의 이름을 정확히 부른다.",
+      "관을 열 수도, 벽에 남은 토템 문양만 따라갈 수도 있다. 어느 쪽도 온전한 선물은 아닐 것이다.",
+    ],
+    choices: [
+      { key: "corpse", mark: "☠", title: "석관의 봉인을 푼다", detail: "60% 확률로 새로운 유닛 영입" },
+      { key: "totem", mark: "†", title: "벽의 문양을 해독한다", detail: "새 토템 발견 또는 최대 체력 강화" },
+      { key: "leave", mark: "→", title: "문을 다시 봉인한다", detail: "아무 위험 없이 원정을 계속" },
+    ],
+  },
+  "rest-3": {
+    kicker: "붉은 달 아래",
+    location: "악마의 휴식처",
+    scene: "demon",
+    body: [
+      "왕좌로 향하는 마지막 길목에서 붉은 달이 원정대의 그림자를 길게 찢는다. 땅속의 심장이 느리게 뛰고 있다.",
+      "남은 힘을 육체에 새길지, 마지막 공격에 모두 걸지 결정해야 한다.",
+    ],
+    choices: [
+      { key: "vitality", mark: "♥", title: "심장의 박동을 흡수한다", detail: "무작위 원정대 한 명의 최대 체력 +1" },
+      { key: "dice", mark: "◆", title: "피의 전투법을 익힌다", detail: "무작위 공격 주사위 한 면 강화" },
+    ],
+  },
+  "forge-3": {
+    kicker: "꺼지지 않는 화로",
+    location: "지옥불 대장간",
+    scene: "demon",
+    body: [
+      "쇠사슬에 묶인 화로가 살아 있는 짐승처럼 울부짖는다. 불꽃 속에는 패배한 원정대의 무기들이 떠다닌다.",
+      "하나를 꺼내는 순간 나머지는 재가 된다. 마지막 담금질을 선택할 때다.",
+    ],
+    choices: [
+      { key: "vitality", mark: "▣", title: "갑주에 지옥불을 가둔다", detail: "무작위 원정대 한 명의 최대 체력 +1" },
+      { key: "dice", mark: "⚒", title: "무기에 지옥불을 먹인다", detail: "무작위 공격 주사위 한 면 강화" },
+    ],
+  },
+  "event-3": {
+    kicker: "왕좌의 문턱",
+    location: "심연의 제단",
+    scene: "altar",
+    body: [
+      "제단 위 검은 거울에는 아직 싸우지 않은 미래가 비친다. 승리한 원정대와 전멸한 원정대가 같은 얼굴로 웃는다.",
+      "거울 뒤에서는 시체가 숨 쉬고, 바닥의 문양은 마지막 토템을 가리킨다. 선택은 곧 예언이 된다.",
+    ],
+    choices: [
+      { key: "corpse", mark: "☠", title: "거울 뒤의 시체를 깨운다", detail: "60% 확률로 새로운 유닛 영입" },
+      { key: "totem", mark: "†", title: "제단의 문양을 흡수한다", detail: "새 토템 발견 또는 최대 체력 강화" },
+      { key: "leave", mark: "→", title: "예언을 부수고 지나간다", detail: "아무 위험 없이 원정을 계속" },
+    ],
+  },
+};
 const campaign = {
   version: 2,
   generatorVersion: 3,
@@ -223,6 +355,7 @@ const installAppBtn = document.getElementById("installAppBtn");
 const stageBadge = document.getElementById("stageBadge");
 const stageTabs = document.getElementById("stageTabs");
 const mapRoute = document.getElementById("mapRoute");
+const mapFocusBtn = document.getElementById("mapFocusBtn");
 const mapProgress = document.getElementById("mapProgress");
 const campaignRosterEl = document.getElementById("campaignRoster");
 const newCampaignBtn = document.getElementById("newCampaignBtn");
@@ -265,6 +398,16 @@ const choiceDialog = document.getElementById("choiceDialog");
 const dialogTitle = document.getElementById("dialogTitle");
 const dialogText = document.getElementById("dialogText");
 const dialogActions = document.getElementById("dialogActions");
+const storyDialog = document.getElementById("storyDialog");
+const storyKicker = document.getElementById("storyKicker");
+const storyTitle = document.getElementById("storyTitle");
+const storyLocation = document.getElementById("storyLocation");
+const storyIllustration = document.getElementById("storyIllustration");
+const storyCopy = document.getElementById("storyCopy");
+const storyChoices = document.getElementById("storyChoices");
+const storyResult = document.getElementById("storyResult");
+const storyResultText = document.getElementById("storyResultText");
+const storyContinueBtn = document.getElementById("storyContinueBtn");
 const battleBriefingDialog = document.getElementById("battleBriefingDialog");
 const briefingBadge = document.getElementById("briefingBadge");
 const briefingTitle = document.getElementById("briefingTitle");
@@ -4372,15 +4515,111 @@ function pendingInterludeForBattleIndex(index = campaign.battleIndex) {
   )) || null;
 }
 
+function expeditionBattlePosition(index) {
+  const safeIndex = Math.max(0, Math.min(29, Number(index) || 0));
+  return {
+    x: EXPEDITION_MAP_X[safeIndex],
+    y: 92 - safeIndex * (84 / 29),
+  };
+}
+
+function expeditionInterludePosition(spec) {
+  const next = expeditionBattlePosition(spec.triggerBattleIndex);
+  const previous = expeditionBattlePosition(Math.max(0, spec.triggerBattleIndex - 1));
+  const offset = spec.type === "rest" ? -5 : spec.type === "forge" ? 5 : spec.stage % 2 ? 6 : -6;
+  return {
+    x: Math.max(7, Math.min(93, (previous.x + next.x) / 2 + offset)),
+    y: (previous.y + next.y) / 2,
+  };
+}
+
+function expeditionRouteEntries() {
+  const entries = [];
+  (campaign.encounters || []).slice(0, 30).forEach((encounter, index) => {
+    const interlude = INTERLUDE_SPECS.find((spec) => spec.triggerBattleIndex === index);
+    if (interlude) {
+      entries.push({
+        kind: "interlude",
+        spec: interlude,
+        index,
+        ...expeditionInterludePosition(interlude),
+      });
+    }
+    entries.push({
+      kind: "battle",
+      encounter,
+      index,
+      ...expeditionBattlePosition(index),
+    });
+  });
+  return entries;
+}
+
+function focusExpeditionNode(selector = ".expedition-node.is-current", behavior = "smooth") {
+  if (!mapRoute) return;
+  const node = mapRoute.querySelector(selector);
+  if (!node) return;
+  const left = node.offsetLeft - mapRoute.clientWidth / 2 + node.offsetWidth / 2;
+  const top = node.offsetTop - mapRoute.clientHeight / 2 + node.offsetHeight / 2;
+  const nextLeft = Math.max(0, left);
+  const nextTop = Math.max(0, top);
+  if (typeof mapRoute.scrollTo === "function") {
+    mapRoute.scrollTo({ left: nextLeft, top: nextTop, behavior });
+  } else {
+    mapRoute.scrollLeft = nextLeft;
+    mapRoute.scrollTop = nextTop;
+  }
+}
+
+function bindExpeditionMapDrag(scroller) {
+  if (!scroller || scroller.dataset.dragBound === "true") return;
+  scroller.dataset.dragBound = "true";
+  let drag = null;
+  scroller.addEventListener("pointerdown", (event) => {
+    if (event.pointerType !== "mouse" || event.target.closest("button")) return;
+    drag = {
+      pointerId: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      left: scroller.scrollLeft,
+      top: scroller.scrollTop,
+    };
+    scroller.setPointerCapture(event.pointerId);
+    scroller.classList.add("is-dragging");
+  });
+  scroller.addEventListener("pointermove", (event) => {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    scroller.scrollLeft = drag.left - (event.clientX - drag.x);
+    scroller.scrollTop = drag.top - (event.clientY - drag.y);
+  });
+  const release = (event) => {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    drag = null;
+    scroller.classList.remove("is-dragging");
+  };
+  scroller.addEventListener("pointerup", release);
+  scroller.addEventListener("pointercancel", release);
+}
+
+function showInterludeResult(spec, resultText) {
+  if (!storyDialog || !storyResult || !storyResultText) {
+    showDialog("탐험 결과", resultText, [{ label: "계속", onClick: () => render() }]);
+    return;
+  }
+  storyKicker.textContent = "선택의 대가";
+  storyLocation.textContent = spec.label;
+  storyChoices.hidden = true;
+  storyResult.hidden = false;
+  storyResultText.textContent = resultText;
+}
+
 function finishInterlude(spec, resultText) {
   if (!campaign.resolvedInterludes.includes(spec.id)) {
     campaign.resolvedInterludes.push(spec.id);
   }
   autoSaveCampaign();
   render();
-  showDialog("탐험 결과", resultText, [
-    { label: "계속", onClick: () => render() },
-  ]);
+  showInterludeResult(spec, resultText);
 }
 
 function resolveInterlude(spec, choice) {
@@ -4432,25 +4671,51 @@ function resolveInterlude(spec, choice) {
 
 function openInterlude(spec) {
   if (!spec || campaign.resolvedInterludes.includes(spec.id)) return;
-  if (spec.type === "rest") {
-    showDialog(spec.label, spec.subtitle, [
-      { label: "체력 단련", onClick: () => resolveInterlude(spec, "vitality") },
-      { label: "주사위 연습", onClick: () => resolveInterlude(spec, "dice") },
-    ]);
+  const story = INTERLUDE_STORIES[spec.id];
+  if (!story || !storyDialog || !storyChoices) {
+    const fallbackChoices = spec.type === "event"
+      ? [
+        { label: "시체 조사", onClick: () => resolveInterlude(spec, "corpse") },
+        { label: "토템 흔적 추적", onClick: () => resolveInterlude(spec, "totem") },
+        { label: "지나간다", onClick: () => resolveInterlude(spec, "leave") },
+      ]
+      : [
+        { label: "체력 단련", onClick: () => resolveInterlude(spec, "vitality") },
+        { label: "주사위 연습", onClick: () => resolveInterlude(spec, "dice") },
+      ];
+    showDialog(spec.label, spec.subtitle, fallbackChoices);
     return;
   }
-  if (spec.type === "forge") {
-    showDialog(spec.label, spec.subtitle, [
-      { label: "방어구 보강", onClick: () => resolveInterlude(spec, "vitality") },
-      { label: "무기 담금질", onClick: () => resolveInterlude(spec, "dice") },
-    ]);
-    return;
-  }
-  showDialog(spec.label, spec.subtitle, [
-    { label: "시체 조사", onClick: () => resolveInterlude(spec, "corpse") },
-    { label: "토템 흔적 추적", onClick: () => resolveInterlude(spec, "totem") },
-    { label: "지나간다", onClick: () => resolveInterlude(spec, "leave") },
-  ]);
+
+  storyKicker.textContent = story.kicker;
+  storyTitle.textContent = spec.label;
+  storyLocation.textContent = story.location;
+  storyIllustration.className = `story-illustration scene-${story.scene}`;
+  storyCopy.innerHTML = story.body.map((paragraph) => `<p>${paragraph}</p>`).join("");
+  storyChoices.hidden = false;
+  storyChoices.innerHTML = "";
+  storyResult.hidden = true;
+  storyResultText.textContent = "";
+
+  story.choices.forEach((choice) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "story-choice";
+    button.innerHTML = `
+      <i aria-hidden="true">${choice.mark}</i>
+      <span><b>${choice.title}</b><small>${choice.detail}</small></span>
+    `;
+    button.addEventListener("click", () => {
+      storyChoices.querySelectorAll("button").forEach((item) => {
+        item.disabled = true;
+      });
+      resolveInterlude(spec, choice.key);
+    });
+    storyChoices.appendChild(button);
+  });
+
+  if (storyDialog.open) storyDialog.close();
+  storyDialog.showModal();
 }
 
 function renderCampaignMap() {
@@ -4459,22 +4724,22 @@ function renderCampaignMap() {
     return;
   }
 
-  const currentStage = campaign.stageIndex;
+  const currentStage = Math.max(0, Math.min(2, campaign.stageIndex));
   const pendingInterlude = pendingInterludeForBattleIndex();
   if (typeof campaign.viewStageIndex !== "number") {
     campaign.viewStageIndex = currentStage;
   }
-  const viewStage = campaign.viewStageIndex;
+  const viewStage = Math.max(0, Math.min(2, campaign.viewStageIndex));
 
   if (stageBadge) {
-    stageBadge.textContent = `스테이지 ${currentStage + 1}/3`;
+    stageBadge.textContent = campaign.finished ? "원정 완료" : `스테이지 ${currentStage + 1}/3`;
   }
 
   mapProgress.textContent = campaign.finished
-    ? "최종 30전투를 승리로 이끌었습니다! 원정을 완전 정복했습니다!"
+    ? "최종 보스를 쓰러뜨렸습니다. 지나온 원정길이 모두 기록되었습니다."
     : pendingInterlude
-      ? `${pendingInterlude.label} · 탐험 선택을 완료하면 다음 전투가 열립니다.`
-      : `전체 ${campaign.battleIndex + 1}/30전투 · 현재 스테이지의 노드를 터치하세요.`;
+      ? `${pendingInterlude.label} · 선택이 다음 길을 결정합니다.`
+      : `전체 ${Math.min(campaign.battleIndex + 1, 30)}/30 · 최종 보스까지의 원정 경로`;
 
   campaignRosterEl.innerHTML = `<strong>원정대 ${campaign.roster.length}</strong>`;
   campaign.roster.forEach((type) => {
@@ -4488,7 +4753,6 @@ function renderCampaignMap() {
     campaignRosterEl.appendChild(item);
   });
 
-  // Render Stage Tabs
   if (stageTabs) {
     stageTabs.innerHTML = "";
     const stageNames = ["1. 묘지 외곽", "2. 오염된 경계", "3. 악마의 왕좌"];
@@ -4497,97 +4761,111 @@ function renderCampaignMap() {
       btn.type = "button";
       btn.className = `stage-tab-btn${s === viewStage ? " is-active" : ""}`;
       btn.textContent = stageNames[s];
-      btn.disabled = s > currentStage && !campaign.finished;
       btn.addEventListener("click", () => {
         playSfx("ui");
         campaign.viewStageIndex = s;
-        renderCampaignMap();
+        stageTabs.querySelectorAll(".stage-tab-btn").forEach((item, index) => {
+          item.classList.toggle("is-active", index === s);
+        });
+        focusExpeditionNode(`[data-battle-index="${s * 10}"]`);
       });
       stageTabs.appendChild(btn);
     }
   }
 
-  // Render Vertical Route for viewStage
   mapRoute.innerHTML = "";
-  const verticalContainer = document.createElement("div");
-  verticalContainer.className = "map-route-vertical";
+  const canvas = document.createElement("div");
+  canvas.className = "expedition-map-canvas";
+  const entries = expeditionRouteEntries();
 
-  const stageEncounters = (campaign.encounters || []).filter(e => e.stage === (viewStage + 1));
-  const themeLabels = {
-    undead: "언데드 부대",
-    corpse: "시체 부대",
-    beast: "야수 부대",
-    plague: "역병 부대",
-    ice: "서리 부대",
-    summon: "소환 부대",
-    demon: "악마 부대"
-  };
-  const interludeLabels = {
-    rest: { badge: "휴식", detail: "원정대 단련" },
-    forge: { badge: "강화", detail: "영구 능력치 강화" },
-    event: { badge: "이벤트", detail: "선택형 탐험" },
-  };
+  const routeSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  routeSvg.setAttribute("viewBox", "0 0 100 100");
+  routeSvg.setAttribute("preserveAspectRatio", "none");
+  routeSvg.setAttribute("aria-hidden", "true");
+  routeSvg.classList.add("expedition-route-lines");
+  entries.slice(0, -1).forEach((entry, routeIndex) => {
+    const next = entries[routeIndex + 1];
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    const curve = routeIndex % 2 === 0 ? 3 : -3;
+    const middleX = (entry.x + next.x) / 2 + curve;
+    const middleY = (entry.y + next.y) / 2;
+    path.setAttribute("d", `M ${entry.x} ${entry.y} Q ${middleX} ${middleY} ${next.x} ${next.y}`);
+    const reached = next.kind === "battle"
+      ? next.index <= campaign.battleIndex
+      : campaign.resolvedInterludes.includes(next.spec.id) || next.index <= campaign.battleIndex;
+    path.classList.add(reached ? "is-reached" : "is-future");
+    routeSvg.appendChild(path);
+  });
+  canvas.appendChild(routeSvg);
 
-  stageEncounters.forEach((enc) => {
-    const globalIdx = (enc.stage - 1) * 10 + (enc.battle - 1);
-    const interlude = INTERLUDE_SPECS.find((spec) => spec.triggerBattleIndex === globalIdx);
-    if (interlude) {
-      const resolved = campaign.resolvedInterludes.includes(interlude.id);
-      const available = !campaign.finished && campaign.battleIndex === interlude.triggerBattleIndex && !resolved;
-      const interludeCard = document.createElement("button");
-      interludeCard.type = "button";
-      interludeCard.className = `map-node-card map-interlude-card is-${interlude.type}${resolved ? " is-completed" : ""}${available ? " is-available" : ""}`;
-      interludeCard.disabled = !available;
-      interludeCard.innerHTML = `
-        <div class="node-card-left">
-          <span class="node-card-title">${resolved ? "완료 · " : ""}${interlude.label}</span>
-          <span class="node-card-sub">${interludeLabels[interlude.type].detail}</span>
-        </div>
-        <span class="node-card-badge">${interludeLabels[interlude.type].badge}</span>
-      `;
-      if (available) interludeCard.addEventListener("click", () => openInterlude(interlude));
-      verticalContainer.appendChild(interludeCard);
-    }
-
-    const isCompleted = globalIdx < campaign.battleIndex || enc.cleared;
-    const isAvailable = !campaign.finished && !pendingInterlude && globalIdx === campaign.battleIndex;
-    const isElite = (globalIdx + 1) % 10 === 9;
-
-    const card = document.createElement("button");
-    card.type = "button";
-    let cardClass = `map-node-card${isCompleted ? " is-completed" : ""}${isAvailable ? " is-available" : ""}`;
-    if (enc.boss) cardClass += " is-boss";
-    if (isElite) cardClass += " is-elite";
-    card.className = cardClass;
-    card.disabled = !isAvailable;
-
-    const previewUnit = UNIT_TYPES[enc.enemies[0]] || UNIT_TYPES.spear;
-    const badgeText = enc.boss ? "보스" : (isElite ? "정예" : (enc.isPacing ? "완급조절" : `전투 ${enc.battle}`));
-    const badgeColor = enc.boss ? "#d32f2f" : (isElite ? "#7a3db8" : "#111");
-
-    card.innerHTML = `
-      <div class="node-card-left">
-        <span class="node-card-title">${isCompleted ? "완료" : (enc.boss ? previewUnit.label + " 보스전" : (isElite ? previewUnit.label + " 정예전" : previewUnit.label + " 부대"))}</span>
-        <span class="node-card-sub">${themeLabels[enc.theme] || enc.theme} · 적 ${enc.enemyCount}마리</span>
-      </div>
-      <span class="node-card-badge" style="border-color: ${badgeColor}; color: ${badgeColor};">${badgeText}</span>
-    `;
-
-    if (isAvailable) {
-      card.addEventListener("click", () => {
-        openBattleBriefing(enc, globalIdx, () => enterGeneratedCampaignBattle(globalIdx));
-      });
-    }
-    verticalContainer.appendChild(card);
+  EXPEDITION_STAGE_LABELS.forEach((stage, index) => {
+    const label = document.createElement("span");
+    label.className = `expedition-stage-label stage-${index + 1}`;
+    label.style.left = `${stage.x}%`;
+    label.style.top = `${stage.y}%`;
+    label.textContent = stage.label;
+    canvas.appendChild(label);
   });
 
-  mapRoute.appendChild(verticalContainer);
-  window.setTimeout(() => {
-    verticalContainer.querySelector?.(".map-node-card.is-available")?.scrollIntoView?.({
-      behavior: "smooth",
-      block: "center",
-    });
-  }, 0);
+  entries.forEach((entry) => {
+    const node = document.createElement("button");
+    node.type = "button";
+    node.className = "expedition-node";
+    node.style.left = `${entry.x}%`;
+    node.style.top = `${entry.y}%`;
+
+    if (entry.kind === "interlude") {
+      const resolved = campaign.resolvedInterludes.includes(entry.spec.id);
+      const available = !campaign.finished
+        && campaign.battleIndex === entry.spec.triggerBattleIndex
+        && !resolved;
+      const symbols = { rest: "♥", forge: "⚒", event: "?" };
+      node.classList.add(`is-${entry.spec.type}`);
+      node.classList.toggle("is-completed", resolved);
+      node.classList.toggle("is-current", available);
+      node.disabled = !available;
+      node.dataset.interludeId = entry.spec.id;
+      node.innerHTML = `
+        <span class="expedition-node-token"><b>${symbols[entry.spec.type]}</b></span>
+        <span class="expedition-node-caption">${entry.spec.label}</span>
+      `;
+      if (available) node.addEventListener("click", () => openInterlude(entry.spec));
+    } else {
+      const encounter = entry.encounter;
+      const completed = entry.index < campaign.battleIndex || encounter.cleared;
+      const available = !campaign.finished && !pendingInterlude && entry.index === campaign.battleIndex;
+      const isElite = (entry.index + 1) % 10 === 9;
+      const preview = UNIT_TYPES[encounter.enemies[0]] || UNIT_TYPES.spear;
+      node.classList.toggle("is-completed", completed);
+      node.classList.toggle("is-current", available);
+      node.classList.toggle("is-elite", isElite);
+      node.classList.toggle("is-boss", Boolean(encounter.boss));
+      node.disabled = !available;
+      node.dataset.battleIndex = String(entry.index);
+      node.innerHTML = `
+        <span class="expedition-node-token">
+          <img src="${preview.image}" alt="">
+          <em>${entry.index + 1}</em>
+        </span>
+        <span class="expedition-node-caption">${encounter.boss ? "보스" : isElite ? "정예" : `전투 ${entry.index + 1}`}</span>
+      `;
+      applyPieceImage(node.querySelector("img"), preview.image);
+      if (available) {
+        node.addEventListener("click", () => {
+          openBattleBriefing(encounter, entry.index, () => enterGeneratedCampaignBattle(entry.index));
+        });
+      }
+    }
+    canvas.appendChild(node);
+  });
+
+  mapRoute.appendChild(canvas);
+  bindExpeditionMapDrag(mapRoute);
+  const focusKey = `${campaign.battleIndex}:${pendingInterlude?.id || "battle"}`;
+  if (mapRoute.dataset.focusKey !== focusKey) {
+    mapRoute.dataset.focusKey = focusKey;
+    window.setTimeout(() => focusExpeditionNode(".expedition-node.is-current", "auto"), 0);
+  }
 }
 
 function renderLegacyCampaignMap() {
@@ -4794,6 +5072,10 @@ endTurnBtn.addEventListener("click", () => {
 });
 resetBtn.addEventListener("click", handleResetBtnClick);
 newCampaignBtn.addEventListener("click", handleResetBtnClick);
+mapFocusBtn?.addEventListener("click", () => {
+  playSfx("ui");
+  focusExpeditionNode();
+});
 musicBtn.addEventListener("click", toggleBattleMusic);
 soundSettingsBtn.addEventListener("click", () => {
   syncAudioControls();
@@ -4820,6 +5102,11 @@ rewardDialog.addEventListener("cancel", (event) => event.preventDefault());
 rewardContinueBtn.addEventListener("click", () => {
   rewardDialog.close();
   completeCampaignBattle();
+});
+storyDialog?.addEventListener("cancel", (event) => event.preventDefault());
+storyContinueBtn?.addEventListener("click", () => {
+  storyDialog.close();
+  render();
 });
 battleBriefingDialog.addEventListener("cancel", (event) => {
   event.preventDefault();

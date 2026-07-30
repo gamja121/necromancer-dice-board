@@ -13,8 +13,8 @@
   <title>네크로멘서 십이장기 프로토타입</title>
   <link rel="manifest" href="manifest.webmanifest?v=20260726-10">
   <link rel="apple-touch-icon" href="assets/app-icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=20260726-10">
-  <link rel="stylesheet" href="ultimate-vfx.css?v=20260731-18">
+  <link rel="stylesheet" href="styles.css?v=20260731-19">
+  <link rel="stylesheet" href="ultimate-vfx.css?v=20260731-19">
 </head>
 <body>
   <main class="app">
@@ -45,7 +45,18 @@
       </header>
       <div class="stage-tabs" id="stageTabs" aria-label="스테이지 탭"></div>
       <div class="campaign-roster" id="campaignRoster" aria-label="보유 유닛"></div>
-      <div class="map-route" id="mapRoute" aria-label="전투 경로"></div>
+      <div class="map-route-shell">
+        <div class="map-route-toolbar" aria-label="지도 조작">
+          <div class="map-legend" aria-label="지도 범례">
+            <span><i class="legend-battle"></i>전투</span>
+            <span><i class="legend-event"></i>사건</span>
+            <span><i class="legend-elite"></i>정예</span>
+            <span><i class="legend-boss"></i>보스</span>
+          </div>
+          <button type="button" class="map-focus-button" id="mapFocusBtn" title="현재 위치로 이동" aria-label="현재 위치로 이동">⌖</button>
+        </div>
+        <div class="map-route" id="mapRoute" aria-label="보스까지 이어지는 원정 경로"></div>
+      </div>
     </section>
 
     <section class="play-area" id="battleScreen" aria-label="5x5 전장" hidden>
@@ -125,6 +136,26 @@
     </form>
   </dialog>
 
+  <dialog id="storyDialog" class="story-dialog">
+    <article class="story-card" aria-labelledby="storyTitle">
+      <header class="story-header">
+        <span id="storyKicker">원정 사건</span>
+        <h2 id="storyTitle">이야기</h2>
+        <p id="storyLocation"></p>
+      </header>
+      <div class="story-illustration" id="storyIllustration" aria-hidden="true">
+        <span></span>
+      </div>
+      <div class="story-copy" id="storyCopy"></div>
+      <div class="story-choices" id="storyChoices"></div>
+      <section class="story-result" id="storyResult" hidden aria-live="polite">
+        <strong>선택의 결과</strong>
+        <p id="storyResultText"></p>
+        <button type="button" id="storyContinueBtn">원정 지도로 돌아가기</button>
+      </section>
+    </article>
+  </dialog>
+
   <dialog id="battleBriefingDialog" class="battle-briefing-dialog">
     <section class="battle-briefing-card" aria-labelledby="briefingTitle">
       <header class="briefing-header">
@@ -192,7 +223,7 @@
 
   <script src="unit-data.js?v=20260726-10"></script>
   <script src="encounter-generator.js?v=20260726-10"></script>
-  <script src="ultimate-vfx.js?v=20260731-18"></script>
-  <script src="game.js?v=20260731-18"></script>
+  <script src="ultimate-vfx.js?v=20260731-19"></script>
+  <script src="game.js?v=20260731-19"></script>
 </body>
 </html>

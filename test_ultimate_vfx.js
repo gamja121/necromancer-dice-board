@@ -493,9 +493,9 @@ async function runTests() {
   const swText = fs.readFileSync(path.join(projectDir, "service-worker.js"), "utf8");
   const htmlText = fs.readFileSync(path.join(projectDir, "index.html"), "utf8");
 
-  assert.strictEqual(swText.includes("necromancer-expedition-v29"), true, "service-worker.js CACHE_NAME must be v29");
-  assert.strictEqual(swText.includes("20260731-18"), true, "service-worker.js APP_SHELL must contain 20260731-18 VFX query parameters");
-  assert.strictEqual(htmlText.includes("20260731-18"), true, "index.html must contain 20260731-18 VFX asset query parameters");
+  assert.strictEqual(swText.includes("necromancer-expedition-v30"), true, "service-worker.js CACHE_NAME must be v30");
+  assert.strictEqual(swText.includes("20260731-19"), true, "service-worker.js APP_SHELL must contain 20260731-19 VFX query parameters");
+  assert.strictEqual(htmlText.includes("20260731-19"), true, "index.html must contain 20260731-19 VFX asset query parameters");
   console.log("Pass: Cache version & asset query parameter verified.");
 
   // Test 17b: shared choreography, direction mirroring, and mobile-safe overflow
