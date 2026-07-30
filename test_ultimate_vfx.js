@@ -493,10 +493,44 @@ async function runTests() {
   const swText = fs.readFileSync(path.join(projectDir, "service-worker.js"), "utf8");
   const htmlText = fs.readFileSync(path.join(projectDir, "index.html"), "utf8");
 
-  assert.strictEqual(swText.includes("necromancer-expedition-v28"), true, "service-worker.js CACHE_NAME must be v28");
-  assert.strictEqual(swText.includes("20260728-17"), true, "service-worker.js APP_SHELL must contain 20260728-17 VFX query parameters");
-  assert.strictEqual(htmlText.includes("20260728-17"), true, "index.html must contain 20260728-17 VFX asset query parameters");
+  assert.strictEqual(swText.includes("necromancer-expedition-v29"), true, "service-worker.js CACHE_NAME must be v29");
+  assert.strictEqual(swText.includes("20260731-18"), true, "service-worker.js APP_SHELL must contain 20260731-18 VFX query parameters");
+  assert.strictEqual(htmlText.includes("20260731-18"), true, "index.html must contain 20260731-18 VFX asset query parameters");
   console.log("Pass: Cache version & asset query parameter verified.");
+
+  // Test 17b: shared choreography, direction mirroring, and mobile-safe overflow
+  console.log("Test 17b: Shared ultimate choreography test starts...");
+  assert.strictEqual(UltimateVfx.ownerDirection("player"), 1, "Player attacks must enter from the player side");
+  assert.strictEqual(UltimateVfx.ownerDirection("enemy"), -1, "Enemy attacks must mirror the entry direction");
+  const normalTiming = UltimateVfx.ultimateTiming(false, false);
+  assert.strictEqual(normalTiming.anticipation, 420);
+  assert.strictEqual(normalTiming.hitStop, 60);
+  assert.strictEqual(normalTiming.total, 1200);
+  assert.strictEqual(normalTiming.fade, 300);
+  const killTiming = UltimateVfx.ultimateTiming(false, true);
+  assert.strictEqual(killTiming.anticipation, 420);
+  assert.strictEqual(killTiming.hitStop, 75);
+  assert.strictEqual(killTiming.total, 1300);
+  assert.strictEqual(killTiming.fade, 300);
+  const reducedTiming = UltimateVfx.ultimateTiming(true, false);
+  assert.strictEqual(reducedTiming.anticipation, 180);
+  assert.strictEqual(reducedTiming.hitStop, 30);
+  assert.strictEqual(reducedTiming.total, 720);
+  assert.strictEqual(reducedTiming.fade, 190);
+  assert.strictEqual(
+    cssText.includes(".ultimate-vfx-overlay") && cssText.includes("overflow: visible"),
+    true,
+    "Ultimate art must not be clipped by the mobile board bounds"
+  );
+  assert.strictEqual(
+    cssText.includes(".impact-from-player") &&
+      cssText.includes(".impact-from-enemy") &&
+      cssText.includes("ultimate-vfx-board-impact-player") &&
+      cssText.includes("ultimate-vfx-board-impact-enemy"),
+    true,
+    "Board impact must use browser-compatible mirrored keyframes"
+  );
+  console.log("Pass: Shared timing, direction mirroring, and safe overflow verified.");
 
   // Test 18: Greatsword asset path and dark-background visibility fallback
   console.log("Test 18: Greatsword asset path & dark visibility test starts...");

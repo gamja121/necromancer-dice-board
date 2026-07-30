@@ -1,4 +1,4 @@
-/* ultimate-vfx.js v28 - illustrated ultimate suite */
+/* ultimate-vfx.js v29 - unified mobile ultimate choreography */
 (function (root) {
   let activeSession = null;
   let preloadPromise = null;
@@ -231,6 +231,49 @@
       return "high";
     }
     return "medium";
+  }
+
+  function ownerDirection(attackerOwner) {
+    return attackerOwner === "enemy" ? -1 : 1;
+  }
+
+  function ultimateTiming(reducedMotion, isKill) {
+    if (reducedMotion) {
+      return { anticipation: 180, hitStop: 30, total: 720, fade: 190 };
+    }
+    return {
+      anticipation: 420,
+      hitStop: isKill ? 75 : 60,
+      total: isKill ? 1300 : 1200,
+      fade: 300
+    };
+  }
+
+  function prepareOverlay(overlay, attackerOwner, impactX, impactY) {
+    const direction = ownerDirection(attackerOwner);
+    overlay.classList.add(direction < 0 ? "owner-enemy" : "owner-player");
+    overlay.style.setProperty("--owner-direction", String(direction));
+    overlay.style.setProperty("--impact-x", `${impactX}px`);
+    overlay.style.setProperty("--impact-y", `${impactY}px`);
+    return direction;
+  }
+
+  function applyBoardWindup(clone, progress, direction, reducedMotion) {
+    if (reducedMotion || !clone) return;
+    const eased = 1 - Math.pow(1 - Math.max(0, Math.min(1, progress)), 3);
+    clone.style.transform =
+      `perspective(920px) rotateX(${2 + eased * 4.5}deg) ` +
+      `rotateY(${-direction * eased * 2.2}deg) ` +
+      `rotateZ(${direction * (1 - eased) * 0.8}deg) scale(${1 + eased * 0.012})`;
+  }
+
+  function releaseBoardImpact(clone, direction, reducedMotion) {
+    if (reducedMotion || !clone) {
+      if (clone) clone.style.transform = "";
+      return;
+    }
+    clone.classList.add(direction < 0 ? "impact-from-enemy" : "impact-from-player");
+    clone.classList.add("ultimate-vfx-board-impact");
   }
 
   function createSeededRandom(seed) {
@@ -565,6 +608,7 @@
       overlay.style.setProperty("--fracture-inner", theme.innerColor);
       overlay.style.setProperty("--fracture-edge", theme.edgeColor);
       overlay.style.setProperty("--dust-color", theme.dustColor);
+      const direction = prepareOverlay(overlay, attackerOwner, impactX, impactY);
       activeSession.overlay = overlay;
 
       const clone = boardElement.cloneNode(true);
@@ -671,9 +715,10 @@
       boardElement.parentNode.appendChild(overlay);
       boardElement.style.opacity = "0";
 
-      const hitStopDuration = isKill ? 80 : 60;
-      const totalDuration = isKill ? 1350 : 1200;
-      const tImpact = reducedMotion ? 150 : 430;
+      const timing = ultimateTiming(reducedMotion, isKill);
+      const hitStopDuration = timing.hitStop;
+      const totalDuration = timing.total;
+      const tImpact = timing.anticipation;
 
       playFocusRiseSound();
       const whooshTimerId = setTimeout(() => playWhooshSound(), Math.max(0, tImpact - 220));
@@ -701,12 +746,13 @@
         if (simTime < tImpact) {
           const dropProgress = Math.max(0, simTime / tImpact);
           const easedP = Math.pow(dropProgress, 3.5);
+          applyBoardWindup(clone, dropProgress, direction, reducedMotion);
           if (reducedMotion) {
             sword.style.opacity = Math.min(1, dropProgress * 3.0);
-            sword.style.transform = `translate(${40 * (1 - easedP)}px, ${-100 * (1 - easedP)}px) scale(${1.0 + 0.3 * (1 - easedP)})`;
+            sword.style.transform = `translate(${direction * 40 * (1 - easedP)}px, ${-100 * (1 - easedP)}px) scale(${1.0 + 0.3 * (1 - easedP)})`;
           } else {
             sword.style.opacity = Math.min(1, dropProgress * 2.5);
-            sword.style.transform = `translate(${160 * (1 - easedP)}px, ${-320 * (1 - easedP)}px) rotateZ(${-45 * (1 - easedP)}deg) rotateY(${-12 * (1 - easedP)}deg) scale(${1.0 + 1.2 * (1 - easedP)})`;
+            sword.style.transform = `translate(${direction * 160 * (1 - easedP)}px, ${-320 * (1 - easedP)}px) rotateZ(${-direction * 45 * (1 - easedP)}deg) rotateY(${-direction * 12 * (1 - easedP)}deg) scale(${1.0 + 1.2 * (1 - easedP)})`;
           }
           shadow.style.opacity = easedP * 0.7;
           shadow.style.transform = `translate(-50%, -50%) scale(${easedP})`;
@@ -732,6 +778,7 @@
             activeSession.isHitStop = false;
             overlay.classList.remove("ultimate-vfx-is-hit-stop");
             try { onImpact(); } catch (e) {}
+            releaseBoardImpact(clone, direction, reducedMotion);
             if (!reducedMotion) sword.classList.add("ultimate-vfx-sword-shake");
           }, hitStopDuration);
           activeSession.timerIds.push(hitStopTimeoutId);
@@ -762,8 +809,8 @@
           });
         }
 
-        if (simTime > totalDuration - 300) {
-          overlay.style.opacity = Math.max(0, (totalDuration - simTime) / 300);
+        if (simTime > totalDuration - timing.fade) {
+          overlay.style.opacity = Math.max(0, (totalDuration - simTime) / timing.fade);
         }
 
         activeSession.animationFrameId = requestAnimationFrame(tick);
@@ -815,12 +862,14 @@
       const spearRotation = angleDeg - 135;
 
       const overlay = document.createElement("div");
-      overlay.className = "ultimate-vfx-overlay style-pierce";
+      overlay.className = `ultimate-vfx-overlay style-pierce ${reducedMotion ? "is-reduced-motion" : ""}`;
       overlay.style.setProperty("--impact-color", theme.impactColor);
+      const direction = prepareOverlay(overlay, attackerOwner, impactX, impactY);
       activeSession.overlay = overlay;
 
       const clone = boardElement.cloneNode(true);
       clone.className = (clone.className || "") + " ultimate-vfx-board-clone";
+      clone.style.transformOrigin = `${impactX}px ${impactY}px`;
       overlay.appendChild(clone);
       activeSession.clone = clone;
 
@@ -847,8 +896,9 @@
       boardElement.parentNode.appendChild(overlay);
       boardElement.style.opacity = "0";
 
-      const totalDuration = 1100;
-      const tImpact = reducedMotion ? 150 : 350;
+      const timing = ultimateTiming(reducedMotion, isKill);
+      const totalDuration = timing.total;
+      const tImpact = timing.anticipation;
 
       playFocusRiseSound();
       activeSession.safetyTimeoutId = setTimeout(() => finishSession("safety_timeout"), 3500);
@@ -868,6 +918,7 @@
         if (simTime < tImpact) {
           const p = Math.max(0, simTime / tImpact);
           const dist = 300 * (1 - Math.pow(p, 3));
+          applyBoardWindup(clone, p, direction, reducedMotion);
           spear.style.transform = `translate(${-Math.cos(angleRad) * dist}px, ${-Math.sin(angleRad) * dist}px) rotate(${spearRotation}deg) scale(${1 + (1 - p) * 0.65})`;
         }
 
@@ -875,12 +926,21 @@
           hasImpacted = true;
           activeSession.impactTriggered = true;
           spear.style.transform = `translate(0, 0) rotate(${spearRotation}deg) scale(1)`;
+          activeSession.isHitStop = true;
+          overlay.classList.add("ultimate-vfx-is-hit-stop");
           playImpactSound();
-          try { onImpact(); } catch (e) {}
+          const hitStopTimer = setTimeout(() => {
+            if (!activeSession || activeSession.completed) return;
+            activeSession.isHitStop = false;
+            overlay.classList.remove("ultimate-vfx-is-hit-stop");
+            releaseBoardImpact(clone, direction, reducedMotion);
+            try { onImpact(); } catch (e) {}
+          }, timing.hitStop);
+          activeSession.timerIds.push(hitStopTimer);
         }
 
-        if (simTime > totalDuration - 250) {
-          overlay.style.opacity = Math.max(0, (totalDuration - simTime) / 250);
+        if (simTime > totalDuration - timing.fade) {
+          overlay.style.opacity = Math.max(0, (totalDuration - simTime) / timing.fade);
         }
         activeSession.animationFrameId = requestAnimationFrame(tick);
       }
@@ -893,7 +953,7 @@
     return new Promise((resolve) => {
       if (activeSession) finishSession("superseded");
       const {
-        boardElement, targetCell, onImpact = () => {}, reducedMotion = prefersReducedMotion(), isKill = false
+        boardElement, targetCell, attackerOwner = "player", onImpact = () => {}, reducedMotion = prefersReducedMotion(), isKill = false
       } = options;
 
       if (!boardElement || !boardElement.parentNode) { onImpact(); resolve({ reason: "missing_board", impactTriggered: true }); return; }
@@ -916,6 +976,7 @@
       overlay.className = `ultimate-vfx-overlay style-claw ${reducedMotion ? "is-reduced-motion" : ""}`;
       overlay.style.setProperty("--impact-color", theme.impactColor);
       overlay.style.setProperty("--fracture-inner", theme.innerColor);
+      const direction = prepareOverlay(overlay, attackerOwner, impactX, impactY);
       activeSession.overlay = overlay;
 
       const clone = boardElement.cloneNode(true);
@@ -979,9 +1040,10 @@
       boardElement.parentNode.appendChild(overlay);
       boardElement.style.opacity = "0";
 
-      const totalDuration = reducedMotion ? 720 : (isKill ? 1320 : 1160);
-      const tImpact = reducedMotion ? 180 : 430;
-      const hitStopDuration = reducedMotion ? 30 : (isKill ? 75 : 55);
+      const timing = ultimateTiming(reducedMotion, isKill);
+      const totalDuration = timing.total;
+      const tImpact = timing.anticipation;
+      const hitStopDuration = timing.hitStop;
 
       playFocusRiseSound();
       activeSession.safetyTimeoutId = setTimeout(() => finishSession("safety_timeout"), 3500);
@@ -1001,13 +1063,11 @@
         if (simTime < tImpact) {
           const windup = Math.min(1, simTime / tImpact);
           const eased = 1 - Math.pow(1 - windup, 3);
+          applyBoardWindup(clone, windup, direction, reducedMotion);
           clawHand.style.opacity = Math.min(1, windup * 3);
           clawHand.style.transform = reducedMotion
-            ? `translate(${38 * (1 - eased)}px, ${-42 * (1 - eased)}px) rotate(${-13 + 8 * eased}deg) scale(${1.08 - 0.08 * eased})`
-            : `translate(${150 * (1 - eased)}px, ${-175 * (1 - eased)}px) rotate(${-28 + 19 * eased}deg) scale(${1.5 - 0.34 * eased})`;
-          if (!reducedMotion) {
-            clone.style.transform = `perspective(920px) rotateX(${4 + windup * 2.5}deg) rotateZ(${(1 - windup) * 1.4}deg) scale(1.012)`;
-          }
+            ? `translate(${direction * 38 * (1 - eased)}px, ${-42 * (1 - eased)}px) rotate(${direction * (-13 + 8 * eased)}deg) scale(${1.08 - 0.08 * eased})`
+            : `translate(${direction * 150 * (1 - eased)}px, ${-175 * (1 - eased)}px) rotate(${direction * (-28 + 19 * eased)}deg) scale(${1.5 - 0.34 * eased})`;
         }
 
         if (simTime >= tImpact && !hasImpacted) {
@@ -1025,7 +1085,7 @@
             overlay.classList.remove("ultimate-vfx-is-hit-stop");
             gougeBox.classList.add("is-raking");
             inkBurst.classList.add("is-active");
-            clone.classList.add("ultimate-vfx-claw-board-hit");
+            releaseBoardImpact(clone, direction, reducedMotion);
             try { onImpact(); } catch (e) {}
           }, hitStopDuration);
           activeSession.timerIds.push(hitStopTimer);
@@ -1036,15 +1096,15 @@
           const rakeProgress = Math.min(1, rakeTime / (reducedMotion ? 180 : 310));
           const rakeEase = 1 - Math.pow(1 - rakeProgress, 3);
           clawHand.style.transform = reducedMotion
-            ? `translate(${-38 * rakeEase}px, ${30 * rakeEase}px) rotate(${-5 - 8 * rakeEase}deg) scale(${1 - 0.08 * rakeEase})`
-            : `translate(${-125 * rakeEase}px, ${105 * rakeEase}px) rotate(${-9 - 17 * rakeEase}deg) scale(${1.16 - 0.19 * rakeEase})`;
+            ? `translate(${-direction * 38 * rakeEase}px, ${30 * rakeEase}px) rotate(${direction * (-5 - 8 * rakeEase)}deg) scale(${1 - 0.08 * rakeEase})`
+            : `translate(${-direction * 125 * rakeEase}px, ${105 * rakeEase}px) rotate(${direction * (-9 - 17 * rakeEase)}deg) scale(${1.16 - 0.19 * rakeEase})`;
           if (rakeTime > 250) {
             clawHand.style.opacity = Math.max(0, 1 - (rakeTime - 250) / 260);
           }
         }
 
-        if (simTime > totalDuration - 300) {
-          overlay.style.opacity = Math.max(0, (totalDuration - simTime) / 300);
+        if (simTime > totalDuration - timing.fade) {
+          overlay.style.opacity = Math.max(0, (totalDuration - simTime) / timing.fade);
         }
         activeSession.animationFrameId = requestAnimationFrame(tick);
       }
@@ -1057,7 +1117,7 @@
     return new Promise((resolve) => {
       if (activeSession) finishSession("superseded");
       const {
-        boardElement, targetCell, onImpact = () => {}, reducedMotion = prefersReducedMotion()
+        boardElement, targetCell, attackerOwner = "player", isKill = false, onImpact = () => {}, reducedMotion = prefersReducedMotion()
       } = options;
 
       if (!boardElement || !boardElement.parentNode) { onImpact(); resolve({ reason: "missing_board", impactTriggered: true }); return; }
@@ -1079,10 +1139,12 @@
       const overlay = document.createElement("div");
       overlay.className = "ultimate-vfx-overlay style-magic";
       overlay.style.setProperty("--impact-color", theme.impactColor);
+      const direction = prepareOverlay(overlay, attackerOwner, impactX, impactY);
       activeSession.overlay = overlay;
 
       const clone = boardElement.cloneNode(true);
       clone.className = (clone.className || "") + " ultimate-vfx-board-clone";
+      clone.style.transformOrigin = `${impactX}px ${impactY}px`;
       overlay.appendChild(clone);
       activeSession.clone = clone;
 
@@ -1115,8 +1177,9 @@
       boardElement.parentNode.appendChild(overlay);
       boardElement.style.opacity = "0";
 
-      const totalDuration = 1150;
-      const tImpact = reducedMotion ? 150 : 380;
+      const timing = ultimateTiming(reducedMotion, isKill);
+      const totalDuration = timing.total;
+      const tImpact = timing.anticipation;
 
       playFocusRiseSound();
       activeSession.safetyTimeoutId = setTimeout(() => finishSession("safety_timeout"), 3500);
@@ -1136,8 +1199,9 @@
         if (simTime < tImpact) {
           const charge = Math.min(1, simTime / tImpact);
           const eased = 1 - Math.pow(1 - charge, 3);
+          applyBoardWindup(clone, charge, direction, reducedMotion);
           magicBox.style.opacity = Math.min(1, charge * 3);
-          magicBox.style.transform = `translate(-50%, -50%) scale(${0.38 + eased * 0.62}) rotate(${(1 - eased) * -12}deg)`;
+          magicBox.style.transform = `translate(-50%, -50%) scale(${0.38 + eased * 0.62}) rotate(${direction * (1 - eased) * -12}deg)`;
         }
 
         if (simTime >= tImpact && !hasImpacted) {
@@ -1145,12 +1209,21 @@
           activeSession.impactTriggered = true;
           magicBox.style.transform = "translate(-50%, -50%) scale(1) rotate(0deg)";
           magicBox.classList.add("is-exploded");
+          activeSession.isHitStop = true;
+          overlay.classList.add("ultimate-vfx-is-hit-stop");
           playImpactSound();
-          try { onImpact(); } catch (e) {}
+          const hitStopTimer = setTimeout(() => {
+            if (!activeSession || activeSession.completed) return;
+            activeSession.isHitStop = false;
+            overlay.classList.remove("ultimate-vfx-is-hit-stop");
+            releaseBoardImpact(clone, direction, reducedMotion);
+            try { onImpact(); } catch (e) {}
+          }, timing.hitStop);
+          activeSession.timerIds.push(hitStopTimer);
         }
 
-        if (simTime > totalDuration - 250) {
-          overlay.style.opacity = Math.max(0, (totalDuration - simTime) / 250);
+        if (simTime > totalDuration - timing.fade) {
+          overlay.style.opacity = Math.max(0, (totalDuration - simTime) / timing.fade);
         }
         activeSession.animationFrameId = requestAnimationFrame(tick);
       }
@@ -1167,6 +1240,8 @@
     canPlay,
     prefersReducedMotion,
     chooseVfxQuality,
+    ownerDirection,
+    ultimateTiming,
     buildFractureModel,
     getLegionTheme,
     normalizeLegionKey,

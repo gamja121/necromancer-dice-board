@@ -1,4 +1,4 @@
-/* 2.5D Shattered Board Crater VFX v23 */
+/* 2.5D Shattered Board Crater VFX v29 */
 :root {
   --impact-color: #d6b36a;
   --fracture-dark: rgba(3, 3, 4, 0.96);
@@ -16,7 +16,7 @@
   height: 100%;
   pointer-events: none;
   z-index: 9999;
-  overflow: hidden;
+  overflow: visible;
   perspective: 1000px;
   transition: opacity 0.3s ease;
 }
@@ -35,6 +35,55 @@
   filter: drop-shadow(0 14px 12px rgba(0, 0, 0, 0.26));
 }
 
+.ultimate-vfx-board-impact {
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(.12,.76,.18,1);
+  animation-fill-mode: both;
+}
+
+.ultimate-vfx-board-impact.impact-from-player {
+  animation-name: ultimate-vfx-board-impact-player;
+}
+
+.ultimate-vfx-board-impact.impact-from-enemy {
+  animation-name: ultimate-vfx-board-impact-enemy;
+}
+
+@keyframes ultimate-vfx-board-impact-player {
+  0% {
+    transform: perspective(920px) rotateX(6.5deg) rotateY(-2.2deg) scale(1.012);
+  }
+  22% {
+    transform: perspective(920px) rotateX(8deg) rotateY(3deg)
+      rotateZ(-1.2deg) translate(-3px, 2px) scale(1.014);
+  }
+  54% {
+    transform: perspective(920px) rotateX(4.5deg) rotateY(-1deg)
+      translate(2px, -1px) scale(1.007);
+  }
+  100% {
+    transform: perspective(920px) rotateX(0deg) rotateY(0deg) rotateZ(0deg)
+      translate(0, 0) scale(1);
+  }
+}
+
+@keyframes ultimate-vfx-board-impact-enemy {
+  0% {
+    transform: perspective(920px) rotateX(6.5deg) rotateY(2.2deg) scale(1.012);
+  }
+  22% {
+    transform: perspective(920px) rotateX(8deg) rotateY(-3deg)
+      rotateZ(1.2deg) translate(3px, 2px) scale(1.014);
+  }
+  54% {
+    transform: perspective(920px) rotateX(4.5deg) rotateY(1deg)
+      translate(-2px, -1px) scale(1.007);
+  }
+  100% {
+    transform: perspective(920px) rotateX(0deg) rotateY(0deg) rotateZ(0deg)
+      translate(0, 0) scale(1);
+  }
+}
 .ultimate-vfx-crater-layer {
   position: absolute;
   pointer-events: none;
@@ -347,6 +396,11 @@
   forced-color-adjust: none;
 }
 
+.ultimate-vfx-overlay.owner-enemy .ultimate-vfx-claw-img,
+.ultimate-vfx-overlay.owner-enemy .ultimate-vfx-claw-fallback {
+  transform: scaleX(-1);
+}
+
 .ultimate-vfx-claw-fallback {
   width: 100%;
   height: 100%;
@@ -364,6 +418,10 @@
   transform: rotate(-35deg);
   pointer-events: none;
   z-index: 12;
+}
+
+.ultimate-vfx-overlay.owner-enemy .ultimate-vfx-claw-gouges {
+  transform: rotate(35deg) scaleX(-1);
 }
 
 .ultimate-vfx-claw-gouge {
@@ -431,17 +489,6 @@
   0% { opacity: 1; transform: translate(0,0) rotate(0) scale(1.25); }
   70% { opacity: .78; }
   100% { opacity: 0; transform: translate(var(--ink-x), var(--ink-y)) rotate(var(--ink-rot)) scale(.35); }
-}
-
-.ultimate-vfx-claw-board-hit {
-  animation: ultimate-claw-board-hit 300ms cubic-bezier(.12,.76,.18,1);
-}
-
-@keyframes ultimate-claw-board-hit {
-  0% { transform: perspective(920px) rotateX(6.5deg) rotateZ(0deg) scale(1.012); }
-  24% { transform: perspective(920px) rotateX(8deg) rotateZ(-1.5deg) translate(-3px, 2px) scale(1.014); }
-  52% { transform: perspective(920px) rotateX(5.5deg) rotateZ(.7deg) translate(2px, -1px) scale(1.01); }
-  100% { transform: perspective(920px) rotateX(0deg) rotateZ(0deg) translate(0,0) scale(1); }
 }
 
 /* Style Magic */
@@ -522,4 +569,26 @@
 @keyframes ultimate-magic-spin {
   0% { transform: translate(-50%, -50%) rotate(0deg); }
   100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@media (max-width: 640px) {
+  .ultimate-vfx-greatsword-visual {
+    width: clamp(96px, 24vw, 124px);
+    height: clamp(192px, 48vw, 248px);
+  }
+
+  .ultimate-vfx-pierce-visual {
+    width: clamp(230px, 60vw, 310px);
+  }
+
+  .ultimate-vfx-claw-hand {
+    width: clamp(210px, 50vw, 280px);
+    left: clamp(-150px, -27vw, -112px);
+    top: clamp(-178px, -34vw, -142px);
+  }
+
+  .ultimate-vfx-magic-container {
+    width: clamp(190px, 50vw, 270px);
+    height: clamp(190px, 50vw, 270px);
+  }
 }
