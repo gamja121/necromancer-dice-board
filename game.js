@@ -97,6 +97,13 @@ const EXPEDITION_STAGE_LABELS = [
   { label: "제2장 · 오염된 경계", x: 87, y: 61 },
   { label: "제3장 · 악마의 왕좌", x: 12, y: 31 },
 ];
+const ROUTE_NODE_TYPES = Object.freeze(["normal", "elite", "event", "boss"]);
+const ROUTE_NODE_META = Object.freeze({
+  normal: { label: "일반 전장", symbol: "⚔", caption: "안정적인 전투" },
+  elite: { label: "고급 전장", symbol: "◆", caption: "강적 · 희귀 보상" },
+  event: { label: "사건", symbol: "?", caption: "이야기와 선택" },
+  boss: { label: "보스", symbol: "♛", caption: "스테이지 결전" },
+});
 const INTERLUDE_STORIES = {
   "rest-1": {
     kicker: "첫 번째 밤",
@@ -238,6 +245,7 @@ const campaign = {
   rewardState: null,
   checkpoint: null,
   resolvedInterludes: [],
+  routeHistory: [],
 };
 let audioContext = null;
 const AUDIO_SETTINGS_KEY = "necromancer-audio-settings-v1";
@@ -1507,7 +1515,8 @@ function autoSaveCampaign() {
       availableTotems: campaign.availableTotems,
       rewardState: campaign.rewardState,
       checkpoint: campaign.checkpoint,
-      resolvedInterludes: campaign.resolvedInterludes || []
+      resolvedInterludes: campaign.resolvedInterludes || [],
+      routeHistory: campaign.routeHistory || []
     };
     localStorage.setItem(CAMPAIGN_SAVE_KEY, JSON.stringify(saveData));
   } catch (e) {
@@ -1600,9 +1609,21 @@ function validateResolvedInterludes(resolved) {
   if (resolved === undefined || resolved === null) return [];
   if (!Array.isArray(resolved)) return null;
   const validIds = new Set(INTERLUDE_SPECS.map((spec) => spec.id));
-  if (!resolved.every((id) => validIds.has(id))) return null;
+  if (!resolved.every((id) => validIds.has(id) || /^route-event-(?:[0-9]|[12][0-9])$/.test(id))) return null;
   if (new Set(resolved).size !== resolved.length) return null;
   return [...resolved];
+}
+
+function validateRouteHistory(history, battleIndex) {
+  if (history === undefined || history === null) {
+    return Array.from({ length: battleIndex }, () => "normal");
+  }
+  if (!Array.isArray(history)) return null;
+  if (history.length > Math.min(30, battleIndex + 1)) return null;
+  if (!history.every((type) => ROUTE_NODE_TYPES.includes(type))) return null;
+  const migrated = [...history];
+  while (migrated.length < battleIndex) migrated.push("normal");
+  return migrated;
 }
 
 function validateRewardState(rewardState) {
@@ -1730,6 +1751,8 @@ function loadCampaignSave() {
     if (!validatedTotems) return null;
     const validatedInterludes = validateResolvedInterludes(data.resolvedInterludes);
     if (!validatedInterludes) return null;
+    const validatedRouteHistory = validateRouteHistory(data.routeHistory, data.battleIndex);
+    if (!validatedRouteHistory) return null;
 
     if (!Array.isArray(data.completed)) return null;
     const encounterIds = new Set(data.encounters.map((encounter) => encounter.id));
@@ -1770,7 +1793,8 @@ function loadCampaignSave() {
       availableTotems: validatedTotems,
       rewardState: validatedRewardState,
       checkpoint: validatedCheckpoint,
-      resolvedInterludes: validatedInterludes
+      resolvedInterludes: validatedInterludes,
+      routeHistory: validatedRouteHistory
     };
   } catch (e) {
     console.error("Failed to load/parse campaign save:", e);
@@ -1852,6 +1876,7 @@ function resetCampaign() {
   campaign.rewardState = null;
   campaign.checkpoint = null;
   campaign.resolvedInterludes = [];
+  campaign.routeHistory = [];
 
   state.phase = "map";
   state.winner = null;
@@ -1883,7 +1908,7 @@ function battleBriefingReward(encounter, battleIndex, legacy = false) {
   }
   const battleNumber = battleIndex + 1;
   if (encounter.boss || battleNumber % 10 === 0) return "주사위 강화 또는 토템 획득";
-  if (battleNumber % 10 === 9) return "최대 체력 또는 주사위 강화";
+  if (encounter.routeType === "elite" || battleNumber % 10 === 9) return "최대 체력 또는 주사위 강화";
   if (battleNumber % 10 === 5) return "주사위 강화";
   return "전투 정산 · 생존 유닛 자동 회복";
 }
@@ -1900,7 +1925,7 @@ function buildEncounterBriefing(encounter, battleIndex, legacy = false) {
 
   const battleNumber = legacy ? encounter.stage + 1 : battleIndex + 1;
   const isBoss = Boolean(encounter.boss) || (legacy && encounter.stage >= 4);
-  const isElite = !legacy && battleNumber % 10 === 9;
+  const isElite = !legacy && (encounter.routeType === "elite" || battleNumber % 10 === 9);
   const kind = isBoss ? "보스" : (isElite ? "정예" : (encounter.isPacing ? "완급조절" : "일반"));
   const lead = UNIT_TYPES[encounter.enemies[0]] || UNIT_TYPES.spear;
 
@@ -3092,7 +3117,8 @@ function getRewardConfig() {
 
   const isBoss = isV2 ? (battleNum % 10 === 0) : (campaign.depth >= 4);
   const isMid = isV2 ? (battleNum % 10 === 5) : false;
-  const isElite = isV2 ? (battleNum % 10 === 9) : false;
+  const selectedRouteType = isV2 ? campaign.routeHistory[campaign.battleIndex] : null;
+  const isElite = isV2 ? (selectedRouteType === "elite" || battleNum % 10 === 9) : false;
 
   let subtitle = "";
   let btnText = "지도로";
@@ -3369,7 +3395,6 @@ function completeCampaignBattle() {
   campaign.currentNodeId = null;
   campaign.transitioning = false;
   campaign.rewardState = null;
-  campaign.resolvedInterludes = [];
   campaign.checkpoint = null;
   state.phase = "map";
   state.winner = null;
@@ -4516,50 +4541,101 @@ function closeInfoPopup() {
 }
 
 function pendingInterludeForBattleIndex(index = campaign.battleIndex) {
+  if (campaign.version === 2) return null;
   return INTERLUDE_SPECS.find((spec) => (
     spec.triggerBattleIndex === index
     && !campaign.resolvedInterludes.includes(spec.id)
   )) || null;
 }
 
-function expeditionBattlePosition(index) {
+function expeditionLayerY(index) {
   const safeIndex = Math.max(0, Math.min(29, Number(index) || 0));
-  return {
-    x: EXPEDITION_MAP_X[safeIndex],
-    y: 92 - safeIndex * (84 / 29),
-  };
+  return 92 - safeIndex * (84 / 29);
 }
 
-function expeditionInterludePosition(spec) {
-  const next = expeditionBattlePosition(spec.triggerBattleIndex);
-  const previous = expeditionBattlePosition(Math.max(0, spec.triggerBattleIndex - 1));
-  const offset = spec.type === "rest" ? -5 : spec.type === "forge" ? 5 : spec.stage % 2 ? 6 : -6;
+function routeNodePosition(index, type) {
+  if ((index + 1) % 10 === 0) return { x: 50, y: expeditionLayerY(index) };
+  const laneX = { normal: 24, elite: 50, event: 76 };
+  const stageWobble = Math.floor(index / 10) % 2 === 0 ? 0 : 3;
+  const direction = index % 2 === 0 ? 1 : -1;
   return {
-    x: Math.max(7, Math.min(93, (previous.x + next.x) / 2 + offset)),
-    y: (previous.y + next.y) / 2,
+    x: laneX[type] + (type === "elite" ? 0 : stageWobble * direction),
+    y: expeditionLayerY(index),
   };
 }
 
 function expeditionRouteEntries() {
   const entries = [];
   (campaign.encounters || []).slice(0, 30).forEach((encounter, index) => {
-    const interlude = INTERLUDE_SPECS.find((spec) => spec.triggerBattleIndex === index);
-    if (interlude) {
+    const isBoss = Boolean(encounter.boss) || (index + 1) % 10 === 0;
+    const types = isBoss ? ["boss"] : ["normal", "elite", "event"];
+    types.forEach((type) => {
       entries.push({
-        kind: "interlude",
-        spec: interlude,
+        kind: type === "event" ? "event" : "battle",
+        type,
+        encounter,
         index,
-        ...expeditionInterludePosition(interlude),
+        ...routeNodePosition(index, type),
       });
-    }
-    entries.push({
-      kind: "battle",
-      encounter,
-      index,
-      ...expeditionBattlePosition(index),
     });
   });
   return entries;
+}
+
+function buildEliteRouteEncounter(index) {
+  const base = campaign.encounters[index];
+  if (!base) return null;
+  const stage = Math.floor(index / 10) + 1;
+  const candidates = Object.keys(UNIT_TYPES).filter((type) => {
+    const def = UNIT_TYPES[type];
+    const meta = ENCOUNTER_UNIT_META?.[type];
+    return type !== "summoner"
+      && def.grade !== "special"
+      && ["advanced", "hero"].includes(def.grade)
+      && meta?.directSpawn !== false
+      && (meta?.minStage || 1) <= stage;
+  });
+  const enemies = [...new Set(base.enemies)];
+  const start = Math.abs((campaign.runSeed || 0) + index * 17) % Math.max(1, candidates.length);
+  let eliteType = null;
+  for (let offset = 0; offset < candidates.length; offset += 1) {
+    const candidate = candidates[(start + offset) % candidates.length];
+    if (!enemies.includes(candidate)) {
+      eliteType = candidate;
+      break;
+    }
+  }
+  if (eliteType) {
+    if (enemies.length < 5) enemies.push(eliteType);
+    else enemies[enemies.length - 1] = eliteType;
+  }
+  return {
+    ...base,
+    enemies,
+    enemyCount: enemies.length,
+    routeType: "elite",
+    isPacing: false,
+  };
+}
+
+function buildRouteEncounter(index, type) {
+  const base = campaign.encounters[index];
+  if (!base) return null;
+  if (type === "elite") return buildEliteRouteEncounter(index);
+  return { ...base, enemies: [...base.enemies], routeType: type === "boss" ? "boss" : "normal" };
+}
+
+function routeEventSpec(index) {
+  const stageIndex = Math.floor(index / 10);
+  const stageSpecs = INTERLUDE_SPECS.filter((spec) => spec.stage === stageIndex + 1);
+  const template = stageSpecs[index % Math.max(1, stageSpecs.length)] || INTERLUDE_SPECS[0];
+  return {
+    ...template,
+    id: `route-event-${index}`,
+    storyId: template.id,
+    triggerBattleIndex: index,
+    routeEvent: true,
+  };
 }
 
 function focusExpeditionNode(selector = ".expedition-node.is-current", behavior = "smooth") {
@@ -4652,6 +4728,15 @@ function finishInterlude(spec, resultText) {
   if (!campaign.resolvedInterludes.includes(spec.id)) {
     campaign.resolvedInterludes.push(spec.id);
   }
+  if (spec.routeEvent) {
+    const index = spec.triggerBattleIndex;
+    campaign.routeHistory[index] = "event";
+    campaign.battleIndex = Math.min(30, index + 1);
+    campaign.stageIndex = Math.min(2, Math.floor(campaign.battleIndex / 10));
+    campaign.viewStageIndex = campaign.stageIndex;
+    campaign.currentNodeId = null;
+    campaign.checkpoint = null;
+  }
   autoSaveCampaign();
   render();
   showInterludeResult(spec, resultText);
@@ -4706,7 +4791,7 @@ function resolveInterlude(spec, choice) {
 
 function openInterlude(spec) {
   if (!spec || campaign.resolvedInterludes.includes(spec.id)) return;
-  const story = INTERLUDE_STORIES[spec.id];
+  const story = INTERLUDE_STORIES[spec.storyId || spec.id];
   if (!story || !storyDialog || !storyChoices) {
     const fallbackChoices = spec.type === "event"
       ? [
@@ -4772,9 +4857,7 @@ function renderCampaignMap() {
 
   mapProgress.textContent = campaign.finished
     ? "최종 보스를 쓰러뜨렸습니다. 지나온 원정길이 모두 기록되었습니다."
-    : pendingInterlude
-      ? `${pendingInterlude.label} · 선택이 다음 길을 결정합니다.`
-      : `전체 ${Math.min(campaign.battleIndex + 1, 30)}/30 · 최종 보스까지의 원정 경로`;
+    : `전체 ${Math.min(campaign.battleIndex + 1, 30)}/30 · 연결된 일반 전장, 고급 전장, 사건 중 하나를 선택하세요.`;
 
   campaignRosterEl.innerHTML = `<strong>원정대 ${campaign.roster.length}</strong>`;
   campaign.roster.forEach((type) => {
@@ -4817,19 +4900,54 @@ function renderCampaignMap() {
   routeSvg.setAttribute("preserveAspectRatio", "none");
   routeSvg.setAttribute("aria-hidden", "true");
   routeSvg.classList.add("expedition-route-lines");
-  entries.slice(0, -1).forEach((entry, routeIndex) => {
-    const next = entries[routeIndex + 1];
+
+  const entriesAt = (index) => entries.filter((entry) => entry.index === index);
+  const entryAt = (index, type) => entries.find((entry) => entry.index === index && entry.type === type);
+  const appendRoutePath = (entry, next, stateClass) => {
+    if (!entry || !next) return;
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    const curve = routeIndex % 2 === 0 ? 3 : -3;
+    const curve = entry.x === next.x ? 0 : (entry.x < next.x ? 2.8 : -2.8);
     const middleX = (entry.x + next.x) / 2 + curve;
     const middleY = (entry.y + next.y) / 2;
     path.setAttribute("d", `M ${entry.x} ${entry.y} Q ${middleX} ${middleY} ${next.x} ${next.y}`);
-    const reached = next.kind === "battle"
-      ? next.index <= campaign.battleIndex
-      : campaign.resolvedInterludes.includes(next.spec.id) || next.index <= campaign.battleIndex;
-    path.classList.add(reached ? "is-reached" : "is-future");
+    path.classList.add(stateClass);
     routeSvg.appendChild(path);
+  };
+
+  const firstNodes = entriesAt(0);
+  firstNodes.forEach((entry) => {
+    const start = { x: 50, y: 97 };
+    appendRoutePath(start, entry, campaign.battleIndex === 0 ? "is-available" : "is-future");
   });
+
+  for (let index = 1; index < 30; index += 1) {
+    const previousChoice = campaign.routeHistory[index - 1];
+    const currentChoice = campaign.routeHistory[index];
+    const previousEntries = entriesAt(index - 1);
+    const currentEntries = entriesAt(index);
+    const previous = entryAt(index - 1, previousChoice)
+      || previousEntries.find((entry) => entry.type === "boss")
+      || previousEntries[1]
+      || previousEntries[0];
+
+    if (index <= campaign.battleIndex && previous) {
+      if (currentChoice) {
+        appendRoutePath(
+          previous,
+          entryAt(index, currentChoice) || currentEntries[0],
+          index < campaign.battleIndex ? "is-reached" : "is-available",
+        );
+      } else if (index === campaign.battleIndex) {
+        currentEntries.forEach((entry) => appendRoutePath(previous, entry, "is-available"));
+      }
+    } else {
+      const futurePairs = currentEntries.map((next, lane) => {
+        const matching = previousEntries.find((entry) => entry.type === next.type);
+        return [matching || previousEntries[lane % previousEntries.length], next];
+      });
+      futurePairs.forEach(([from, to]) => appendRoutePath(from, to, "is-future"));
+    }
+  }
   canvas.appendChild(routeSvg);
 
   EXPEDITION_STAGE_LABELS.forEach((stage, index) => {
@@ -4844,48 +4962,45 @@ function renderCampaignMap() {
   entries.forEach((entry) => {
     const node = document.createElement("button");
     node.type = "button";
-    node.className = "expedition-node";
+    node.className = `expedition-node is-${entry.type}`;
     node.style.left = `${entry.x}%`;
     node.style.top = `${entry.y}%`;
+    const selectedType = campaign.routeHistory[entry.index];
+    const selected = selectedType === entry.type;
+    const completed = entry.index < campaign.battleIndex && selected;
+    const abandoned = entry.index < campaign.battleIndex && !selected;
+    const available = !campaign.finished
+      && entry.index === campaign.battleIndex
+      && (!selectedType || selected);
+    const meta = ROUTE_NODE_META[entry.type];
 
-    if (entry.kind === "interlude") {
-      const resolved = campaign.resolvedInterludes.includes(entry.spec.id);
-      const available = !campaign.finished
-        && campaign.battleIndex === entry.spec.triggerBattleIndex
-        && !resolved;
-      const symbols = { rest: "♥", forge: "⚒", event: "?" };
-      node.classList.add(`is-${entry.spec.type}`);
-      node.classList.toggle("is-completed", resolved);
-      node.classList.toggle("is-current", available);
-      node.disabled = !available;
-      node.dataset.interludeId = entry.spec.id;
-      node.innerHTML = `
-        <span class="expedition-node-token"><b>${symbols[entry.spec.type]}</b></span>
-        <span class="expedition-node-caption">${entry.spec.label}</span>
-      `;
-      if (available) node.addEventListener("click", () => openInterlude(entry.spec));
-    } else {
-      const encounter = entry.encounter;
-      const completed = entry.index < campaign.battleIndex || encounter.cleared;
-      const available = !campaign.finished && !pendingInterlude && entry.index === campaign.battleIndex;
-      const isElite = (entry.index + 1) % 10 === 9;
-      const preview = UNIT_TYPES[encounter.enemies[0]] || UNIT_TYPES.spear;
-      node.classList.toggle("is-completed", completed);
-      node.classList.toggle("is-current", available);
-      node.classList.toggle("is-elite", isElite);
-      node.classList.toggle("is-boss", Boolean(encounter.boss));
-      node.disabled = !available;
-      node.dataset.battleIndex = String(entry.index);
-      node.innerHTML = `
-        <span class="expedition-node-token">
-          <img src="${preview.image}" alt="" loading="lazy" decoding="async">
-          <em>${entry.index + 1}</em>
-        </span>
-        <span class="expedition-node-caption">${encounter.boss ? "보스" : isElite ? "정예" : `전투 ${entry.index + 1}`}</span>
-      `;
-      if (available) {
+    node.classList.toggle("is-completed", completed);
+    node.classList.toggle("is-abandoned", abandoned);
+    node.classList.toggle("is-future-node", entry.index > campaign.battleIndex);
+    node.classList.toggle("is-current", available);
+    node.disabled = !available;
+    node.dataset.battleIndex = String(entry.index);
+    node.dataset.routeType = entry.type;
+    node.setAttribute("aria-label", `${entry.index + 1}층 ${meta.label}: ${meta.caption}`);
+    node.innerHTML = `
+      <span class="expedition-node-token">
+        <b>${meta.symbol}</b>
+        <em>${entry.index + 1}</em>
+      </span>
+      <span class="expedition-node-caption"><strong>${meta.label}</strong><small>${meta.caption}</small></span>
+    `;
+
+    if (available) {
+      if (entry.type === "event") {
+        node.addEventListener("click", () => openInterlude(routeEventSpec(entry.index)));
+      } else {
         node.addEventListener("click", () => {
-          openBattleBriefing(encounter, entry.index, () => enterGeneratedCampaignBattle(entry.index));
+          const encounter = buildRouteEncounter(entry.index, entry.type);
+          openBattleBriefing(
+            encounter,
+            entry.index,
+            () => enterGeneratedCampaignBattle(entry.index, entry.type, encounter),
+          );
         });
       }
     }
@@ -4895,7 +5010,7 @@ function renderCampaignMap() {
   mapRoute.appendChild(canvas);
   bindExpeditionMapDrag(mapRoute);
   prepareExpeditionMapImage();
-  const focusKey = `${campaign.battleIndex}:${pendingInterlude?.id || "battle"}`;
+  const focusKey = `${campaign.battleIndex}:${campaign.routeHistory[campaign.battleIndex] || "choices"}`;
   if (mapRoute.dataset.focusKey !== focusKey) {
     mapRoute.dataset.focusKey = focusKey;
     window.setTimeout(() => focusExpeditionNode(".expedition-node.is-current", "auto"), 0);
@@ -5028,12 +5143,19 @@ function setupBattleBoardState(encounter) {
   startBattleMusic();
 }
 
-function enterGeneratedCampaignBattle(bIdx) {
-  const enc = campaign.encounters[bIdx];
-  if (!enc || pendingInterludeForBattleIndex(bIdx)) return;
+function enterGeneratedCampaignBattle(bIdx, routeType = "normal", routeEncounter = null) {
+  const enc = routeEncounter || buildRouteEncounter(bIdx, routeType);
+  const baseEncounter = campaign.encounters[bIdx];
+  if (!enc) return;
 
-  enc.attempts = (enc.attempts || 0) + 1;
-  campaign.currentNodeId = enc.id;
+  if (baseEncounter) {
+    baseEncounter.attempts = (baseEncounter.attempts || 0) + 1;
+    enc.attempts = baseEncounter.attempts;
+  } else {
+    enc.attempts = (enc.attempts || 0) + 1;
+  }
+  campaign.routeHistory[bIdx] = routeType;
+  campaign.currentNodeId = campaign.encounters[bIdx]?.id || enc.id;
   campaign.battleIndex = bIdx;
   campaign.stageIndex = Math.floor(bIdx / 10);
   campaign.viewStageIndex = campaign.stageIndex;
@@ -5043,7 +5165,8 @@ function enterGeneratedCampaignBattle(bIdx) {
     stageIndex: campaign.stageIndex,
     roster: [...campaign.roster],
     unitProgress: JSON.parse(JSON.stringify(campaign.unitProgress)),
-    availableTotems: [...campaign.availableTotems]
+    availableTotems: [...campaign.availableTotems],
+    routeType
   };
 
   autoSaveCampaign();
@@ -5237,6 +5360,7 @@ continueCampaignBtn.addEventListener("click", async () => {
     campaign.rewardState = save.rewardState;
     campaign.checkpoint = save.checkpoint || null;
     campaign.resolvedInterludes = save.resolvedInterludes || [];
+    campaign.routeHistory = save.routeHistory || [];
     campaign.transitioning = false;
 
     if (campaign.rewardState) {

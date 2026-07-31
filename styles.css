@@ -4575,9 +4575,21 @@ dialog::backdrop {
   stroke-width: 1.4;
 }
 
+.expedition-route-lines path.is-available {
+  stroke: #ffe143;
+  stroke-width: 1.65;
+  stroke-dasharray: 2 1;
+  opacity: 1;
+  animation: routeChoiceFlow 1.1s linear infinite;
+}
+
 .expedition-route-lines path.is-future {
   stroke-dasharray: 1.2 1.2;
-  opacity: .72;
+  opacity: .35;
+}
+
+@keyframes routeChoiceFlow {
+  to { stroke-dashoffset: -6; }
 }
 
 .expedition-stage-label {
@@ -4687,6 +4699,18 @@ dialog::backdrop {
   white-space: normal;
 }
 
+.expedition-node .map-node-caption strong,
+.expedition-node .map-node-caption small {
+  display: block;
+}
+
+.expedition-node .map-node-caption small {
+  margin-top: 2px;
+  color: #575149;
+  font-size: 8px;
+  font-weight: 800;
+}
+
 .expedition-node .map-node-order {
   position: absolute;
   top: -8px;
@@ -4705,8 +4729,18 @@ dialog::backdrop {
 }
 
 .expedition-node:disabled {
-  opacity: .82;
+  opacity: .58;
   cursor: default;
+}
+
+.expedition-node.is-future-node .map-node-caption,
+.expedition-node.is-abandoned .map-node-caption {
+  display: none;
+}
+
+.expedition-node.is-abandoned {
+  opacity: .16;
+  filter: grayscale(1);
 }
 
 .expedition-node.is-completed {
@@ -4738,6 +4772,11 @@ dialog::backdrop {
   animation: expeditionNodeReady 1.35s ease-in-out infinite;
 }
 
+.expedition-node.is-normal {
+  border-color: #245d88;
+  background: #e5f2fb;
+}
+
 .expedition-node.is-elite {
   border-color: #63348e;
   background: #eee0ff;
@@ -4753,20 +4792,16 @@ dialog::backdrop {
 }
 
 .expedition-node.is-event {
-  border-radius: 8px;
-  transform: translate(-50%, -50%) rotate(45deg);
+  border-radius: 10px;
+  transform: translate(-50%, -50%);
   background: #e4f6ef;
   border-color: #236e58;
 }
 
-.expedition-node.is-event > * {
-  transform: rotate(-45deg);
-}
-
 .expedition-node.is-event .map-node-caption {
-  transform: translateX(-50%) rotate(-45deg);
-  top: 91%;
-  left: 91%;
+  transform: translateX(-50%);
+  top: calc(100% + 8px);
+  left: 50%;
 }
 
 .expedition-node.is-rest { background: #e4f6ef; border-color: #2b7444; }

@@ -417,7 +417,50 @@ assert.ok(Array.from(placementSnapshot.reserves).includes('spear'), '교체된 �
 assert.strictEqual(placementSnapshot.infoVisible, true, '대기 유닛도 정보창을 표시해야 함');
 console.log('Pass: 0명 배치 진행, 교체 배치, 대기 유닛 정보 검증 성공.');
 
-console.log('\n=== 12. 탐험 노드 및 정예 보상 검증 ===');
+console.log('\n=== 12. 분기 원정 선택지 및 고급 전장 검증 ===');
+const expeditionSnapshot = vm.runInContext(`(() => {
+  resetCampaign();
+  const entries = expeditionRouteEntries();
+  const firstChoices = entries
+    .filter((entry) => entry.index === 0)
+    .map((entry) => entry.type);
+  const bossChoices = entries
+    .filter((entry) => entry.index === 9)
+    .map((entry) => entry.type);
+  const eliteEncounter = buildRouteEncounter(0, 'elite');
+  const hasEliteEnemy = eliteEncounter.enemies.some((type) => ['advanced', 'hero'].includes(UNIT_TYPES[type].grade));
+  const uniqueEliteEnemies = new Set(eliteEncounter.enemies).size === eliteEncounter.enemies.length;
+  const eventSpec = routeEventSpec(0);
+
+  campaign.routeHistory[0] = 'event';
+  campaign.battleIndex = 1;
+  autoSaveCampaign();
+  const saved = loadCampaignSave();
+
+  campaign.battleIndex = 0;
+  campaign.routeHistory[0] = 'elite';
+  const eliteConfig = getRewardConfig();
+  return {
+    firstChoices,
+    bossChoices,
+    hasEliteEnemy,
+    uniqueEliteEnemies,
+    eventIsRouteChoice: eventSpec.routeEvent === true && eventSpec.id === 'route-event-0',
+    savedRoute: [...saved.routeHistory],
+    elite: eliteConfig.isElite,
+    eliteOptions: eliteConfig.optionsList.map((option) => option.key)
+  };
+})()`, sandbox);
+assert.deepStrictEqual(Array.from(expeditionSnapshot.firstChoices), ['normal', 'elite', 'event'], '일반·고급·사건 3개 선택지가 열려야 함');
+assert.deepStrictEqual(Array.from(expeditionSnapshot.bossChoices), ['boss'], '각 스테이지 10번째 층은 보스 단일 경로여야 함');
+assert.strictEqual(expeditionSnapshot.hasEliteEnemy, true, '고급 전장에는 고급 또는 영웅 적이 반드시 포함되어야 함');
+assert.strictEqual(expeditionSnapshot.uniqueEliteEnemies, true, '고급 전장에도 같은 적이 중복 등장하면 안 됨');
+assert.strictEqual(expeditionSnapshot.eventIsRouteChoice, true, '사건은 해당 층을 소비하는 선택형 경로여야 함');
+assert.deepStrictEqual(Array.from(expeditionSnapshot.savedRoute), ['event'], '선택한 경로가 세이브에 저장되어야 함');
+assert.strictEqual(expeditionSnapshot.elite, true, '고급 경로 선택 시 고급 보상으로 판정되어야 함');
+assert.deepStrictEqual(Array.from(expeditionSnapshot.eliteOptions), ['vitality', 'dice'], '고급 전장은 생명력과 주사위 강화 보상을 제공해야 함');
+console.log('Pass: 3갈래 선택, 고급 편성, 사건 진행, 경로 저장 및 고급 보상 검증 성공.');
+
 console.log('\n=== 13. Captured unit carryover, enhancement badge, and totem reselection ===');
 const carryoverSnapshot = vm.runInContext(`(() => {
   resetCampaign();
@@ -451,40 +494,6 @@ assert.strictEqual(carryoverSnapshot.beastSelected, true, 'beast totem should be
 assert.strictEqual(carryoverSnapshot.iceSelected, true, 'selected totem should be changeable during setup');
 assert.strictEqual(carryoverSnapshot.cleared, true, 'totem selection should be removable during setup');
 console.log('Pass: captured carryover, enhancement level, and setup totem reselection.');
-
-const expeditionSnapshot = vm.runInContext(`(() => {
-  resetCampaign();
-  campaign.battleIndex = 3;
-  campaign.stageIndex = 0;
-  const pendingBefore = pendingInterludeForBattleIndex()?.id;
-  const baseMaxHp = campaign.unitProgress.spear.maxHp;
-  const originalRandom = Math.random;
-  Math.random = () => 0;
-  resolveInterlude(INTERLUDE_SPECS.find((spec) => spec.id === 'rest-1'), 'vitality');
-  Math.random = originalRandom;
-  const pendingAfter = pendingInterludeForBattleIndex();
-  const saved = loadCampaignSave();
-
-  campaign.battleIndex = 8;
-  const eliteConfig = getRewardConfig();
-  return {
-    pendingBefore,
-    pendingAfter,
-    resolved: [...campaign.resolvedInterludes],
-    maxHpGain: campaign.unitProgress.spear.maxHp - baseMaxHp,
-    savedResolved: [...saved.resolvedInterludes],
-    elite: eliteConfig.isElite,
-    eliteOptions: eliteConfig.optionsList.map((option) => option.key)
-  };
-})()`, sandbox);
-assert.strictEqual(expeditionSnapshot.pendingBefore, 'rest-1', '3전투 뒤 휴식 노드가 활성화되어야 함');
-assert.strictEqual(expeditionSnapshot.pendingAfter, null, '휴식 선택 후 다음 전투 잠금이 해제되어야 함');
-assert.ok(Array.from(expeditionSnapshot.resolved).includes('rest-1'), '해결한 탐험 노드가 원정 상태에 기록되어야 함');
-assert.strictEqual(expeditionSnapshot.maxHpGain, 1, '휴식의 체력 단련은 최대 체력을 1 올려야 함');
-assert.ok(Array.from(expeditionSnapshot.savedResolved).includes('rest-1'), '탐험 노드 진행이 세이브에 저장되어야 함');
-assert.strictEqual(expeditionSnapshot.elite, true, '9·19·29번째 전투는 정예전이어야 함');
-assert.deepStrictEqual(Array.from(expeditionSnapshot.eliteOptions), ['vitality', 'dice'], '정예전은 생명력과 주사위 강화 보상을 제공해야 함');
-console.log('Pass: 휴식 노드 저장, 다음 전투 해제, 정예 보상 검증 성공.');
 
 console.log('\n=== 14. 승리 정산, 전사, 자동 회복 표시 검증 ===');
 const settlementSnapshot = vm.runInContext(`(() => {
