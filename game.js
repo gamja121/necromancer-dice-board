@@ -421,6 +421,10 @@ const battleBriefingDialog = document.getElementById("battleBriefingDialog");
 const briefingBadge = document.getElementById("briefingBadge");
 const briefingTitle = document.getElementById("briefingTitle");
 const briefingSubtitle = document.getElementById("briefingSubtitle");
+const briefingRecon = document.getElementById("briefingRecon");
+const briefingThreatLabel = document.getElementById("briefingThreatLabel");
+const briefingThreatFill = document.getElementById("briefingThreatFill");
+const briefingIntel = document.getElementById("briefingIntel");
 const briefingEnemies = document.getElementById("briefingEnemies");
 const briefingLegions = document.getElementById("briefingLegions");
 const briefingReward = document.getElementById("briefingReward");
@@ -1913,6 +1917,35 @@ function battleBriefingReward(encounter, battleIndex, legacy = false) {
   return "전투 정산 · 생존 유닛 자동 회복";
 }
 
+function encounterThreatProfile(encounter, activeLegionCount, isBoss, isElite) {
+  const gradePower = { normal: 1, advanced: 2.15, hero: 3.35, special: 1.25 };
+  const rawPower = encounter.enemies.reduce((sum, type) => {
+    const grade = UNIT_TYPES[type]?.grade || "normal";
+    return sum + (gradePower[grade] || 1);
+  }, 0);
+  const adjusted = rawPower
+    + activeLegionCount * 1.15
+    + (isElite ? 1.4 : 0)
+    + (isBoss ? 2.4 : 0);
+  const score = Math.max(1, Math.min(5, Math.ceil(adjusted / 3.15)));
+  const labels = ["낮음", "보통", "높음", "위험", "치명적"];
+  const strongest = [...encounter.enemies]
+    .sort((left, right) => {
+      const leftPower = gradePower[UNIT_TYPES[left]?.grade] || 1;
+      const rightPower = gradePower[UNIT_TYPES[right]?.grade] || 1;
+      return rightPower - leftPower;
+    })[0];
+  const strongestLabel = UNIT_TYPES[strongest]?.label || "알 수 없는 적";
+  const intel = isBoss
+    ? `${strongestLabel}이 전열을 지휘합니다. 군단 효과와 집중 공격에 대비하십시오.`
+    : isElite
+      ? `${strongestLabel} 중심의 정예 편성입니다. 승리하면 희귀 강화를 선택할 수 있습니다.`
+      : activeLegionCount > 0
+        ? `${activeLegionCount}개의 적 군단 효과가 활성화됩니다. 상성에 맞는 배치를 권장합니다.`
+        : `${strongestLabel}이 가장 큰 위협입니다. 안정적인 포획과 전투 정산을 기대할 수 있습니다.`;
+  return { score, label: labels[score - 1], intel };
+}
+
 function buildEncounterBriefing(encounter, battleIndex, legacy = false) {
   const enemyCounts = new Map();
   const legionCounts = new Map();
@@ -1929,15 +1962,23 @@ function buildEncounterBriefing(encounter, battleIndex, legacy = false) {
   const kind = isBoss ? "보스" : (isElite ? "정예" : (encounter.isPacing ? "완급조절" : "일반"));
   const lead = UNIT_TYPES[encounter.enemies[0]] || UNIT_TYPES.spear;
 
+  const activeLegions = LEGION_RULES
+    .map((rule) => ({ ...rule, count: legionCounts.get(rule.key) || 0 }))
+    .filter((rule) => rule.count >= rule.target);
+  const threat = encounterThreatProfile(encounter, activeLegions.length, isBoss, isElite);
+
   return {
     battleNumber,
     kind,
     title: isBoss ? `${lead.label} 보스전` : `${lead.label} 부대`,
     subtitle: `적 ${encounter.enemies.length}마리 · ${kind} 전투`,
-    enemies: Array.from(enemyCounts, ([type, count]) => ({ type, count })),
-    activeLegions: LEGION_RULES
-      .map((rule) => ({ ...rule, count: legionCounts.get(rule.key) || 0 }))
-      .filter((rule) => rule.count >= rule.target),
+    enemies: Array.from(enemyCounts, ([type, count]) => ({
+      type,
+      count,
+      grade: UNIT_TYPES[type]?.grade || "normal",
+    })),
+    activeLegions,
+    threat,
     reward: battleBriefingReward(encounter, battleIndex, legacy),
     totems: campaign.availableTotems
       .filter((key) => TOTEMS[key])
@@ -1961,14 +2002,20 @@ function openBattleBriefing(encounter, battleIndex, onStart, legacy = false) {
   pendingBriefingStart = onStart;
   briefingBadge.textContent = briefing.kind;
   if (briefingBadge.dataset) briefingBadge.dataset.kind = briefing.kind;
+  if (briefingRecon?.dataset) briefingRecon.dataset.kind = briefing.kind;
   briefingTitle.textContent = briefing.title;
   briefingSubtitle.textContent = briefing.subtitle;
-  briefingEnemies.innerHTML = briefing.enemies.map(({ type, count }) => {
+  briefingThreatLabel.textContent = `${briefing.threat.label} · ${briefing.threat.score}/5`;
+  briefingThreatFill.style.setProperty("--threat-level", briefing.threat.score);
+  briefingThreatFill.parentElement?.setAttribute("aria-valuenow", String(briefing.threat.score));
+  briefingIntel.textContent = briefing.threat.intel;
+  const gradeLabels = { normal: "일반", advanced: "고급", hero: "영웅", special: "소환물" };
+  briefingEnemies.innerHTML = briefing.enemies.map(({ type, count, grade }) => {
     const def = UNIT_TYPES[type];
     return `
-      <article class="briefing-enemy">
+      <article class="briefing-enemy" data-grade="${grade}">
         <img src="${def.image}" alt="">
-        <span>${def.label}</span>
+        <span><small>${gradeLabels[grade] || grade}</small>${def.label}</span>
         ${count > 1 ? `<b>×${count}</b>` : ""}
       </article>
     `;

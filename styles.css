@@ -2951,35 +2951,85 @@ dialog::backdrop {
 }
 
 .battle-briefing-dialog::backdrop {
-  background: rgba(8, 7, 7, .82);
-  backdrop-filter: blur(3px) grayscale(.3);
+  background: rgba(8, 7, 7, .88);
+  backdrop-filter: blur(7px) grayscale(.3);
 }
 
 .battle-briefing-card {
-  width: min(480px, calc(100vw - 20px));
+  position: relative;
+  isolation: isolate;
+  width: min(540px, calc(100vw - 20px));
   max-height: calc(100dvh - 20px);
   overflow: auto;
-  padding: 16px;
+  padding: 0 18px 18px;
   border: 2px solid #d7b46a;
-  border-radius: 8px;
+  border-radius: 6px;
   color: #f8f3ea;
-  background: #171616;
-  box-shadow: 0 0 0 4px #080808, 0 20px 70px rgba(0, 0, 0, .72);
+  background:
+    linear-gradient(rgba(18, 17, 16, .92), rgba(18, 17, 16, .98)),
+    url("assets/campaign-map-expedition.jpg") center / cover;
+  box-shadow:
+    0 0 0 4px #080808,
+    0 0 0 6px rgba(215, 180, 106, .24),
+    0 28px 90px rgba(0, 0, 0, .82);
+}
+
+.battle-briefing-card::before,
+.battle-briefing-card::after {
+  content: "";
+  position: sticky;
+  z-index: 5;
+  display: block;
+  pointer-events: none;
+}
+
+.battle-briefing-card::before {
+  top: 0;
+  height: 3px;
+  margin: 0 -18px;
+  background: linear-gradient(90deg, transparent, #f2d18b 20%, #fff0bf 50%, #f2d18b 80%, transparent);
+  box-shadow: 0 1px 16px rgba(242, 209, 139, .55);
 }
 
 .briefing-header {
+  position: relative;
   display: grid;
   justify-items: center;
-  gap: 3px;
-  padding: 4px 4px 13px;
+  gap: 4px;
+  margin: 0 -18px;
+  padding: 24px 18px 17px;
+  overflow: hidden;
   text-align: center;
 }
 
+.briefing-header::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, .08), rgba(10, 9, 8, .96)),
+    url("assets/campaign-map-expedition.jpg") center 42% / 130%;
+  filter: contrast(1.08) saturate(.72);
+}
+
+.briefing-header::after {
+  content: "";
+  position: absolute;
+  right: 12%;
+  bottom: 0;
+  left: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #d7b46a, transparent);
+}
+
 .briefing-header > span {
-  padding: 3px 9px;
+  padding: 4px 12px;
   border: 1px solid #d7b46a;
-  border-radius: 4px;
+  border-radius: 3px;
   color: #d7b46a;
+  background: rgba(11, 10, 9, .72);
+  box-shadow: 0 0 18px rgba(215, 180, 106, .16);
   font-size: 11px;
   font-weight: 900;
 }
@@ -2995,10 +3045,11 @@ dialog::backdrop {
 }
 
 .briefing-header h2 {
-  margin: 2px 0 0;
+  margin: 5px 0 0;
   color: #fff;
-  font-size: 28px;
+  font-size: 30px;
   line-height: 1.1;
+  text-shadow: 0 2px 0 #000, 0 0 22px rgba(215, 180, 106, .22);
 }
 
 .briefing-header p,
@@ -3006,6 +3057,69 @@ dialog::backdrop {
   margin: 3px 0 0;
   color: #bdb6ad;
   font-size: 12px;
+  line-height: 1.45;
+}
+
+.briefing-recon {
+  --recon-accent: #d7b46a;
+  display: grid;
+  grid-template-columns: auto minmax(100px, 1fr);
+  align-items: center;
+  gap: 5px 12px;
+  margin: 13px 0 3px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--recon-accent) 55%, #39332e);
+  background:
+    linear-gradient(110deg, color-mix(in srgb, var(--recon-accent) 11%, #171616), #1b1918 68%);
+  box-shadow: inset 3px 0 0 var(--recon-accent), 0 8px 24px rgba(0, 0, 0, .22);
+}
+
+.briefing-recon[data-kind="정예"] { --recon-accent: #b98bf0; }
+.briefing-recon[data-kind="보스"] { --recon-accent: #ef6b63; }
+
+.briefing-threat-copy {
+  display: grid;
+  gap: 1px;
+  min-width: 82px;
+}
+
+.briefing-threat-copy span {
+  color: #aaa39a;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.briefing-threat-copy strong {
+  color: var(--recon-accent);
+  font-size: 14px;
+}
+
+.briefing-threat-meter {
+  position: relative;
+  height: 12px;
+  overflow: hidden;
+  border: 1px solid #080808;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 calc(20% - 2px), rgba(0, 0, 0, .78) calc(20% - 2px) 20%),
+    #302c29;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, .75);
+}
+
+.briefing-threat-meter i {
+  display: block;
+  width: calc(var(--threat-level, 1) * 20%);
+  height: 100%;
+  background:
+    linear-gradient(90deg, #72bf83, #d9bd55 45%, #e2684f 78%, #d82e31);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--recon-accent) 76%, transparent);
+  transition: width .45s cubic-bezier(.2, .8, .2, 1);
+}
+
+.briefing-recon > p {
+  grid-column: 1 / -1;
+  margin: 4px 0 0;
+  color: #d1cbc2;
+  font-size: 11px;
   line-height: 1.45;
 }
 
@@ -3024,42 +3138,72 @@ dialog::backdrop {
 
 .briefing-enemies {
   display: flex;
-  gap: 8px;
+  gap: 9px;
   overflow-x: auto;
-  padding: 1px 1px 7px;
+  padding: 2px 2px 9px;
+  scroll-snap-type: x proximity;
   scrollbar-width: thin;
 }
 
 .briefing-enemy {
+  --grade-accent: #8b837a;
   position: relative;
-  flex: 0 0 74px;
+  flex: 0 0 88px;
   display: grid;
   justify-items: center;
   gap: 4px;
   min-width: 0;
-  padding: 6px;
-  border: 1px solid #625b52;
-  border-radius: 6px;
-  background: #252220;
+  padding: 7px;
+  overflow: hidden;
+  scroll-snap-align: start;
+  border: 1px solid color-mix(in srgb, var(--grade-accent) 70%, #302c29);
+  border-radius: 4px;
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--grade-accent) 12%, #252220), #1b1918);
+  box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--grade-accent) 45%, transparent);
+}
+
+.briefing-enemy[data-grade="advanced"] { --grade-accent: #a97bdf; }
+.briefing-enemy[data-grade="hero"] { --grade-accent: #e1a84f; }
+.briefing-enemy[data-grade="special"] { --grade-accent: #6fb6a4; }
+
+.briefing-enemy::before {
+  content: "";
+  position: absolute;
+  top: -25px;
+  left: -45%;
+  width: 80%;
+  height: 140px;
+  transform: rotate(24deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .09), transparent);
+  pointer-events: none;
 }
 
 .briefing-enemy img {
-  width: 58px;
-  height: 58px;
+  width: 70px;
+  height: 70px;
   object-fit: contain;
-  border-radius: 4px;
-  background: #f3f3f3;
+  border: 1px solid #0c0b0a;
+  border-radius: 3px;
+  background: #f7f7f5;
+  filter: contrast(1.06);
 }
 
 .briefing-enemy span {
   width: 100%;
-  overflow: hidden;
   color: #eee8df;
   font-size: 10px;
   font-weight: 800;
   text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.briefing-enemy span small {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--grade-accent);
+  font-size: 8px;
+  font-weight: 900;
 }
 
 .briefing-enemy b {
@@ -3083,9 +3227,11 @@ dialog::backdrop {
 .briefing-legion {
   display: grid;
   gap: 3px;
-  padding: 8px 9px;
+  padding: 9px 10px;
   border-left: 3px solid #71b897;
-  background: #242825;
+  background:
+    linear-gradient(90deg, rgba(113, 184, 151, .12), transparent 70%),
+    #202421;
 }
 
 .briefing-legion strong {
@@ -3113,8 +3259,8 @@ dialog::backdrop {
   min-width: 0;
   padding: 9px;
   border: 1px solid #49433e;
-  border-radius: 6px;
-  background: #211f1d;
+  border-radius: 4px;
+  background: linear-gradient(145deg, #24211f, #1a1918);
 }
 
 .briefing-actions {
@@ -3136,7 +3282,8 @@ dialog::backdrop {
 #briefingStartBtn {
   border-color: #d7b46a;
   color: #17120c;
-  background: #d7b46a;
+  background: linear-gradient(180deg, #efd391, #caa258);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55), 0 5px 0 #725525;
 }
 
 .reward-dialog {
@@ -3545,20 +3692,44 @@ dialog::backdrop {
   .battle-briefing-card {
     width: calc(100vw - 12px);
     max-height: calc(100dvh - 12px);
-    padding: 11px;
+    padding: 0 11px 11px;
+  }
+
+  .battle-briefing-card::before {
+    margin-right: -11px;
+    margin-left: -11px;
+  }
+
+  .briefing-header {
+    margin-right: -11px;
+    margin-left: -11px;
+    padding: 18px 12px 14px;
   }
 
   .briefing-header h2 {
     font-size: 24px;
   }
 
+  .briefing-recon {
+    margin-top: 10px;
+    padding: 9px;
+  }
+
+  .briefing-recon > p {
+    font-size: 10px;
+  }
+
   .briefing-enemy {
-    flex-basis: 68px;
+    flex-basis: 76px;
   }
 
   .briefing-enemy img {
-    width: 52px;
-    height: 52px;
+    width: 60px;
+    height: 60px;
+  }
+
+  .briefing-grid {
+    grid-template-columns: 1fr;
   }
 
   .reward-card {
@@ -4566,7 +4737,7 @@ dialog::backdrop {
   stroke-linecap: round;
   stroke-linejoin: round;
   paint-order: stroke;
-  filter: drop-shadow(0 1px 0 #111) drop-shadow(0 -1px 0 #111);
+  filter: drop-shadow(0 1px 0 #111) drop-shadow(0 -1px 0 #111) drop-shadow(0 0 3px rgba(255, 255, 255, .35));
 }
 
 .expedition-route-lines path.is-completed,
@@ -4649,11 +4820,16 @@ dialog::backdrop {
   place-items: center;
   border-radius: inherit;
   overflow: hidden;
+  background:
+    radial-gradient(circle at 34% 26%, rgba(255, 255, 255, .9), transparent 34%),
+    linear-gradient(145deg, rgba(255, 255, 255, .35), rgba(0, 0, 0, .08));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .75), inset 0 -8px 14px rgba(0, 0, 0, .12);
 }
 
 .expedition-node-token b {
   font-size: 25px;
   line-height: 1;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, .8), 0 3px 3px rgba(0, 0, 0, .22);
 }
 
 .expedition-node-token em {
@@ -4772,14 +4948,26 @@ dialog::backdrop {
   animation: expeditionNodeReady 1.35s ease-in-out infinite;
 }
 
+.expedition-node.is-current::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -15px;
+  border: 2px solid rgba(255, 225, 67, .78);
+  border-radius: inherit;
+  box-shadow: 0 0 18px rgba(255, 225, 67, .5);
+  animation: routeNodeScan 1.35s ease-out infinite;
+}
+
 .expedition-node.is-normal {
   border-color: #245d88;
-  background: #e5f2fb;
+  background: linear-gradient(145deg, #f3faff, #cce4f5);
 }
 
 .expedition-node.is-elite {
   border-color: #63348e;
-  background: #eee0ff;
+  background: linear-gradient(145deg, #f7efff, #d6baf7);
+  box-shadow: 0 5px 0 rgba(55, 25, 83, .5), 0 0 0 3px rgba(255, 255, 255, .85);
 }
 
 .expedition-node.is-boss {
@@ -4788,13 +4976,14 @@ dialog::backdrop {
   min-height: 76px;
   border-width: 4px;
   border-color: #9f281c;
-  background: #ffe2dd;
+  background: linear-gradient(145deg, #fff1ed, #efafa7);
+  box-shadow: 0 7px 0 #5f1812, 0 0 0 4px rgba(255, 255, 255, .86), 0 0 26px rgba(159, 40, 28, .36);
 }
 
 .expedition-node.is-event {
   border-radius: 10px;
   transform: translate(-50%, -50%);
-  background: #e4f6ef;
+  background: linear-gradient(145deg, #f2fff9, #bde5d5);
   border-color: #236e58;
 }
 
@@ -4810,6 +4999,11 @@ dialog::backdrop {
 @keyframes expeditionNodeReady {
   0%, 100% { box-shadow: 0 6px 0 #111, 0 0 0 6px rgba(255, 225, 67, .55); }
   50% { box-shadow: 0 6px 0 #111, 0 0 0 12px rgba(255, 225, 67, .25); }
+}
+
+@keyframes routeNodeScan {
+  0% { opacity: .85; transform: scale(.82) rotate(0deg); }
+  70%, 100% { opacity: 0; transform: scale(1.15) rotate(12deg); }
 }
 
 /* Narrative expedition scenes */

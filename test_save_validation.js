@@ -554,6 +554,9 @@ const briefingSnapshot = vm.runInContext(`(() => {
     enemyCount: briefing.enemies.reduce((sum, enemy) => sum + enemy.count, 0),
     beastActive: briefing.activeLegions.some((legion) => legion.key === 'beast' && legion.count === 2),
     ownsBeastTotem: briefing.totems.some((totem) => totem.key === 'beast'),
+    threatScore: briefing.threat.score,
+    hasThreatIntel: briefing.threat.intel.length > 10,
+    gradesVisible: briefing.enemies.every((enemy) => ['normal', 'advanced', 'hero', 'special'].includes(enemy.grade)),
     reward: briefing.reward,
     stateUnchanged: before === after,
     pendingCleared: pendingBriefingStart === null
@@ -562,6 +565,9 @@ const briefingSnapshot = vm.runInContext(`(() => {
 assert.strictEqual(briefingSnapshot.enemyCount, 3, '브리핑에 적 전체 수가 정확히 표시되어야 함');
 assert.strictEqual(briefingSnapshot.beastActive, true, '적 야수 2마리는 활성 야수 군단으로 표시되어야 함');
 assert.strictEqual(briefingSnapshot.ownsBeastTotem, true, '보유 토템이 브리핑에 표시되어야 함');
+assert.ok(briefingSnapshot.threatScore >= 1 && briefingSnapshot.threatScore <= 5, '위험도는 1~5 범위로 계산되어야 함');
+assert.strictEqual(briefingSnapshot.hasThreatIntel, true, '위험도에 맞는 정찰 문구가 제공되어야 함');
+assert.strictEqual(briefingSnapshot.gradesVisible, true, '모든 적 카드에 등급 정보가 제공되어야 함');
 assert.strictEqual(briefingSnapshot.reward, '전투 정산 · 생존 유닛 자동 회복', '일반 전투 보상 안내가 정확해야 함');
 assert.strictEqual(briefingSnapshot.stateUnchanged, true, '브리핑 열기와 닫기는 전투 상태를 변경하지 않아야 함');
 assert.strictEqual(briefingSnapshot.pendingCleared, true, '브리핑을 닫으면 대기 중인 전투 콜백이 제거되어야 함');
