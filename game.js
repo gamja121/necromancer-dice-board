@@ -93,9 +93,9 @@ const EXPEDITION_MAP_X = [
   31, 17, 30, 47, 64, 79, 86, 70, 84, 91,
 ];
 const EXPEDITION_STAGE_LABELS = [
-  { label: "제1장 · 묘지 외곽", x: 13, y: 97 },
-  { label: "제2장 · 오염된 경계", x: 87, y: 61 },
-  { label: "제3장 · 악마의 왕좌", x: 12, y: 31 },
+  { label: "제1장 · 묘지 외곽", x: 50, y: 97 },
+  { label: "제2장 · 오염된 경계", x: 50, y: 64.5 },
+  { label: "제3장 · 악마의 왕좌", x: 50, y: 35.5 },
 ];
 const ROUTE_NODE_TYPES = Object.freeze(["normal", "elite", "event", "boss"]);
 const ROUTE_NODE_META = Object.freeze({
@@ -4602,11 +4602,8 @@ function expeditionLayerY(index) {
 
 function routeNodePosition(index, type) {
   if ((index + 1) % 10 === 0) return { x: 50, y: expeditionLayerY(index) };
-  const laneX = { normal: 24, elite: 50, event: 76 };
-  const stageWobble = Math.floor(index / 10) % 2 === 0 ? 0 : 3;
-  const direction = index % 2 === 0 ? 1 : -1;
   return {
-    x: laneX[type] + (type === "elite" ? 0 : stageWobble * direction),
+    x: { normal: 18, elite: 50, event: 82 }[type],
     y: expeditionLayerY(index),
   };
 }
@@ -4988,11 +4985,16 @@ function renderCampaignMap() {
         currentEntries.forEach((entry) => appendRoutePath(previous, entry, "is-available"));
       }
     } else {
-      const futurePairs = currentEntries.map((next, lane) => {
-        const matching = previousEntries.find((entry) => entry.type === next.type);
-        return [matching || previousEntries[lane % previousEntries.length], next];
+      previousEntries.forEach((from, fromLane) => {
+        const targets = currentEntries.filter((to, toLane) => {
+          if (previousEntries.length === 1 || currentEntries.length === 1) return true;
+          if (fromLane === toLane) return true;
+          const branchRight = index % 2 === 0 && toLane === Math.min(currentEntries.length - 1, fromLane + 1);
+          const branchLeft = index % 2 === 1 && toLane === Math.max(0, fromLane - 1);
+          return branchRight || branchLeft;
+        });
+        targets.forEach((to) => appendRoutePath(from, to, "is-future"));
       });
-      futurePairs.forEach(([from, to]) => appendRoutePath(from, to, "is-future"));
     }
   }
   canvas.appendChild(routeSvg);

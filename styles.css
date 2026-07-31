@@ -4684,12 +4684,13 @@ dialog::backdrop {
 .map-route {
   height: 100%;
   min-height: 610px;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   border: 0;
   border-radius: 0;
   background: #cfc8b9;
   overscroll-behavior: contain;
-  touch-action: pan-x pan-y;
+  touch-action: pan-y;
   cursor: grab;
   scrollbar-color: #26221c #e8e2d7;
   scrollbar-width: thin;
@@ -4702,8 +4703,9 @@ dialog::backdrop {
 
 .expedition-map-canvas {
   position: relative;
-  width: 1900px;
-  height: 2140px;
+  width: min(100%, 860px);
+  height: 2820px;
+  margin: 0 auto;
   overflow: hidden;
   background-color: #f6f3eb;
   background-image: url("assets/campaign-map-expedition.jpg");
@@ -4733,30 +4735,31 @@ dialog::backdrop {
 .expedition-route-lines path {
   fill: none;
   stroke: rgba(255, 255, 255, .95);
-  stroke-width: 1.05;
+  stroke-width: 2.5;
   stroke-linecap: round;
   stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
   paint-order: stroke;
-  filter: drop-shadow(0 1px 0 #111) drop-shadow(0 -1px 0 #111) drop-shadow(0 0 3px rgba(255, 255, 255, .35));
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .8));
 }
 
 .expedition-route-lines path.is-completed,
 .expedition-route-lines path.is-reached {
   stroke: #83d49a;
-  stroke-width: 1.4;
+  stroke-width: 3;
 }
 
 .expedition-route-lines path.is-available {
   stroke: #ffe143;
-  stroke-width: 1.65;
-  stroke-dasharray: 2 1;
+  stroke-width: 4;
+  stroke-dasharray: 8 6;
   opacity: 1;
   animation: routeChoiceFlow 1.1s linear infinite;
 }
 
 .expedition-route-lines path.is-future {
-  stroke-dasharray: 1.2 1.2;
-  opacity: .35;
+  stroke-dasharray: 4 5;
+  opacity: .42;
 }
 
 @keyframes routeChoiceFlow {
@@ -4766,12 +4769,16 @@ dialog::backdrop {
 .expedition-stage-label {
   position: absolute;
   z-index: 3;
-  min-width: 170px;
-  padding: 7px 12px;
+  min-width: 0;
+  padding: 5px 10px;
+  transform: translate(-50%, -50%);
   border: 2px solid #111;
   border-radius: 4px;
   background: rgba(255, 255, 255, .9);
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, .22);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, .22);
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
   text-align: center;
   pointer-events: none;
 }
@@ -4856,6 +4863,7 @@ dialog::backdrop {
 }
 
 .expedition-node .map-node-caption {
+  display: none;
   position: absolute;
   top: calc(100% + 8px);
   left: 50%;
@@ -4909,9 +4917,8 @@ dialog::backdrop {
   cursor: default;
 }
 
-.expedition-node.is-future-node .map-node-caption,
-.expedition-node.is-abandoned .map-node-caption {
-  display: none;
+.expedition-node.is-current .map-node-caption {
+  display: block;
 }
 
 .expedition-node.is-abandoned {
@@ -5192,12 +5199,13 @@ dialog::backdrop {
   .map-route {
     min-height: 0;
     height: 100%;
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
   .expedition-map-canvas {
-    width: 1420px;
-    height: 1640px;
+    width: 100%;
+    height: 2860px;
   }
 
   .map-route-toolbar {
@@ -5219,9 +5227,9 @@ dialog::backdrop {
   }
 
   .expedition-node {
-    width: 50px;
-    height: 50px;
-    min-height: 50px;
+    width: 48px;
+    height: 48px;
+    min-height: 48px;
   }
 
   .expedition-node.is-boss {
@@ -5231,13 +5239,14 @@ dialog::backdrop {
   }
 
   .expedition-node .map-node-caption {
-    max-width: 120px;
+    max-width: 104px;
     font-size: 9px;
   }
 
   .expedition-stage-label {
-    min-width: 140px;
-    padding: 5px 8px;
+    min-width: 0;
+    padding: 4px 8px;
+    font-size: 9px;
   }
 
   .expedition-stage-label b { font-size: 13px; }
