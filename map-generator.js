@@ -24,32 +24,6 @@
     return min + Math.floor(rng() * (max - min + 1));
   }
 
-  function shuffle(array, rng) {
-    const arr = [...array];
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(rng() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  }
-
-  const SAFE_TEMPLATES = [
-    // 15층: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    // 7 normal battle, 2 elite, 1 boss, 2 event, 2 rest, 1 treasure
-    [
-      "battle", "event", "battle", "treasure", "battle", "rest", "battle",
-      "elite", "event", "battle", "elite", "battle", "rest", "battle", "boss"
-    ],
-    [
-      "battle", "battle", "event", "battle", "treasure", "battle", "rest",
-      "elite", "battle", "event", "battle", "elite", "battle", "rest", "boss"
-    ],
-    [
-      "battle", "treasure", "battle", "event", "battle", "rest", "battle",
-      "elite", "battle", "event", "elite", "battle", "rest", "battle", "boss"
-    ]
-  ];
-
   function isNonBattle(type) {
     return type === "event" || type === "rest" || type === "treasure";
   }
@@ -90,22 +64,38 @@
       && eventCount === 2 && restCount === 2 && treasureCount === 1;
   }
 
-  function pickFloorSequence(rng, stageIndex) {
-    const middleTypes = [
-      "battle", "battle", "battle", "battle", "battle", "battle",
-      "elite", "elite", "event", "event", "rest", "rest", "treasure"
-    ];
+  const SAFE_TEMPLATES = [
+    [
+      "battle", "event", "battle", "treasure", "battle", "rest", "battle",
+      "elite", "event", "battle", "elite", "battle", "rest", "battle", "boss"
+    ],
+    [
+      "battle", "battle", "event", "battle", "treasure", "battle", "rest",
+      "elite", "battle", "event", "battle", "elite", "battle", "rest", "boss"
+    ],
+    [
+      "battle", "treasure", "battle", "event", "battle", "rest", "battle",
+      "elite", "battle", "event", "elite", "battle", "rest", "battle", "boss"
+    ]
+  ];
 
-    for (let attempt = 0; attempt < 100; attempt++) {
-      const shuffled = shuffle(middleTypes, rng);
-      const seq = ["battle", ...shuffled, "boss"];
-      if (isValidFloorSequence(seq)) {
-        return seq;
+  // 15층 기본 타입 순열 사전 생성 (20,958개 고유 유효 시퀀스)
+  const middleTypes = ["battle", "battle", "battle", "battle", "battle", "battle", "elite", "elite", "event", "event", "rest", "rest", "treasure"];
+  function permutations(arr) {
+    if (arr.length === 0) return [[]];
+    const result = [];
+    const used = new Set();
+    for (let i = 0; i < arr.length; i++) {
+      if (used.has(arr[i])) continue;
+      used.add(arr[i]);
+      const rest = arr.slice(0, i).concat(arr.slice(i + 1));
+      for (const p of permutations(rest)) {
+        result.push([arr[i], ...p]);
       }
     }
-
-    return [...SAFE_TEMPLATES[stageIndex % SAFE_TEMPLATES.length]];
+    return result;
   }
+  const ALL_VALID_SEQS = permutations(middleTypes).map(m => ["battle", ...m, "boss"]).filter(seq => isValidFloorSequence(seq));
 
   function generateStageMap(options = {}) {
     const {
@@ -119,28 +109,30 @@
     const combinedSeed = (Math.abs(runSeed) * 1000003 + (stageIndex + 1) * 7919) >>> 0;
     const rng = createPrng(combinedSeed);
 
-    const floorTypes = pickFloorSequence(rng, stageIndex);
+    const poolLen = ALL_VALID_SEQS.length;
+    const baseIdx = Math.floor(rng() * poolLen);
+    const laneSeqs = [];
+
+    for (let l = 0; l < 4; l++) {
+      const idx = (baseIdx + l * 1307) % poolLen;
+      laneSeqs.push(ALL_VALID_SEQS[idx]);
+    }
+
     const stageIdPrefix = `s${stageIndex + 1}`;
     const floorNodes = {};
 
     for (let f = 1; f <= floors; f++) {
       floorNodes[f] = [];
-      let laneCount = 3;
-      if (f === 1) {
-        laneCount = randomInt(rng, 2, 3);
-      } else if (f === floors) {
-        laneCount = 1;
-      } else {
-        laneCount = randomInt(rng, minLanes, maxLanes);
-      }
-
+      const laneCount = f === 1 ? randomInt(rng, 2, 3) : (f === floors ? 1 : 4);
       const y = parseFloat((0.94 - ((f - 1) / (floors - 1)) * 0.88).toFixed(3));
-      const fType = floorTypes[f - 1];
 
       for (let l = 0; l < laneCount; l++) {
         const laneRatio = laneCount === 1 ? 0.5 : (l + 0.5) / laneCount;
-        const xOffset = laneCount === 1 ? 0 : (rng() - 0.5) * 0.06;
+        const xOffset = laneCount === 1 ? 0 : (rng() - 0.5) * 0.04;
         const x = parseFloat(Math.min(0.92, Math.max(0.08, laneRatio + xOffset)).toFixed(3));
+
+        const seq = laneSeqs[l % laneSeqs.length];
+        const type = seq[f - 1];
 
         const nodeId = f === floors
           ? `${stageIdPrefix}-f${f}-boss`
@@ -150,16 +142,17 @@
           id: nodeId,
           floor: f,
           lane: l,
-          type: fType,
-          encounterKind: fType === "elite" ? "elite" : (fType === "boss" ? "boss" : "normal"),
+          type: type,
+          encounterKind: type === "elite" ? "elite" : (type === "boss" ? "boss" : "normal"),
           x: x,
           y: y,
-          next: []
+          next: [],
+          laneSeq: seq
         });
       }
     }
 
-    // 간선 연결
+    // 간선 연결 및 제약 조건 기반 분기 다양성 검증
     for (let f = 1; f < floors; f++) {
       const currentFloor = floorNodes[f];
       const nextFloor = floorNodes[f + 1];
@@ -172,51 +165,57 @@
       }
 
       currentFloor.forEach(node => {
-        const cLaneRatio = (node.lane + 0.5) / currentFloor.length;
-        const candidates = nextFloor.map((nNext) => {
-          const nLaneRatio = (nNext.lane + 0.5) / nextFloor.length;
-          return { node: nNext, diff: Math.abs(cLaneRatio - nLaneRatio) };
-        }).sort((a, b) => a.diff - b.diff);
+        const cRatio = (node.lane + 0.5) / currentFloor.length;
+        const sortedNext = [...nextFloor].map(n => ({
+          node: n,
+          diff: Math.abs(cRatio - (n.lane + 0.5) / nextFloor.length)
+        })).sort((a, b) => a.diff - b.diff);
 
-        node.next.push(candidates[0].node.id);
+        const primary = sortedNext[0].node;
+        node.next.push(primary.id);
 
-        if (candidates.length > 1 && rng() < 0.35) {
-          if (!node.next.includes(candidates[1].node.id)) {
-            node.next.push(candidates[1].node.id);
+        let branched = false;
+        for (let i = 1; i < sortedNext.length; i++) {
+          const candidate = sortedNext[i].node;
+          if (candidate.type !== primary.type) {
+            const hybridSeq = [...node.laneSeq.slice(0, f), ...candidate.laneSeq.slice(f)];
+            if (isValidFloorSequence(hybridSeq)) {
+              node.next.push(candidate.id);
+              branched = true;
+              break;
+            }
           }
+        }
+
+        if (!branched && sortedNext.length > 1) {
+          node.forcedReason = "combat-budget";
         }
       });
 
-      // 진입 간선 없는 고립 노드 연결 보장
+      // 진입 간선이 없는 고립 노드 연결 보장
       nextFloor.forEach(nNext => {
         const hasIncoming = currentFloor.some(cNode => cNode.next.includes(nNext.id));
         if (!hasIncoming) {
-          const nLaneRatio = (nNext.lane + 0.5) / nextFloor.length;
+          const nRatio = (nNext.lane + 0.5) / nextFloor.length;
           const closestPrev = [...currentFloor].sort((a, b) => {
             const aRatio = (a.lane + 0.5) / currentFloor.length;
             const bRatio = (b.lane + 0.5) / currentFloor.length;
-            return Math.abs(aRatio - nLaneRatio) - Math.abs(bRatio - nLaneRatio);
+            return Math.abs(aRatio - nRatio) - Math.abs(bRatio - nRatio);
           })[0];
           closestPrev.next.push(nNext.id);
-        }
-      });
-
-      // 진입 간선 최대 3개 제한
-      nextFloor.forEach(nNext => {
-        const inNodes = currentFloor.filter(cNode => cNode.next.includes(nNext.id));
-        if (inNodes.length > 3) {
-          for (let i = 3; i < inNodes.length; i++) {
-            const extraNode = inNodes[i];
-            if (extraNode.next.length > 1) {
-              extraNode.next = extraNode.next.filter(id => id !== nNext.id);
-            }
-          }
         }
       });
     }
 
     const allNodesList = [];
-    Object.values(floorNodes).forEach(fnList => allNodesList.push(...fnList));
+    Object.values(floorNodes).forEach(fnList => {
+      fnList.forEach(n => {
+        // 불필요한 내부 참조 속성 제거 후 저장
+        const cleanNode = { ...n };
+        delete cleanNode.laneSeq;
+        allNodesList.push(cleanNode);
+      });
+    });
 
     return {
       version: 2,
@@ -231,5 +230,6 @@
   exports.generateStageMap = generateStageMap;
   exports.SAFE_TEMPLATES = SAFE_TEMPLATES;
   exports.isValidFloorSequence = isValidFloorSequence;
+  exports.ALL_VALID_SEQS = ALL_VALID_SEQS;
 
 })(typeof exports !== "undefined" ? exports : (window.MapGenerator = {}));
