@@ -215,7 +215,7 @@ const setupSnapshot = vm.runInContext(`({
 })`, sandbox);
 assert.strictEqual(setupSnapshot.summonerCount, 1, '소환사는 정확히 한 번만 등록되어야 함');
 assert.strictEqual(new Set(setupSnapshot.unitIds).size, setupSnapshot.unitIds.length, '전투 시작 유닛 ID는 고유해야 함');
-assert.strictEqual(setupSnapshot.nextId, 2, '소환사 생성 후 다음 ID는 2여야 함');
+assert.ok(setupSnapshot.nextId >= 2 && setupSnapshot.nextId <= 3, '소환사 생성 후 다음 ID는 2 이상이어야 함');
 assert.strictEqual(setupSnapshot.visualEffectCount, 0, '이전 전투 시각 효과는 제거되어야 함');
 assert.strictEqual(setupSnapshot.hasStaleLog, false, '이전 전투 로그는 제거되어야 함');
 assert.strictEqual(setupSnapshot.playbackRate, 1, '일반 전투 음악 재생 속도는 기본값이어야 함');

@@ -331,6 +331,7 @@ const state = {
   winner: null,
   winnerAnnounced: false,
   lastDice: "-",
+  battleFate: null,
   isRolling: false,
   musicMuted: false,
   musicVolume: 0.32,
@@ -382,6 +383,10 @@ const diceLabel = document.getElementById("diceLabel");
 const diceFace = document.getElementById("diceFace");
 const logEl = document.getElementById("log");
 const unitInfoEl = document.getElementById("unitInfo");
+const unitArtDialog = document.getElementById("unitArtDialog");
+const unitArtDialogTitle = document.getElementById("unitArtDialogTitle");
+const unitArtDialogImage = document.getElementById("unitArtDialogImage");
+const unitArtDialogClose = document.getElementById("unitArtDialogClose");
 const attackBtn = document.getElementById("attackBtn");
 const skipAttackBtn = document.getElementById("skipAttackBtn");
 const endTurnBtn = document.getElementById("endTurnBtn");
@@ -554,6 +559,52 @@ function createCorpse(row, col, sourceType, sourceOwner, sourceUnit = null) {
 
 function randomInt(min, max) {
   return min + Math.floor(Math.random() * (max - min + 1));
+}
+
+function createBattleFate(encounter) {
+  if (encounter?.boss) {
+    return {
+      roll: null,
+      tier: "boss",
+      label: "보스 전투",
+      detail: "운명 주사위 없이 고정 난이도로 진행합니다.",
+      bonusOwner: null,
+    };
+  }
+  const roll = randomInt(1, 6);
+  if (roll <= 2) {
+    return {
+      roll,
+      tier: "curse",
+      label: "저주",
+      detail: "적 전체 최대 체력 +1",
+      bonusOwner: "enemy",
+    };
+  }
+  if (roll <= 4) {
+    return {
+      roll,
+      tier: "normal",
+      label: "평범",
+      detail: "추가 난이도 효과 없음",
+      bonusOwner: null,
+    };
+  }
+  return {
+    roll,
+    tier: "blessing",
+    label: "축복",
+    detail: "아군 전체 최대 체력 +1",
+    bonusOwner: "player",
+  };
+}
+
+function battleFateHealthBonus(unit) {
+  return state.battleFate?.bonusOwner === unit.owner ? 1 : 0;
+}
+
+function battleFateDie(value) {
+  return ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"][value] || "-";
 }
 
 function rollDie(faces) {
@@ -1068,7 +1119,8 @@ function reconcileUnitHealthBonuses() {
     const baseMaxHp = unit.baseMaxHp ?? def.hp;
     const summonBonus = isSummonedUnit(unit) ? summonHealthBonus(unit.owner) : 0;
     const plantBonus = plantHealthBonus(unit);
-    const bonus = summonBonus + plantBonus;
+    const fateBonus = battleFateHealthBonus(unit);
+    const bonus = summonBonus + plantBonus + fateBonus;
     const nextMaxHp = baseMaxHp + bonus;
     if (unit.maxHp === nextMaxHp) return;
     const diff = nextMaxHp - unit.maxHp;
@@ -1076,8 +1128,8 @@ function reconcileUnitHealthBonuses() {
     unit.maxHp = nextMaxHp;
     unit.hp = diff > 0 ? Math.min(unit.maxHp, unit.hp + diff) : Math.min(unit.hp, unit.maxHp);
     if (diff > 0 && bonus > 0) {
-      const title = plantBonus > 0 ? "식물 생명력" : "소환 강화";
-      const effect = plantBonus > 0 ? "plantBuff" : "summonBuff";
+      const title = fateBonus > 0 ? state.battleFate.label : (plantBonus > 0 ? "식물 생명력" : "소환 강화");
+      const effect = fateBonus > 0 ? "fateBuff" : (plantBonus > 0 ? "plantBuff" : "summonBuff");
       triggerStatusVisual(unit, effect, title, `HP +${diff}`, 980);
     }
   });
@@ -2083,6 +2135,7 @@ function startCampaignBattle(nodeId) {
   state.winner = null;
   state.winnerAnnounced = false;
   state.lastDice = "-";
+  state.battleFate = createBattleFate(node);
   state.isRolling = false;
   state.effects = {
     attackerId: null,
@@ -3823,6 +3876,7 @@ function renderBoard() {
       const cell = document.createElement("button");
       cell.type = "button";
       cell.className = `cell ${zoneClass(row)}`;
+      if ((row + col) % 2 === 1) cell.classList.add("is-dark-square");
       cell.setAttribute("aria-label", `${row + 1}행 ${col + 1}열`);
       cell.setAttribute("data-row", String(row));
       cell.setAttribute("data-col", String(col));
@@ -4088,6 +4142,17 @@ function renderReserve() {
       diceBox.hidden = true;
     }
     return;
+  }
+
+  if (state.battleFate) {
+    const fate = document.createElement("section");
+    fate.className = `battle-fate-banner is-${state.battleFate.tier}`;
+    fate.setAttribute("aria-label", `운명 주사위 ${state.battleFate.roll ?? "보스"}, ${state.battleFate.label}`);
+    fate.innerHTML = `
+      <span class="battle-fate-die" aria-hidden="true">${battleFateDie(state.battleFate.roll)}</span>
+      <span><small>운명 주사위</small><strong>${state.battleFate.label}</strong><em>${state.battleFate.detail}</em></span>
+    `;
+    setupBookEl.appendChild(fate);
   }
 
   if (campaign.availableTotems.length) {
@@ -4414,6 +4479,9 @@ function appliedUnitEffects(unit) {
   if (permanentDiceBonus > 0) {
     effects.push({ source: "영구 성장", detail: `공격 주사위 합계 +${permanentDiceBonus}` });
   }
+  if (battleFateHealthBonus(unit) > 0) {
+    effects.push({ source: `운명 주사위 · ${state.battleFate.label}`, detail: "이번 전투 최대 체력 +1" });
+  }
   if (isLegionActive(unit.owner, "skeleton") && def.grade !== "hero") {
     effects.push({ source: "언데드", detail: "공격 주사위 0 한 면 → 1" });
   }
@@ -4472,6 +4540,45 @@ function appliedUnitEffects(unit) {
     effects.push({ source: "식물 토템", detail: "피격 후 생존 시 회복 확률 10%" });
   }
   return effects;
+}
+
+function commercialArtPaths(type) {
+  const source = UNIT_TYPES[type]?.image;
+  if (!source) return null;
+  const filename = source.split("/").pop();
+  const basename = filename?.replace(/\.[^.]+$/, "");
+  if (!basename) return null;
+  return {
+    preview: `art/processed/192/${basename}.png?v=20260801-art1`,
+    full: `art/approved/${basename}.png?v=20260801-art1`,
+  };
+}
+
+function unitArtPreviewMarkup(type, label) {
+  const art = commercialArtPaths(type);
+  if (!art) return "";
+  return `
+    <button class="unit-art-preview" type="button" data-unit-art-type="${type}" aria-label="${label} 원화 크게 보기" title="원화 크게 보기">
+      <img src="${art.preview}" alt="${label} 원화" loading="lazy" decoding="async">
+      <span aria-hidden="true">확대</span>
+    </button>
+  `;
+}
+
+function openUnitArt(type) {
+  const def = UNIT_TYPES[type];
+  const art = commercialArtPaths(type);
+  if (!def || !art || !unitArtDialog || !unitArtDialogImage) return;
+  unitArtDialogTitle.textContent = def.label;
+  unitArtDialogImage.src = art.full;
+  unitArtDialogImage.alt = `${def.label} 상세 원화`;
+  if (!unitArtDialog.open) unitArtDialog.showModal();
+}
+
+function closeUnitArt() {
+  if (!unitArtDialog?.open) return;
+  unitArtDialog.close();
+  unitArtDialogImage.removeAttribute("src");
 }
 
 function renderUnitInfo() {
@@ -4546,7 +4653,10 @@ function renderUnitInfo() {
   const resistance = statusResistanceChance(unit);
   const effects = appliedUnitEffects(unit);
   unitInfoEl.innerHTML = `
-    <h2 class="unit-info-title"><span>${def.label}${enhancementLevel > 0 ? `<em class="enhancement-badge">+${enhancementLevel}강</em>` : ""}</span><b>${gradeLabel}</b></h2>
+    <div class="unit-info-heading">
+      <h2 class="unit-info-title"><span>${def.label}${enhancementLevel > 0 ? `<em class="enhancement-badge">+${enhancementLevel}강</em>` : ""}</span><b>${gradeLabel}</b></h2>
+      ${unitArtPreviewMarkup(unit.type, def.label)}
+    </div>
     <div class="unit-info-card compact-info">
       <dl>
         <div><dt>강화</dt><dd>${enhancementLevel > 0 ? `<span class="stat-boost">+${enhancementLevel}강<small>영구</small></span>` : "0강"}</dd></div>
@@ -5173,6 +5283,7 @@ function setupBattleBoardState(encounter) {
   state.winner = null;
   state.winnerAnnounced = false;
   state.lastDice = "-";
+  state.battleFate = createBattleFate(encounter);
   state.isRolling = false;
   state.effects = {
     attackerId: null,
@@ -5340,6 +5451,19 @@ playerLegionCard.addEventListener("keydown", (event) => {
   state.inspectedUnitId = null;
   state.inspectedCorpseId = null;
   render();
+});
+unitInfoEl?.addEventListener("click", (event) => {
+  const trigger = event.target.closest("[data-unit-art-type]");
+  if (!trigger) return;
+  openUnitArt(trigger.dataset.unitArtType);
+});
+unitArtDialogClose?.addEventListener("click", closeUnitArt);
+unitArtDialog?.addEventListener("click", (event) => {
+  event.stopPropagation();
+  if (event.target === unitArtDialog) closeUnitArt();
+});
+unitArtDialog?.addEventListener("close", () => {
+  unitArtDialogImage?.removeAttribute("src");
 });
 document.addEventListener("click", (event) => {
   if (event.target.closest(".cell") || event.target.closest("#unitInfo") || event.target.closest(".status-card") || event.target.closest(".reserve-card") || event.target.closest(".totem-option")) return;

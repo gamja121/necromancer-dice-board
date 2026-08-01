@@ -13,7 +13,7 @@
   <title>네크로멘서 십이장기 프로토타입</title>
   <link rel="manifest" href="manifest.webmanifest?v=20260726-10">
   <link rel="apple-touch-icon" href="assets/app-icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=20260731-24">
+  <link rel="stylesheet" href="styles.css?v=20260802-28">
   <link rel="stylesheet" href="ultimate-vfx.css?v=20260731-24">
 </head>
 <body>
@@ -136,6 +136,18 @@
     </form>
   </dialog>
 
+  <dialog id="unitArtDialog" class="unit-art-dialog" aria-labelledby="unitArtDialogTitle">
+    <article class="unit-art-dialog-card">
+      <header>
+        <h2 id="unitArtDialogTitle">유닛 원화</h2>
+        <button type="button" id="unitArtDialogClose" class="unit-art-dialog-close" aria-label="원화 닫기">×</button>
+      </header>
+      <div class="unit-art-dialog-canvas">
+        <img id="unitArtDialogImage" src="" alt="">
+      </div>
+    </article>
+  </dialog>
+
   <dialog id="storyDialog" class="story-dialog">
     <article class="story-card" aria-labelledby="storyTitle">
       <header class="story-header">
@@ -234,6 +246,6 @@
   <script src="unit-data.js?v=20260726-10"></script>
   <script src="encounter-generator.js?v=20260726-10"></script>
   <script src="ultimate-vfx.js?v=20260731-24"></script>
-  <script src="game.js?v=20260731-24"></script>
+  <script src="game.js?v=20260802-28"></script>
 </body>
 </html>
