@@ -99,10 +99,13 @@ const EXPEDITION_STAGE_LABELS = [
 ];
 const ROUTE_NODE_TYPES = Object.freeze(["normal", "elite", "event", "boss"]);
 const ROUTE_NODE_META = Object.freeze({
+  battle: { label: "일반 전장", symbol: "⚔", caption: "안정적인 전투" },
   normal: { label: "일반 전장", symbol: "⚔", caption: "안정적인 전투" },
-  elite: { label: "고급 전장", symbol: "◆", caption: "강적 · 희귀 보상" },
-  event: { label: "사건", symbol: "?", caption: "이야기와 선택" },
-  boss: { label: "보스", symbol: "♛", caption: "스테이지 결전" },
+  elite: { label: "고급 전장", symbol: "💀", caption: "강적 · 희귀 보상" },
+  event: { label: "사건", symbol: "❓", caption: "이야기와 선택" },
+  rest: { label: "휴식", symbol: "🔥", caption: "원정대 정비 및 강화" },
+  treasure: { label: "보물", symbol: "🎁", caption: "희귀 토템과 비전투 보상" },
+  boss: { label: "보스", symbol: "👑", caption: "스테이지 결전" },
 });
 const INTERLUDE_STORIES = {
   "rest-1": {
@@ -1559,7 +1562,10 @@ function autoSaveCampaign() {
       version: campaign.version || 2,
       generatorVersion: campaign.generatorVersion || EncounterGenerator.GENERATOR_VERSION || 2,
       runSeed: campaign.runSeed || 0,
+      stageMaps: campaign.stageMaps || null,
       stageIndex: campaign.stageIndex || 0,
+      stageFloorIndex: campaign.stageFloorIndex || 0,
+      globalFloorIndex: campaign.globalFloorIndex || 0,
       battleIndex: campaign.battleIndex || 0,
       encounters: campaign.encounters || [],
       depth: campaign.depth || 0,
@@ -1567,6 +1573,9 @@ function autoSaveCampaign() {
       unitProgress: campaign.unitProgress,
       completed: campaign.completed,
       currentNodeId: campaign.currentNodeId,
+      visitedNodeIds: campaign.visitedNodeIds || [],
+      completedNodeIds: campaign.completedNodeIds || [],
+      pendingNodeState: campaign.pendingNodeState || null,
       finished: campaign.finished,
       availableTotems: campaign.availableTotems,
       rewardState: campaign.rewardState,
@@ -1834,17 +1843,29 @@ function loadCampaignSave() {
       }
     }
 
+    const mapGen = typeof MapGenerator !== "undefined" ? MapGenerator : (typeof window !== "undefined" ? window.MapGenerator : null);
+    let stageMaps = Array.isArray(data.stageMaps) && data.stageMaps.length === 3 ? data.stageMaps : null;
+    if (!stageMaps && mapGen && typeof mapGen.generateStageMap === "function") {
+      stageMaps = [0, 1, 2].map((s) => mapGen.generateStageMap({ runSeed: data.runSeed || 0, stageIndex: s, floors: 15 }));
+    }
+
     return {
       version: 2,
       generatorVersion: data.generatorVersion,
       runSeed: data.runSeed,
+      stageMaps: stageMaps,
       stageIndex: data.stageIndex,
+      stageFloorIndex: data.stageFloorIndex || 0,
+      globalFloorIndex: data.globalFloorIndex || 0,
       battleIndex: data.battleIndex,
       encounters: data.encounters,
       roster: validatedRoster,
       unitProgress: validatedProgress,
       completed: [...data.completed],
       currentNodeId: data.currentNodeId,
+      visitedNodeIds: Array.isArray(data.visitedNodeIds) ? data.visitedNodeIds : [],
+      completedNodeIds: Array.isArray(data.completedNodeIds) ? data.completedNodeIds : [],
+      pendingNodeState: data.pendingNodeState || null,
       finished: data.finished,
       availableTotems: validatedTotems,
       rewardState: validatedRewardState,
@@ -1913,11 +1934,18 @@ function resetCampaign() {
     ? crypto.getRandomValues(new Uint32Array(1))[0]
     : Math.floor(Math.random() * 1000000);
   const generated = EncounterGenerator.generate30Encounters(seed);
+  const mapGen = typeof MapGenerator !== "undefined" ? MapGenerator : (typeof window !== "undefined" ? window.MapGenerator : null);
+  const maps = (mapGen && typeof mapGen.generateStageMap === "function")
+    ? [0, 1, 2].map((s) => mapGen.generateStageMap({ runSeed: seed, stageIndex: s, floors: 15 }))
+    : null;
 
   campaign.version = 2;
   campaign.generatorVersion = generated.generatorVersion || EncounterGenerator.GENERATOR_VERSION || 2;
   campaign.runSeed = seed;
+  campaign.stageMaps = maps;
   campaign.stageIndex = 0;
+  campaign.stageFloorIndex = 0;
+  campaign.globalFloorIndex = 0;
   campaign.battleIndex = 0;
   campaign.viewStageIndex = 0;
   campaign.encounters = generated.encounters;
@@ -1926,6 +1954,9 @@ function resetCampaign() {
   campaign.unitProgress = Object.fromEntries(campaign.roster.map((type) => [type, defaultCampaignProgress(type)]));
   campaign.completed = [];
   campaign.currentNodeId = null;
+  campaign.visitedNodeIds = [];
+  campaign.completedNodeIds = [];
+  campaign.pendingNodeState = null;
   campaign.finished = false;
   campaign.availableTotems = [];
   campaign.transitioning = false;
@@ -4992,6 +5023,409 @@ function openInterlude(spec) {
   storyDialog.showModal();
 }
 
+function openEventDialog(node) {
+  let dialog = document.getElementById("eventDialog");
+  if (!dialog) {
+    dialog = document.createElement("dialog");
+    dialog.id = "eventDialog";
+    dialog.className = "event-dialog";
+    document.body.appendChild(dialog);
+  }
+
+  const stageIndex = campaign.stageIndex || 0;
+  let eventData = null;
+
+  const evtDataObj = typeof EventData !== "undefined" ? EventData : (typeof window !== "undefined" ? window.EventData : null);
+
+  if (!evtDataObj || !evtDataObj.EVENTS) {
+    completeNonBattleNode(node.id);
+    return;
+  }
+
+  if (campaign.pendingNodeState && campaign.pendingNodeState.nodeId === node.id && campaign.pendingNodeState.eventId) {
+    const evtId = campaign.pendingNodeState.eventId;
+    eventData = evtDataObj.EVENTS.find(e => e.id === evtId) || evtDataObj.getRandomEvent(stageIndex);
+  } else {
+    eventData = evtDataObj.getRandomEvent(stageIndex);
+    campaign.currentNodeId = node.id;
+    campaign.pendingNodeState = {
+      nodeId: node.id,
+      nodeType: "event",
+      eventId: eventData.id,
+      chosenKey: null,
+      resultText: "",
+      applied: false
+    };
+    autoSaveCampaign();
+  }
+
+  const state = campaign.pendingNodeState;
+
+  let html = `
+    <section class="dialog-card event-card">
+      <header>
+        <span class="eyebrow">망자의 사건</span>
+        <h2>${eventData.title}</h2>
+      </header>
+      <div class="event-body">
+        ${eventData.paragraphs.map(p => `<p>${p}</p>`).join("")}
+      </div>
+      <div class="event-choices">
+  `;
+
+  if (state.applied) {
+    html += `<div class="event-result"><p>${state.resultText}</p></div>`;
+    html += `<div class="dialog-actions"><button type="button" id="eventCloseBtn">지도로 돌아가기</button></div>`;
+  } else {
+    html += eventData.choices.map(c => `
+      <button type="button" class="event-choice-btn" data-choice-id="${c.id}">
+        <strong>${c.label}</strong>
+      </button>
+    `).join("");
+    html += `</div><div class="event-result" id="eventResultBox" hidden></div><div class="dialog-actions" id="eventActionBox" hidden><button type="button" id="eventCloseBtn">지도로 돌아가기</button></div>`;
+  }
+
+  html += `</section>`;
+  dialog.innerHTML = html;
+
+  if (!state.applied) {
+    dialog.querySelectorAll(".event-choice-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const choiceId = btn.dataset.choiceId;
+        const choice = eventData.choices.find(c => c.id === choiceId);
+        if (!choice) return;
+
+        applyEventEffect(choice.effect);
+        state.chosenKey = choiceId;
+        state.resultText = choice.resultText;
+        state.applied = true;
+        autoSaveCampaign();
+
+        dialog.querySelector(".event-choices").innerHTML = `<div class="event-result"><p>${choice.resultText}</p></div>`;
+        const actionBox = dialog.querySelector("#eventActionBox");
+        if (actionBox) actionBox.hidden = false;
+
+        const closeBtn = dialog.querySelector("#eventCloseBtn");
+        if (closeBtn) {
+          closeBtn.addEventListener("click", () => {
+            if (dialog.close) dialog.close();
+            completeNonBattleNode(node.id);
+          });
+        }
+      });
+    });
+  } else {
+    const closeBtn = dialog.querySelector("#eventCloseBtn");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => {
+        if (dialog.close) dialog.close();
+        completeNonBattleNode(node.id);
+      });
+    }
+  }
+
+  if (dialog.showModal) dialog.showModal();
+}
+
+function applyEventEffect(effect) {
+  if (!effect || effect.type === "none") return;
+
+  const roster = campaign.roster || [];
+  if (roster.length === 0) return;
+
+  if (effect.type === "sacrifice_hp_for_totem") {
+    const targetType = roster[0];
+    const prog = campaignProgressFor(targetType);
+    prog.hp = Math.max(1, prog.hp - (effect.hpCost || 1));
+    addRandomTotem();
+  } else if (effect.type === "heal_all") {
+    roster.forEach(t => {
+      const prog = campaignProgressFor(t);
+      prog.hp = Math.min(prog.maxHp, prog.hp + (effect.amount || 1));
+    });
+  } else if (effect.type === "upgrade_die") {
+    const targetType = roster[Math.floor(Math.random() * roster.length)];
+    const prog = campaignProgressFor(targetType);
+    upgradeRandomDieFace(prog.dice);
+  } else if (effect.type === "totem") {
+    addRandomTotem();
+  } else if (effect.type === "max_hp") {
+    const targetType = roster[Math.floor(Math.random() * roster.length)];
+    const prog = campaignProgressFor(targetType);
+    prog.maxHp += (effect.amount || 1);
+    prog.hp += (effect.amount || 1);
+  } else if (effect.type === "demon_boost") {
+    const targetType = roster[0];
+    const prog = campaignProgressFor(targetType);
+    prog.hp = Math.max(1, prog.hp - 1);
+    upgradeRandomDieFace(prog.dice);
+    upgradeRandomDieFace(prog.dice);
+  } else if (effect.type === "hero_buff") {
+    const targetType = roster[Math.floor(Math.random() * roster.length)];
+    const prog = campaignProgressFor(targetType);
+    prog.maxHp += 1;
+    prog.hp += 1;
+    upgradeRandomDieFace(prog.dice);
+  } else if (effect.type === "risk_max_hp") {
+    const targetType = roster[Math.floor(Math.random() * roster.length)];
+    const prog = campaignProgressFor(targetType);
+    prog.hp = Math.max(1, prog.hp - (effect.hpCost || 1));
+    prog.maxHp += (effect.maxHpGain || 2);
+    prog.hp += (effect.maxHpGain || 2);
+  } else if (effect.type === "max_hp_all") {
+    roster.forEach(t => {
+      const prog = campaignProgressFor(t);
+      prog.maxHp += (effect.amount || 1);
+      prog.hp += (effect.amount || 1);
+    });
+  }
+}
+
+function addRandomTotem() {
+  const allTotems = ["beast", "corpse", "demon", "element", "ice", "insect", "plague", "plant", "undead"];
+  const owned = campaign.availableTotems || [];
+  const unowned = allTotems.filter(t => !owned.includes(t));
+  if (unowned.length > 0) {
+    const picked = unowned[Math.floor(Math.random() * unowned.length)];
+    campaign.availableTotems.push(picked);
+  }
+}
+
+function upgradeRandomDieFace(dice) {
+  if (!Array.isArray(dice) || dice.length === 0) return;
+  const nonMaxIndices = dice.map((v, i) => v < 3 ? i : -1).filter(i => i !== -1);
+  if (nonMaxIndices.length > 0) {
+    const idx = nonMaxIndices[Math.floor(Math.random() * nonMaxIndices.length)];
+    dice[idx] = Math.min(3, dice[idx] + 1);
+  }
+}
+
+function openRestDialog(node) {
+  let dialog = document.getElementById("restDialog");
+  if (!dialog) {
+    dialog = document.createElement("dialog");
+    dialog.id = "restDialog";
+    dialog.className = "rest-dialog";
+    document.body.appendChild(dialog);
+  }
+
+  if (!campaign.pendingNodeState || campaign.pendingNodeState.nodeId !== node.id) {
+    campaign.currentNodeId = node.id;
+    campaign.pendingNodeState = {
+      nodeId: node.id,
+      nodeType: "rest",
+      chosenKey: null,
+      resultText: "",
+      applied: false
+    };
+    autoSaveCampaign();
+  }
+
+  const state = campaign.pendingNodeState;
+
+  let html = `
+    <section class="dialog-card rest-card">
+      <header>
+        <span class="eyebrow">원정 야영지</span>
+        <h2>모닥불 휴식</h2>
+        <p>어둠 속에서 잠시 모닥불을 피우고 원정대를 정비합니다.</p>
+      </header>
+      <div class="rest-choices">
+  `;
+
+  if (state.applied) {
+    html += `<div class="rest-result"><p>${state.resultText}</p></div>`;
+    html += `<div class="dialog-actions"><button type="button" id="restCloseBtn">지도로 돌아가기</button></div>`;
+  } else {
+    html += `
+      <button type="button" class="rest-choice-btn" data-choice-type="heal">
+        <strong>망자의 회복 (전체 아군 체력 회복)</strong>
+        <small>원정대 전원의 체력을 최대 2 회복합니다.</small>
+      </button>
+      <button type="button" class="rest-choice-btn" data-choice-type="train">
+        <strong>집중 훈련 (유닛 정밀 강화)</strong>
+        <small>무작위 유닛 1기의 최대 체력 +1 또는 공격 주사위 1면을 강화합니다.</small>
+      </button>
+    `;
+    html += `</div><div class="dialog-actions" id="restActionBox" hidden><button type="button" id="restCloseBtn">지도로 돌아가기</button></div>`;
+  }
+
+  html += `</section>`;
+  dialog.innerHTML = html;
+
+  if (!state.applied) {
+    dialog.querySelectorAll(".rest-choice-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const type = btn.dataset.choiceType;
+        let res = "";
+        if (type === "heal") {
+          (campaign.roster || []).forEach(t => {
+            const prog = campaignProgressFor(t);
+            prog.hp = Math.min(prog.maxHp, prog.hp + 2);
+          });
+          res = "모닥불의 온기로 원정대 전원의 체력이 2 회복되었습니다.";
+        } else {
+          const targetType = campaign.roster[Math.floor(Math.random() * campaign.roster.length)];
+          const prog = campaignProgressFor(targetType);
+          prog.maxHp += 1;
+          prog.hp += 1;
+          upgradeRandomDieFace(prog.dice);
+          res = `${UNIT_TYPES[targetType].label} 유닛이 집중 훈련을 받아 최대 체력과 주사위가 강화되었습니다!`;
+        }
+
+        state.chosenKey = type;
+        state.resultText = res;
+        state.applied = true;
+        autoSaveCampaign();
+
+        dialog.querySelector(".rest-choices").innerHTML = `<div class="rest-result"><p>${res}</p></div>`;
+        const actionBox = dialog.querySelector("#restActionBox");
+        if (actionBox) actionBox.hidden = false;
+
+        const closeBtn = dialog.querySelector("#restCloseBtn");
+        if (closeBtn) {
+          closeBtn.addEventListener("click", () => {
+            if (dialog.close) dialog.close();
+            completeNonBattleNode(node.id);
+          });
+        }
+      });
+    });
+  } else {
+    const closeBtn = dialog.querySelector("#restCloseBtn");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => {
+        if (dialog.close) dialog.close();
+        completeNonBattleNode(node.id);
+      });
+    }
+  }
+
+  if (dialog.showModal) dialog.showModal();
+}
+
+function openTreasureDialog(node) {
+  let dialog = document.getElementById("treasureDialog");
+  if (!dialog) {
+    dialog = document.createElement("dialog");
+    dialog.id = "treasureDialog";
+    dialog.className = "treasure-dialog";
+    document.body.appendChild(dialog);
+  }
+
+  if (!campaign.pendingNodeState || campaign.pendingNodeState.nodeId !== node.id) {
+    campaign.currentNodeId = node.id;
+    campaign.pendingNodeState = {
+      nodeId: node.id,
+      nodeType: "treasure",
+      chosenKey: null,
+      resultText: "",
+      applied: false
+    };
+    autoSaveCampaign();
+  }
+
+  const state = campaign.pendingNodeState;
+
+  let html = `
+    <section class="dialog-card treasure-card">
+      <header>
+        <span class="eyebrow">원정 보물</span>
+        <h2>비전 궤짝</h2>
+        <p>고대의 마법 궤짝에서 뿜어져 나오는 3가지 보상 중 하나를 선택하세요.</p>
+      </header>
+      <div class="treasure-choices">
+  `;
+
+  if (state.applied) {
+    html += `<div class="treasure-result"><p>${state.resultText}</p></div>`;
+    html += `<div class="dialog-actions"><button type="button" id="treasureCloseBtn">지도로 돌아가기</button></div>`;
+  } else {
+    html += `
+      <button type="button" class="treasure-choice-btn" data-choice-type="totem">
+        <strong>고대 토템 획득</strong>
+        <small>새로운 군단 마법 토템 1개를 손에 넣습니다.</small>
+      </button>
+      <button type="button" class="treasure-choice-btn" data-choice-type="die">
+        <strong>주사위 숫돌 강화</strong>
+        <small>무작위 유닛 1기의 주사위 1면을 정밀 연마합니다.</small>
+      </button>
+      <button type="button" class="treasure-choice-btn" data-choice-type="maxhp">
+        <strong>생명 정수 이식</strong>
+        <small>무작위 유닛 1기의 최대 체력을 +1 높입니다.</small>
+      </button>
+    `;
+    html += `</div><div class="dialog-actions" id="treasureActionBox" hidden><button type="button" id="treasureCloseBtn">지도로 돌아가기</button></div>`;
+  }
+
+  html += `</section>`;
+  dialog.innerHTML = html;
+
+  if (!state.applied) {
+    dialog.querySelectorAll(".treasure-choice-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const type = btn.dataset.choiceType;
+        let res = "";
+        if (type === "totem") {
+          addRandomTotem();
+          res = "고대 보물상자에서 새로운 영혼 토템을 획득했습니다!";
+        } else if (type === "die") {
+          const targetType = campaign.roster[Math.floor(Math.random() * campaign.roster.length)];
+          const prog = campaignProgressFor(targetType);
+          upgradeRandomDieFace(prog.dice);
+          res = `${UNIT_TYPES[targetType].label} 유닛의 주사위가 강화되었습니다.`;
+        } else {
+          const targetType = campaign.roster[Math.floor(Math.random() * campaign.roster.length)];
+          const prog = campaignProgressFor(targetType);
+          prog.maxHp += 1;
+          prog.hp += 1;
+          res = `${UNIT_TYPES[targetType].label} 유닛의 최대 체력이 +1 증가했습니다.`;
+        }
+
+        state.chosenKey = type;
+        state.resultText = res;
+        state.applied = true;
+        autoSaveCampaign();
+
+        dialog.querySelector(".treasure-choices").innerHTML = `<div class="treasure-result"><p>${res}</p></div>`;
+        const actionBox = dialog.querySelector("#treasureActionBox");
+        if (actionBox) actionBox.hidden = false;
+
+        const closeBtn = dialog.querySelector("#treasureCloseBtn");
+        if (closeBtn) {
+          closeBtn.addEventListener("click", () => {
+            if (dialog.close) dialog.close();
+            completeNonBattleNode(node.id);
+          });
+        }
+      });
+    });
+  } else {
+    const closeBtn = dialog.querySelector("#treasureCloseBtn");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => {
+        if (dialog.close) dialog.close();
+        completeNonBattleNode(node.id);
+      });
+    }
+  }
+
+  if (dialog.showModal) dialog.showModal();
+}
+
+function completeNonBattleNode(nodeId) {
+  if (!campaign.completedNodeIds) campaign.completedNodeIds = [];
+  if (!campaign.completedNodeIds.includes(nodeId)) {
+    campaign.completedNodeIds.push(nodeId);
+  }
+  campaign.currentNodeId = nodeId;
+  campaign.stageFloorIndex = (campaign.stageFloorIndex || 0) + 1;
+  campaign.globalFloorIndex = (campaign.globalFloorIndex || 0) + 1;
+  campaign.pendingNodeState = null;
+  autoSaveCampaign();
+  renderCampaignMap();
+}
+
 function renderCampaignMap() {
   if (campaign.version === 1) {
     renderLegacyCampaignMap();
@@ -4999,7 +5433,6 @@ function renderCampaignMap() {
   }
 
   const currentStage = Math.max(0, Math.min(2, campaign.stageIndex));
-  const pendingInterlude = pendingInterludeForBattleIndex();
   if (typeof campaign.viewStageIndex !== "number") {
     campaign.viewStageIndex = currentStage;
   }
@@ -5009,9 +5442,10 @@ function renderCampaignMap() {
     stageBadge.textContent = campaign.finished ? "원정 완료" : `스테이지 ${currentStage + 1}/3`;
   }
 
+  const currentFloorDisplay = (campaign.stageFloorIndex || 0) + 1;
   mapProgress.textContent = campaign.finished
     ? "최종 보스를 쓰러뜨렸습니다. 지나온 원정길이 모두 기록되었습니다."
-    : `전체 ${Math.min(campaign.battleIndex + 1, 30)}/30 · 연결된 일반 전장, 고급 전장, 사건 중 하나를 선택하세요.`;
+    : `전체 ${Math.min(campaign.battleIndex + 1, 30)}/30 전투 · 스테이지 ${currentStage + 1} (${currentFloorDisplay}/15층)`;
 
   campaignRosterEl.innerHTML = `<strong>원정대 ${campaign.roster.length}</strong>`;
   campaign.roster.forEach((type) => {
@@ -5038,7 +5472,7 @@ function renderCampaignMap() {
         stageTabs.querySelectorAll(".stage-tab-btn").forEach((item, index) => {
           item.classList.toggle("is-active", index === s);
         });
-        focusExpeditionNode(`[data-battle-index="${s * 10}"]`);
+        renderCampaignMap();
       });
       stageTabs.appendChild(btn);
     }
@@ -5047,7 +5481,39 @@ function renderCampaignMap() {
   mapRoute.innerHTML = "";
   const canvas = document.createElement("div");
   canvas.className = "expedition-map-canvas";
-  const entries = expeditionRouteEntries();
+
+  const mapGen = typeof MapGenerator !== "undefined" ? MapGenerator : (typeof window !== "undefined" ? window.MapGenerator : null);
+  if (!campaign.stageMaps || campaign.stageMaps.length !== 3) {
+    if (mapGen && typeof mapGen.generateStageMap === "function") {
+      campaign.stageMaps = [0, 1, 2].map((s) => mapGen.generateStageMap({ runSeed: campaign.runSeed || 0, stageIndex: s, floors: 15 }));
+    }
+  }
+
+  const stageMap = campaign.stageMaps ? campaign.stageMaps[viewStage] : null;
+
+  if (!stageMap || !stageMap.nodes) {
+    renderLegacyCampaignMap();
+    return;
+  }
+
+  const nodeMap = new Map();
+  stageMap.nodes.forEach((n) => nodeMap.set(n.id, n));
+
+  let availableNodeIds = [];
+  if (!campaign.finished && viewStage === currentStage) {
+    if (!campaign.currentNodeId) {
+      availableNodeIds = stageMap.startNodeIds || [];
+    } else {
+      const currNode = nodeMap.get(campaign.currentNodeId);
+      if (currNode && currNode.next && currNode.next.length > 0) {
+        availableNodeIds = currNode.next;
+      } else {
+        const currentFloor = (campaign.stageFloorIndex || 0) + 1;
+        const floorNodes = stageMap.nodes.filter(n => n.floor === currentFloor);
+        availableNodeIds = floorNodes.map(n => n.id);
+      }
+    }
+  }
 
   const routeSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   routeSvg.setAttribute("viewBox", "0 0 100 100");
@@ -5055,125 +5521,102 @@ function renderCampaignMap() {
   routeSvg.setAttribute("aria-hidden", "true");
   routeSvg.classList.add("expedition-route-lines");
 
-  const entriesAt = (index) => entries.filter((entry) => entry.index === index);
-  const entryAt = (index, type) => entries.find((entry) => entry.index === index && entry.type === type);
-  const appendRoutePath = (entry, next, stateClass) => {
-    if (!entry || !next) return;
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    const curve = entry.x === next.x ? 0 : (entry.x < next.x ? 2.8 : -2.8);
-    const middleX = (entry.x + next.x) / 2 + curve;
-    const middleY = (entry.y + next.y) / 2;
-    path.setAttribute("d", `M ${entry.x} ${entry.y} Q ${middleX} ${middleY} ${next.x} ${next.y}`);
-    path.classList.add(stateClass);
-    routeSvg.appendChild(path);
-  };
+  const completedSet = new Set(campaign.completedNodeIds || []);
 
-  const firstNodes = entriesAt(0);
-  firstNodes.forEach((entry) => {
-    const start = { x: 50, y: 97 };
-    appendRoutePath(start, entry, campaign.battleIndex === 0 ? "is-available" : "is-future");
-  });
+  stageMap.nodes.forEach((fromNode) => {
+    (fromNode.next || []).forEach((nextId) => {
+      const toNode = nodeMap.get(nextId);
+      if (!toNode) return;
 
-  for (let index = 1; index < 30; index += 1) {
-    const previousChoice = campaign.routeHistory[index - 1];
-    const currentChoice = campaign.routeHistory[index];
-    const previousEntries = entriesAt(index - 1);
-    const currentEntries = entriesAt(index);
-    const previous = entryAt(index - 1, previousChoice)
-      || previousEntries.find((entry) => entry.type === "boss")
-      || previousEntries[1]
-      || previousEntries[0];
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const fromX = fromNode.x * 100;
+      const fromY = fromNode.y * 100;
+      const toX = toNode.x * 100;
+      const toY = toNode.y * 100;
 
-    if (index <= campaign.battleIndex && previous) {
-      if (currentChoice) {
-        appendRoutePath(
-          previous,
-          entryAt(index, currentChoice) || currentEntries[0],
-          index < campaign.battleIndex ? "is-reached" : "is-available",
-        );
-      } else if (index === campaign.battleIndex) {
-        currentEntries.forEach((entry) => appendRoutePath(previous, entry, "is-available"));
+      const curve = fromX === toX ? 0 : (fromX < toX ? 2.5 : -2.5);
+      const midX = (fromX + toX) / 2 + curve;
+      const midY = (fromY + toY) / 2;
+
+      path.setAttribute("d", `M ${fromX} ${fromY} Q ${midX} ${midY} ${toX} ${toY}`);
+
+      let stateClass = "is-future";
+      if (completedSet.has(fromNode.id) && (completedSet.has(toNode.id) || toNode.id === campaign.currentNodeId)) {
+        stateClass = "is-reached";
+      } else if ((fromNode.id === campaign.currentNodeId || completedSet.has(fromNode.id) || !campaign.currentNodeId) && availableNodeIds.includes(toNode.id)) {
+        stateClass = "is-available";
       }
-    } else {
-      previousEntries.forEach((from, fromLane) => {
-        const targets = currentEntries.filter((to, toLane) => {
-          if (previousEntries.length === 1 || currentEntries.length === 1) return true;
-          if (fromLane === toLane) return true;
-          const branchRight = index % 2 === 0 && toLane === Math.min(currentEntries.length - 1, fromLane + 1);
-          const branchLeft = index % 2 === 1 && toLane === Math.max(0, fromLane - 1);
-          return branchRight || branchLeft;
-        });
-        targets.forEach((to) => appendRoutePath(from, to, "is-future"));
-      });
-    }
-  }
+
+      path.classList.add(stateClass);
+      routeSvg.appendChild(path);
+    });
+  });
   canvas.appendChild(routeSvg);
 
-  EXPEDITION_STAGE_LABELS.forEach((stage, index) => {
-    const label = document.createElement("span");
-    label.className = `expedition-stage-label stage-${index + 1}`;
-    label.style.left = `${stage.x}%`;
-    label.style.top = `${stage.y}%`;
-    label.textContent = stage.label;
-    canvas.appendChild(label);
-  });
+  const stageLabels = ["1. 묘지 외곽", "2. 오염된 경계", "3. 악마의 왕좌"];
+  const stageLabel = document.createElement("span");
+  stageLabel.className = `expedition-stage-label stage-${viewStage + 1}`;
+  stageLabel.style.left = "50%";
+  stageLabel.style.top = "2%";
+  stageLabel.textContent = stageLabels[viewStage];
+  canvas.appendChild(stageLabel);
 
-  entries.forEach((entry) => {
-    const node = document.createElement("button");
-    node.type = "button";
-    node.className = `expedition-node is-${entry.type}`;
-    node.style.left = `${entry.x}%`;
-    node.style.top = `${entry.y}%`;
-    const selectedType = campaign.routeHistory[entry.index];
-    const selected = selectedType === entry.type;
-    const completed = entry.index < campaign.battleIndex && selected;
-    const abandoned = entry.index < campaign.battleIndex && !selected;
-    const available = !campaign.finished
-      && entry.index === campaign.battleIndex
-      && (!selectedType || selected);
-    const meta = ROUTE_NODE_META[entry.type];
+  stageMap.nodes.forEach((node) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `expedition-node is-${node.type}`;
+    btn.style.left = `${node.x * 100}%`;
+    btn.style.top = `${node.y * 100}%`;
 
-    node.classList.toggle("is-completed", completed);
-    node.classList.toggle("is-abandoned", abandoned);
-    node.classList.toggle("is-future-node", entry.index > campaign.battleIndex);
-    node.classList.toggle("is-current", available);
-    node.disabled = !available;
-    node.dataset.battleIndex = String(entry.index);
-    node.dataset.routeType = entry.type;
-    node.setAttribute("aria-label", `${entry.index + 1}층 ${meta.label}: ${meta.caption}`);
-    node.innerHTML = `
+    const isCompleted = completedSet.has(node.id);
+    const isCurrent = node.id === campaign.currentNodeId;
+    const isAvailable = availableNodeIds.includes(node.id);
+
+    btn.classList.toggle("is-completed", isCompleted);
+    btn.classList.toggle("is-current", isCurrent);
+    btn.classList.toggle("is-future-node", !isCompleted && !isCurrent && !isAvailable);
+    btn.disabled = !isAvailable;
+
+    const meta = ROUTE_NODE_META[node.type] || ROUTE_NODE_META.battle;
+
+    btn.setAttribute("aria-label", `${node.floor}층 ${meta.label}: ${meta.caption}`);
+    btn.innerHTML = `
       <span class="expedition-node-token">
         <b>${meta.symbol}</b>
-        <em>${entry.index + 1}</em>
+        <em>${node.floor}</em>
       </span>
       <span class="expedition-node-caption"><strong>${meta.label}</strong><small>${meta.caption}</small></span>
     `;
 
-    if (available) {
-      if (entry.type === "event") {
-        node.addEventListener("click", () => openInterlude(routeEventSpec(entry.index)));
-      } else {
-        node.addEventListener("click", () => {
-          const encounter = buildRouteEncounter(entry.index, entry.type);
+    if (isAvailable) {
+      btn.addEventListener("click", () => {
+        playSfx("ui");
+        if (node.type === "event") {
+          openEventDialog(node);
+        } else if (node.type === "rest") {
+          openRestDialog(node);
+        } else if (node.type === "treasure") {
+          openTreasureDialog(node);
+        } else {
+          const bIdx = campaign.battleIndex;
+          const encounter = buildRouteEncounter(bIdx, node.type);
           openBattleBriefing(
             encounter,
-            entry.index,
-            () => enterGeneratedCampaignBattle(entry.index, entry.type, encounter),
+            bIdx,
+            () => enterGeneratedCampaignBattle(bIdx, node.type, encounter, node.id),
           );
-        });
-      }
+        }
+      });
     }
-    canvas.appendChild(node);
+
+    canvas.appendChild(btn);
   });
 
   mapRoute.appendChild(canvas);
   bindExpeditionMapDrag(mapRoute);
   prepareExpeditionMapImage();
-  const focusKey = `${campaign.battleIndex}:${campaign.routeHistory[campaign.battleIndex] || "choices"}`;
-  if (mapRoute.dataset.focusKey !== focusKey) {
-    mapRoute.dataset.focusKey = focusKey;
-    window.setTimeout(() => focusExpeditionNode(".expedition-node.is-current", "auto"), 0);
-  }
+
+  window.setTimeout(() => focusExpeditionNode(".expedition-node.is-current, .expedition-node:not(:disabled)", "auto"), 0);
 }
 
 function renderLegacyCampaignMap() {

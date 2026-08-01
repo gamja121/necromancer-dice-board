@@ -85,10 +85,15 @@ const sandbox = {
   }
 };
 
+const mapGeneratorCode = fs.readFileSync(path.join(projectDir, 'map-generator.js'), 'utf8');
+const eventDataCode = fs.readFileSync(path.join(projectDir, 'event-data.js'), 'utf8');
+
 vm.createContext(sandbox);
 
 vm.runInContext(unitDataCode, sandbox);
 vm.runInContext(generatorCode, sandbox);
+vm.runInContext(mapGeneratorCode, sandbox);
+vm.runInContext(eventDataCode, sandbox);
 vm.runInContext(gameJsCode, sandbox);
 
 console.log('=== 1. V1 레거시 세이브 호환성 검증 ===');
@@ -246,6 +251,7 @@ console.log('Pass: 안전 템플릿 30전투의 예산, 등급, 보스, 메타�
 
 console.log('\n=== 8. 신규 군단 효과 및 유닛 범위 검증 ===');
 const legionSnapshot = vm.runInContext(`(() => {
+  state.battleFate = null;
   state.board = makeBoard();
   state.units = [];
   state.nextId = 1;
