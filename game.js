@@ -381,9 +381,7 @@ const phaseText = document.getElementById("phaseText");
 const turnText = document.getElementById("turnText");
 const diceText = document.getElementById("diceText");
 const playerLegionCard = document.getElementById("playerLegionCard");
-const diceBox = document.getElementById("diceBox");
-const diceLabel = document.getElementById("diceLabel");
-const diceFace = document.getElementById("diceFace");
+const selectedUnitArtworkPanel = document.getElementById("selectedUnitArtworkPanel");
 const logEl = document.getElementById("log");
 const unitInfoEl = document.getElementById("unitInfo");
 const unitArtDialog = document.getElementById("unitArtDialog");
@@ -564,8 +562,13 @@ function randomInt(min, max) {
   return min + Math.floor(Math.random() * (max - min + 1));
 }
 
+const BATTLE_FATE_RULES = Object.freeze({
+  normal: { blessingMin: 5, curseMax: 2 },
+  elite: { blessingMin: 6, curseMax: 3 }
+});
+
 function createBattleFate(encounter) {
-  if (encounter?.boss) {
+  if (encounter?.boss || encounter?.kind === "boss" || encounter?.type === "boss") {
     return {
       roll: null,
       tier: "boss",
@@ -574,31 +577,33 @@ function createBattleFate(encounter) {
       bonusOwner: null,
     };
   }
+  const isElite = Boolean(encounter?.elite || encounter?.kind === "elite" || encounter?.type === "elite");
+  const rule = isElite ? BATTLE_FATE_RULES.elite : BATTLE_FATE_RULES.normal;
   const roll = randomInt(1, 6);
-  if (roll <= 2) {
+  if (roll >= rule.blessingMin) {
+    return {
+      roll,
+      tier: "blessing",
+      label: "축복",
+      detail: "아군 임시 최대 체력 +1 및 현재 체력 +1",
+      bonusOwner: "player",
+    };
+  }
+  if (roll <= rule.curseMax) {
     return {
       roll,
       tier: "curse",
       label: "저주",
-      detail: "적 전체 최대 체력 +1",
+      detail: "적 임시 최대 체력 +1 및 현재 체력 +1",
       bonusOwner: "enemy",
-    };
-  }
-  if (roll <= 4) {
-    return {
-      roll,
-      tier: "normal",
-      label: "평범",
-      detail: "추가 난이도 효과 없음",
-      bonusOwner: null,
     };
   }
   return {
     roll,
-    tier: "blessing",
-    label: "축복",
-    detail: "아군 전체 최대 체력 +1",
-    bonusOwner: "player",
+    tier: "normal",
+    label: "평범",
+    detail: "추가 난이도 효과 없음",
+    bonusOwner: null,
   };
 }
 
@@ -608,6 +613,25 @@ function battleFateHealthBonus(unit) {
 
 function battleFateDie(value) {
   return ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"][value] || "-";
+}
+
+function renderSelectedUnitArtwork(subject) {
+  if (!selectedUnitArtworkPanel) return;
+  if (!subject || !subject.type) {
+    selectedUnitArtworkPanel.style.display = "none";
+    selectedUnitArtworkPanel.innerHTML = "";
+    return;
+  }
+  const artResolver = typeof resolveArtworkSource === "function" ? resolveArtworkSource : (typeof window !== "undefined" && typeof window.resolveArtworkSource === "function" ? window.resolveArtworkSource : null);
+  const artUrl = artResolver ? artResolver({ type: subject.type, size: 512, fallback: true }) : `art/approved/${subject.type}.png`;
+  const displayName = subject.name || subject.type;
+  selectedUnitArtworkPanel.style.display = "flex";
+  selectedUnitArtworkPanel.innerHTML = `
+    <div class="artwork-frame" onclick="typeof openUnitArtDialog === 'function' && openUnitArtDialog('${subject.type}')">
+      <img src="${artUrl}" alt="${displayName}" onerror="this.src='art/approved/skeleton-spear.png'; this.onerror=null;" />
+      <div class="artwork-name">${displayName}</div>
+    </div>
+  `;
 }
 
 function rollDie(faces) {
@@ -623,11 +647,7 @@ function diceNumbers(faces) {
   return faces.join(", ");
 }
 
-function diceFaceMarkup(value) {
-  const count = Math.max(0, Math.min(6, Number(value) || 0));
-  if (count === 0) return `<span class="dice-miss">×</span>`;
-  return Array.from({ length: count }, (_, index) => `<i class="pip pip-${index + 1}"></i>`).join("");
-}
+
 
 function buildPieceImage(source) {
   if (pieceImageCache.has(source)) return pieceImageCache.get(source);
@@ -752,25 +772,7 @@ function normalizedDiceFaces(faces) {
   return Array.from({ length: 6 }, (_, index) => source[index % source.length]);
 }
 
-function prepareDiceCube(faces) {
-  const cubeFaces = normalizedDiceFaces(faces);
-  diceFace.innerHTML = cubeFaces.map((value, index) => `
-    <span class="cube-face cube-face-${index + 1}" data-value="${value}">
-      ${diceFaceMarkup(value)}
-    </span>
-  `).join("");
-  return cubeFaces;
-}
 
-function setDiceFace(value, faceIndex = 0) {
-  const normalized = Math.max(0, Math.min(6, Number(value) || 0));
-  const [rotateX, rotateY] = DICE_FACE_ROTATIONS[faceIndex] || DICE_FACE_ROTATIONS[0];
-  diceFace.dataset.value = String(normalized);
-  diceFace.style.setProperty("--final-rotate-x", `${rotateX}deg`);
-  diceFace.style.setProperty("--final-rotate-y", `${rotateY}deg`);
-  diceFace.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-  diceFace.setAttribute("aria-label", `주사위 ${normalized}`);
-}
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -991,36 +993,26 @@ function toggleBattleMusic() {
 
 async function showDiceRoll(label, faces, finalValue = null) {
   state.isRolling = true;
-  diceLabel.textContent = label;
-  const cubeFaces = prepareDiceCube(faces);
-  diceBox.classList.remove("is-landed", "land-miss", "land-power");
-  void diceBox.offsetWidth;
-  diceBox.classList.add("is-rolling");
-  const rolls = 23;
-  let value = faces[0];
-  for (let index = 0; index < rolls; index += 1) {
-    value = rollDie(faces);
-    playSfx("diceTick");
-    await wait(74 + index * 2.5);
+  const final = finalValue !== null ? finalValue : (Array.isArray(faces) ? rollDie(faces) : Number(faces) || 1);
+
+  if (typeof DiceOverlay !== "undefined" && DiceOverlay.requestRoll) {
+    try {
+      const res = await DiceOverlay.requestRoll({
+        context: label || "주사위",
+        label: label || "주사위",
+        resultValue: final,
+        autoRoll: true,
+        battleToken: state.battleToken || null
+      });
+      state.isRolling = false;
+      return res.resultValue !== undefined ? res.resultValue : final;
+    } catch (e) {
+      console.warn("DiceOverlay.requestRoll fallback:", e);
+    }
   }
-  const final = finalValue ?? value;
-  let matchingFaces = cubeFaces
-    .map((faceValue, index) => ({ faceValue, index }))
-    .filter((item) => item.faceValue === final);
-  if (!matchingFaces.length) {
-    cubeFaces[0] = final;
-    prepareDiceCube(cubeFaces);
-    matchingFaces = [{ faceValue: final, index: 0 }];
-  }
-  const finalFace = matchingFaces[Math.floor(Math.random() * matchingFaces.length)].index;
-  diceBox.classList.remove("is-rolling");
-  setDiceFace(final, finalFace);
-  diceBox.classList.add("is-landed");
-  if (final === 0) diceBox.classList.add("land-miss");
-  if (final >= 3) diceBox.classList.add("land-power");
+
   playSfx("diceLand");
-  await wait(480);
-  diceBox.classList.remove("is-landed", "land-miss", "land-power");
+  await wait(300);
   state.isRolling = false;
   return final;
 }
@@ -4175,12 +4167,7 @@ function renderReserve() {
   const isPlayerSetup = state.phase === "setup" && state.turn === "player";
   const units = isPlayerSetup ? state.reserves.player : [];
   actionPanel.hidden = state.phase === "setup";
-  setupBookEl.classList.toggle("is-hidden", !isPlayerSetup);
-  diceBox.hidden = isPlayerSetup;
   if (!isPlayerSetup) {
-    if (state.phase === "setup") {
-      diceBox.hidden = true;
-    }
     return;
   }
 
@@ -4659,6 +4646,7 @@ function renderUnitInfo() {
       </div>
     `;
     unitInfoEl.classList.remove("is-hidden");
+    renderSelectedUnitArtwork({ type: corpse.sourceType, name: `시체 (${source?.label || corpse.sourceType})` });
     return;
   }
   if (!unit) {
@@ -4667,8 +4655,10 @@ function renderUnitInfo() {
     state.inspectedCorpseId = null;
     unitInfoEl.innerHTML = "";
     unitInfoEl.classList.add("is-hidden");
+    renderSelectedUnitArtwork(null);
     return;
   }
+  renderSelectedUnitArtwork(unit);
   const def = UNIT_TYPES[unit.type];
   const gradeLabels = {
     normal: "일반",
@@ -5986,7 +5976,15 @@ continueCampaignBtn.addEventListener("click", async () => {
     campaign.checkpoint = save.checkpoint || null;
     campaign.resolvedInterludes = save.resolvedInterludes || [];
     campaign.routeHistory = save.routeHistory || [];
+    campaign.pendingRoll = save.pendingRoll || null;
     campaign.transitioning = false;
+
+    if (campaign.pendingRoll) {
+      if (campaign.pendingRoll.status === "applied") {
+        campaign.pendingRoll = null;
+        autoSaveCampaign();
+      }
+    }
 
     if (campaign.rewardState) {
       restoreRewardScreen();

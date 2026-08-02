@@ -1,7 +1,7 @@
 /**
  * dice-overlay.js
  * Single-instance screen-center 3D dice overlay module
- * DOM & Browser / Node.js standard structure
+ * Browser & Node.js CommonJS/ESM dynamic export
  */
 
 (function (exports) {
@@ -13,6 +13,7 @@
   let instructionEl = null;
   let resultBadgeEl = null;
   let faceElements = [];
+  let activeSession = null;
 
   const FACE_ORIENTATIONS = [
     { x: 0, y: 0 },        // Front (Index 0)
@@ -56,93 +57,177 @@
     faceElements = Array.from(overlayContainer.querySelectorAll(".dice-3d-face"));
   }
 
-  /**
-   * requestRoll
-   * @param {Object} options
-   * @param {string} options.context - Roll context description (e.g. '이동 주사위', '전투 운명 판정')
-   * @param {Array<number|string>} options.faceValues - Array of 6 face values
-   * @param {number} options.resultIndex - Target face index (0..5)
-   * @param {number|string} options.resultValue - Expected result value
-   * @param {boolean} options.tapToRoll - If true, wait for user tap before spinning
-   * @param {string} options.battleToken - Optional battle token for transaction
-   * @param {string} options.mapToken - Optional map token for transaction
-   * @returns {Promise<Object>} Resolves to { resultIndex, resultValue, battleToken, mapToken }
-   */
+  function isActive() {
+    return activeSession !== null;
+  }
+
+  function cancel(reason = "cancelled") {
+    if (!activeSession) return false;
+    const session = activeSession;
+    activeSession = null;
+
+    if (session.cleanup) session.cleanup();
+    if (overlayContainer) overlayContainer.classList.remove("active");
+
+    session.resolve({
+      resultIndex: session.resultIndex,
+      resultValue: session.resultValue,
+      battleToken: session.battleToken,
+      mapToken: session.mapToken,
+      cancelled: true,
+      reason: reason
+    });
+    return true;
+  }
+
   function requestRoll(options = {}) {
+    // Supersede any existing active session
+    if (activeSession) {
+      cancel("superseded");
+    }
+
     return new Promise((resolve) => {
       const {
         context = "주사위 굴리기",
+        label = null,
         faceValues = [1, 2, 3, 4, 5, 6],
         resultIndex = 0,
-        resultValue = faceValues[0] || 1,
-        tapToRoll = true,
+        resultValue = null,
+        value = null,
+        tapToRoll = false,
+        autoRoll = true,
         battleToken = null,
         mapToken = null
       } = options;
 
+      const finalValue = resultValue !== null ? resultValue : (value !== null ? value : faceValues[resultIndex % 6]);
+      const sessionContext = label || context;
+
       if (typeof document === "undefined") {
-        // Node environment fallback
-        return resolve({ resultIndex, resultValue, battleToken, mapToken });
+        return resolve({
+          resultIndex,
+          resultValue: finalValue,
+          battleToken,
+          mapToken,
+          cancelled: false
+        });
       }
 
       ensureDOM();
 
-      headerEl.textContent = context;
-      resultBadgeEl.classList.remove("visible");
-      resultBadgeEl.textContent = `결과: ${resultValue}`;
+      const session = {
+        id: Math.random().toString(36).substring(2, 9),
+        resolve,
+        resultIndex,
+        resultValue: finalValue,
+        battleToken,
+        mapToken,
+        cleanup: null
+      };
+      activeSession = session;
 
-      // Set face values
+      headerEl.textContent = sessionContext;
+      resultBadgeEl.classList.remove("visible");
+      resultBadgeEl.textContent = `결과: ${finalValue}`;
+
       faceElements.forEach((faceEl, idx) => {
         faceEl.textContent = faceValues[idx] !== undefined ? faceValues[idx] : idx + 1;
       });
 
-      // Reset orientation
       cubeEl.style.transition = "none";
       cubeEl.style.transform = "rotateX(-20deg) rotateY(-20deg)";
       overlayContainer.classList.add("active");
 
+      let timers = [];
+      let isExecuted = false;
+
+      const cleanupListeners = () => {
+        timers.forEach(t => clearTimeout(t));
+        timers = [];
+        if (overlayContainer) {
+          overlayContainer.removeEventListener("pointerdown", handleInput);
+          window.removeEventListener("keydown", handleKey);
+        }
+      };
+      session.cleanup = cleanupListeners;
+
+      const finishRoll = () => {
+        if (activeSession !== session) return;
+        cleanupListeners();
+        if (overlayContainer) overlayContainer.classList.remove("active");
+        activeSession = null;
+        resolve({
+          resultIndex,
+          resultValue: finalValue,
+          battleToken,
+          mapToken,
+          cancelled: false
+        });
+      };
+
       const executeRollAnimation = () => {
+        if (isExecuted || activeSession !== session) return;
+        isExecuted = true;
+
         instructionEl.textContent = "운명을 판정하는 중...";
 
+        const prefersReducedMotion = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
         const targetRot = FACE_ORIENTATIONS[resultIndex % 6];
-        // Add full 3D rotations for roll effect
-        const extraRotX = 360 * 4;
-        const extraRotY = 360 * 4;
+        const extraRotX = prefersReducedMotion ? 360 : 360 * 4;
+        const extraRotY = prefersReducedMotion ? 360 : 360 * 4;
+        const animDuration = prefersReducedMotion ? 0.4 : 0.9;
 
         const finalRotX = targetRot.x + extraRotX;
         const finalRotY = targetRot.y + extraRotY;
 
-        cubeEl.style.transition = "transform 1.8s cubic-bezier(0.15, 0.85, 0.35, 1.2)";
+        cubeEl.style.transition = `transform ${animDuration}s cubic-bezier(0.15, 0.85, 0.35, 1.2)`;
         cubeEl.style.transform = `rotateX(${finalRotX}deg) rotateY(${finalRotY}deg)`;
 
-        setTimeout(() => {
+        const badgeTimer = setTimeout(() => {
+          if (activeSession !== session) return;
           resultBadgeEl.classList.add("visible");
           instructionEl.textContent = "결과 확정!";
 
-          setTimeout(() => {
-            overlayContainer.classList.remove("active");
-            resolve({ resultIndex, resultValue, battleToken, mapToken });
-          }, 800);
-        }, 1850);
+          const finishTimer = setTimeout(finishRoll, 400);
+          timers.push(finishTimer);
+        }, Math.floor(animDuration * 1000 + 50));
+
+        timers.push(badgeTimer);
+
+        // Safety fallback timeout
+        const safetyTimer = setTimeout(() => {
+          if (activeSession === session) finishRoll();
+        }, 3000);
+        timers.push(safetyTimer);
       };
 
-      if (tapToRoll) {
-        instructionEl.textContent = "화면을 터치하여 주사위를 굴리세요";
-        const handleTap = (e) => {
+      const handleInput = (e) => {
+        e.preventDefault();
+        executeRollAnimation();
+      };
+
+      const handleKey = (e) => {
+        if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          overlayContainer.removeEventListener("click", handleTap);
-          overlayContainer.removeEventListener("touchstart", handleTap);
           executeRollAnimation();
-        };
-        overlayContainer.addEventListener("click", handleTap);
-        overlayContainer.addEventListener("touchstart", handleTap);
+        }
+      };
+
+      if (tapToRoll && !autoRoll) {
+        instructionEl.textContent = "화면을 터치하거나 Enter/Space를 누르세요";
+        overlayContainer.addEventListener("pointerdown", handleInput, { once: true });
+        window.addEventListener("keydown", handleKey, { once: true });
       } else {
-        setTimeout(executeRollAnimation, 100);
+        const autoTimer = setTimeout(executeRollAnimation, 80);
+        timers.push(autoTimer);
       }
     });
   }
 
   exports.requestRoll = requestRoll;
+  exports.cancel = cancel;
+  exports.isActive = isActive;
   exports.ensureDOM = ensureDOM;
 
 })(typeof exports !== "undefined" ? exports : (window.DiceOverlay = {}));
