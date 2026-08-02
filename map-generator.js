@@ -108,38 +108,47 @@
       .filter(seq => isValidFloorSequence(seq))
   );
 
+  function findBranchingCandidates(mainSeq, cF) {
+    const candidates = [];
+    const choiceType = mainSeq[cF - 1];
+
+    for (const cand of ALL_VALID_SEQS) {
+      if (cand[cF - 1] === choiceType) continue;
+      if (cF >= 2 && cF <= 5 && cand[cF - 1] === "elite") continue;
+      if (cF === 14 && cand[cF - 1] !== "battle" && cand[cF - 1] !== "rest") continue;
+
+      let okPrefix = true;
+      for (let f = 0; f < cF - 1; f++) {
+        if (cand[f] !== mainSeq[f]) { okPrefix = false; break; }
+      }
+      if (!okPrefix) continue;
+
+      let ok1 = true;
+      for (let f = cF; f < 15; f++) {
+        if (cand[f] !== mainSeq[f]) { ok1 = false; break; }
+      }
+      if (ok1) {
+        candidates.push({ type: cand[cF - 1], rejoinFloor: cF + 1, cand });
+        continue;
+      }
+
+      let ok2 = true;
+      for (let f = cF + 1; f < 15; f++) {
+        if (cand[f] !== mainSeq[f]) { ok2 = false; break; }
+      }
+      if (ok2) {
+        candidates.push({ type: cand[cF - 1], rejoinFloor: cF + 2, cand });
+      }
+    }
+
+    return candidates;
+  }
+
   function hasBranch(mainSeq) {
     const choiceFloors = [2, 5, 8, 11];
     for (const cF of choiceFloors) {
-      const mainType = mainSeq[cF - 1];
-      const pool = ["battle", "elite", "event", "rest", "treasure"];
-      for (const t of pool) {
-        if (t !== mainType) {
-          if (cF >= 2 && cF <= 5 && t === "elite") continue;
-          if (cF === 14 && (t !== "battle" && t !== "rest")) continue;
-
-          for (const cand of ALL_VALID_SEQS) {
-            if (cand[cF - 1] !== t) continue;
-            let okPrefix = true;
-            for (let f = 0; f < cF - 1; f++) {
-              if (cand[f] !== mainSeq[f]) { okPrefix = false; break; }
-            }
-            if (!okPrefix) continue;
-
-            let ok1Floor = true;
-            for (let f = cF; f < 15; f++) {
-              if (cand[f] !== mainSeq[f]) { ok1Floor = false; break; }
-            }
-            if (ok1Floor) return true;
-
-            let ok2Floor = true;
-            for (let f = cF + 1; f < 15; f++) {
-              if (cand[f] !== mainSeq[f]) { ok2Floor = false; break; }
-            }
-            if (ok2Floor) return true;
-          }
-        }
-      }
+      const cands = findBranchingCandidates(mainSeq, cF);
+      if (cands.length > 0) return true;
     }
     return false;
   }
@@ -165,6 +174,7 @@
 
     const stageIdPrefix = `s${stageIndex + 1}`;
     const floorNodes = {};
+    const choiceFloors = [2, 5, 8, 11];
 
     for (let f = 1; f <= floors; f++) {
       floorNodes[f] = [];
@@ -172,10 +182,17 @@
       const mainType = mainSeq[f - 1];
       let fTypes = [mainType];
 
-      if (f > 1 && f < floors) {
+      if (choiceFloors.includes(f)) {
+        const cands = findBranchingCandidates(mainSeq, f);
+        cands.forEach(c => {
+          if (!fTypes.includes(c.type)) fTypes.push(c.type);
+        });
+      }
+
+      if (f > 1 && f < floors && fTypes.length < 3) {
         const pool = ["battle", "elite", "event", "rest", "treasure"];
         for (const t of pool) {
-          if (t !== mainType) {
+          if (!fTypes.includes(t)) {
             if (f >= 2 && f <= 5 && t === "elite") continue;
             if (f === 14 && (t !== "battle" && t !== "rest")) continue;
             fTypes.push(t);
@@ -210,57 +227,31 @@
       floorNodes[f][0].next.push(floorNodes[f + 1][0].id);
     }
 
-    // Choice floors (Floors 2, 5, 8, 11)
-    const choiceFloors = [2, 5, 8, 11];
+    // Choice floors router
     choiceFloors.forEach(cF => {
       if (cF >= floors) return;
       const parentNode = floorNodes[cF - 1][0];
-      const cFloorNodes = floorNodes[cF];
+      const cands = findBranchingCandidates(mainSeq, cF);
 
-      cFloorNodes.forEach((cNode, lIdx) => {
-        if (lIdx === 0) return;
+      cands.forEach(c => {
+        const cNode = floorNodes[cF].find(n => n.type === c.type);
+        if (!cNode) return;
 
-        for (const cand of ALL_VALID_SEQS) {
-          if (cand[cF - 1] !== cNode.type) continue;
-          let okPrefix = true;
-          for (let f = 0; f < cF - 1; f++) {
-            if (cand[f] !== mainSeq[f]) { okPrefix = false; break; }
+        if (c.rejoinFloor === cF + 1) {
+          if (!parentNode.next.includes(cNode.id)) parentNode.next.push(cNode.id);
+          if (floorNodes[cF + 1] && floorNodes[cF + 1][0]) {
+            if (!cNode.next.includes(floorNodes[cF + 1][0].id)) {
+              cNode.next.push(floorNodes[cF + 1][0].id);
+            }
           }
-          if (!okPrefix) continue;
-
-          // 1-Floor candidate test: cand matches mainSeq for all floors >= cF
-          let ok1Floor = true;
-          for (let f = cF; f < floors; f++) {
-            if (cand[f] !== mainSeq[f]) { ok1Floor = false; break; }
-          }
-
-          if (ok1Floor) {
+        } else if (c.rejoinFloor === cF + 2) {
+          const target2Type = c.cand[cF];
+          const target2Node = floorNodes[cF + 1].find(n => n.type === target2Type);
+          if (target2Node) {
             if (!parentNode.next.includes(cNode.id)) parentNode.next.push(cNode.id);
-            if (floorNodes[cF + 1] && floorNodes[cF + 1][0]) {
-              if (!cNode.next.includes(floorNodes[cF + 1][0].id)) {
-                cNode.next.push(floorNodes[cF + 1][0].id);
-              }
-            }
-            break;
-          }
-
-          // 2-Floor candidate test: cand matches mainSeq for all floors >= cF + 1
-          if (cF + 2 <= floors) {
-            let ok2Floor = true;
-            for (let f = cF + 1; f < floors; f++) {
-              if (cand[f] !== mainSeq[f]) { ok2Floor = false; break; }
-            }
-
-            if (ok2Floor) {
-              const target2Node = floorNodes[cF + 1].find(n => n.type === cand[cF]);
-              if (target2Node) {
-                if (!parentNode.next.includes(cNode.id)) parentNode.next.push(cNode.id);
-                if (!cNode.next.includes(target2Node.id)) cNode.next.push(target2Node.id);
-                if (!target2Node.next.includes(floorNodes[cF + 2][0].id)) {
-                  target2Node.next.push(floorNodes[cF + 2][0].id);
-                }
-                break;
-              }
+            if (!cNode.next.includes(target2Node.id)) cNode.next.push(target2Node.id);
+            if (!target2Node.next.includes(floorNodes[cF + 2][0].id)) {
+              target2Node.next.push(floorNodes[cF + 2][0].id);
             }
           }
         }
