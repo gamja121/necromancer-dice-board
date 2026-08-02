@@ -567,8 +567,17 @@ const BATTLE_FATE_RULES = Object.freeze({
   elite: { blessingMin: 6, curseMax: 3 }
 });
 
-function createBattleFate(encounter) {
-  if (encounter?.boss || encounter?.kind === "boss" || encounter?.type === "boss") {
+function battleFateRuleFor(encounter) {
+  if (!encounter || encounter.boss || encounter.kind === "boss" || encounter.type === "boss") {
+    return null;
+  }
+  const isElite = Boolean(encounter.elite || encounter.kind === "elite" || encounter.type === "elite" || encounter.encounterKind === "earlyElite");
+  return isElite ? BATTLE_FATE_RULES.elite : BATTLE_FATE_RULES.normal;
+}
+
+function battleFateFromRoll(encounter, roll) {
+  const rule = battleFateRuleFor(encounter);
+  if (!rule) {
     return {
       roll: null,
       tier: "boss",
@@ -577,9 +586,6 @@ function createBattleFate(encounter) {
       bonusOwner: null,
     };
   }
-  const isElite = Boolean(encounter?.elite || encounter?.kind === "elite" || encounter?.type === "elite");
-  const rule = isElite ? BATTLE_FATE_RULES.elite : BATTLE_FATE_RULES.normal;
-  const roll = randomInt(1, 6);
   if (roll >= rule.blessingMin) {
     return {
       roll,
@@ -607,6 +613,85 @@ function createBattleFate(encounter) {
   };
 }
 
+function createBattleFate(encounter) {
+  const rule = battleFateRuleFor(encounter);
+  if (!rule) return battleFateFromRoll(encounter, null);
+  const roll = randomInt(1, 6);
+  return battleFateFromRoll(encounter, roll);
+}
+
+function prepareBattleFateRoll(encounter) {
+  const rule = battleFateRuleFor(encounter);
+  if (!rule) return null;
+  const resultValue = randomInt(1, 6);
+  const resultIndex = resultValue - 1;
+  const fate = battleFateFromRoll(encounter, resultValue);
+
+  return {
+    id: `fate-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+    context: "battle-fate",
+    status: "prepared",
+    resultIndex,
+    resultValue,
+    faceValues: [1, 2, 3, 4, 5, 6],
+    battleToken: state.battleToken || null,
+    mapToken: campaign.currentNodeId || null,
+    effectKey: `${fate.tier}-${fate.bonusOwner || "none"}`,
+    createdAt: Date.now()
+  };
+}
+
+function applyBattleFateResult(fate) {
+  state.battleFate = fate;
+  if (typeof render === "function") render();
+}
+
+async function runBattleFateSequence(encounter) {
+  const rule = battleFateRuleFor(encounter);
+  if (!rule) {
+    const bossFate = battleFateFromRoll(encounter, null);
+    applyBattleFateResult(bossFate);
+    return bossFate;
+  }
+
+  let rollRecord = campaign.pendingRoll;
+  if (!rollRecord || rollRecord.context !== "battle-fate") {
+    rollRecord = prepareBattleFateRoll(encounter);
+    campaign.pendingRoll = rollRecord;
+    autoSaveCampaign();
+  }
+
+  const rollResult = await window.DiceOverlay.requestRoll({
+    context: "전투 운명 주사위",
+    label: encounter.name ? `${encounter.name} - 운명 판정` : "운명 주사위 판정",
+    faceValues: rollRecord.faceValues,
+    resultIndex: rollRecord.resultIndex,
+    resultValue: rollRecord.resultValue,
+    tapToRoll: true,
+    autoRoll: false,
+    battleToken: rollRecord.battleToken,
+    mapToken: rollRecord.mapToken
+  });
+
+  if (rollResult.cancelled) {
+    return state.battleFate || battleFateFromRoll(encounter, 3);
+  }
+
+  campaign.pendingRoll.status = "rolled";
+  autoSaveCampaign();
+
+  const fate = battleFateFromRoll(encounter, rollResult.resultValue);
+  applyBattleFateResult(fate);
+
+  campaign.pendingRoll.status = "applied";
+  autoSaveCampaign();
+
+  campaign.pendingRoll = null;
+  autoSaveCampaign();
+
+  return fate;
+}
+
 function battleFateHealthBonus(unit) {
   return state.battleFate?.bonusOwner === unit.owner ? 1 : 0;
 }
@@ -619,19 +704,51 @@ function renderSelectedUnitArtwork(subject) {
   if (!selectedUnitArtworkPanel) return;
   if (!subject || !subject.type) {
     selectedUnitArtworkPanel.style.display = "none";
+    selectedUnitArtworkPanel.setAttribute("aria-hidden", "true");
     selectedUnitArtworkPanel.innerHTML = "";
     return;
   }
-  const artResolver = typeof resolveArtworkSource === "function" ? resolveArtworkSource : (typeof window !== "undefined" && typeof window.resolveArtworkSource === "function" ? window.resolveArtworkSource : null);
-  const artUrl = artResolver ? artResolver({ type: subject.type, size: 512, fallback: true }) : `art/approved/${subject.type}.png`;
-  const displayName = subject.name || subject.type;
+
+  const art = typeof commercialArtPaths === "function" ? commercialArtPaths(subject.type) : null;
+  const previewUrl = art?.preview || (UNIT_TYPES[subject.type] ? UNIT_TYPES[subject.type].image : `art/approved/${subject.type}.png`);
+  const displayName = subject.name || (UNIT_TYPES[subject.type] ? UNIT_TYPES[subject.type].name : subject.type);
+
   selectedUnitArtworkPanel.style.display = "flex";
-  selectedUnitArtworkPanel.innerHTML = `
-    <div class="artwork-frame" onclick="typeof openUnitArtDialog === 'function' && openUnitArtDialog('${subject.type}')">
-      <img src="${artUrl}" alt="${displayName}" onerror="this.src='art/approved/skeleton-spear.png'; this.onerror=null;" />
-      <div class="artwork-name">${displayName}</div>
-    </div>
-  `;
+  selectedUnitArtworkPanel.setAttribute("aria-hidden", "false");
+  selectedUnitArtworkPanel.innerHTML = "";
+
+  const frameEl = document.createElement("div");
+  frameEl.className = "artwork-frame";
+  frameEl.setAttribute("role", "button");
+  frameEl.setAttribute("tabindex", "0");
+
+  const imgEl = document.createElement("img");
+  imgEl.src = previewUrl;
+  imgEl.alt = displayName;
+  imgEl.onerror = () => {
+    if (UNIT_TYPES[subject.type] && UNIT_TYPES[subject.type].image) {
+      imgEl.src = UNIT_TYPES[subject.type].image;
+    } else {
+      imgEl.src = "art/approved/skeleton-spear.png";
+    }
+    imgEl.onerror = null;
+  };
+
+  const nameEl = document.createElement("div");
+  nameEl.className = "artwork-name";
+  nameEl.textContent = displayName;
+
+  frameEl.appendChild(imgEl);
+  frameEl.appendChild(nameEl);
+
+  frameEl.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (typeof openUnitArtDialog === "function") {
+      openUnitArtDialog(subject.type);
+    }
+  });
+
+  selectedUnitArtworkPanel.appendChild(frameEl);
 }
 
 function rollDie(faces) {

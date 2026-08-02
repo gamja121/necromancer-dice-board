@@ -81,7 +81,6 @@
   }
 
   function requestRoll(options = {}) {
-    // Supersede any existing active session
     if (activeSession) {
       cancel("superseded");
     }
@@ -94,8 +93,8 @@
         resultIndex = 0,
         resultValue = null,
         value = null,
-        tapToRoll = false,
-        autoRoll = true,
+        tapToRoll = true,
+        autoRoll = false,
         battleToken = null,
         mapToken = null
       } = options;
@@ -151,7 +150,7 @@
       };
       session.cleanup = cleanupListeners;
 
-      const finishRoll = () => {
+      const finishRoll = (cancelled = false, reason = null) => {
         if (activeSession !== session) return;
         cleanupListeners();
         if (overlayContainer) overlayContainer.classList.remove("active");
@@ -161,7 +160,8 @@
           resultValue: finalValue,
           battleToken,
           mapToken,
-          cancelled: false
+          cancelled: cancelled,
+          reason: reason
         });
       };
 
@@ -189,15 +189,15 @@
           resultBadgeEl.classList.add("visible");
           instructionEl.textContent = "결과 확정!";
 
-          const finishTimer = setTimeout(finishRoll, 400);
+          const finishTimer = setTimeout(() => finishRoll(false, null), 400);
           timers.push(finishTimer);
         }, Math.floor(animDuration * 1000 + 50));
 
         timers.push(badgeTimer);
 
-        // Safety fallback timeout
+        // Safety fallback timeout: releases UI lock with cancelled: true to prevent stuck states
         const safetyTimer = setTimeout(() => {
-          if (activeSession === session) finishRoll();
+          if (activeSession === session) finishRoll(true, "timeout");
         }, 3000);
         timers.push(safetyTimer);
       };
