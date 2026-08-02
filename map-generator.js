@@ -108,52 +108,7 @@
       .filter(seq => isValidFloorSequence(seq))
   );
 
-  function findBranchingCandidates(mainSeq, cF) {
-    const candidates = [];
-    const choiceType = mainSeq[cF - 1];
-
-    for (const cand of ALL_VALID_SEQS) {
-      if (cand[cF - 1] === choiceType) continue;
-      if (cF >= 2 && cF <= 5 && cand[cF - 1] === "elite") continue;
-      if (cF === 14 && cand[cF - 1] !== "battle" && cand[cF - 1] !== "rest") continue;
-
-      let okPrefix = true;
-      for (let f = 0; f < cF - 1; f++) {
-        if (cand[f] !== mainSeq[f]) { okPrefix = false; break; }
-      }
-      if (!okPrefix) continue;
-
-      let ok1 = true;
-      for (let f = cF; f < 15; f++) {
-        if (cand[f] !== mainSeq[f]) { ok1 = false; break; }
-      }
-      if (ok1) {
-        candidates.push({ type: cand[cF - 1], rejoinFloor: cF + 1, cand });
-        continue;
-      }
-
-      let ok2 = true;
-      for (let f = cF + 1; f < 15; f++) {
-        if (cand[f] !== mainSeq[f]) { ok2 = false; break; }
-      }
-      if (ok2) {
-        candidates.push({ type: cand[cF - 1], rejoinFloor: cF + 2, cand });
-      }
-    }
-
-    return candidates;
-  }
-
-  function hasBranch(mainSeq) {
-    const choiceFloors = [2, 5, 8, 11];
-    for (const cF of choiceFloors) {
-      const cands = findBranchingCandidates(mainSeq, cF);
-      if (cands.length > 0) return true;
-    }
-    return false;
-  }
-
-  const BRANCHABLE_SEQS = Object.freeze(ALL_VALID_SEQS.filter(hasBranch));
+  const PERFECT_TEMPLATES = Object.freeze([]);
 
   function minMax(min, max, val) {
     return Math.min(max, Math.max(min, val));
@@ -169,8 +124,11 @@
     const combinedSeed = (Math.abs(runSeed) * 1000003 + (stageIndex + 1) * 7919) >>> 0;
     const rng = createPrng(combinedSeed);
 
-    const baseIdx = Math.floor(rng() * BRANCHABLE_SEQS.length);
-    const mainSeq = BRANCHABLE_SEQS[baseIdx];
+    const tIdx = Math.floor(rng() * PERFECT_TEMPLATES.length);
+    const tmpl = PERFECT_TEMPLATES[tIdx];
+
+    const mainSeq = tmpl.mainSeq;
+    const choices = tmpl.choices;
 
     const stageIdPrefix = `s${stageIndex + 1}`;
     const floorNodes = {};
@@ -179,17 +137,12 @@
     for (let f = 1; f <= floors; f++) {
       floorNodes[f] = [];
       const y = parseFloat((0.94 - ((f - 1) / (floors - 1)) * 0.88).toFixed(3));
-      const mainType = mainSeq[f - 1];
-      let fTypes = [mainType];
+
+      let fTypes = [mainSeq[f - 1]];
 
       if (choiceFloors.includes(f)) {
-        const cands = findBranchingCandidates(mainSeq, f);
-        cands.forEach(c => {
-          if (!fTypes.includes(c.type)) fTypes.push(c.type);
-        });
-      }
-
-      if (f > 1 && f < floors && fTypes.length < 3) {
+        fTypes = [...choices[f]];
+      } else if (f > 1 && f < floors) {
         const pool = ["battle", "elite", "event", "rest", "treasure"];
         for (const t of pool) {
           if (!fTypes.includes(t)) {
@@ -222,41 +175,44 @@
       }
     }
 
-    // Backbone: Node 0 -> Node 0
-    for (let f = 1; f < floors; f++) {
-      floorNodes[f][0].next.push(floorNodes[f + 1][0].id);
-    }
+    // Floor 1 -> Floor 2 (both choice nodes)
+    floorNodes[1][0].next.push(floorNodes[2][0].id);
+    floorNodes[1][0].next.push(floorNodes[2][1].id);
 
-    // Choice floors router
-    choiceFloors.forEach(cF => {
-      if (cF >= floors) return;
-      const parentNode = floorNodes[cF - 1][0];
-      const cands = findBranchingCandidates(mainSeq, cF);
+    // Floor 2 (choice nodes) -> Floor 3 (node 0) -> Floor 4 (node 0) -> Floor 5 (choice nodes)
+    floorNodes[2][0].next.push(floorNodes[3][0].id);
+    floorNodes[2][1].next.push(floorNodes[3][0].id);
 
-      cands.forEach(c => {
-        const cNode = floorNodes[cF].find(n => n.type === c.type);
-        if (!cNode) return;
+    floorNodes[3][0].next.push(floorNodes[4][0].id);
 
-        if (c.rejoinFloor === cF + 1) {
-          if (!parentNode.next.includes(cNode.id)) parentNode.next.push(cNode.id);
-          if (floorNodes[cF + 1] && floorNodes[cF + 1][0]) {
-            if (!cNode.next.includes(floorNodes[cF + 1][0].id)) {
-              cNode.next.push(floorNodes[cF + 1][0].id);
-            }
-          }
-        } else if (c.rejoinFloor === cF + 2) {
-          const target2Type = c.cand[cF];
-          const target2Node = floorNodes[cF + 1].find(n => n.type === target2Type);
-          if (target2Node) {
-            if (!parentNode.next.includes(cNode.id)) parentNode.next.push(cNode.id);
-            if (!cNode.next.includes(target2Node.id)) cNode.next.push(target2Node.id);
-            if (!target2Node.next.includes(floorNodes[cF + 2][0].id)) {
-              target2Node.next.push(floorNodes[cF + 2][0].id);
-            }
-          }
-        }
-      });
-    });
+    floorNodes[4][0].next.push(floorNodes[5][0].id);
+    floorNodes[4][0].next.push(floorNodes[5][1].id);
+
+    // Floor 5 (choice nodes) -> Floor 6 (node 0) -> Floor 7 (node 0) -> Floor 8 (choice nodes)
+    floorNodes[5][0].next.push(floorNodes[6][0].id);
+    floorNodes[5][1].next.push(floorNodes[6][0].id);
+
+    floorNodes[6][0].next.push(floorNodes[7][0].id);
+
+    floorNodes[7][0].next.push(floorNodes[8][0].id);
+    floorNodes[7][0].next.push(floorNodes[8][1].id);
+
+    // Floor 8 (choice nodes) -> Floor 9 (node 0) -> Floor 10 (node 0) -> Floor 11 (choice nodes)
+    floorNodes[8][0].next.push(floorNodes[9][0].id);
+    floorNodes[8][1].next.push(floorNodes[9][0].id);
+
+    floorNodes[9][0].next.push(floorNodes[10][0].id);
+
+    floorNodes[10][0].next.push(floorNodes[11][0].id);
+    floorNodes[10][0].next.push(floorNodes[11][1].id);
+
+    // Floor 11 (choice nodes) -> Floor 12 -> Floor 13 -> Floor 14 -> Floor 15 (boss)
+    floorNodes[11][0].next.push(floorNodes[12][0].id);
+    floorNodes[11][1].next.push(floorNodes[12][0].id);
+
+    floorNodes[12][0].next.push(floorNodes[13][0].id);
+    floorNodes[13][0].next.push(floorNodes[14][0].id);
+    floorNodes[14][0].next.push(floorNodes[15][0].id);
 
     const allNodesList = [];
     Object.values(floorNodes).forEach(fnList => {
@@ -356,7 +312,7 @@
   exports.MAP_VERSION = MAP_VERSION;
   exports.PATH_REQUIREMENTS = PATH_REQUIREMENTS;
   exports.ALL_VALID_SEQS = ALL_VALID_SEQS;
-  exports.BRANCHABLE_SEQS = BRANCHABLE_SEQS;
+  exports.PERFECT_TEMPLATES = PERFECT_TEMPLATES;
   exports.isValidFloorSequence = isValidFloorSequence;
   exports.generateStageMap = generateStageMap;
   exports.validateStageMap = validateStageMap;
