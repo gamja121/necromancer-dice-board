@@ -1844,7 +1844,16 @@ function loadCampaignSave() {
     }
 
     const mapGen = typeof MapGenerator !== "undefined" ? MapGenerator : (typeof window !== "undefined" ? window.MapGenerator : null);
-    let stageMaps = Array.isArray(data.stageMaps) && data.stageMaps.length === 3 ? data.stageMaps : null;
+    const hasStageMapValidator = mapGen && typeof mapGen.validateStageMap === "function";
+    const savedStageMapsAreValid = Array.isArray(data.stageMaps)
+      && data.stageMaps.length === 3
+      && (!hasStageMapValidator || data.stageMaps.every((map, index) => (
+        map && map.stageIndex === index && mapGen.validateStageMap(map)
+      )));
+    if (!savedStageMapsAreValid
+      && Array.isArray(data.completedNodeIds)
+      && data.completedNodeIds.length > 0) return null;
+    let stageMaps = savedStageMapsAreValid ? data.stageMaps : null;
     if (!stageMaps && mapGen && typeof mapGen.generateStageMap === "function") {
       stageMaps = [0, 1, 2].map((s) => mapGen.generateStageMap({ runSeed: data.runSeed || 0, stageIndex: s, floors: 15 }));
     }

@@ -96,7 +96,30 @@ vm.runInContext(mapGeneratorCode, sandbox);
 vm.runInContext(eventDataCode, sandbox);
 vm.runInContext(gameJsCode, sandbox);
 
-console.log("=== [START] Runtime Integration Test: Slay the Spire 15-Floor Expedition Map ===");
+function meaningfulChoiceCountOnPath(stageMap, path) {
+  const byId = new Map(stageMap.nodes.map(node => [node.id, node]));
+  return path.slice(0, -1).filter(nodeId => {
+    const node = byId.get(nodeId);
+    return new Set(node.next.map(id => byId.get(id).type)).size >= 2;
+  }).length;
+}
+
+function enumeratePaths(stageMap) {
+  const byId = new Map(stageMap.nodes.map(node => [node.id, node]));
+  const paths = [];
+  const walk = (nodeId, path) => {
+    const nextPath = [...path, nodeId];
+    if (nodeId === stageMap.bossNodeId) {
+      paths.push(nextPath);
+      return;
+    }
+    byId.get(nodeId).next.forEach(nextId => walk(nextId, nextPath));
+  };
+  stageMap.startNodeIds.forEach(nodeId => walk(nodeId, []));
+  return paths;
+}
+
+console.log("=== [START] Runtime Integration Test: 15-Floor Branching Expedition Map ===");
 
 // 1. Reset campaign and verify mapGenerator stageMaps created
 sandbox.resetCampaign();
@@ -107,7 +130,16 @@ assert.strictEqual(c.stageMaps.length, 3, "3 stage maps created");
 assert.strictEqual(c.stageMaps[0].floors, 15, "Stage 1 map has 15 floors");
 assert.strictEqual(c.stageMaps[1].floors, 15, "Stage 2 map has 15 floors");
 assert.strictEqual(c.stageMaps[2].floors, 15, "Stage 3 map has 15 floors");
-console.log("Pass: 3 Stage 15-floor maps initialized cleanly.");
+for (const stageMap of c.stageMaps) {
+  assert.strictEqual(sandbox.window.MapGenerator.validateStageMap(stageMap), true, "Generated map passes structural validation");
+  assert.ok(stageMap.decisionFloors.length >= 4, "Generated map exposes at least four decision floors");
+  const paths = enumeratePaths(stageMap);
+  assert.ok(paths.length >= 16, "Generated map contains multiple complete routes");
+  paths.forEach(path => {
+    assert.ok(meaningfulChoiceCountOnPath(stageMap, path) >= 4, "Every route presents at least four meaningful choices");
+  });
+}
+console.log("Pass: Three valid maps expose at least four meaningful decisions on every complete route.");
 
 // 2. Test autoSave & loadCampaignSave with stageMaps
 sandbox.autoSaveCampaign();
@@ -115,11 +147,45 @@ const loaded = sandbox.loadCampaignSave();
 assert.ok(loaded !== null, "Campaign save loaded successfully");
 assert.ok(Array.isArray(loaded.stageMaps), "Loaded save contains stageMaps");
 assert.strictEqual(loaded.stageMaps.length, 3, "Loaded stageMaps has 3 stages");
-console.log("Pass: Save and restore of 15-floor stageMaps verified.");
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(loaded.stageMaps)),
+  JSON.parse(JSON.stringify(c.stageMaps)),
+  "Saved map graph is restored without regeneration or route drift"
+);
+console.log("Pass: Save and restore preserves the exact generated graph.");
 
-// 3. Test Event Data & Runtime Event Execution
+// 3. Event node entry must create an autosaved, resumable pending state.
 const evt = sandbox.window.EventData.getRandomEvent(0);
 assert.ok(evt && evt.title && evt.choices.length >= 2, "EventData returns valid event scenario");
-console.log(`Pass: EventData scenario fetched: '${evt.title}' with ${evt.choices.length} choices.`);
+const eventNode = c.stageMaps[0].nodes.find(node => node.type === "event");
+assert.ok(eventNode, "Generated map contains an event node");
+sandbox.openEventDialog(eventNode);
+assert.strictEqual(c.pendingNodeState.nodeId, eventNode.id, "Event entry records the pending node");
+assert.strictEqual(c.pendingNodeState.nodeType, "event", "Event pending state records its node type");
+assert.ok(c.pendingNodeState.eventId, "Event selection is fixed before rendering choices");
+const SAVE_KEY = "necromancer-campaign-save-v1";
+const savedDuringEvent = JSON.parse(storage[SAVE_KEY]);
+assert.strictEqual(savedDuringEvent.pendingNodeState.nodeId, eventNode.id, "Pending event is autosaved");
+console.log(`Pass: Event '${evt.title}' creates a resumable autosaved state.`);
 
-console.log("SUCCESS: Slay the Spire 15-Floor Expedition Map Runtime Integration Test Passed!");
+// 4. Completing a non-battle node advances once, clears pending state, and saves.
+const beforeStageFloor = c.stageFloorIndex;
+const beforeGlobalFloor = c.globalFloorIndex;
+sandbox.completeNonBattleNode(eventNode.id);
+assert.ok(c.completedNodeIds.includes(eventNode.id), "Completed event node is recorded");
+assert.strictEqual(c.currentNodeId, eventNode.id, "Current node advances to the completed event");
+assert.strictEqual(c.stageFloorIndex, beforeStageFloor + 1, "Stage floor advances exactly once");
+assert.strictEqual(c.globalFloorIndex, beforeGlobalFloor + 1, "Global floor advances exactly once");
+assert.strictEqual(c.pendingNodeState, null, "Pending state is cleared after completion");
+const savedAfterEvent = JSON.parse(storage[SAVE_KEY]);
+assert.ok(savedAfterEvent.completedNodeIds.includes(eventNode.id), "Completed event is persisted");
+console.log("Pass: Non-battle completion advances and persists atomically.");
+
+// 5. Corrupted progressed maps must not be silently regenerated under the player.
+const corrupted = JSON.parse(storage[SAVE_KEY]);
+corrupted.stageMaps[0].nodes[0].next = ["missing-node"];
+localStorageMock.setItem(SAVE_KEY, JSON.stringify(corrupted));
+assert.strictEqual(sandbox.loadCampaignSave(), null, "Corrupted progressed map is rejected");
+console.log("Pass: Corrupted progressed map is rejected instead of silently changing routes.");
+
+console.log("SUCCESS: Branching expedition map runtime integration test passed.");
