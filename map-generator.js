@@ -276,6 +276,7 @@
       version: MAP_VERSION,
       stageIndex,
       floors,
+      decisionFloors: [2, 5, 8, 11],
       nodes: allNodesList,
       startNodeIds: floorNodes[1].map(n => n.id),
       bossNodeId: floorNodes[floors][0].id
@@ -283,14 +284,12 @@
   }
 
   function validateStageMap(map) {
-    if (!map || map.version !== MAP_VERSION || !Array.isArray(map.nodes)) {
-      return { valid: false, reason: "Invalid map object or version mismatch" };
-    }
-    if (!validateNoDuplicateNodeTypesPerFloor(map)) return { valid: false, reason: "Duplicate floor node types" };
-    if (!validateMajorChoiceFloors(map)) return { valid: false, reason: "Invalid choice floors" };
-    if (!validateMeaningfulBranches(map, 1)) return { valid: false, reason: "No meaningful branches" };
-    if (!validatePathComposition(map)) return { valid: false, reason: "Invalid path composition" };
-    return { valid: true };
+    if (!map || map.version !== MAP_VERSION || !Array.isArray(map.nodes)) return false;
+    if (!validateNoDuplicateNodeTypesPerFloor(map)) return false;
+    if (!validateMajorChoiceFloors(map)) return false;
+    if (!validateMeaningfulBranches(map, 1)) return false;
+    if (!validatePathComposition(map)) return false;
+    return true;
   }
 
   function validateNoDuplicateNodeTypesPerFloor(map) {
