@@ -1,26 +1,33 @@
 /**
  * map-generator.js
- * Seeded 15-floor expedition map generator shared by browser and Node.js.
+ * Necromancer Expedition Map Generator v4
+ * Browser & Node.js ESM/CommonJS dynamic module
  */
 
 (function (exports) {
   "use strict";
 
-  const MAP_VERSION = 3;
-  const TARGET_DECISIONS = 4;
-  const MIDDLE_TYPES = [
+  const MAP_VERSION = 4;
+
+  const PATH_REQUIREMENTS = Object.freeze({
+    floors: 15,
+    combatCount: 10,       // 7 normal, 2 elite, 1 boss
+    normalCount: 7,
+    eliteCount: 2,
+    bossCount: 1,
+    nonCombatCount: 5,     // 2 event, 2 rest, 1 treasure
+    eventCount: 2,
+    restCount: 2,
+    treasureCount: 1,
+  });
+
+  const middleTypes = [
     "battle", "battle", "battle", "battle", "battle", "battle",
-    "elite", "elite", "event", "event", "rest", "rest", "treasure"
+    "elite", "elite",
+    "event", "event",
+    "rest", "rest",
+    "treasure"
   ];
-
-  // A deterministic fallback with four independent, mutually compatible swaps.
-  const FALLBACK_SEQUENCE = [
-    "battle", "event", "battle", "battle", "treasure", "battle", "rest",
-    "elite", "battle", "event", "battle", "elite", "rest", "battle", "boss"
-  ];
-  const FALLBACK_SWAPS = [3, 7, 10, 12];
-
-  const SAFE_TEMPLATES = [FALLBACK_SEQUENCE];
 
   function createPrng(seed) {
     let s = (seed ^ 0xDEADBEEF) >>> 0;
@@ -32,329 +39,340 @@
     };
   }
 
-  function randomInt(rng, min, max) {
-    return min + Math.floor(rng() * (max - min + 1));
-  }
+  function isValidFloorSequence(sequence) {
+    if (!Array.isArray(sequence) || sequence.length !== 15) return false;
+    if (sequence[0] !== "battle") return false;
+    if (sequence[14] !== "boss") return false;
 
-  function shuffle(array, rng) {
-    const result = [...array];
-    for (let i = result.length - 1; i > 0; i--) {
-      const j = Math.floor(rng() * (i + 1));
-      [result[i], result[j]] = [result[j], result[i]];
-    }
-    return result;
-  }
+    let normal = 0, elite = 0, boss = 0;
+    let event = 0, rest = 0, treasure = 0;
 
-  function isNonBattle(type) {
-    return type === "event" || type === "rest" || type === "treasure";
-  }
-
-  function isValidFloorSequence(seq) {
-    if (!Array.isArray(seq) || seq.length !== 15) return false;
-    if (seq[0] !== "battle" || seq[14] !== "boss") return false;
-
-    // Floors 2-5 cannot contain elites or bosses.
-    for (let i = 1; i <= 4; i++) {
-      if (seq[i] === "elite" || seq[i] === "boss") return false;
-    }
-
-    // Floor 14 is a final rest-or-battle decision before the boss.
-    if (seq[13] !== "rest" && seq[13] !== "battle") return false;
-
-    let normalCount = 0;
-    let eliteCount = 0;
-    let bossCount = 0;
-    let eventCount = 0;
-    let restCount = 0;
-    let treasureCount = 0;
-
-    for (let i = 0; i < seq.length; i++) {
-      const type = seq[i];
-      if (type === "battle") normalCount++;
-      else if (type === "elite") eliteCount++;
-      else if (type === "boss") bossCount++;
-      else if (type === "event") eventCount++;
-      else if (type === "rest") restCount++;
-      else if (type === "treasure") treasureCount++;
+    for (let i = 0; i < 15; i++) {
+      const type = sequence[i];
+      if (type === "battle") normal++;
+      else if (type === "elite") elite++;
+      else if (type === "boss") boss++;
+      else if (type === "event") event++;
+      else if (type === "rest") rest++;
+      else if (type === "treasure") treasure++;
       else return false;
-
-      if (i > 0 && type === "elite" && seq[i - 1] === "elite") return false;
-      if (i > 0 && isNonBattle(type) && isNonBattle(seq[i - 1])) return false;
     }
 
-    return normalCount === 7 && eliteCount === 2 && bossCount === 1
-      && eventCount === 2 && restCount === 2 && treasureCount === 1;
-  }
+    if (normal !== 7 || elite !== 2 || boss !== 1) return false;
+    if (event !== 2 || rest !== 2 || treasure !== 1) return false;
 
-  function swapPair(sequence, index) {
-    const result = [...sequence];
-    [result[index], result[index + 1]] = [result[index + 1], result[index]];
-    return result;
-  }
-
-  function applySwapMask(sequence, swapIndexes, mask) {
-    let result = [...sequence];
-    for (let i = 0; i < swapIndexes.length; i++) {
-      if ((mask & (1 << i)) !== 0) result = swapPair(result, swapIndexes[i]);
+    // Constraint 1: Floors 2..5 (index 1..4) must NOT be elite or boss
+    for (let i = 1; i <= 4; i++) {
+      if (sequence[i] === "elite" || sequence[i] === "boss") return false;
     }
-    return result;
-  }
 
-  function allSwapCombinationsAreValid(sequence, swapIndexes) {
-    const combinationCount = 1 << swapIndexes.length;
-    for (let mask = 1; mask < combinationCount; mask++) {
-      if (!isValidFloorSequence(applySwapMask(sequence, swapIndexes, mask))) return false;
+    // Constraint 2: Floor 14 (index 13) MUST be battle or rest
+    if (sequence[13] !== "battle" && sequence[13] !== "rest") return false;
+
+    // Constraint 3: No 3 consecutive battles
+    for (let i = 0; i <= 12; i++) {
+      if (sequence[i] === "battle" && sequence[i + 1] === "battle" && sequence[i + 2] === "battle") {
+        return false;
+      }
     }
+
+    // Constraint 4: No 2 consecutive identical non-combat nodes
+    for (let i = 0; i <= 13; i++) {
+      const t = sequence[i];
+      if (t === "event" || t === "rest" || t === "treasure") {
+        if (sequence[i + 1] === t) return false;
+      }
+    }
+
     return true;
   }
 
-  function findCompatibleSwapSet(sequence, targetCount, rng) {
-    const candidates = [];
-    // Index equals the parent floor where the meaningful choice is presented.
-    for (let index = 2; index <= 12; index++) {
-      if (sequence[index] === sequence[index + 1]) continue;
-      if (isValidFloorSequence(swapPair(sequence, index))) candidates.push(index);
-    }
-
-    const ordered = rng ? shuffle(candidates, rng) : candidates;
-    let result = null;
-
-    function search(start, selected) {
-      if (result) return;
-      if (selected.length === targetCount) {
-        if (allSwapCombinationsAreValid(sequence, selected)) result = [...selected].sort((a, b) => a - b);
-        return;
-      }
-
-      for (let i = start; i < ordered.length; i++) {
-        const index = ordered[i];
-        if (selected.some(existing => Math.abs(existing - index) <= 1)) continue;
-        search(i + 1, [...selected, index]);
-        if (result) return;
+  function permutations(arr) {
+    if (arr.length <= 1) return [arr];
+    const result = [];
+    const used = new Set();
+    for (let i = 0; i < arr.length; i++) {
+      if (used.has(arr[i])) continue;
+      used.add(arr[i]);
+      const rest = arr.slice(0, i).concat(arr.slice(i + 1));
+      for (const p of permutations(rest)) {
+        result.push([arr[i], ...p]);
       }
     }
-
-    search(0, []);
     return result;
   }
 
-  function pickRouteBlueprint(rng) {
-    // Sampling valid sequences on demand keeps startup memory effectively flat.
-    for (let attempt = 1; attempt <= 2400; attempt++) {
-      const sequence = ["battle", ...shuffle(MIDDLE_TYPES, rng), "boss"];
-      if (!isValidFloorSequence(sequence)) continue;
-      const swapIndexes = findCompatibleSwapSet(sequence, TARGET_DECISIONS, rng);
-      if (swapIndexes) return { sequence, swapIndexes, attempts: attempt, fallback: false };
-    }
+  const ALL_VALID_SEQS = Object.freeze(
+    permutations(middleTypes)
+      .map(m => ["battle", ...m, "boss"])
+      .filter(seq => isValidFloorSequence(seq))
+  );
 
-    return {
-      sequence: [...FALLBACK_SEQUENCE],
-      swapIndexes: [...FALLBACK_SWAPS],
-      attempts: 2400,
-      fallback: true
-    };
+  function hasBranch(mainSeq) {
+    const choiceFloors = [2, 5, 8, 11];
+    for (const cF of choiceFloors) {
+      const mainType = mainSeq[cF - 1];
+      const pool = ["battle", "elite", "event", "rest", "treasure"];
+      for (const t of pool) {
+        if (t !== mainType) {
+          if (cF >= 2 && cF <= 5 && t === "elite") continue;
+          if (cF === 14 && (t !== "battle" && t !== "rest")) continue;
+
+          for (const cand of ALL_VALID_SEQS) {
+            if (cand[cF - 1] !== t) continue;
+            let okPrefix = true;
+            for (let f = 0; f < cF - 1; f++) {
+              if (cand[f] !== mainSeq[f]) { okPrefix = false; break; }
+            }
+            if (!okPrefix) continue;
+
+            let ok1Floor = true;
+            for (let f = cF; f < 15; f++) {
+              if (cand[f] !== mainSeq[f]) { ok1Floor = false; break; }
+            }
+            if (ok1Floor) return true;
+
+            let ok2Floor = true;
+            for (let f = cF + 1; f < 15; f++) {
+              if (cand[f] !== mainSeq[f]) { ok2Floor = false; break; }
+            }
+            if (ok2Floor) return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
-  function choiceLanesFor(lane, laneCount) {
-    if (laneCount === 3) {
-      if (lane === 0) return [0, 1];
-      if (lane === 1) return [0, 1];
-      return [1, 2];
-    }
+  const BRANCHABLE_SEQS = Object.freeze(ALL_VALID_SEQS.filter(hasBranch));
 
-    return lane < 2 ? [0, 1] : [2, 3];
-  }
-
-  function connectFirstFloor(currentFloor, nextFloor) {
-    nextFloor.forEach((nextNode, index) => {
-      const parentIndex = Math.min(
-        currentFloor.length - 1,
-        Math.floor(index * currentFloor.length / nextFloor.length)
-      );
-      currentFloor[parentIndex].next.push(nextNode.id);
-    });
+  function minMax(min, max, val) {
+    return Math.min(max, Math.max(min, val));
   }
 
   function generateStageMap(options = {}) {
     const {
       runSeed = 0,
       stageIndex = 0,
-      floors = 15,
-      minLanes = 3,
-      maxLanes = 4
+      floors = 15
     } = options;
-
-    if (floors !== 15) throw new Error("The expedition map currently requires exactly 15 floors.");
 
     const combinedSeed = (Math.abs(runSeed) * 1000003 + (stageIndex + 1) * 7919) >>> 0;
     const rng = createPrng(combinedSeed);
-    const blueprint = pickRouteBlueprint(rng);
-    const swappedSequence = applySwapMask(
-      blueprint.sequence,
-      blueprint.swapIndexes,
-      (1 << blueprint.swapIndexes.length) - 1
-    );
-    const decisionFloors = new Set(blueprint.swapIndexes);
-    const routeLaneCount = Math.max(3, Math.min(4, Math.max(minLanes, maxLanes)));
+
+    const baseIdx = Math.floor(rng() * BRANCHABLE_SEQS.length);
+    const mainSeq = BRANCHABLE_SEQS[baseIdx];
+
     const stageIdPrefix = `s${stageIndex + 1}`;
     const floorNodes = {};
 
-    for (let floor = 1; floor <= floors; floor++) {
-      const laneCount = floor === 1
-        ? randomInt(rng, 2, 3)
-        : (floor === floors ? 1 : routeLaneCount);
-      const y = parseFloat((0.94 - ((floor - 1) / (floors - 1)) * 0.88).toFixed(3));
-      floorNodes[floor] = [];
+    for (let f = 1; f <= floors; f++) {
+      floorNodes[f] = [];
+      const y = parseFloat((0.94 - ((f - 1) / (floors - 1)) * 0.88).toFixed(3));
+      const mainType = mainSeq[f - 1];
+      let fTypes = [mainType];
 
-      for (let lane = 0; lane < laneCount; lane++) {
-        const laneRatio = laneCount === 1 ? 0.5 : (lane + 0.5) / laneCount;
-        const xOffset = laneCount === 1 ? 0 : (rng() - 0.5) * 0.035;
-        const x = parseFloat(Math.min(0.92, Math.max(0.08, laneRatio + xOffset)).toFixed(3));
-        const routeSequence = lane % 2 === 0 ? blueprint.sequence : swappedSequence;
-        const type = routeSequence[floor - 1];
-        const id = floor === floors
-          ? `${stageIdPrefix}-f${floor}-boss`
-          : `${stageIdPrefix}-f${floor}-n${lane}`;
+      if (f > 1 && f < floors) {
+        const pool = ["battle", "elite", "event", "rest", "treasure"];
+        for (const t of pool) {
+          if (t !== mainType) {
+            if (f >= 2 && f <= 5 && t === "elite") continue;
+            if (f === 14 && (t !== "battle" && t !== "rest")) continue;
+            fTypes.push(t);
+            if (fTypes.length === 3) break;
+          }
+        }
+      }
 
-        floorNodes[floor].push({
-          id,
-          floor,
-          lane,
-          type,
+      const laneCount = (f === 1 || f === floors) ? 1 : fTypes.length;
+
+      for (let l = 0; l < laneCount; l++) {
+        const type = fTypes[l];
+        const nodeId = f === floors
+          ? `${stageIdPrefix}-f${f}-boss`
+          : `${stageIdPrefix}-f${f}-n${l}`;
+
+        floorNodes[f].push({
+          id: nodeId,
+          floor: f,
+          lane: l,
+          type: type,
           encounterKind: type === "elite" ? "elite" : (type === "boss" ? "boss" : "normal"),
-          x,
-          y,
+          x: laneCount === 1 ? 0.5 : parseFloat(minMax(0.08, 0.92, (l + 0.5) / laneCount + (rng() - 0.5) * 0.04).toFixed(3)),
+          y: y,
           next: []
         });
       }
     }
 
-    for (let floor = 1; floor < floors; floor++) {
-      const currentFloor = floorNodes[floor];
-      const nextFloor = floorNodes[floor + 1];
-
-      if (floor + 1 === floors) {
-        currentFloor.forEach(node => node.next.push(nextFloor[0].id));
-        continue;
-      }
-
-      if (floor === 1) {
-        connectFirstFloor(currentFloor, nextFloor);
-        continue;
-      }
-
-      if (decisionFloors.has(floor)) {
-        currentFloor.forEach(node => {
-          const laneChoices = choiceLanesFor(node.lane, nextFloor.length);
-          laneChoices.forEach(lane => node.next.push(nextFloor[lane].id));
-        });
-        continue;
-      }
-
-      // The second half of a choice pair is intentionally forced so both
-      // alternatives consume the same final type budget before the next fork.
-      currentFloor.forEach(node => {
-        const nextLane = Math.min(node.lane, nextFloor.length - 1);
-        node.next.push(nextFloor[nextLane].id);
-      });
+    // Backbone: Node 0 -> Node 0
+    for (let f = 1; f < floors; f++) {
+      floorNodes[f][0].next.push(floorNodes[f + 1][0].id);
     }
 
-    const nodes = [];
-    for (let floor = 1; floor <= floors; floor++) nodes.push(...floorNodes[floor]);
+    // Choice floors (Floors 2, 5, 8, 11)
+    const choiceFloors = [2, 5, 8, 11];
+    choiceFloors.forEach(cF => {
+      if (cF >= floors) return;
+      const parentNode = floorNodes[cF - 1][0];
+      const cFloorNodes = floorNodes[cF];
+
+      cFloorNodes.forEach((cNode, lIdx) => {
+        if (lIdx === 0) return;
+
+        for (const cand of ALL_VALID_SEQS) {
+          if (cand[cF - 1] !== cNode.type) continue;
+          let okPrefix = true;
+          for (let f = 0; f < cF - 1; f++) {
+            if (cand[f] !== mainSeq[f]) { okPrefix = false; break; }
+          }
+          if (!okPrefix) continue;
+
+          // 1-Floor candidate test: cand matches mainSeq for all floors >= cF
+          let ok1Floor = true;
+          for (let f = cF; f < floors; f++) {
+            if (cand[f] !== mainSeq[f]) { ok1Floor = false; break; }
+          }
+
+          if (ok1Floor) {
+            if (!parentNode.next.includes(cNode.id)) parentNode.next.push(cNode.id);
+            if (floorNodes[cF + 1] && floorNodes[cF + 1][0]) {
+              if (!cNode.next.includes(floorNodes[cF + 1][0].id)) {
+                cNode.next.push(floorNodes[cF + 1][0].id);
+              }
+            }
+            break;
+          }
+
+          // 2-Floor candidate test: cand matches mainSeq for all floors >= cF + 1
+          if (cF + 2 <= floors) {
+            let ok2Floor = true;
+            for (let f = cF + 1; f < floors; f++) {
+              if (cand[f] !== mainSeq[f]) { ok2Floor = false; break; }
+            }
+
+            if (ok2Floor) {
+              const target2Node = floorNodes[cF + 1].find(n => n.type === cand[cF]);
+              if (target2Node) {
+                if (!parentNode.next.includes(cNode.id)) parentNode.next.push(cNode.id);
+                if (!cNode.next.includes(target2Node.id)) cNode.next.push(target2Node.id);
+                if (!target2Node.next.includes(floorNodes[cF + 2][0].id)) {
+                  target2Node.next.push(floorNodes[cF + 2][0].id);
+                }
+                break;
+              }
+            }
+          }
+        }
+      });
+    });
+
+    const allNodesList = [];
+    Object.values(floorNodes).forEach(fnList => {
+      fnList.forEach(n => allNodesList.push({ ...n }));
+    });
 
     return {
       version: MAP_VERSION,
       stageIndex,
       floors,
-      nodes,
-      startNodeIds: floorNodes[1].map(node => node.id),
-      bossNodeId: floorNodes[floors][0].id,
-      decisionFloors: [...blueprint.swapIndexes],
-      generationAttempts: blueprint.attempts,
-      usedFallback: blueprint.fallback
+      nodes: allNodesList,
+      startNodeIds: floorNodes[1].map(n => n.id),
+      bossNodeId: floorNodes[floors][0].id
     };
   }
 
-  function validateStageMap(map, options = {}) {
-    const requireDecisionDiversity = options.requireDecisionDiversity !== false
-      && Number(map && map.version) >= MAP_VERSION;
-    if (!map || typeof map !== "object" || map.floors !== 15) return false;
-    if (!Number.isInteger(map.stageIndex) || map.stageIndex < 0 || map.stageIndex > 2) return false;
-    if (!Array.isArray(map.nodes) || !Array.isArray(map.startNodeIds)) return false;
-    if (typeof map.bossNodeId !== "string" || map.startNodeIds.length < 1) return false;
-
-    const allowedTypes = new Set(["battle", "elite", "event", "rest", "treasure", "boss"]);
-    const byId = new Map();
-    const byFloor = new Map();
-
-    for (const node of map.nodes) {
-      if (!node || typeof node.id !== "string" || byId.has(node.id)) return false;
-      if (!Number.isInteger(node.floor) || node.floor < 1 || node.floor > map.floors) return false;
-      if (!allowedTypes.has(node.type) || !Array.isArray(node.next)) return false;
-      if (!Number.isFinite(node.x) || node.x < 0 || node.x > 1) return false;
-      if (!Number.isFinite(node.y) || node.y < 0 || node.y > 1) return false;
-      if (new Set(node.next).size !== node.next.length || node.next.length > 3) return false;
-      byId.set(node.id, node);
-      if (!byFloor.has(node.floor)) byFloor.set(node.floor, []);
-      byFloor.get(node.floor).push(node);
+  function validateStageMap(map) {
+    if (!map || map.version !== MAP_VERSION || !Array.isArray(map.nodes)) {
+      return { valid: false, reason: "Invalid map object or version mismatch" };
     }
+    if (!validateNoDuplicateNodeTypesPerFloor(map)) return { valid: false, reason: "Duplicate floor node types" };
+    if (!validateMajorChoiceFloors(map)) return { valid: false, reason: "Invalid choice floors" };
+    if (!validateMeaningfulBranches(map, 1)) return { valid: false, reason: "No meaningful branches" };
+    if (!validatePathComposition(map)) return { valid: false, reason: "Invalid path composition" };
+    return { valid: true };
+  }
 
-    for (let floor = 1; floor <= map.floors; floor++) {
-      if (!byFloor.has(floor) || byFloor.get(floor).length === 0) return false;
+  function validateNoDuplicateNodeTypesPerFloor(map) {
+    if (!map || !Array.isArray(map.nodes)) return false;
+    const floorTypesMap = {};
+    map.nodes.forEach(n => {
+      if (!floorTypesMap[n.floor]) floorTypesMap[n.floor] = [];
+      floorTypesMap[n.floor].push(n.type);
+    });
+    for (const f in floorTypesMap) {
+      const types = floorTypesMap[f];
+      if (new Set(types).size !== types.length) return false;
     }
+    return true;
+  }
 
-    const boss = byId.get(map.bossNodeId);
-    if (!boss || boss.floor !== map.floors || boss.type !== "boss" || boss.next.length !== 0) return false;
-    if (byFloor.get(map.floors).length !== 1) return false;
-    if (!map.startNodeIds.every(id => byId.has(id) && byId.get(id).floor === 1)) return false;
-    if (new Set(map.startNodeIds).size !== map.startNodeIds.length) return false;
+  function validateMajorChoiceFloors(map) {
+    if (!map || !Array.isArray(map.nodes)) return false;
+    const choiceFloors = [2, 5, 8, 11];
+    for (const cF of choiceFloors) {
+      const fNodes = map.nodes.filter(n => n.floor === cF);
+      if (fNodes.length < 2) return false;
+    }
+    return true;
+  }
 
-    const incoming = new Map(map.nodes.map(node => [node.id, 0]));
-    for (const node of map.nodes) {
-      if (node.floor === map.floors && node.next.length !== 0) return false;
-      if (node.floor < map.floors && (node.next.length < 1 || node.next.length > 2)) return false;
+  function validateMeaningfulBranches(map, minCount = 1) {
+    if (!map || !Array.isArray(map.nodes)) return false;
+    const nodeMap = new Map(map.nodes.map(n => [n.id, n]));
+    let branchCount = 0;
+    map.nodes.forEach(n => {
+      if (n.next && n.next.length >= 2) {
+        const childTypes = new Set(n.next.map(id => nodeMap.get(id)?.type));
+        if (childTypes.size >= 2) branchCount++;
+      }
+    });
+    return branchCount >= minCount;
+  }
+
+  function validatePathComposition(map) {
+    if (!map || !Array.isArray(map.nodes)) return false;
+    const nodeMap = new Map(map.nodes.map(n => [n.id, n]));
+
+    function getPaths(nodeId, visited = new Set()) {
+      const node = nodeMap.get(nodeId);
+      if (!node) return [];
+      if (node.floor === 15) return [[nodeId]];
+      if (visited.has(nodeId)) return [];
+      visited.add(nodeId);
+
+      let paths = [];
       for (const nextId of node.next) {
-        const nextNode = byId.get(nextId);
-        if (!nextNode || nextNode.floor !== node.floor + 1) return false;
-        incoming.set(nextId, incoming.get(nextId) + 1);
+        const subPaths = getPaths(nextId, new Set(visited));
+        subPaths.forEach(sp => paths.push([nodeId, ...sp]));
       }
-    }
-    for (const node of map.nodes) {
-      if (node.floor > 1 && incoming.get(node.id) === 0) return false;
+      return paths;
     }
 
-    const reached = new Set();
-    const stack = [...map.startNodeIds];
-    while (stack.length) {
-      const id = stack.pop();
-      if (reached.has(id)) continue;
-      reached.add(id);
-      byId.get(id).next.forEach(nextId => stack.push(nextId));
+    const startNodeId = map.startNodeIds ? map.startNodeIds[0] : map.nodes.find(n => n.floor === 1)?.id;
+    if (!startNodeId) return false;
+
+    const allPaths = getPaths(startNodeId);
+    if (allPaths.length === 0) return false;
+
+    for (const path of allPaths) {
+      const seq = path.map(id => nodeMap.get(id).type);
+      if (!isValidFloorSequence(seq)) return false;
     }
-    if (reached.size !== map.nodes.length || !reached.has(map.bossNodeId)) return false;
 
-    let pathCount = 0;
-    const walk = (node, sequence, meaningfulChoices) => {
-      const nextSequence = [...sequence, node.type];
-      if (node.id === map.bossNodeId) {
-        pathCount++;
-        return isValidFloorSequence(nextSequence)
-          && (!requireDecisionDiversity || meaningfulChoices >= TARGET_DECISIONS);
-      }
-      const childTypes = new Set(node.next.map(id => byId.get(id).type));
-      const nextMeaningfulChoices = meaningfulChoices + (childTypes.size >= 2 ? 1 : 0);
-      return node.next.every(id => walk(byId.get(id), nextSequence, nextMeaningfulChoices));
-    };
-
-    if (!map.startNodeIds.every(id => walk(byId.get(id), [], 0))) return false;
-    return pathCount > 0;
+    return true;
   }
 
   exports.MAP_VERSION = MAP_VERSION;
-  exports.generateStageMap = generateStageMap;
-  exports.SAFE_TEMPLATES = SAFE_TEMPLATES;
+  exports.PATH_REQUIREMENTS = PATH_REQUIREMENTS;
+  exports.ALL_VALID_SEQS = ALL_VALID_SEQS;
+  exports.BRANCHABLE_SEQS = BRANCHABLE_SEQS;
   exports.isValidFloorSequence = isValidFloorSequence;
-  exports.findCompatibleSwapSet = findCompatibleSwapSet;
+  exports.generateStageMap = generateStageMap;
   exports.validateStageMap = validateStageMap;
+  exports.validateNoDuplicateNodeTypesPerFloor = validateNoDuplicateNodeTypesPerFloor;
+  exports.validateMajorChoiceFloors = validateMajorChoiceFloors;
+  exports.validateMeaningfulBranches = validateMeaningfulBranches;
+  exports.validatePathComposition = validatePathComposition;
 
 })(typeof exports !== "undefined" ? exports : (window.MapGenerator = {}));

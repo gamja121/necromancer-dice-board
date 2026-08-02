@@ -1,0 +1,107 @@
+/* dice-overlay.css - Single-Instance Screen-Center 3D Dice Overlay */
+#diceOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(10, 10, 18, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+#diceOverlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.dice-overlay-header {
+  font-family: 'Cinzel', 'Noto Serif KR', serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  text-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
+  margin-bottom: 2rem;
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+
+.dice-3d-scene {
+  width: 120px;
+  height: 120px;
+  perspective: 600px;
+  cursor: pointer;
+}
+
+.dice-3d-cube {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateX(-20deg) rotateY(-20deg);
+  transition: transform 1.8s cubic-bezier(0.15, 0.85, 0.35, 1.2);
+}
+
+.dice-3d-face {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, #1e1b4b 0%, #311b92 100%);
+  border: 2px solid #a855f7;
+  border-radius: 16px;
+  box-shadow: inset 0 0 15px rgba(168, 85, 247, 0.4), 0 0 20px rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', 'Inter', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #f8fafc;
+  text-shadow: 0 0 10px #c084fc;
+  user-select: none;
+}
+
+/* Face positions */
+.dice-face-front  { transform: rotateY(  0deg) translateZ(60px); }
+.dice-face-back   { transform: rotateY(180deg) translateZ(60px); }
+.dice-face-right  { transform: rotateY( 90deg) translateZ(60px); }
+.dice-face-left   { transform: rotateY(-90deg) translateZ(60px); }
+.dice-face-top    { transform: rotateX( 90deg) translateZ(60px); }
+.dice-face-bottom { transform: rotateX(-90deg) translateZ(60px); }
+
+.dice-overlay-instruction {
+  margin-top: 2rem;
+  font-size: 0.95rem;
+  color: #cbd5e1;
+  letter-spacing: 0.03em;
+  animation: pulseInstruction 1.5s infinite alternate;
+}
+
+@keyframes pulseInstruction {
+  from { opacity: 0.6; transform: translateY(0); }
+  to { opacity: 1; transform: translateY(-3px); }
+}
+
+.dice-result-badge {
+  margin-top: 1.5rem;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #e9d5ff;
+  text-shadow: 0 0 16px #a855f7;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.dice-result-badge.visible {
+  opacity: 1;
+  transform: scale(1);
+}
