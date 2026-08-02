@@ -108,7 +108,61 @@
       .filter(seq => isValidFloorSequence(seq))
   );
 
-  const PERFECT_TEMPLATES = Object.freeze([]);
+  const PERFECT_TEMPLATES = Object.freeze((function buildTemplates() {
+    const templates = [];
+    const choiceFloors = [2, 5, 8, 11];
+    for (const seq of ALL_VALID_SEQS) {
+      const pools = choiceFloors.map(cF => {
+        const mainType = seq[cF - 1];
+        const alts = [mainType];
+        const available = ["battle", "elite", "event", "rest", "treasure"].filter(t => t !== mainType);
+        for (const t of available) {
+          if (cF <= 5 && t === "elite") continue;
+          if (cF === 14 && (t !== "battle" && t !== "rest")) continue;
+          alts.push(t);
+        }
+        return alts;
+      });
+
+      for (const alt1 of pools[0].slice(1)) {
+        for (const alt2 of pools[1].slice(1)) {
+          for (const alt3 of pools[2].slice(1)) {
+            for (const alt4 of pools[3].slice(1)) {
+              const options = [
+                [seq[1], alt1],
+                [seq[4], alt2],
+                [seq[7], alt3],
+                [seq[10], alt4]
+              ];
+
+              let ok = true;
+              for (const o1 of options[0]) {
+                for (const o2 of options[1]) {
+                  for (const o3 of options[2]) {
+                    for (const o4 of options[3]) {
+                      const ts = [...seq]; ts[1] = o1; ts[4] = o2; ts[7] = o3; ts[10] = o4;
+                      if (!isValidFloorSequence(ts)) { ok = false; break; }
+                    }
+                    if (!ok) break;
+                  }
+                  if (!ok) break;
+                }
+                if (!ok) break;
+              }
+              if (ok) {
+                templates.push({
+                  mainSeq: seq,
+                  choices: { 2: [seq[1], alt1], 5: [seq[4], alt2], 8: [seq[7], alt3], 11: [seq[10], alt4] }
+                });
+                if (templates.length >= 100) return templates;
+              }
+            }
+          }
+        }
+      }
+    }
+    return templates;
+  })());
 
   function minMax(min, max, val) {
     return Math.min(max, Math.max(min, val));
