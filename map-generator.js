@@ -111,7 +111,10 @@
     const nodeMap = new Map();
     map.nodes.forEach(n => nodeMap.set(n.id, n));
     return map.nodes
-      .map(n => `${n.floor}:${n.type}->${n.next.map(id => nodeMap.get(id)?.type || id).sort().join(',')}`)
+      .map(n => `${n.floor}:${n.lane}:${n.type}->${n.next.map(id => {
+        const target = nodeMap.get(id);
+        return target ? `${target.floor}:${target.lane}:${target.type}` : id;
+      }).sort().join(',')}`)
       .sort()
       .join('|');
   }
@@ -166,6 +169,23 @@
           next: []
         });
       }
+    }
+
+    // Lane placement is part of the route topology, not decorative jitter. Each
+    // decision floor receives an independent deterministic permutation while
+    // node IDs and edges continue to represent the same valid logical paths.
+    // This produces visibly different crossing/branch patterns without changing
+    // the exact encounter budget of any complete route.
+    for (const f of [2, 3, 4, 6, 7, 8, 10, 11, 12]) {
+      const laneOrder = shuffle([0, 1, 2], rng);
+      floorNodes[f].forEach((node, pathIndex) => {
+        node.lane = laneOrder[pathIndex];
+        node.x = parseFloat(minMax(
+          0.08,
+          0.92,
+          (node.lane + 0.5) / 3 + (rng() - 0.5) * 0.025
+        ).toFixed(3));
+      });
     }
 
     // Connect DAG:

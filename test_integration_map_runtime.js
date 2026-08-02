@@ -154,6 +154,37 @@ assert.deepStrictEqual(
 );
 console.log("Pass: Save and restore preserves the exact generated graph.");
 
+// 2b. A prepared fate roll must survive save/load without changing its result.
+c.pendingRoll = {
+  id: "integration-fate-roll",
+  context: "battle-fate",
+  status: "prepared",
+  resultIndex: 4,
+  resultValue: 5,
+  faceValues: [1, 2, 3, 4, 5, 6],
+  battleToken: 1,
+  mapToken: c.currentNodeId,
+  encounterId: c.encounters[c.battleIndex].id,
+  battleIndex: c.battleIndex,
+  effectKey: "blessing-player",
+  createdAt: Date.now()
+};
+sandbox.autoSaveCampaign();
+const loadedWithPendingRoll = sandbox.loadCampaignSave();
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(loadedWithPendingRoll.pendingRoll)),
+  JSON.parse(JSON.stringify(c.pendingRoll)),
+  "Prepared fate roll is restored with the same predetermined result"
+);
+console.log("Pass: pendingRoll transaction survives save and load without rerolling.");
+
+assert.ok(
+  (gameJsCode.match(/resolveBattleFateForSetup\(/g) || []).length >= 3,
+  "Battle fate resolver is connected to both legacy and generated battle entry paths"
+);
+assert.ok(!gameJsCode.includes("openUnitArtDialog"), "Artwork panel uses the real openUnitArt dialog function");
+console.log("Pass: Battle fate and artwork runtime connections are present.");
+
 // 3. Event node entry must create an autosaved, resumable pending state.
 const evt = sandbox.window.EventData.getRandomEvent(0);
 assert.ok(evt && evt.title && evt.choices.length >= 2, "EventData returns valid event scenario");

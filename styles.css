@@ -5547,6 +5547,19 @@ dialog::backdrop {
   object-fit: cover;
 }
 
+.selected-unit-artwork-panel .artwork-frame.is-artwork-missing {
+  min-height: 132px;
+  display: grid;
+  place-items: center;
+}
+
+.selected-unit-artwork-panel .artwork-frame.is-artwork-missing::before {
+  content: "원화 준비 중";
+  color: #a9a9a9;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .selected-unit-artwork-panel .artwork-name {
   font-family: 'Cinzel', 'Noto Serif KR', serif;
   font-size: 0.95rem;

@@ -336,6 +336,7 @@ const state = {
   lastDice: "-",
   battleFate: null,
   isRolling: false,
+  fateRolling: false,
   musicMuted: false,
   musicVolume: 0.32,
   sfxVolume: 0.75,
@@ -613,13 +614,6 @@ function battleFateFromRoll(encounter, roll) {
   };
 }
 
-function createBattleFate(encounter) {
-  const rule = battleFateRuleFor(encounter);
-  if (!rule) return battleFateFromRoll(encounter, null);
-  const roll = randomInt(1, 6);
-  return battleFateFromRoll(encounter, roll);
-}
-
 function prepareBattleFateRoll(encounter) {
   const rule = battleFateRuleFor(encounter);
   if (!rule) return null;
@@ -636,6 +630,8 @@ function prepareBattleFateRoll(encounter) {
     faceValues: [1, 2, 3, 4, 5, 6],
     battleToken: state.battleToken || null,
     mapToken: campaign.currentNodeId || null,
+    encounterId: encounter.id || null,
+    battleIndex: Number.isInteger(campaign.battleIndex) ? campaign.battleIndex : null,
     effectKey: `${fate.tier}-${fate.bonusOwner || "none"}`,
     createdAt: Date.now()
   };
@@ -655,10 +651,44 @@ async function runBattleFateSequence(encounter) {
   }
 
   let rollRecord = campaign.pendingRoll;
-  if (!rollRecord || rollRecord.context !== "battle-fate") {
+  const belongsToEncounter = rollRecord
+    && rollRecord.context === "battle-fate"
+    && rollRecord.encounterId === (encounter.id || null)
+    && rollRecord.battleIndex === campaign.battleIndex;
+  if (!belongsToEncounter) {
     rollRecord = prepareBattleFateRoll(encounter);
     campaign.pendingRoll = rollRecord;
     autoSaveCampaign();
+  }
+
+  const savedFate = () => battleFateFromRoll(encounter, rollRecord.resultValue);
+  if (rollRecord.status === "applied") {
+    const fate = savedFate();
+    applyBattleFateResult(fate);
+    campaign.pendingRoll = null;
+    autoSaveCampaign();
+    return fate;
+  }
+  if (rollRecord.status === "rolled") {
+    const fate = savedFate();
+    applyBattleFateResult(fate);
+    campaign.pendingRoll.status = "applied";
+    autoSaveCampaign();
+    campaign.pendingRoll = null;
+    autoSaveCampaign();
+    return fate;
+  }
+
+  if (typeof window === "undefined"
+    || !window.DiceOverlay
+    || typeof window.DiceOverlay.requestRoll !== "function") {
+    const fate = savedFate();
+    applyBattleFateResult(fate);
+    campaign.pendingRoll.status = "applied";
+    autoSaveCampaign();
+    campaign.pendingRoll = null;
+    autoSaveCampaign();
+    return fate;
   }
 
   const rollResult = await window.DiceOverlay.requestRoll({
@@ -674,7 +704,7 @@ async function runBattleFateSequence(encounter) {
   });
 
   if (rollResult.cancelled) {
-    return state.battleFate || battleFateFromRoll(encounter, 3);
+    return { cancelled: true, reason: rollResult.reason || "cancelled" };
   }
 
   campaign.pendingRoll.status = "rolled";
@@ -690,6 +720,38 @@ async function runBattleFateSequence(encounter) {
   autoSaveCampaign();
 
   return fate;
+}
+
+async function resolveBattleFateForSetup(encounter, battleToken) {
+  try {
+    const result = await runBattleFateSequence(encounter);
+    if (result?.cancelled
+      && state.phase === "setup"
+      && state.battleToken === battleToken
+      && result.reason === "timeout") {
+      applySavedBattleFate(encounter);
+    }
+  } catch (error) {
+    console.warn("Battle fate overlay failed:", error);
+    if (state.phase === "setup" && state.battleToken === battleToken) {
+      applySavedBattleFate(encounter);
+    }
+  } finally {
+    if (state.phase === "setup" && state.battleToken === battleToken) {
+      state.fateRolling = false;
+      render();
+    }
+  }
+}
+
+function applySavedBattleFate(encounter) {
+  const saved = campaign.pendingRoll;
+  if (!saved || saved.context !== "battle-fate") return;
+  applyBattleFateResult(battleFateFromRoll(encounter, saved.resultValue));
+  campaign.pendingRoll.status = "applied";
+  autoSaveCampaign();
+  campaign.pendingRoll = null;
+  autoSaveCampaign();
 }
 
 function battleFateHealthBonus(unit) {
@@ -727,11 +789,13 @@ function renderSelectedUnitArtwork(subject) {
   imgEl.alt = displayName;
   imgEl.onerror = () => {
     if (UNIT_TYPES[subject.type] && UNIT_TYPES[subject.type].image) {
+      imgEl.onerror = null;
       imgEl.src = UNIT_TYPES[subject.type].image;
     } else {
-      imgEl.src = "art/approved/skeleton-spear.png";
+      imgEl.onerror = null;
+      imgEl.removeAttribute("src");
+      frameEl.classList.add("is-artwork-missing");
     }
-    imgEl.onerror = null;
   };
 
   const nameEl = document.createElement("div");
@@ -743,8 +807,8 @@ function renderSelectedUnitArtwork(subject) {
 
   frameEl.addEventListener("click", (e) => {
     e.stopPropagation();
-    if (typeof openUnitArtDialog === "function") {
-      openUnitArtDialog(subject.type);
+    if (typeof openUnitArt === "function") {
+      openUnitArt(subject.type);
     }
   });
 
@@ -1690,7 +1754,8 @@ function autoSaveCampaign() {
       rewardState: campaign.rewardState,
       checkpoint: campaign.checkpoint,
       resolvedInterludes: campaign.resolvedInterludes || [],
-      routeHistory: campaign.routeHistory || []
+      routeHistory: campaign.routeHistory || [],
+      pendingRoll: campaign.pendingRoll || null
     };
     localStorage.setItem(CAMPAIGN_SAVE_KEY, JSON.stringify(saveData));
   } catch (e) {
@@ -1798,6 +1863,32 @@ function validateRouteHistory(history, battleIndex) {
   const migrated = [...history];
   while (migrated.length < battleIndex) migrated.push("normal");
   return migrated;
+}
+
+function validatePendingRoll(pendingRoll) {
+  if (pendingRoll === null || pendingRoll === undefined) return null;
+  if (!isPlainRecord(pendingRoll)) return false;
+  if (pendingRoll.context !== "battle-fate") return false;
+  if (!["prepared", "rolled", "applied"].includes(pendingRoll.status)) return false;
+  if (typeof pendingRoll.id !== "string" || !pendingRoll.id) return false;
+  if (!Array.isArray(pendingRoll.faceValues)
+    || pendingRoll.faceValues.length !== 6
+    || !pendingRoll.faceValues.every((value, index) => value === index + 1)) return false;
+  if (!Number.isInteger(pendingRoll.resultIndex)
+    || pendingRoll.resultIndex < 0
+    || pendingRoll.resultIndex > 5) return false;
+  if (!Number.isInteger(pendingRoll.resultValue)
+    || pendingRoll.resultValue !== pendingRoll.faceValues[pendingRoll.resultIndex]) return false;
+  if (pendingRoll.battleToken !== null
+    && (!Number.isInteger(pendingRoll.battleToken) || pendingRoll.battleToken < 0)) return false;
+  if (pendingRoll.mapToken !== null && typeof pendingRoll.mapToken !== "string") return false;
+  if (pendingRoll.encounterId !== null && typeof pendingRoll.encounterId !== "string") return false;
+  if (!Number.isInteger(pendingRoll.battleIndex)
+    || pendingRoll.battleIndex < 0
+    || pendingRoll.battleIndex > 29) return false;
+  if (typeof pendingRoll.effectKey !== "string") return false;
+  if (!Number.isFinite(pendingRoll.createdAt)) return false;
+  return JSON.parse(JSON.stringify(pendingRoll));
 }
 
 function validateRewardState(rewardState) {
@@ -1927,6 +2018,8 @@ function loadCampaignSave() {
     if (!validatedInterludes) return null;
     const validatedRouteHistory = validateRouteHistory(data.routeHistory, data.battleIndex);
     if (!validatedRouteHistory) return null;
+    const validatedPendingRoll = validatePendingRoll(data.pendingRoll);
+    if (validatedPendingRoll === false) return null;
 
     if (!Array.isArray(data.completed)) return null;
     const encounterIds = new Set(data.encounters.map((encounter) => encounter.id));
@@ -1954,11 +2047,15 @@ function loadCampaignSave() {
 
     const mapGen = typeof MapGenerator !== "undefined" ? MapGenerator : (typeof window !== "undefined" ? window.MapGenerator : null);
     const hasStageMapValidator = mapGen && typeof mapGen.validateStageMap === "function";
+    const stageMapIsValid = (map, index) => {
+      if (!map || map.stageIndex !== index) return false;
+      if (!hasStageMapValidator) return true;
+      const result = mapGen.validateStageMap(map);
+      return typeof result === "object" ? result.valid === true : result === true;
+    };
     const savedStageMapsAreValid = Array.isArray(data.stageMaps)
       && data.stageMaps.length === 3
-      && (!hasStageMapValidator || data.stageMaps.every((map, index) => (
-        map && map.stageIndex === index && mapGen.validateStageMap(map)
-      )));
+      && data.stageMaps.every(stageMapIsValid);
     if (!savedStageMapsAreValid
       && Array.isArray(data.completedNodeIds)
       && data.completedNodeIds.length > 0) return null;
@@ -1989,7 +2086,8 @@ function loadCampaignSave() {
       rewardState: validatedRewardState,
       checkpoint: validatedCheckpoint,
       resolvedInterludes: validatedInterludes,
-      routeHistory: validatedRouteHistory
+      routeHistory: validatedRouteHistory,
+      pendingRoll: validatedPendingRoll
     };
   } catch (e) {
     console.error("Failed to load/parse campaign save:", e);
@@ -2240,9 +2338,9 @@ function openBattleBriefing(encounter, battleIndex, onStart, legacy = false) {
   battleBriefingDialog.showModal();
 }
 
-function startCampaignBattle(nodeId) {
+async function startCampaignBattle(nodeId) {
   if (campaign.version === 2) {
-    enterGeneratedCampaignBattle(campaign.battleIndex);
+    await enterGeneratedCampaignBattle(campaign.battleIndex);
     return;
   }
   const node = MAP_NODES.find((item) => item.id === nodeId && item.stage === campaign.depth);
@@ -2250,6 +2348,8 @@ function startCampaignBattle(nodeId) {
   ensureAudioContext();
   playSfx("ui");
   campaign.currentNodeId = node.id;
+  state.battleToken = (state.battleToken || 0) + 1;
+  const battleToken = state.battleToken;
   battleScreen.classList.toggle("is-boss-battle", node.stage >= 4);
   state.phase = "setup";
   state.turn = "player";
@@ -2284,8 +2384,9 @@ function startCampaignBattle(nodeId) {
   state.winner = null;
   state.winnerAnnounced = false;
   state.lastDice = "-";
-  state.battleFate = createBattleFate(node);
+  state.battleFate = null;
   state.isRolling = false;
+  state.fateRolling = true;
   state.effects = {
     attackerId: null,
     hitIds: [],
@@ -2302,6 +2403,7 @@ function startCampaignBattle(nodeId) {
   addLog(`${node.label} 진입. 보유 유닛 중 ${state.setupLimits.player}마리를 배치하세요.`);
   render();
   startBattleMusic();
+  await resolveBattleFateForSetup(node, battleToken);
 }
 
 function setupCompleteFor(owner) {
@@ -2928,6 +3030,10 @@ function emptyCombatEffects() {
 }
 
 async function playAttackEffect(attacker, targets, damage, attackCells, rolledDamage = null, attackDice = null) {
+  const effectBattleToken = state.battleToken || 0;
+  const isEffectSessionCurrent = () => (
+    state.phase === "battle" && (state.battleToken || 0) === effectBattleToken
+  );
   const attackStyle = attackStyleFor(attacker);
   const theme = combatThemeFor(attacker);
   const targetCell = targets[0]
@@ -2959,7 +3065,6 @@ async function playAttackEffect(attacker, targets, damage, attackCells, rolledDa
     window.UltimateVfx.canPlay();
 
   if (canTriggerUltimate) {
-    const effectBattleToken = state.battleToken || 0;
     let impactTriggered = false;
     let vfxResult = null;
     try {
@@ -3004,7 +3109,7 @@ async function playAttackEffect(attacker, targets, damage, attackCells, rolledDa
       }
     } finally {
       const wasAborted = vfxResult?.reason === "cancelled" || vfxResult?.reason === "superseded";
-      const isSameBattle = state.phase === "battle" && (state.battleToken || 0) === effectBattleToken;
+      const isSameBattle = isEffectSessionCurrent();
 
       if (!wasAborted && isSameBattle) {
         state.effects = {
@@ -3014,7 +3119,10 @@ async function playAttackEffect(attacker, targets, damage, attackCells, rolledDa
         };
         render();
         await wait(150);
-        state.effects = emptyCombatEffects();
+        if (isEffectSessionCurrent()) {
+          state.effects = emptyCombatEffects();
+          render();
+        }
       } else if (isSameBattle) {
         state.effects = emptyCombatEffects();
         render();
@@ -3030,6 +3138,7 @@ async function playAttackEffect(attacker, targets, damage, attackCells, rolledDa
   state.effects = { ...baseEffect, phase: "windup" };
   render();
   await wait(150);
+  if (!isEffectSessionCurrent()) return { aborted: true, reason: "battle-changed" };
 
   playAttackLaunchSfx(attacker, attackStyle, theme);
   state.effects = {
@@ -3038,6 +3147,7 @@ async function playAttackEffect(attacker, targets, damage, attackCells, rolledDa
   };
   render();
   await wait(180);
+  if (!isEffectSessionCurrent()) return { aborted: true, reason: "battle-changed" };
 
   playAttackImpactSfx(attackStyle, theme, damage, attacker);
   state.effects = {
@@ -3053,9 +3163,14 @@ async function playAttackEffect(attacker, targets, damage, attackCells, rolledDa
     await wait(24);
     boardEl.classList.add("is-hit-stop");
     await wait(hitStopDuration);
+    if (!isEffectSessionCurrent()) {
+      boardEl.classList.remove("is-hit-stop");
+      return { aborted: true, reason: "battle-changed" };
+    }
     boardEl.classList.remove("is-hit-stop");
   }
   await wait(damage >= 3 ? 390 : 330);
+  if (!isEffectSessionCurrent()) return { aborted: true, reason: "battle-changed" };
 
   state.effects = {
     ...baseEffect,
@@ -3064,6 +3179,7 @@ async function playAttackEffect(attacker, targets, damage, attackCells, rolledDa
   };
   render();
   await wait(150);
+  if (!isEffectSessionCurrent()) return { aborted: true, reason: "battle-changed" };
   state.effects = emptyCombatEffects();
   return { aborted: false, reason: "complete" };
 }
@@ -4281,7 +4397,7 @@ function selectSetupTotem(key) {
 function renderReserve() {
   reserveEl.innerHTML = "";
   setupBookEl.innerHTML = "";
-  const isPlayerSetup = state.phase === "setup" && state.turn === "player";
+  const isPlayerSetup = state.phase === "setup" && state.turn === "player" && !state.fateRolling;
   const units = isPlayerSetup ? state.reserves.player : [];
   actionPanel.hidden = state.phase === "setup";
   if (!isPlayerSetup) {
@@ -5842,8 +5958,9 @@ function setupBattleBoardState(encounter) {
   state.winner = null;
   state.winnerAnnounced = false;
   state.lastDice = "-";
-  state.battleFate = createBattleFate(encounter);
+  state.battleFate = null;
   state.isRolling = false;
+  state.fateRolling = true;
   state.effects = {
     attackerId: null,
     hitIds: [],
@@ -5862,7 +5979,7 @@ function setupBattleBoardState(encounter) {
   startBattleMusic();
 }
 
-function enterGeneratedCampaignBattle(bIdx, routeType = "normal", routeEncounter = null) {
+async function enterGeneratedCampaignBattle(bIdx, routeType = "normal", routeEncounter = null) {
   const enc = routeEncounter || buildRouteEncounter(bIdx, routeType);
   const baseEncounter = campaign.encounters[bIdx];
   if (!enc) return;
@@ -5891,7 +6008,9 @@ function enterGeneratedCampaignBattle(bIdx, routeType = "normal", routeEncounter
   autoSaveCampaign();
 
   setupBattleBoardState(enc);
+  const battleToken = state.battleToken;
   render();
+  await resolveBattleFateForSetup(enc, battleToken);
 }
 
 function render() {
@@ -6078,7 +6197,10 @@ continueCampaignBtn.addEventListener("click", async () => {
     campaign.version = save.version;
     campaign.generatorVersion = save.generatorVersion || 1;
     campaign.runSeed = save.runSeed || 0;
+    campaign.stageMaps = save.stageMaps || null;
     campaign.stageIndex = save.stageIndex || 0;
+    campaign.stageFloorIndex = save.stageFloorIndex || 0;
+    campaign.globalFloorIndex = save.globalFloorIndex || 0;
     campaign.battleIndex = save.battleIndex || 0;
     campaign.viewStageIndex = campaign.stageIndex || 0;
     campaign.encounters = save.encounters || [];
@@ -6087,6 +6209,9 @@ continueCampaignBtn.addEventListener("click", async () => {
     campaign.unitProgress = save.unitProgress;
     campaign.completed = save.completed;
     campaign.currentNodeId = save.currentNodeId;
+    campaign.visitedNodeIds = save.visitedNodeIds || [];
+    campaign.completedNodeIds = save.completedNodeIds || [];
+    campaign.pendingNodeState = save.pendingNodeState || null;
     campaign.finished = save.finished;
     campaign.availableTotems = save.availableTotems;
     campaign.rewardState = save.rewardState;
@@ -6095,13 +6220,6 @@ continueCampaignBtn.addEventListener("click", async () => {
     campaign.routeHistory = save.routeHistory || [];
     campaign.pendingRoll = save.pendingRoll || null;
     campaign.transitioning = false;
-
-    if (campaign.pendingRoll) {
-      if (campaign.pendingRoll.status === "applied") {
-        campaign.pendingRoll = null;
-        autoSaveCampaign();
-      }
-    }
 
     if (campaign.rewardState) {
       restoreRewardScreen();

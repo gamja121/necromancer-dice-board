@@ -10,7 +10,8 @@ const {
   validateNoDuplicateNodeTypesPerFloor,
   validateMajorChoiceFloors,
   validateMeaningfulBranches,
-  validatePathComposition
+  validatePathComposition,
+  logicalMapSignature
 } = require('./map-generator.js');
 
 console.log("=== [START] map-generator.js v4 10,000 Seeds Automated Verification Test ===");
@@ -20,11 +21,14 @@ let totalPassed = 0;
 let errors = [];
 
 const startTime = Date.now();
+const diversitySignatures = new Set();
 
 for (let s = 1; s <= TEST_SEEDS; s++) {
   try {
     for (let stageIndex = 0; stageIndex < 3; stageIndex++) {
       const map = generateStageMap({ runSeed: s, stageIndex: stageIndex, floors: 15 });
+
+      if (s <= 1000) diversitySignatures.add(logicalMapSignature(map));
 
       if (!map || map.version !== 4) {
         throw new Error(`Seed ${s} Stage ${stageIndex}: MAP_VERSION is not 4`);
@@ -75,9 +79,15 @@ for (let s = 1; s <= TEST_SEEDS; s++) {
 }
 
 const elapsed = Date.now() - startTime;
+const diversityRate = diversitySignatures.size / 3000;
 
 console.log(`\n=== Verification Complete in ${elapsed}ms ===`);
 console.log(`Passed: ${totalPassed} / ${TEST_SEEDS} seeds (30,000 stage maps tested)`);
+console.log(`Logical diversity: ${diversitySignatures.size} / 3000 (${(diversityRate * 100).toFixed(1)}%)`);
+
+if (diversityRate < 0.8) {
+  errors.push(`Logical map diversity ${(diversityRate * 100).toFixed(1)}% is below 80%`);
+}
 
 if (errors.length > 0) {
   console.error("Errors found:", errors);
