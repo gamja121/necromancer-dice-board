@@ -697,8 +697,10 @@ async function runBattleFateSequence(encounter) {
     faceValues: rollRecord.faceValues,
     resultIndex: rollRecord.resultIndex,
     resultValue: rollRecord.resultValue,
-    tapToRoll: true,
-    autoRoll: false,
+    // Battle setup must never wait for an invisible/missed mobile tap.
+    // Map event rolls remain tap-driven at their own call sites.
+    tapToRoll: false,
+    autoRoll: true,
     battleToken: rollRecord.battleToken,
     mapToken: rollRecord.mapToken
   });
@@ -727,8 +729,7 @@ async function resolveBattleFateForSetup(encounter, battleToken) {
     const result = await runBattleFateSequence(encounter);
     if (result?.cancelled
       && state.phase === "setup"
-      && state.battleToken === battleToken
-      && result.reason === "timeout") {
+      && state.battleToken === battleToken) {
       applySavedBattleFate(encounter);
     }
   } catch (error) {
@@ -4397,7 +4398,9 @@ function selectSetupTotem(key) {
 function renderReserve() {
   reserveEl.innerHTML = "";
   setupBookEl.innerHTML = "";
-  const isPlayerSetup = state.phase === "setup" && state.turn === "player" && !state.fateRolling;
+  // The setup shelf must remain usable even if the fate overlay is delayed or
+  // unavailable on a mobile browser. Only battle confirmation waits for fate.
+  const isPlayerSetup = state.phase === "setup" && state.turn === "player";
   const units = isPlayerSetup ? state.reserves.player : [];
   actionPanel.hidden = state.phase === "setup";
   if (!isPlayerSetup) {
@@ -4548,7 +4551,8 @@ function renderReserve() {
     const confirmButton = document.createElement("button");
     confirmButton.type = "button";
     confirmButton.className = "setup-confirm-btn";
-    confirmButton.textContent = "배치 완료 · 전투 시작";
+    confirmButton.disabled = state.fateRolling;
+    confirmButton.textContent = state.fateRolling ? "운명 주사위 판정 중" : "배치 완료 · 전투 시작";
     confirmButton.addEventListener("click", confirmPlayerSetup);
     setupBookEl.appendChild(confirmButton);
   }

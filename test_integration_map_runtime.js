@@ -183,6 +183,18 @@ assert.ok(
   "Battle fate resolver is connected to both legacy and generated battle entry paths"
 );
 assert.ok(!gameJsCode.includes("openUnitArtDialog"), "Artwork panel uses the real openUnitArt dialog function");
+assert.ok(
+  gameJsCode.includes('const isPlayerSetup = state.phase === "setup" && state.turn === "player";'),
+  "Reserve shelf is not hidden while the battle fate animation is pending"
+);
+assert.ok(
+  /context:\s*"battle-fate"[\s\S]*?tapToRoll:\s*false,[\s\S]*?autoRoll:\s*true/.test(gameJsCode),
+  "Battle fate roll starts automatically without requiring an invisible mobile tap"
+);
+assert.ok(
+  gameJsCode.includes('confirmButton.disabled = state.fateRolling;'),
+  "Visible battle confirmation waits until fate resolution while unit placement remains available"
+);
 console.log("Pass: Battle fate and artwork runtime connections are present.");
 
 // 3. Event node entry must create an autosaved, resumable pending state.
