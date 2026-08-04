@@ -188,6 +188,11 @@ assert.ok(
   "Reserve shelf is not hidden while the battle fate animation is pending"
 );
 assert.ok(
+  gameJsCode.includes('setupBookEl.classList.toggle("is-hidden", !isPlayerSetup);') &&
+    gameJsCode.includes('setupBookEl.hidden = !isPlayerSetup;'),
+  "Setup book is made visible during player setup and hidden outside setup"
+);
+assert.ok(
   /context:\s*"battle-fate"[\s\S]*?tapToRoll:\s*false,[\s\S]*?autoRoll:\s*true/.test(gameJsCode),
   "Battle fate roll starts automatically without requiring an invisible mobile tap"
 );

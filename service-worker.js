@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-expedition-v44";
+const CACHE_NAME = "necromancer-expedition-v45";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -11,7 +11,7 @@ const APP_SHELL = [
   "./map-generator.js?v=43",
   "./event-data.js?v=43",
   "./dice-overlay.js?v=44",
-  "./game.js?v=44",
+  "./game.js?v=45",
   "./manifest.webmanifest?v=20260726-10",
   "./assets/app-icon-192.png",
   "./assets/app-icon-512.png"

@@ -4402,6 +4402,8 @@ function renderReserve() {
   // unavailable on a mobile browser. Only battle confirmation waits for fate.
   const isPlayerSetup = state.phase === "setup" && state.turn === "player";
   const units = isPlayerSetup ? state.reserves.player : [];
+  setupBookEl.classList.toggle("is-hidden", !isPlayerSetup);
+  setupBookEl.hidden = !isPlayerSetup;
   actionPanel.hidden = state.phase === "setup";
   if (!isPlayerSetup) {
     return;
