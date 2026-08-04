@@ -197,6 +197,10 @@ assert.ok(
   "Battle fate roll starts automatically without requiring an invisible mobile tap"
 );
 assert.ok(
+  /async function showDiceRoll[\s\S]*?faceValues:\s*displayFaces,[\s\S]*?resultIndex,[\s\S]*?resultValue:\s*final/.test(gameJsCode),
+  "Combat dice sends its real six faces and landed face index to the shared overlay"
+);
+assert.ok(
   gameJsCode.includes('confirmButton.disabled = state.fateRolling;'),
   "Visible battle confirmation waits until fate resolution while unit placement remains available"
 );

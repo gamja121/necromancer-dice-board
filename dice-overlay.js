@@ -61,6 +61,13 @@
     return activeSession !== null;
   }
 
+  function normalizedFaces(faceValues) {
+    const source = Array.isArray(faceValues) && faceValues.length
+      ? faceValues.map((faceValue) => Number(faceValue) || 0)
+      : [1, 2, 3, 4, 5, 6];
+    return Array.from({ length: 6 }, (_, index) => source[index % source.length]);
+  }
+
   function cancel(reason = "cancelled") {
     if (!activeSession) return false;
     const session = activeSession;
@@ -99,12 +106,27 @@
         mapToken = null
       } = options;
 
-      const finalValue = resultValue !== null ? resultValue : (value !== null ? value : faceValues[resultIndex % 6]);
+      const displayedFaces = normalizedFaces(faceValues);
+      let landedIndex = Number.isInteger(resultIndex)
+        ? ((resultIndex % 6) + 6) % 6
+        : 0;
+      const requestedValue = resultValue !== null ? resultValue : value;
+      const finalValue = requestedValue !== null
+        ? Number(requestedValue) || 0
+        : displayedFaces[landedIndex];
+      if (displayedFaces[landedIndex] !== finalValue) {
+        const matchingIndex = displayedFaces.findIndex((faceValue) => faceValue === finalValue);
+        if (matchingIndex >= 0) {
+          landedIndex = matchingIndex;
+        } else {
+          displayedFaces[landedIndex] = finalValue;
+        }
+      }
       const sessionContext = label || context;
 
       if (typeof document === "undefined") {
         return resolve({
-          resultIndex,
+          resultIndex: landedIndex,
           resultValue: finalValue,
           battleToken,
           mapToken,
@@ -117,7 +139,7 @@
       const session = {
         id: Math.random().toString(36).substring(2, 9),
         resolve,
-        resultIndex,
+        resultIndex: landedIndex,
         resultValue: finalValue,
         battleToken,
         mapToken,
@@ -130,7 +152,7 @@
       resultBadgeEl.textContent = `결과: ${finalValue}`;
 
       faceElements.forEach((faceEl, idx) => {
-        faceEl.textContent = faceValues[idx] !== undefined ? faceValues[idx] : idx + 1;
+        faceEl.textContent = displayedFaces[idx];
       });
 
       cubeEl.style.transition = "none";
@@ -156,7 +178,7 @@
         if (overlayContainer) overlayContainer.classList.remove("active");
         activeSession = null;
         resolve({
-          resultIndex,
+          resultIndex: landedIndex,
           resultValue: finalValue,
           battleToken,
           mapToken,
@@ -173,7 +195,7 @@
 
         const prefersReducedMotion = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-        const targetRot = FACE_ORIENTATIONS[resultIndex % 6];
+        const targetRot = FACE_ORIENTATIONS[landedIndex];
         const extraRotX = prefersReducedMotion ? 360 : 360 * 4;
         const extraRotY = prefersReducedMotion ? 360 : 360 * 4;
         const animDuration = prefersReducedMotion ? 0.4 : 0.9;

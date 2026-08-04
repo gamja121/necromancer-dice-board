@@ -27,6 +27,18 @@ async function runTest() {
     throw new Error('Battle or Map Token mismatch!');
   }
 
+  const corrected = await DiceOverlay.requestRoll({
+    context: 'attack die synchronization',
+    faceValues: [0, 0, 1, 1, 2, 3],
+    resultIndex: 0,
+    resultValue: 3,
+    tapToRoll: false,
+    autoRoll: true
+  });
+  if (corrected.resultIndex !== 5 || corrected.resultValue !== 3) {
+    throw new Error('Visible landed face was not corrected to the actual result!');
+  }
+
   console.log('=== [SUCCESS] DiceOverlay Unit Test Passed! ===');
 }
 

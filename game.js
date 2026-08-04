@@ -1175,13 +1175,37 @@ function toggleBattleMusic() {
 
 async function showDiceRoll(label, faces, finalValue = null) {
   state.isRolling = true;
-  const final = finalValue !== null ? finalValue : (Array.isArray(faces) ? rollDie(faces) : Number(faces) || 1);
+  const sourceFaces = Array.isArray(faces) && faces.length
+    ? faces.map((value) => Number(value) || 0)
+    : [Number(faces) || 1];
+  const displayFaces = Array.from(
+    { length: 6 },
+    (_, index) => sourceFaces[index % sourceFaces.length]
+  );
+  let resultIndex;
+  let final;
+
+  if (finalValue !== null) {
+    final = Number(finalValue) || 0;
+    const matchingIndexes = displayFaces
+      .map((value, index) => value === final ? index : -1)
+      .filter((index) => index >= 0);
+    resultIndex = matchingIndexes.length
+      ? matchingIndexes[Math.floor(Math.random() * matchingIndexes.length)]
+      : 0;
+    if (!matchingIndexes.length) displayFaces[resultIndex] = final;
+  } else {
+    resultIndex = Math.floor(Math.random() * sourceFaces.length);
+    final = sourceFaces[resultIndex];
+  }
 
   if (typeof DiceOverlay !== "undefined" && DiceOverlay.requestRoll) {
     try {
       const res = await DiceOverlay.requestRoll({
         context: label || "주사위",
         label: label || "주사위",
+        faceValues: displayFaces,
+        resultIndex,
         resultValue: final,
         autoRoll: true,
         battleToken: state.battleToken || null
