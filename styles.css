@@ -4540,6 +4540,21 @@ dialog::backdrop {
   padding: 0 24px;
 }
 
+.v2-preview-link {
+  width: 100%;
+  min-height: 52px;
+  display: grid;
+  place-items: center;
+  border: 3px solid #111;
+  border-radius: 4px;
+  background: #20142b;
+  color: #fff;
+  box-shadow: 4px 4px 0 #111;
+  font-size: 1.05rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+
 #installAppBtn {
   background: #111;
   color: #fff;

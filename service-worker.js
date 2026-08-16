@@ -1,7 +1,10 @@
-const CACHE_NAME = "necromancer-expedition-v46";
+const CACHE_NAME = "necromancer-expedition-v47";
 const APP_SHELL = [
   "./",
   "./index.html",
+  "./v2.html",
+  "./v2-battle.css?v=1",
+  "./v2-battle.js?v=1",
   "./styles.css?v=43",
   "./ultimate-vfx.css?v=43",
   "./dice-overlay.css?v=46",
@@ -14,7 +17,8 @@ const APP_SHELL = [
   "./game.js?v=46",
   "./manifest.webmanifest?v=20260726-10",
   "./assets/app-icon-192.png",
-  "./assets/app-icon-512.png"
+  "./assets/app-icon-512.png",
+  "./assets/v2-battle-castle.png"
 ];
 
 self.addEventListener("install", (event) => {

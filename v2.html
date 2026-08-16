@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#100d19">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>네크로멘서 V2 전투 프로토타입</title>
+  <link rel="stylesheet" href="v2-battle.css?v=1">
+</head>
+<body>
+  <main class="v2-app">
+    <header class="command-bar">
+      <div>
+        <span class="version-mark">V2 BATTLE LAB</span>
+        <h1>망자의 전선</h1>
+      </div>
+      <div class="command-actions">
+        <button id="soundButton" class="icon-command" type="button" aria-label="효과음 켜기 또는 끄기" title="효과음">♪</button>
+        <button id="speedButton" class="icon-command" type="button" aria-label="전투 속도 변경" title="전투 속도">×1</button>
+        <button id="pauseButton" class="icon-command" type="button" aria-label="일시정지" title="일시정지">Ⅱ</button>
+      </div>
+    </header>
+
+    <section class="battle-shell" aria-label="자동 전투 화면">
+      <div class="battle-scene" id="battleScene">
+        <div class="scene-vignette"></div>
+        <div class="round-display"><span>ROUND</span><strong id="roundText">1</strong></div>
+        <div class="legion-ribbon player-ribbon" id="playerLegion">언데드</div>
+        <div class="legion-ribbon enemy-ribbon" id="enemyLegion">야수</div>
+
+        <div class="army army-player" id="playerArmy" aria-label="아군"></div>
+        <div class="army army-enemy" id="enemyArmy" aria-label="적군"></div>
+
+        <div class="clash-line" aria-hidden="true"><i></i></div>
+        <div class="impact-layer" id="impactLayer" aria-hidden="true"></div>
+        <div class="corpse-layer" id="corpseLayer" aria-hidden="true"></div>
+
+        <div class="center-die" id="centerDie" hidden aria-live="polite">
+          <div class="die-cube" id="dieCube"><span id="dieValue">0</span></div>
+          <p id="dieCaption">공격 주사위</p>
+        </div>
+
+        <div class="battle-announcer" id="battleAnnouncer" aria-live="assertive"></div>
+      </div>
+
+      <div class="battle-hud">
+        <section class="squad-summary player-summary">
+          <span>내 군단</span>
+          <strong id="playerCount">0 / 0</strong>
+          <div class="team-health"><i id="playerTeamHp"></i></div>
+        </section>
+        <section class="necromancy-meter" aria-label="사령력">
+          <span>사령력</span>
+          <div class="meter-track"><i id="soulMeter"></i></div>
+          <strong id="soulText">0 / 100</strong>
+        </section>
+        <section class="squad-summary enemy-summary">
+          <span>적 위협</span>
+          <strong id="enemyCount">0 / 0</strong>
+          <div class="team-health"><i id="enemyTeamHp"></i></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="combat-feed" aria-label="전투 기록">
+      <div class="feed-title"><span>전황</span><strong id="turnState">전투 준비</strong></div>
+      <div class="feed-lines" id="combatFeed"></div>
+    </section>
+  </main>
+
+  <div class="setup-overlay" id="setupOverlay">
+    <section class="setup-panel" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+      <header>
+        <span class="version-mark">AUTO BATTLE PROTOTYPE</span>
+        <h2 id="setupTitle">출전 부대를 선택하세요</h2>
+        <p>최대 4명. 전열부터 배치되며 전투는 자동으로 진행됩니다.</p>
+      </header>
+      <div class="chosen-row" id="chosenRow"></div>
+      <div class="roster-grid" id="rosterGrid"></div>
+      <div class="setup-actions">
+        <a href="index.html" class="secondary-action">V1으로 돌아가기</a>
+        <button id="startBattleButton" type="button">전투 시작</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="result-overlay" id="resultOverlay" hidden>
+    <section class="result-panel" role="dialog" aria-modal="true">
+      <span class="version-mark">BATTLE COMPLETE</span>
+      <h2 id="resultTitle">승리</h2>
+      <p id="resultBody"></p>
+      <div class="result-stats" id="resultStats"></div>
+      <div class="setup-actions">
+        <a href="index.html" class="secondary-action">V1으로 돌아가기</a>
+        <button id="restartButton" type="button">다시 전투</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="unit-data.js?v=43"></script>
+  <script src="v2-battle.js?v=1"></script>
+</body>
+</html>
