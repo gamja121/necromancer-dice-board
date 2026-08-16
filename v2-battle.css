@@ -114,9 +114,13 @@ body {
 }
 .die-stage:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; border-radius: 50%; }
 .die-cube {
-  --die-x: -20deg; --die-y: 24deg; position: relative; width: var(--die-size); height: var(--die-size);
-  display: block; transform-style: preserve-3d; transform: rotateX(var(--die-x)) rotateY(var(--die-y));
+  position: relative; width: var(--die-size); height: var(--die-size);
+  display: block; transform-style: preserve-3d; transform: rotateX(-22deg) rotateY(28deg);
   filter: drop-shadow(14px 20px 16px rgba(0,0,0,.85));
+}
+.die-spinner {
+  --spin-x: 0deg; --spin-y: 0deg; position: absolute; inset: 0; display: block;
+  transform-style: preserve-3d; transform: rotateX(var(--spin-x)) rotateY(var(--spin-y));
 }
 .die-face {
   position: absolute; inset: 0; display: grid; place-items: center; border: 3px solid #d7cce4;
@@ -133,7 +137,7 @@ body {
 .die-bottom { transform: rotateX(-90deg) translateZ(calc(var(--die-size) / 2)); }
 .center-die.is-awaiting .die-stage { animation: die-ready 1s ease-in-out infinite; }
 .center-die.is-rolling .die-stage { pointer-events: none; }
-.center-die.is-rolling .die-cube { animation: die-roll-3d 1050ms cubic-bezier(.12,.58,.16,1) both; }
+.center-die.is-rolling .die-spinner { animation: die-roll-3d 1050ms cubic-bezier(.12,.58,.16,1) both; }
 .die-result {
   margin-top: -18px; min-width: 34px; padding: 4px 9px; border: 1px solid rgba(255,255,255,.28);
   border-radius: 4px; background: #120d18; color: var(--gold); font: 900 20px/1.2 Georgia, serif;
@@ -216,11 +220,11 @@ body {
 @keyframes target-pulse { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-5px) scale(1.035)} }
 @keyframes die-ready { 0%,100%{transform:scale(1)} 50%{transform:scale(1.09);filter:brightness(1.25)} }
 @keyframes die-roll-3d {
-  0% { transform: rotateX(-20deg) rotateY(24deg) translateY(0); }
+  0% { transform: rotateX(0deg) rotateY(0deg) translateY(0); }
   28% { transform: rotateX(390deg) rotateY(475deg) translateY(-24px); }
   72% { transform: rotateX(760deg) rotateY(910deg) translateY(5px); }
-  88% { transform: rotateX(calc(var(--die-x) + 12deg)) rotateY(calc(var(--die-y) - 8deg)) translateY(-5px); }
-  100% { transform: rotateX(var(--die-x)) rotateY(var(--die-y)) translateY(0); }
+  88% { transform: rotateX(calc(var(--spin-x) + 12deg)) rotateY(calc(var(--spin-y) - 8deg)) translateY(-5px); }
+  100% { transform: rotateX(var(--spin-x)) rotateY(var(--spin-y)) translateY(0); }
 }
 @keyframes announce { 0%,100%{opacity:0;transform:scale(.8)} 18%,65%{opacity:1;transform:scale(1)} }
 @keyframes scene-shake { 0%,100%{transform:translate(0)} 20%{transform:translate(-4px,2px)} 40%{transform:translate(4px,-2px)} 60%{transform:translate(-3px,-1px)} 80%{transform:translate(2px,2px)} }

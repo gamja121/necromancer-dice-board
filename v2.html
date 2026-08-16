@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#100d19">
   <meta name="mobile-web-app-capable" content="yes">
   <title>네크로멘서 V2 전투 프로토타입</title>
-  <link rel="stylesheet" href="v2-battle.css?v=3">
+  <link rel="stylesheet" href="v2-battle.css?v=4">
 </head>
 <body>
   <main class="v2-app">
@@ -39,12 +39,14 @@
         <div class="center-die" id="centerDie" hidden aria-live="polite">
           <button class="die-stage" id="dieStage" type="button" aria-label="주사위 굴리기">
             <span class="die-cube" id="dieCube" aria-hidden="true">
-              <i class="die-face die-front" data-die-face="0">0</i>
-              <i class="die-face die-back" data-die-face="1">0</i>
-              <i class="die-face die-right" data-die-face="2">0</i>
-              <i class="die-face die-left" data-die-face="3">0</i>
-              <i class="die-face die-top" data-die-face="4">0</i>
-              <i class="die-face die-bottom" data-die-face="5">0</i>
+              <span class="die-spinner" id="dieSpinner">
+                <i class="die-face die-front" data-die-face="0">0</i>
+                <i class="die-face die-back" data-die-face="1">0</i>
+                <i class="die-face die-right" data-die-face="2">0</i>
+                <i class="die-face die-left" data-die-face="3">0</i>
+                <i class="die-face die-top" data-die-face="4">0</i>
+                <i class="die-face die-bottom" data-die-face="5">0</i>
+              </span>
             </span>
           </button>
           <strong class="die-result" id="dieValue" hidden>0</strong>
@@ -120,6 +122,6 @@
   </div>
 
   <script src="unit-data.js?v=43"></script>
-  <script src="v2-battle.js?v=3"></script>
+  <script src="v2-battle.js?v=4"></script>
 </body>
 </html>

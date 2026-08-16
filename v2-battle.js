@@ -32,8 +32,8 @@
   };
   let audioContext = null;
   const DIE_LANDING = [
-    { x: -20, y: 24 }, { x: -20, y: -156 }, { x: -20, y: -66 },
-    { x: -20, y: 114 }, { x: -110, y: 24 }, { x: 70, y: 24 }
+    { x: 0, y: 0 }, { x: 0, y: -180 }, { x: 0, y: -90 },
+    { x: 0, y: 90 }, { x: -90, y: 0 }, { x: 90, y: 0 }
   ];
 
   function def(type) { return window.UNIT_TYPES[type]; }
@@ -209,9 +209,11 @@
     </article>`;
   }
   function renderArmies() {
-    el("playerArmy").innerHTML = state.player.map(fighterMarkup).join("");
-    el("enemyArmy").innerHTML = state.enemy.map(fighterMarkup).join("");
-    [...state.player, ...state.enemy].forEach((unit) => {
+    const visiblePlayer = state.player.filter((unit) => unit.alive);
+    const visibleEnemy = state.enemy.filter((unit) => unit.alive);
+    el("playerArmy").innerHTML = visiblePlayer.map(fighterMarkup).join("");
+    el("enemyArmy").innerHTML = visibleEnemy.map(fighterMarkup).join("");
+    [...visiblePlayer, ...visibleEnemy].forEach((unit) => {
       const node = document.getElementById(`fighter-${unit.id}`);
       fallbackArt(node.querySelector("img"), unit.type);
       node.addEventListener("click", () => {
@@ -321,8 +323,8 @@
         const resultIndex = Math.floor(Math.random() * dice.length);
         const resultValue = dice[resultIndex];
         const landing = DIE_LANDING[resultIndex];
-        el("dieCube").style.setProperty("--die-x", `${landing.x}deg`);
-        el("dieCube").style.setProperty("--die-y", `${landing.y}deg`);
+        el("dieSpinner").style.setProperty("--spin-x", `${landing.x}deg`);
+        el("dieSpinner").style.setProperty("--spin-y", `${landing.y}deg`);
         setTimeout(() => {
           if (request.cancelled || request.token !== state.battleId || state.ended) return;
           overlay.classList.remove("is-rolling"); dieValue.textContent = String(resultValue); dieValue.hidden = false;
@@ -391,6 +393,7 @@
     const p = positionOf(unit);
     state.corpses.push({
       id: `v2-corpse-${state.nextCorpseId++}`, sourceType: unit.type, sourceOwner: unit.owner,
+      sourceUnitId: unit.id,
       target: 2 + Math.floor(Math.random() * 5), attempts: 2,
       x: p.x, y: Math.min(scene.clientHeight - 25, p.y + 75)
     });
@@ -416,6 +419,11 @@
     if (!state.targetRequest || state.summoning) return;
     state.targetRequest.targetIds.forEach((id) => document.getElementById(`fighter-${id}`)?.classList.add("is-targetable"));
   }
+  function removeCorpseSource(corpse) {
+    const sourceTeam = corpse.sourceOwner === "player" ? state.player : state.enemy;
+    const sourceIndex = sourceTeam.findIndex((unit) => unit.id === corpse.sourceUnitId && !unit.alive);
+    if (sourceIndex >= 0) sourceTeam.splice(sourceIndex, 1);
+  }
   async function trySummonCorpse(corpseId) {
     const corpse = state.corpses.find((item) => item.id === corpseId);
     if (!corpse || state.summoning || state.ended) return;
@@ -428,6 +436,7 @@
     if (rolled == null || state.ended) { state.summoning = false; restoreTargetHighlights(); renderBattleInfo(); return; }
     corpse.attempts -= 1;
     if (rolled >= corpse.target) {
+      removeCorpseSource(corpse);
       const summoned = createUnit(corpse.sourceType, "player", state.player.length, { summonedNoCorpse: true });
       state.player.push(summoned);
       state.corpses = state.corpses.filter((item) => item.id !== corpse.id);
@@ -437,10 +446,11 @@
       renderArmies(); renderCorpseMarks(); renderBattleInfo(summoned, "unit");
     } else if (corpse.attempts <= 0) {
       state.corpses = state.corpses.filter((item) => item.id !== corpse.id);
+      removeCorpseSource(corpse);
       state.inspected = null;
       announce("시체가 붕괴했습니다"); tone("status");
       log(`${def(corpse.sourceType).label} 시체 소환에 두 번 실패해 사라졌습니다.`);
-      renderCorpseMarks(); renderBattleInfo(null);
+      renderArmies(); renderCorpseMarks(); renderBattleInfo(null);
     } else {
       announce(`소환 실패 · ${corpse.attempts}회 남음`); tone("status");
       log(`${def(corpse.sourceType).label} 소환 실패. ${corpse.attempts}회 남았습니다.`);
