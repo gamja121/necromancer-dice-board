@@ -27,9 +27,13 @@
   const state = {
     chosen: DEFAULT_SQUAD.slice(), player: [], enemy: [], round: 1, soul: 0,
     paused: false, speed: 1, muted: false, ended: false, battleId: 0,
-    actions: 0, damage: 0, kills: 0, feed: []
+    actions: 0, damage: 0, kills: 0, feed: [], targetRequest: null, rollRequest: null
   };
   let audioContext = null;
+  const DIE_LANDING = [
+    { x: 0, y: 0 }, { x: 0, y: -180 }, { x: 0, y: -90 },
+    { x: 0, y: 90 }, { x: -90, y: 0 }, { x: 90, y: 0 }
+  ];
 
   function def(type) { return window.UNIT_TYPES[type]; }
   function legionsOf(type) {
@@ -167,7 +171,11 @@
   function renderArmies() {
     el("playerArmy").innerHTML = state.player.map(fighterMarkup).join("");
     el("enemyArmy").innerHTML = state.enemy.map(fighterMarkup).join("");
-    [...state.player, ...state.enemy].forEach((unit) => fallbackArt(document.querySelector(`#fighter-${CSS.escape(unit.id)} img`), unit.type));
+    [...state.player, ...state.enemy].forEach((unit) => {
+      const node = document.getElementById(`fighter-${unit.id}`);
+      fallbackArt(node.querySelector("img"), unit.type);
+      node.addEventListener("click", () => selectRequestedTarget(unit.id));
+    });
     renderStatus();
   }
   function renderStatus() {
@@ -205,21 +213,80 @@
     void node.offsetWidth; node.classList.add("show");
   }
 
-  async function showRoll(unit, value) {
+  function clearTargetRequest(result = null) {
+    const request = state.targetRequest;
+    if (!request) return;
+    request.targetIds.forEach((id) => document.getElementById(`fighter-${id}`)?.classList.remove("is-targetable"));
+    state.targetRequest = null;
+    request.resolve(result);
+  }
+  function selectRequestedTarget(unitId) {
+    const request = state.targetRequest;
+    if (!request || !request.targetIds.includes(unitId)) return;
+    const target = state.enemy.concat(state.player).find((unit) => unit.id === unitId && unit.alive) || null;
+    clearTargetRequest(target);
+  }
+  function requestPlayerTarget(attacker, token) {
+    const targets = state.enemy.filter((unit) => unit.alive);
+    if (!targets.length || token !== state.battleId) return Promise.resolve(null);
+    if (state.targetRequest) clearTargetRequest(null);
+    announce("공격할 적을 선택하세요");
+    el("turnState").textContent = `${def(attacker.type).label} · 대상 선택`;
+    targets.forEach((target) => document.getElementById(`fighter-${target.id}`)?.classList.add("is-targetable"));
+    return new Promise((resolve) => {
+      state.targetRequest = { resolve, targetIds: targets.map((target) => target.id), token };
+    });
+  }
+  function setDuelPose(attacker, target, active) {
+    document.getElementById(`fighter-${attacker.id}`)?.classList.toggle("is-duel-attacker", active);
+    document.getElementById(`fighter-${target.id}`)?.classList.toggle("is-duel-target", active);
+  }
+  function cancelPendingInteractions() {
+    if (state.targetRequest) clearTargetRequest(null);
+    const request = state.rollRequest;
+    if (request) {
+      request.cancelled = true; state.rollRequest = null; request.resolve(null);
+    }
+    el("centerDie").classList.remove("is-awaiting", "is-rolling");
+    el("centerDie").hidden = true;
+    document.querySelectorAll(".is-duel-attacker,.is-duel-target,.is-targetable").forEach((node) => {
+      node.classList.remove("is-duel-attacker", "is-duel-target", "is-targetable");
+    });
+  }
+  function showRoll(unit, manual) {
     const overlay = el("centerDie");
     const dieValue = el("dieValue");
-    el("dieCaption").textContent = `${def(unit.type).label} 공격`;
-    overlay.hidden = false; overlay.classList.add("is-rolling"); tone("roll");
     const dice = effectiveDice(unit);
-    const start = performance.now();
-    while (performance.now() - start < 640 / state.speed) {
-      dieValue.textContent = String(dice[Math.floor(Math.random() * dice.length)]);
-      await new Promise((resolve) => setTimeout(resolve, Math.max(45, 85 / state.speed)));
-      if (state.ended) break;
-    }
-    dieValue.textContent = String(value); overlay.classList.remove("is-rolling");
-    await delay(260);
-    overlay.hidden = true;
+    document.querySelectorAll("[data-die-face]").forEach((face, index) => { face.textContent = String(dice[index]); });
+    dieValue.hidden = true; overlay.hidden = false;
+    overlay.classList.toggle("is-awaiting", manual); overlay.classList.remove("is-rolling");
+    el("dieCaption").textContent = manual ? `${def(unit.type).label} · 주사위를 터치하세요` : `${def(unit.type).label} 공격 주사위`;
+
+    return new Promise((resolve) => {
+      const request = { resolve, cancelled: false, rolling: false, token: state.battleId, roll: null };
+      request.roll = () => {
+        if (request.rolling || request.cancelled || request.token !== state.battleId || state.ended) return;
+        request.rolling = true; overlay.classList.remove("is-awaiting"); overlay.classList.add("is-rolling"); tone("roll");
+        const resultIndex = Math.floor(Math.random() * dice.length);
+        const resultValue = dice[resultIndex];
+        const landing = DIE_LANDING[resultIndex];
+        el("dieCube").style.setProperty("--die-x", `${landing.x}deg`);
+        el("dieCube").style.setProperty("--die-y", `${landing.y}deg`);
+        setTimeout(() => {
+          if (request.cancelled || request.token !== state.battleId || state.ended) return;
+          overlay.classList.remove("is-rolling"); dieValue.textContent = String(resultValue); dieValue.hidden = false;
+          el("dieCaption").textContent = `${def(unit.type).label} · ${resultValue}`;
+          setTimeout(() => {
+            if (request.cancelled) return;
+            overlay.hidden = true; dieValue.hidden = true;
+            if (state.rollRequest === request) state.rollRequest = null;
+            resolve(resultValue);
+          }, 380);
+        }, 1080);
+      };
+      state.rollRequest = request;
+      if (!manual) setTimeout(request.roll, 360 / state.speed);
+    });
   }
   function positionOf(unit) {
     const node = document.getElementById(`fighter-${unit.id}`);
@@ -277,8 +344,20 @@
     if (!attacker.alive || !target?.alive || state.ended) return;
     el("turnState").textContent = `${def(attacker.type).label} ${isCounter ? "반격" : "공격"}`;
     const dice = effectiveDice(attacker);
-    const rolled = dice[Math.floor(Math.random() * dice.length)];
-    if (!isCounter) await showRoll(attacker, rolled);
+    setDuelPose(attacker, target, true);
+    await delay(220);
+    if (!attacker.alive || !target.alive || state.ended) {
+      setDuelPose(attacker, target, false);
+      return;
+    }
+    const rolled = isCounter
+      ? dice[Math.floor(Math.random() * dice.length)]
+      : await showRoll(attacker, attacker.owner === "player");
+    if (rolled == null || state.ended || !attacker.alive || !target.alive) {
+      setDuelPose(attacker, target, false);
+      return;
+    }
+    setDuelPose(attacker, target, false);
     activeNode(attacker, "is-active", 900); activeNode(attacker, "is-attacking", 430);
     const legionColor = LEGIONS[legionsOf(attacker.type)[0]]?.color || "#a66cff";
     const maximum = Math.max(...dice);
@@ -328,7 +407,10 @@
         const canAct = await applyStartTurnStatus(unit);
         if (!canAct) { if (checkEnd()) return; continue; }
         const opponents = unit.owner === "player" ? state.enemy : state.player;
-        const target = chooseTarget(opponents);
+        const target = unit.owner === "player"
+          ? await requestPlayerTarget(unit, token)
+          : chooseTarget(opponents);
+        if (token !== state.battleId || state.ended) return;
         if (!target) { checkEnd(); return; }
         await attack(unit, target);
         if (checkEnd()) return;
@@ -346,7 +428,7 @@
   }
   function finishBattle(result) {
     if (state.ended) return;
-    state.ended = true; state.paused = false; el("pauseButton").textContent = "Ⅱ";
+    state.ended = true; state.paused = false; cancelPendingInteractions(); el("pauseButton").textContent = "Ⅱ";
     const victory = result === "victory";
     announce(victory ? "승리" : result === "defeat" ? "패배" : "교착");
     setTimeout(() => {
@@ -359,6 +441,7 @@
   }
 
   function startBattle() {
+    cancelPendingInteractions();
     state.battleId += 1; const token = state.battleId;
     state.player = state.chosen.map((type, index) => createUnit(type, "player", index));
     state.enemy = ENEMY_SQUAD.slice(0, Math.max(3, state.chosen.length)).map((type, index) => createUnit(type, "enemy", index));
@@ -368,13 +451,14 @@
     renderArmies(); runBattle(token);
   }
   function resetToSetup() {
-    state.battleId += 1; state.ended = true; state.paused = false;
+    cancelPendingInteractions(); state.battleId += 1; state.ended = true; state.paused = false;
     el("centerDie").hidden = true; el("resultOverlay").hidden = true; el("setupOverlay").hidden = false;
     renderSetup();
   }
 
   el("startBattleButton").addEventListener("click", startBattle);
   el("restartButton").addEventListener("click", resetToSetup);
+  el("dieStage").addEventListener("click", () => state.rollRequest?.roll());
   el("pauseButton").addEventListener("click", () => {
     if (state.ended) return;
     state.paused = !state.paused; el("pauseButton").textContent = state.paused ? "▶" : "Ⅱ"; el("pauseButton").classList.toggle("is-active", state.paused);

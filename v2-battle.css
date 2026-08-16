@@ -68,6 +68,25 @@ body {
 .status-chip.poison { color: #7fe063; }
 .status-chip.freeze { color: #6bdcff; }
 .fighter.is-active { z-index: 12; filter: drop-shadow(0 0 10px #fff) drop-shadow(0 0 20px var(--violet)); }
+.fighter.is-targetable {
+  z-index: 15; pointer-events: auto; cursor: crosshair;
+  animation: target-pulse 850ms ease-in-out infinite;
+  filter: drop-shadow(0 0 8px #fff) drop-shadow(0 0 20px #ff4354);
+}
+.fighter.is-targetable::after {
+  content: "선택"; position: absolute; left: 50%; top: 9%; translate: -50% 0;
+  padding: 4px 7px; border: 1px solid #ff7a84; border-radius: 3px;
+  background: rgba(42, 4, 9, .9); color: #fff; font-size: 9px; font-weight: 900;
+}
+.fighter.is-duel-attacker, .fighter.is-duel-target {
+  z-index: 14; transition: transform 260ms cubic-bezier(.2,.8,.2,1), filter 180ms ease;
+}
+.army-player .fighter.is-duel-attacker { transform: translateX(18%) scale(1.07); }
+.army-enemy .fighter.is-duel-attacker { transform: translateX(-18%) scale(1.07); }
+.army-player .fighter.is-duel-target { transform: translateX(10%) scale(1.04); }
+.army-enemy .fighter.is-duel-target { transform: translateX(-10%) scale(1.04); }
+.fighter.is-duel-attacker { filter: drop-shadow(0 0 14px #ad75ff) drop-shadow(0 14px 7px #000); }
+.fighter.is-duel-target { filter: drop-shadow(0 0 11px #ff5c67) drop-shadow(0 14px 7px #000); }
 .fighter.is-hit { animation: fighter-hit 240ms ease both; filter: brightness(2) sepia(1) saturate(4) hue-rotate(320deg) drop-shadow(0 0 18px #ff2d36); }
 .fighter.is-dead { animation: fighter-death 650ms ease forwards; }
 .army-player .fighter.is-attacking { animation: player-lunge 420ms cubic-bezier(.2,.9,.35,1) both; }
@@ -85,10 +104,39 @@ body {
 
 .center-die { position: absolute; left: 50%; top: 43%; translate: -50% -50%; z-index: 30; display: grid; justify-items: center; }
 .center-die[hidden] { display: none; }
-.die-cube { width: clamp(58px, 9vw, 92px); aspect-ratio: 1; display: grid; place-items: center; border: 3px solid #d7cce4; border-radius: 14px; background: linear-gradient(145deg,#30283b,#0d0b12); box-shadow: inset 8px 8px 12px rgba(255,255,255,.08), inset -8px -8px 12px #000, 0 16px 30px #000, 0 0 24px rgba(166,108,255,.5); transform: perspective(300px) rotateX(-13deg) rotateY(17deg); }
-.die-cube span { font: 900 clamp(29px, 5vw, 54px)/1 Georgia, serif; color: #fff; text-shadow: 0 0 12px #a66cff; }
-.center-die.is-rolling .die-cube { animation: die-tumble 130ms linear infinite; }
-.center-die p { margin: 9px 0 0; padding: 4px 9px; border-radius: 3px; background: rgba(7,6,10,.82); font-size: 10px; font-weight: 900; }
+.die-stage {
+  --die-size: clamp(66px, 10vw, 98px); width: calc(var(--die-size) * 1.75); height: calc(var(--die-size) * 1.75);
+  display: grid; place-items: center; border: 0; padding: 0; background: transparent; color: #fff;
+  perspective: 520px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.die-stage:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; border-radius: 50%; }
+.die-cube {
+  --die-x: -14deg; --die-y: 18deg; position: relative; width: var(--die-size); height: var(--die-size);
+  display: block; transform-style: preserve-3d; transform: rotateX(var(--die-x)) rotateY(var(--die-y));
+  filter: drop-shadow(0 18px 15px rgba(0,0,0,.8));
+}
+.die-face {
+  position: absolute; inset: 0; display: grid; place-items: center; border: 3px solid #d7cce4;
+  border-radius: 13px; background: linear-gradient(145deg,#3b3247,#111018 62%,#08070c);
+  box-shadow: inset 7px 7px 12px rgba(255,255,255,.1), inset -8px -8px 13px rgba(0,0,0,.7);
+  color: #fff; font: normal 900 clamp(27px, 5vw, 49px)/1 Georgia, serif;
+  text-shadow: 0 0 13px #a66cff; backface-visibility: hidden;
+}
+.die-front { transform: translateZ(calc(var(--die-size) / 2)); }
+.die-back { transform: rotateY(180deg) translateZ(calc(var(--die-size) / 2)); }
+.die-right { transform: rotateY(90deg) translateZ(calc(var(--die-size) / 2)); }
+.die-left { transform: rotateY(-90deg) translateZ(calc(var(--die-size) / 2)); }
+.die-top { transform: rotateX(90deg) translateZ(calc(var(--die-size) / 2)); }
+.die-bottom { transform: rotateX(-90deg) translateZ(calc(var(--die-size) / 2)); }
+.center-die.is-awaiting .die-stage { animation: die-ready 1s ease-in-out infinite; }
+.center-die.is-rolling .die-stage { pointer-events: none; }
+.center-die.is-rolling .die-cube { animation: die-roll-3d 1050ms cubic-bezier(.12,.58,.16,1) both; }
+.die-result {
+  margin-top: -18px; min-width: 34px; padding: 4px 9px; border: 1px solid rgba(255,255,255,.28);
+  border-radius: 4px; background: #120d18; color: var(--gold); font: 900 20px/1.2 Georgia, serif;
+  box-shadow: 0 0 18px rgba(232,189,91,.32);
+}
+.center-die p { margin: 3px 0 0; padding: 5px 10px; border-radius: 3px; background: rgba(7,6,10,.9); font-size: 11px; font-weight: 900; }
 .battle-announcer { position: absolute; top: 24%; left: 50%; z-index: 28; translate: -50% -50%; width: 85%; text-align: center; color: #fff; font: 900 clamp(22px,4vw,48px)/1.15 Georgia, serif; text-shadow: 0 3px 0 #110913, 0 0 18px #7f3ec2; pointer-events: none; opacity: 0; }
 .battle-announcer.show { animation: announce 900ms ease both; }
 .battle-scene.is-shaking { animation: scene-shake 210ms linear; }
@@ -149,7 +197,15 @@ body {
 @keyframes slash-burst { 0%{opacity:0;transform:translate(-50%,-50%) rotate(-24deg) scale(.35)} 24%{opacity:1} 100%{opacity:0;transform:translate(-50%,-50%) rotate(9deg) scale(1.55)} }
 @keyframes damage-rise { 0%{opacity:0;transform:translateY(10px) scale(.6)} 18%{opacity:1;transform:translateY(0) scale(1.18)} 100%{opacity:0;transform:translateY(-56px) scale(.92)} }
 @keyframes corpse-appear { from{opacity:0;transform:scale(.4)} to{opacity:1;transform:scale(1)} }
-@keyframes die-tumble { to{transform:perspective(300px) rotateX(347deg) rotateY(377deg)} }
+@keyframes target-pulse { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-5px) scale(1.035)} }
+@keyframes die-ready { 0%,100%{transform:scale(1)} 50%{transform:scale(1.09);filter:brightness(1.25)} }
+@keyframes die-roll-3d {
+  0% { transform: rotateX(-14deg) rotateY(18deg) translateY(0); }
+  28% { transform: rotateX(390deg) rotateY(475deg) translateY(-24px); }
+  72% { transform: rotateX(760deg) rotateY(910deg) translateY(5px); }
+  88% { transform: rotateX(calc(var(--die-x) + 12deg)) rotateY(calc(var(--die-y) - 8deg)) translateY(-5px); }
+  100% { transform: rotateX(var(--die-x)) rotateY(var(--die-y)) translateY(0); }
+}
 @keyframes announce { 0%,100%{opacity:0;transform:scale(.8)} 18%,65%{opacity:1;transform:scale(1)} }
 @keyframes scene-shake { 0%,100%{transform:translate(0)} 20%{transform:translate(-4px,2px)} 40%{transform:translate(4px,-2px)} 60%{transform:translate(-3px,-1px)} 80%{transform:translate(2px,2px)} }
 @keyframes ultimate-flash { 0%,100%{opacity:0} 20%,55%{opacity:1} }
