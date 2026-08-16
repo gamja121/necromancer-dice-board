@@ -54,6 +54,7 @@ body {
   --unit-scale: 1; position: relative; width: min(21%, 150px); height: 72%; margin-inline: -1.5%;
   display: flex; align-items: flex-end; justify-content: center; transform-origin: 50% 100%;
   filter: drop-shadow(0 11px 6px rgba(0,0,0,.7)); transition: filter 120ms ease, opacity 260ms ease;
+  pointer-events: auto; cursor: pointer;
 }
 .fighter:nth-child(2) { height: 64%; z-index: 2; }
 .fighter:nth-child(3) { height: 57%; z-index: 1; }
@@ -100,20 +101,22 @@ body {
 .damage-number { position: absolute; translate: -50% -50%; color: #fff3c2; font-family: Georgia, serif; font-size: clamp(24px, 4vw, 48px); font-weight: 900; text-shadow: 0 3px #381015, 0 0 12px #ff672e; animation: damage-rise 750ms ease-out forwards; }
 .damage-number.is-zero { color: #bbb6c1; text-shadow: 0 2px #111; font-size: clamp(16px,3vw,30px); }
 .damage-number.is-heal { color: #88ff9b; text-shadow: 0 2px #103e1b, 0 0 10px #36c96e; }
-.corpse-mark { position: absolute; width: 46px; aspect-ratio: 1.7; translate: -50% -50%; border: 2px solid rgba(232,189,91,.5); border-radius: 50%; background: radial-gradient(ellipse, rgba(17,11,20,.9), transparent 68%); color: #d9c6e7; font-size: 24px; text-align: center; animation: corpse-appear 500ms ease both; }
+.corpse-mark { position: absolute; width: 54px; aspect-ratio: 1.45; translate: -50% -50%; display: grid; grid-template-columns: 1fr auto; align-items: center; padding: 2px 5px; border: 2px solid rgba(232,189,91,.58); border-radius: 50%; background: radial-gradient(ellipse, rgba(17,11,20,.96), rgba(17,11,20,.5) 62%, transparent 70%); color: #d9c6e7; font-size: 23px; text-align: center; pointer-events: auto; cursor: pointer; animation: corpse-appear 500ms ease both; }
+.corpse-mark b { min-width: 21px; padding: 3px 2px; border-radius: 50%; background: #c99a32; color: #130e08; font-size: 9px; }
+.corpse-mark.is-selected { border-color: #fff1b8; box-shadow: 0 0 0 2px #7b5220, 0 0 18px #e8bd5b; }
 
 .center-die { position: absolute; left: 50%; top: 43%; translate: -50% -50%; z-index: 30; display: grid; justify-items: center; }
 .center-die[hidden] { display: none; }
 .die-stage {
   --die-size: clamp(66px, 10vw, 98px); width: calc(var(--die-size) * 1.75); height: calc(var(--die-size) * 1.75);
   display: grid; place-items: center; border: 0; padding: 0; background: transparent; color: #fff;
-  perspective: 520px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  perspective: 420px; perspective-origin: 48% 42%; cursor: pointer; -webkit-tap-highlight-color: transparent;
 }
 .die-stage:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; border-radius: 50%; }
 .die-cube {
-  --die-x: -14deg; --die-y: 18deg; position: relative; width: var(--die-size); height: var(--die-size);
+  --die-x: -20deg; --die-y: 24deg; position: relative; width: var(--die-size); height: var(--die-size);
   display: block; transform-style: preserve-3d; transform: rotateX(var(--die-x)) rotateY(var(--die-y));
-  filter: drop-shadow(0 18px 15px rgba(0,0,0,.8));
+  filter: drop-shadow(14px 20px 16px rgba(0,0,0,.85));
 }
 .die-face {
   position: absolute; inset: 0; display: grid; place-items: center; border: 3px solid #d7cce4;
@@ -155,6 +158,19 @@ body {
 .necromancy-meter .meter-track { margin: 4px 0; height: 12px; border: 2px solid #4c405f; }
 .necromancy-meter i { width: 0; background: linear-gradient(90deg,#6920a0,#53bcdf); box-shadow: 0 0 12px #8c4fe3; }
 .necromancy-meter strong { font-size: 10px; }
+
+.battle-info { display: grid; grid-template-columns: 82px minmax(0,1fr) auto; gap: 12px; align-items: center; min-height: 94px; margin-top: 10px; padding: 10px 12px; border: 1px solid #4f455c; border-radius: 6px; background: linear-gradient(120deg,#1c1724,#100e15); box-shadow: 0 9px 28px rgba(0,0,0,.38); }
+.battle-info-art { width: 72px; height: 72px; display: grid; place-items: center; overflow: hidden; border: 1px solid #554864; background: radial-gradient(circle,#30273d,#0b0910 72%); }
+.battle-info-art img { width: 100%; height: 100%; object-fit: contain; }
+.battle-info-copy { min-width: 0; }
+.battle-info-copy > span { display: block; color: var(--gold); font-size: 9px; font-weight: 900; }
+.battle-info-copy > strong { display: block; margin-top: 2px; font-size: 16px; }
+.battle-info-copy > p { margin: 5px 0 0; color: #b9b1c2; font-size: 10px; line-height: 1.45; }
+.battle-info-stats { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.battle-info-stats span { padding: 4px 6px; border: 1px solid #494052; border-radius: 3px; background: #0d0b11; color: #bdb5c6; font-size: 9px; }
+.battle-info-stats b { color: #fff; }
+.corpse-summon-action { min-width: 116px; min-height: 50px; padding: 8px 12px; border: 1px solid #d2a642; border-radius: 5px; background: linear-gradient(#8c5e14,#513107); color: #fff8dd; font-weight: 900; cursor: pointer; }
+.corpse-summon-action:disabled { opacity: .42; cursor: not-allowed; }
 
 .combat-feed { display: grid; grid-template-columns: 120px 1fr; gap: 12px; margin-top: 10px; min-height: 78px; padding: 12px; border: 1px solid var(--line); border-radius: 6px; background: rgba(23,20,30,.9); }
 .feed-title { border-right: 1px solid var(--line); }
@@ -200,7 +216,7 @@ body {
 @keyframes target-pulse { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-5px) scale(1.035)} }
 @keyframes die-ready { 0%,100%{transform:scale(1)} 50%{transform:scale(1.09);filter:brightness(1.25)} }
 @keyframes die-roll-3d {
-  0% { transform: rotateX(-14deg) rotateY(18deg) translateY(0); }
+  0% { transform: rotateX(-20deg) rotateY(24deg) translateY(0); }
   28% { transform: rotateX(390deg) rotateY(475deg) translateY(-24px); }
   72% { transform: rotateX(760deg) rotateY(910deg) translateY(5px); }
   88% { transform: rotateX(calc(var(--die-x) + 12deg)) rotateY(calc(var(--die-y) - 8deg)) translateY(-5px); }
@@ -220,6 +236,13 @@ body {
   .fighter-name { display: none; }
   .health-wrap { left: 5%; right: 5%; bottom: 6px; height: 7px; }
   .battle-hud { grid-template-columns: 1fr 1.35fr 1fr; gap: 7px; padding: 9px; }
+  .battle-info { grid-template-columns: 58px minmax(0,1fr); gap: 8px; min-height: 80px; padding: 8px; }
+  .battle-info-art { width: 54px; height: 62px; }
+  .battle-info-copy > strong { font-size: 13px; }
+  .battle-info-copy > p { font-size: 9px; }
+  .battle-info-stats { gap: 3px; }
+  .battle-info-stats span { padding: 3px 4px; font-size: 8px; }
+  .corpse-summon-action { grid-column: 1 / -1; min-height: 42px; width: 100%; }
   .combat-feed { grid-template-columns: 78px 1fr; }
   .roster-grid { grid-template-columns: repeat(3,1fr); }
   .setup-panel { padding: 18px 14px; }

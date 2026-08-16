@@ -27,12 +27,13 @@
   const state = {
     chosen: DEFAULT_SQUAD.slice(), player: [], enemy: [], round: 1, soul: 0,
     paused: false, speed: 1, muted: false, ended: false, battleId: 0,
-    actions: 0, damage: 0, kills: 0, feed: [], targetRequest: null, rollRequest: null
+    actions: 0, damage: 0, kills: 0, feed: [], targetRequest: null, rollRequest: null,
+    corpses: [], nextCorpseId: 1, inspected: null, summoning: false
   };
   let audioContext = null;
   const DIE_LANDING = [
-    { x: 0, y: 0 }, { x: 0, y: -180 }, { x: 0, y: -90 },
-    { x: 0, y: 90 }, { x: -90, y: 0 }, { x: 90, y: 0 }
+    { x: -20, y: 24 }, { x: -20, y: -156 }, { x: -20, y: -66 },
+    { x: -20, y: 114 }, { x: -110, y: 24 }, { x: 70, y: 24 }
   ];
 
   function def(type) { return window.UNIT_TYPES[type]; }
@@ -94,13 +95,52 @@
     const team = unit.owner === "player" ? state.player : state.enemy;
     return legionsOf(unit.type).includes(key) && activeLegions(team).includes(key);
   }
-  function createUnit(type, owner, index) {
+  function createUnit(type, owner, index, options = {}) {
     const data = def(type);
     return {
       id: `${owner}-${type}-${index}-${Math.random().toString(36).slice(2, 7)}`,
       type, owner, index, hp: data.hp, maxHp: data.hp, poison: 0, frozen: 0,
-      alive: true, element: null
+      alive: true, element: null, summonedNoCorpse: Boolean(options.summonedNoCorpse)
     };
+  }
+
+  function inspectedSubject() {
+    if (!state.inspected) return null;
+    if (state.inspected.kind === "corpse") return state.corpses.find((corpse) => corpse.id === state.inspected.id) || null;
+    return state.player.concat(state.enemy).find((unit) => unit.id === state.inspected.id) || null;
+  }
+  function renderBattleInfo(subject = inspectedSubject(), kind = state.inspected?.kind || "unit") {
+    const art = el("infoArt");
+    const action = el("infoAction");
+    if (!subject) {
+      state.inspected = null;
+      art.hidden = true; art.removeAttribute("src"); art.alt = "";
+      el("infoEyebrow").textContent = "전장 정보";
+      el("infoName").textContent = "유닛이나 시체를 선택하세요";
+      el("infoStats").innerHTML = "";
+      el("infoDescription").textContent = "아군과 적군을 누르면 능력치를 확인할 수 있습니다.";
+      action.hidden = true; action.disabled = true; action.removeAttribute("data-corpse-id");
+      return;
+    }
+    const isCorpse = kind === "corpse";
+    const type = isCorpse ? subject.sourceType : subject.type;
+    const data = def(type);
+    state.inspected = { kind: isCorpse ? "corpse" : "unit", id: subject.id };
+    art.hidden = false; art.src = artPath(type); art.alt = data.label; fallbackArt(art, type);
+    el("infoEyebrow").textContent = isCorpse ? "소환 가능한 시체" : subject.owner === "player" ? "아군 유닛" : "적군 유닛";
+    el("infoName").textContent = data.label;
+    if (isCorpse) {
+      el("infoStats").innerHTML = `<span>필요 눈금 <b>${subject.target}+</b></span><span>남은 도전 <b>${subject.attempts}회</b></span><span>소환 HP <b>${data.hp}</b></span>`;
+      el("infoDescription").textContent = "아군의 대상 선택 차례에 소환할 수 있습니다. 성공한 유닛은 다음 라운드부터 행동하며 다시 시체를 남기지 않습니다.";
+      action.hidden = false; action.dataset.corpseId = subject.id;
+      action.disabled = !state.targetRequest || state.summoning || state.ended;
+      action.textContent = state.summoning ? "소환 판정 중" : `시체 소환 · ${subject.target}+`;
+    } else {
+      const legionNames = legionsOf(type).map((key) => LEGIONS[key]?.name || key).join(" · ") || "없음";
+      el("infoStats").innerHTML = `<span>체력 <b>${Math.max(0, subject.hp)}/${subject.maxHp}</b></span><span>등급 <b>${gradeLabel(data.grade)}</b></span><span>군단 <b>${legionNames}</b></span>`;
+      el("infoDescription").textContent = `공격 주사위 ${effectiveDice(subject).join(" · ")}${subject.summonedNoCorpse ? " · 전장 소환물" : ""}`;
+      action.hidden = true; action.disabled = true; action.removeAttribute("data-corpse-id");
+    }
   }
   function applyOpeningLegions(team) {
     const active = activeLegions(team);
@@ -174,8 +214,14 @@
     [...state.player, ...state.enemy].forEach((unit) => {
       const node = document.getElementById(`fighter-${unit.id}`);
       fallbackArt(node.querySelector("img"), unit.type);
-      node.addEventListener("click", () => selectRequestedTarget(unit.id));
+      node.addEventListener("click", () => {
+        renderBattleInfo(unit, "unit");
+        selectRequestedTarget(unit.id);
+      });
     });
+    if (state.targetRequest && !state.summoning) {
+      state.targetRequest.targetIds.forEach((id) => document.getElementById(`fighter-${id}`)?.classList.add("is-targetable"));
+    }
     renderStatus();
   }
   function renderStatus() {
@@ -195,6 +241,7 @@
     el("roundText").textContent = String(state.round);
     el("soulMeter").style.width = `${state.soul}%`;
     el("soulText").textContent = `${state.soul} / 100`;
+    if (state.inspected?.kind === "unit") renderBattleInfo();
   }
   function updateTeamHud(owner, team) {
     const living = team.filter((u) => u.alive);
@@ -218,9 +265,11 @@
     if (!request) return;
     request.targetIds.forEach((id) => document.getElementById(`fighter-${id}`)?.classList.remove("is-targetable"));
     state.targetRequest = null;
+    if (state.inspected?.kind === "corpse") renderBattleInfo();
     request.resolve(result);
   }
   function selectRequestedTarget(unitId) {
+    if (state.summoning) return;
     const request = state.targetRequest;
     if (!request || !request.targetIds.includes(unitId)) return;
     const target = state.enemy.concat(state.player).find((unit) => unit.id === unitId && unit.alive) || null;
@@ -235,6 +284,7 @@
     targets.forEach((target) => document.getElementById(`fighter-${target.id}`)?.classList.add("is-targetable"));
     return new Promise((resolve) => {
       state.targetRequest = { resolve, targetIds: targets.map((target) => target.id), token };
+      if (state.inspected?.kind === "corpse") renderBattleInfo();
     });
   }
   function setDuelPose(attacker, target, active) {
@@ -247,20 +297,21 @@
     if (request) {
       request.cancelled = true; state.rollRequest = null; request.resolve(null);
     }
+    state.summoning = false;
     el("centerDie").classList.remove("is-awaiting", "is-rolling");
     el("centerDie").hidden = true;
     document.querySelectorAll(".is-duel-attacker,.is-duel-target,.is-targetable").forEach((node) => {
       node.classList.remove("is-duel-attacker", "is-duel-target", "is-targetable");
     });
   }
-  function showRoll(unit, manual) {
+  function showFaceRoll(faceValues, label, manual) {
     const overlay = el("centerDie");
     const dieValue = el("dieValue");
-    const dice = effectiveDice(unit);
-    document.querySelectorAll("[data-die-face]").forEach((face, index) => { face.textContent = String(dice[index]); });
+    const dice = faceValues.slice(0, 6);
+    document.querySelectorAll("[data-die-face]").forEach((face, index) => { face.textContent = String(dice[index] ?? 0); });
     dieValue.hidden = true; overlay.hidden = false;
     overlay.classList.toggle("is-awaiting", manual); overlay.classList.remove("is-rolling");
-    el("dieCaption").textContent = manual ? `${def(unit.type).label} · 주사위를 터치하세요` : `${def(unit.type).label} 공격 주사위`;
+    el("dieCaption").textContent = manual ? `${label} · 주사위를 터치하세요` : label;
 
     return new Promise((resolve) => {
       const request = { resolve, cancelled: false, rolling: false, token: state.battleId, roll: null };
@@ -275,7 +326,7 @@
         setTimeout(() => {
           if (request.cancelled || request.token !== state.battleId || state.ended) return;
           overlay.classList.remove("is-rolling"); dieValue.textContent = String(resultValue); dieValue.hidden = false;
-          el("dieCaption").textContent = `${def(unit.type).label} · ${resultValue}`;
+          el("dieCaption").textContent = `${label} · ${resultValue}`;
           setTimeout(() => {
             if (request.cancelled) return;
             overlay.hidden = true; dieValue.hidden = true;
@@ -287,6 +338,9 @@
       state.rollRequest = request;
       if (!manual) setTimeout(request.roll, 360 / state.speed);
     });
+  }
+  function showRoll(unit, manual) {
+    return showFaceRoll(effectiveDice(unit), `${def(unit.type).label} 공격`, manual);
   }
   function positionOf(unit) {
     const node = document.getElementById(`fighter-${unit.id}`);
@@ -331,12 +385,69 @@
     if (!unit.alive) return;
     unit.alive = false; unit.hp = 0; activeNode(unit, "is-dead", 700); tone("kill");
     if (unit.owner === "enemy") { state.kills += 1; state.soul = Math.min(100, state.soul + 25); }
+    if (unit.summonedNoCorpse) {
+      log(`${def(unit.type).label} 소환물이 전장에서 흩어졌습니다.`); renderStatus(); return;
+    }
     const p = positionOf(unit);
-    setTimeout(() => {
-      const corpse = document.createElement("i"); corpse.className = "corpse-mark"; corpse.textContent = "☠";
-      corpse.style.left = `${p.x}px`; corpse.style.top = `${Math.min(scene.clientHeight - 25, p.y + 75)}px`; el("corpseLayer").appendChild(corpse);
-    }, 380 / state.speed);
+    state.corpses.push({
+      id: `v2-corpse-${state.nextCorpseId++}`, sourceType: unit.type, sourceOwner: unit.owner,
+      target: 2 + Math.floor(Math.random() * 5), attempts: 2,
+      x: p.x, y: Math.min(scene.clientHeight - 25, p.y + 75)
+    });
+    setTimeout(renderCorpseMarks, 380 / state.speed);
     log(`${def(unit.type).label}이 쓰러져 시체를 남겼습니다.`); renderStatus();
+  }
+  function renderCorpseMarks() {
+    const layer = el("corpseLayer");
+    layer.innerHTML = "";
+    state.corpses.forEach((corpse) => {
+      const button = document.createElement("button");
+      button.type = "button"; button.className = `corpse-mark${state.inspected?.kind === "corpse" && state.inspected.id === corpse.id ? " is-selected" : ""}`;
+      button.innerHTML = `<span aria-hidden="true">☠</span><b>${corpse.target}+</b>`;
+      button.style.left = `${corpse.x}px`; button.style.top = `${corpse.y}px`;
+      button.setAttribute("aria-label", `${def(corpse.sourceType).label} 시체, 소환 ${corpse.target} 이상 필요, ${corpse.attempts}회 남음`);
+      button.addEventListener("click", (event) => {
+        event.stopPropagation(); renderBattleInfo(corpse, "corpse"); renderCorpseMarks();
+      });
+      layer.appendChild(button);
+    });
+  }
+  function restoreTargetHighlights() {
+    if (!state.targetRequest || state.summoning) return;
+    state.targetRequest.targetIds.forEach((id) => document.getElementById(`fighter-${id}`)?.classList.add("is-targetable"));
+  }
+  async function trySummonCorpse(corpseId) {
+    const corpse = state.corpses.find((item) => item.id === corpseId);
+    if (!corpse || state.summoning || state.ended) return;
+    if (!state.targetRequest) { announce("아군 행동 차례에 소환할 수 있습니다"); return; }
+    state.summoning = true;
+    document.querySelectorAll(".is-targetable").forEach((node) => node.classList.remove("is-targetable"));
+    renderBattleInfo(corpse, "corpse");
+    announce(`${def(corpse.sourceType).label} 소환 판정`);
+    const rolled = await showFaceRoll([1, 2, 3, 4, 5, 6], `${def(corpse.sourceType).label} 소환 · 목표 ${corpse.target}+`, true);
+    if (rolled == null || state.ended) { state.summoning = false; restoreTargetHighlights(); renderBattleInfo(); return; }
+    corpse.attempts -= 1;
+    if (rolled >= corpse.target) {
+      const summoned = createUnit(corpse.sourceType, "player", state.player.length, { summonedNoCorpse: true });
+      state.player.push(summoned);
+      state.corpses = state.corpses.filter((item) => item.id !== corpse.id);
+      state.inspected = { kind: "unit", id: summoned.id };
+      announce("시체 소환 성공"); tone("heal");
+      log(`${def(corpse.sourceType).label}이 아군으로 되살아났습니다. 다음 라운드부터 행동합니다.`);
+      renderArmies(); renderCorpseMarks(); renderBattleInfo(summoned, "unit");
+    } else if (corpse.attempts <= 0) {
+      state.corpses = state.corpses.filter((item) => item.id !== corpse.id);
+      state.inspected = null;
+      announce("시체가 붕괴했습니다"); tone("status");
+      log(`${def(corpse.sourceType).label} 시체 소환에 두 번 실패해 사라졌습니다.`);
+      renderCorpseMarks(); renderBattleInfo(null);
+    } else {
+      announce(`소환 실패 · ${corpse.attempts}회 남음`); tone("status");
+      log(`${def(corpse.sourceType).label} 소환 실패. ${corpse.attempts}회 남았습니다.`);
+      renderCorpseMarks(); renderBattleInfo(corpse, "corpse");
+    }
+    state.summoning = false; restoreTargetHighlights(); renderStatus();
+    if (state.inspected?.kind === "corpse") renderBattleInfo();
   }
   function chooseTarget(team) { return team.find((unit) => unit.alive) || null; }
 
@@ -446,19 +557,21 @@
     state.player = state.chosen.map((type, index) => createUnit(type, "player", index));
     state.enemy = ENEMY_SQUAD.slice(0, Math.max(3, state.chosen.length)).map((type, index) => createUnit(type, "enemy", index));
     state.round = 1; state.soul = 0; state.paused = false; state.ended = false; state.actions = 0; state.damage = 0; state.kills = 0; state.feed = [];
+    state.corpses = []; state.nextCorpseId = 1; state.inspected = null; state.summoning = false;
     applyOpeningLegions(state.player); applyOpeningLegions(state.enemy);
     el("corpseLayer").innerHTML = ""; el("impactLayer").innerHTML = ""; el("setupOverlay").hidden = true; el("resultOverlay").hidden = true;
-    renderArmies(); runBattle(token);
+    renderArmies(); renderCorpseMarks(); renderBattleInfo(null); runBattle(token);
   }
   function resetToSetup() {
     cancelPendingInteractions(); state.battleId += 1; state.ended = true; state.paused = false;
     el("centerDie").hidden = true; el("resultOverlay").hidden = true; el("setupOverlay").hidden = false;
-    renderSetup();
+    state.corpses = []; state.inspected = null; renderCorpseMarks(); renderBattleInfo(null); renderSetup();
   }
 
   el("startBattleButton").addEventListener("click", startBattle);
   el("restartButton").addEventListener("click", resetToSetup);
   el("dieStage").addEventListener("click", () => state.rollRequest?.roll());
+  el("infoAction").addEventListener("click", () => trySummonCorpse(el("infoAction").dataset.corpseId));
   el("pauseButton").addEventListener("click", () => {
     if (state.ended) return;
     state.paused = !state.paused; el("pauseButton").textContent = state.paused ? "▶" : "Ⅱ"; el("pauseButton").classList.toggle("is-active", state.paused);

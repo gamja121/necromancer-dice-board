@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#100d19">
   <meta name="mobile-web-app-capable" content="yes">
   <title>네크로멘서 V2 전투 프로토타입</title>
-  <link rel="stylesheet" href="v2-battle.css?v=2">
+  <link rel="stylesheet" href="v2-battle.css?v=3">
 </head>
 <body>
   <main class="v2-app">
@@ -22,7 +22,7 @@
       </div>
     </header>
 
-    <section class="battle-shell" aria-label="자동 전투 화면">
+    <section class="battle-shell" aria-label="직접 조작 전투 화면">
       <div class="battle-scene" id="battleScene">
         <div class="scene-vignette"></div>
         <div class="round-display"><span>ROUND</span><strong id="roundText">1</strong></div>
@@ -34,7 +34,7 @@
 
         <div class="clash-line" aria-hidden="true"><i></i></div>
         <div class="impact-layer" id="impactLayer" aria-hidden="true"></div>
-        <div class="corpse-layer" id="corpseLayer" aria-hidden="true"></div>
+        <div class="corpse-layer" id="corpseLayer" aria-label="전장 시체"></div>
 
         <div class="center-die" id="centerDie" hidden aria-live="polite">
           <button class="die-stage" id="dieStage" type="button" aria-label="주사위 굴리기">
@@ -73,6 +73,17 @@
       </div>
     </section>
 
+    <section class="battle-info" id="battleInfo" aria-live="polite">
+      <div class="battle-info-art"><img id="infoArt" alt="" hidden></div>
+      <div class="battle-info-copy">
+        <span id="infoEyebrow">전장 정보</span>
+        <strong id="infoName">유닛이나 시체를 선택하세요</strong>
+        <div class="battle-info-stats" id="infoStats"></div>
+        <p id="infoDescription">아군과 적군을 누르면 능력치를 확인할 수 있습니다.</p>
+      </div>
+      <button class="corpse-summon-action" id="infoAction" type="button" hidden>시체 소환</button>
+    </section>
+
     <section class="combat-feed" aria-label="전투 기록">
       <div class="feed-title"><span>전황</span><strong id="turnState">전투 준비</strong></div>
       <div class="feed-lines" id="combatFeed"></div>
@@ -82,9 +93,9 @@
   <div class="setup-overlay" id="setupOverlay">
     <section class="setup-panel" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
       <header>
-        <span class="version-mark">AUTO BATTLE PROTOTYPE</span>
+        <span class="version-mark">DIRECT BATTLE PROTOTYPE</span>
         <h2 id="setupTitle">출전 부대를 선택하세요</h2>
-        <p>최대 4명. 전열부터 배치되며 전투는 자동으로 진행됩니다.</p>
+        <p>최대 4명. 아군 차례에는 공격 대상과 주사위를 직접 선택합니다.</p>
       </header>
       <div class="chosen-row" id="chosenRow"></div>
       <div class="roster-grid" id="rosterGrid"></div>
@@ -109,6 +120,6 @@
   </div>
 
   <script src="unit-data.js?v=43"></script>
-  <script src="v2-battle.js?v=2"></script>
+  <script src="v2-battle.js?v=3"></script>
 </body>
 </html>
