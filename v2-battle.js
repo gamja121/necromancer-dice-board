@@ -6,8 +6,9 @@
   const ENEMY_SQUAD = ["goblinSoldier", "ogre", "plagueFrog", "archer"];
   const ROSTER = [
     "spear", "archer", "knight", "ghoul", "worm", "golem", "plagueFrog", "yeti",
-    "minotaur", "iceLord", "spiderQueen", "goblinChief", "doomExecutor", "ancientTreant",
-    "scorpionKnight", "hydra"
+  "minotaur", "iceLord", "spiderQueen", "goblinChief", "doomExecutor", "ancientTreant",
+  "abyssEye", "skeletonSummoner", "seaWolf", "goblinSoldier",
+    "scorpionKnight", "hellMantis", "demonDeathKnight", "hydra", "stoneGolem", "kraken", "crystalDevourer"
   ];
   const LEGIONS = {
     skeleton: { name: "언데드", need: 3, color: "#a66cff" },
@@ -41,12 +42,28 @@
     const value = def(type)?.legion;
     return Array.isArray(value) ? value : value ? [value] : [];
   }
-  function artPath(type) {
+  function artCandidates(type) {
     const file = String(def(type)?.image || "assets/skeleton-spear.jpg").split("/").pop().replace(/\.jpg$/i, ".png");
-    return `art/processed/192/${file}`;
+    return [
+      `art/v2-style/processed/192/${file}`,
+      `art/processed/192/${file}`,
+      def(type)?.image || "assets/skeleton-spear.jpg"
+    ];
+  }
+  function artPath(type) {
+    return artCandidates(type)[0];
   }
   function fallbackArt(img, type) {
-    img.onerror = () => { img.onerror = null; img.src = def(type)?.image || "assets/skeleton-spear.jpg"; };
+    const candidates = artCandidates(type);
+    let index = Math.max(0, candidates.indexOf(img.getAttribute("src")));
+    img.onerror = () => {
+      index += 1;
+      if (index >= candidates.length) {
+        img.onerror = null;
+        return;
+      }
+      img.src = candidates[index];
+    };
   }
   function delay(ms, token = state.battleId) {
     return new Promise((resolve) => {

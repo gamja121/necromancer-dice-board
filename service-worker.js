@@ -1,10 +1,10 @@
-const CACHE_NAME = "necromancer-expedition-v50";
+const CACHE_NAME = "necromancer-expedition-v53";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./v2.html",
   "./v2-battle.css?v=4",
-  "./v2-battle.js?v=4",
+  "./v2-battle.js?v=7",
   "./styles.css?v=43",
   "./ultimate-vfx.css?v=43",
   "./dice-overlay.css?v=46",
@@ -18,7 +18,17 @@ const APP_SHELL = [
   "./manifest.webmanifest?v=20260726-10",
   "./assets/app-icon-192.png",
   "./assets/app-icon-512.png",
-  "./assets/v2-battle-castle.png"
+  "./assets/v2-battle-castle.png",
+  "./art/v2-style/processed/192/skeleton-archer.png",
+  "./art/v2-style/processed/192/skeleton-spear.png",
+  "./art/v2-style/processed/192/crystal-devourer.png",
+  "./art/v2-style/processed/192/kraken.png",
+  "./art/v2-style/processed/192/stone-golem.png",
+  "./art/v2-style/processed/192/spider-queen.png",
+  "./art/v2-style/processed/192/ancient-treant.png",
+  "./art/v2-style/processed/192/scorpion-knight.png",
+  "./art/v2-style/processed/192/hell-mantis.png",
+  "./art/v2-style/processed/192/demon-death-knight.png"
 ];
 
 self.addEventListener("install", (event) => {
