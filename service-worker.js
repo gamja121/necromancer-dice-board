@@ -1,14 +1,14 @@
-const CACHE_NAME = "necromancer-expedition-v53";
+const CACHE_NAME = "necromancer-expedition-v54";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./v2.html",
-  "./v2-battle.css?v=4",
-  "./v2-battle.js?v=7",
+  "./v2-battle.css?v=5",
+  "./v2-battle.js?v=8",
   "./styles.css?v=43",
   "./ultimate-vfx.css?v=43",
   "./dice-overlay.css?v=46",
-  "./unit-data.js?v=43",
+  "./unit-data.js?v=44",
   "./encounter-generator.js?v=43",
   "./ultimate-vfx.js?v=43",
   "./map-generator.js?v=43",
@@ -19,16 +19,24 @@ const APP_SHELL = [
   "./assets/app-icon-192.png",
   "./assets/app-icon-512.png",
   "./assets/v2-battle-castle.png",
+  "./art/v2-style/processed/192/ancient-treant.png",
+  "./art/v2-style/processed/192/bone-golem.png",
+  "./art/v2-style/processed/192/crystal-devourer.png",
+  "./art/v2-style/processed/192/death-knight.png",
+  "./art/v2-style/processed/192/demon-death-knight.png",
+  "./art/v2-style/processed/192/forest-fairy.png",
+  "./art/v2-style/processed/192/goblin-soldier.png",
+  "./art/v2-style/processed/192/hell-mantis.png",
+  "./art/v2-style/processed/192/kraken.png",
+  "./art/v2-style/processed/192/scorpion-knight.png",
+  "./art/v2-style/processed/192/sea-wolf.png",
   "./art/v2-style/processed/192/skeleton-archer.png",
   "./art/v2-style/processed/192/skeleton-spear.png",
-  "./art/v2-style/processed/192/crystal-devourer.png",
-  "./art/v2-style/processed/192/kraken.png",
-  "./art/v2-style/processed/192/stone-golem.png",
   "./art/v2-style/processed/192/spider-queen.png",
-  "./art/v2-style/processed/192/ancient-treant.png",
-  "./art/v2-style/processed/192/scorpion-knight.png",
-  "./art/v2-style/processed/192/hell-mantis.png",
-  "./art/v2-style/processed/192/demon-death-knight.png"
+  "./art/v2-style/processed/192/stone-golem.png",
+  "./art/v2-style/processed/192/totem-ice.png",
+  "./art/v2-style/processed/192/totem-plague.png",
+  "./art/v2-style/processed/192/totem-plant.png"
 ];
 
 self.addEventListener("install", (event) => {

@@ -45,7 +45,7 @@
   function artCandidates(type) {
     const file = String(def(type)?.image || "assets/skeleton-spear.jpg").split("/").pop().replace(/\.jpg$/i, ".png");
     return [
-      `art/v2-style/processed/192/${file}`,
+      `art/v2-style/processed/192/${file}?v=20260817-v2`,
       `art/processed/192/${file}`,
       def(type)?.image || "assets/skeleton-spear.jpg"
     ];

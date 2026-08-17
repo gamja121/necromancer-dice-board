@@ -1,0 +1,17 @@
+[
+  {
+    "character_name": "죽음의 기사",
+    "attempt": 2,
+    "output_filename": "v3-death-knight-attempt-01.png",
+    "source_sha256": null,
+    "width": null,
+    "height": null,
+    "api_generation_performed": true,
+    "style_reference_attached": true,
+    "identity_reference_attached": true,
+    "failure_reference_attached": true,
+    "automatic_status": "PAUSED_API_QUOTA_LIMIT",
+    "error_detail": "RESOURCE_EXHAUSTED (Reset in 4h 17m)",
+    "user_approved": false
+  }
+]
