@@ -10,6 +10,7 @@ const root = __dirname;
 const motionSource = fs.readFileSync(path.join(root, "v2-motion.js"), "utf8");
 const battleSource = fs.readFileSync(path.join(root, "v2-battle.js"), "utf8");
 const battleHtml = fs.readFileSync(path.join(root, "v2.html"), "utf8");
+const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const serviceWorker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
 
 const windowMock = {
@@ -40,7 +41,8 @@ assert(battleSource.includes('playUnitMotion(attacker, "attack"'), "Battle attac
 assert(battleSource.includes('playUnitMotion(target, "hit"'), "Battle hit hook is missing.");
 assert(battleSource.includes('playUnitMotion(unit, "death"'), "Battle death hook is missing.");
 assert(battleSource.includes("if (!animated)"), "Static animation fallback is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v55"), "Service worker cache version was not bumped.");
+assert(indexHtml.includes('href="v2-animation-practice.html"'), "Start screen motion lab link is missing.");
+assert(serviceWorker.includes("necromancer-expedition-v56"), "Service worker cache version was not bumped.");
 assert(serviceWorker.includes("goblin-motion-sheet.jpg"), "Goblin motion sheet is not cached.");
 assert(serviceWorker.includes("minotaur-motion-sheet.jpg"), "Minotaur motion sheet is not cached.");
 
