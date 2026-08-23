@@ -225,6 +225,17 @@
       <div class="health-wrap"><i class="health-fill"></i></div>
     </article>`;
   }
+  function applyMotionIdle(unit, node) {
+    if (!window.V2Motion?.supports(unit.type)) return;
+    const sprite = node.querySelector(".fighter-art");
+    const battleId = state.battleId;
+    window.V2Motion.applyIdle(unit.type, sprite, {
+      guard: () => battleId === state.battleId && node.isConnected && unit.alive
+    }).catch(() => {
+      sprite.classList.remove("is-motion-sprite");
+      fallbackArt(sprite, unit.type);
+    });
+  }
   function renderArmies() {
     const visiblePlayer = state.player.filter((unit) => unit.alive);
     const visibleEnemy = state.enemy.filter((unit) => unit.alive);
@@ -233,6 +244,7 @@
     [...visiblePlayer, ...visibleEnemy].forEach((unit) => {
       const node = document.getElementById(`fighter-${unit.id}`);
       fallbackArt(node.querySelector("img"), unit.type);
+      applyMotionIdle(unit, node);
       node.addEventListener("click", () => {
         renderBattleInfo(unit, "unit");
         selectRequestedTarget(unit.id);
@@ -385,6 +397,27 @@
     if (!node) return;
     node.classList.add(className); setTimeout(() => node.classList.remove(className), duration / state.speed);
   }
+  function hasUnitMotion(unit) {
+    return Boolean(unit && window.V2Motion?.supports(unit.type));
+  }
+  function playUnitMotion(unit, motion, options = {}) {
+    const node = document.getElementById("fighter-" + unit.id);
+    const sprite = node?.querySelector(".fighter-art");
+    if (!node || !sprite || !hasUnitMotion(unit)) return Promise.resolve(false);
+    const battleId = state.battleId;
+    return window.V2Motion.play(unit.type, sprite, motion, {
+      onFrame: options.onFrame,
+      wait: (milliseconds) => delay(milliseconds, battleId),
+      guard: () => (
+        battleId === state.battleId
+        && node.isConnected
+        && document.getElementById("fighter-" + unit.id) === node
+      )
+    }).catch(() => {
+      sprite.classList.remove("is-motion-sprite");
+      return false;
+    });
+  }
   function statusImmune(unit) {
     return hasActiveLegion(unit, "element") && Math.random() < .5;
   }
@@ -402,12 +435,20 @@
   }
   async function killUnit(unit) {
     if (!unit.alive) return;
-    unit.alive = false; unit.hp = 0; activeNode(unit, "is-dead", 700); tone("kill");
+    const node = document.getElementById("fighter-" + unit.id);
+    const p = positionOf(unit);
+    unit.alive = false; unit.hp = 0; renderStatus(); tone("kill");
+    const animated = await playUnitMotion(unit, "death");
+    if (!animated && node) {
+      node.classList.add("is-dead");
+      await delay(650);
+      node.classList.remove("is-dead");
+    }
+    node?.classList.add("is-motion-dead");
     if (unit.owner === "enemy") { state.kills += 1; state.soul = Math.min(100, state.soul + 25); }
     if (unit.summonedNoCorpse) {
       log(`${def(unit.type).label} 소환물이 전장에서 흩어졌습니다.`); renderStatus(); return;
     }
-    const p = positionOf(unit);
     state.corpses.push({
       id: `v2-corpse-${state.nextCorpseId++}`, sourceType: unit.type, sourceOwner: unit.owner,
       sourceUnitId: unit.id,
@@ -496,22 +537,49 @@
       return;
     }
     setDuelPose(attacker, target, false);
-    activeNode(attacker, "is-active", 900); activeNode(attacker, "is-attacking", 430);
+    activeNode(attacker, "is-active", 900);
     const legionColor = LEGIONS[legionsOf(attacker.type)[0]]?.color || "#a66cff";
     const maximum = Math.max(...dice);
     const ultimate = ["advanced", "hero"].includes(def(attacker.type).grade) && rolled === maximum;
     if (ultimate) { scene.classList.add("is-ultimate"); announce(`${def(attacker.type).label} · 최대 일격`); await delay(240); }
-    await delay(190);
-    slashAt(target, legionColor); activeNode(target, "is-hit", 260); scene.classList.add("is-shaking"); setTimeout(() => scene.classList.remove("is-shaking"), 230);
 
     let damage = rolled;
     const frenzy = hasActiveLegion(attacker, "demon") && Math.random() < .3;
     if (frenzy) damage *= 2;
-    target.hp -= damage; state.damage += attacker.owner === "player" ? damage : 0; state.actions += 1;
-    floatingText(target, damage > 0 ? `-${damage}${frenzy ? " 폭주" : ""}` : "MISS", damage ? "" : "is-zero");
-    tone(damage >= 3 ? "kill" : "hit");
-    log(`${def(attacker.type).label} → ${def(target.type).label}: ${damage} 피해${frenzy ? " (폭주)" : ""}`);
-    renderStatus(); await delay(310);
+    let impacted = false;
+    let targetMotion = null;
+    const impact = () => {
+      if (impacted || !target.alive) return;
+      impacted = true;
+      slashAt(target, legionColor);
+      scene.classList.add("is-shaking");
+      setTimeout(() => scene.classList.remove("is-shaking"), 230);
+      target.hp -= damage;
+      state.damage += attacker.owner === "player" ? damage : 0;
+      state.actions += 1;
+      floatingText(target, damage > 0 ? "-" + damage + (frenzy ? " 폭주" : "") : "MISS", damage ? "" : "is-zero");
+      tone(damage >= 3 ? "kill" : "hit");
+      log(def(attacker.type).label + " → " + def(target.type).label + ": " + damage + " 피해" + (frenzy ? " (폭주)" : ""));
+      renderStatus();
+      if (target.hp > 0 && hasUnitMotion(target)) targetMotion = playUnitMotion(target, "hit");
+      else if (target.hp > 0) activeNode(target, "is-hit", 260);
+    };
+
+    let animated = false;
+    if (hasUnitMotion(attacker)) {
+      const impactFrame = window.V2Motion.impactFrame(attacker.type);
+      animated = await playUnitMotion(attacker, "attack", {
+        onFrame: (frame) => { if (frame === impactFrame) impact(); }
+      });
+    }
+    if (!animated) {
+      activeNode(attacker, "is-attacking", 430);
+      await delay(190);
+      impact();
+    }
+    if (!impacted) impact();
+    if (targetMotion) await targetMotion;
+    else await delay(310);
     if (ultimate) scene.classList.remove("is-ultimate");
 
     if (target.hp <= 0) { await killUnit(target); return; }

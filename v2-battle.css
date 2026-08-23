@@ -61,6 +61,9 @@ body {
 .fighter:nth-child(4) { height: 51%; z-index: 0; }
 .fighter-art { width: 100%; height: 100%; object-fit: contain; object-position: center bottom; user-select: none; }
 .army-player .fighter-art { transform: scaleX(-1); }
+.fighter-art.is-motion-sprite { transform: none; }
+.army-enemy .fighter-art.is-motion-sprite { transform: scaleX(-1); }
+.fighter.is-motion-dead { opacity: .38; filter: grayscale(.72) brightness(.6) drop-shadow(0 8px 5px #000); pointer-events: none; }
 .fighter-name { position: absolute; left: 50%; bottom: -3px; translate: -50% 0; max-width: 100%; padding: 3px 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: rgba(5,5,7,.86); border-radius: 3px; font-size: 9px; font-weight: 900; }
 .health-wrap { position: absolute; left: 10%; right: 10%; bottom: 17px; height: 8px; border: 2px solid #15121a; border-radius: 2px; background: #211820; overflow: hidden; }
 .health-fill { display: block; width: 100%; height: 100%; background: linear-gradient(90deg, #159c4a, #60df7f); transition: width 240ms ease; }
@@ -92,6 +95,8 @@ body {
 .fighter.is-dead { animation: fighter-death 650ms ease forwards; }
 .army-player .fighter.is-attacking { animation: player-lunge 420ms cubic-bezier(.2,.9,.35,1) both; }
 .army-enemy .fighter.is-attacking { animation: enemy-lunge 420ms cubic-bezier(.2,.9,.35,1) both; }
+.fighter.is-motion-dead .fighter-name,
+.fighter.is-motion-dead .health-wrap { opacity: 0; }
 
 .clash-line { position: absolute; left: 50%; bottom: 10%; top: 39%; width: 1px; background: linear-gradient(transparent, rgba(221,183,255,.65), transparent); opacity: .34; }
 .clash-line i { position: absolute; top: 51%; left: 50%; width: 5px; height: 5px; translate: -50% -50%; border-radius: 50%; background: #fff; box-shadow: 0 0 22px 8px #9d56e7; }

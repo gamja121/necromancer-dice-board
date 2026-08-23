@@ -1,10 +1,14 @@
-const CACHE_NAME = "necromancer-expedition-v54";
+const CACHE_NAME = "necromancer-expedition-v55";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./v2.html",
-  "./v2-battle.css?v=5",
-  "./v2-battle.js?v=8",
+  "./v2-animation-practice.html",
+  "./v2-animation-practice.css",
+  "./v2-animation-practice.js",
+  "./v2-battle.css?v=6",
+  "./v2-motion.js?v=1",
+  "./v2-battle.js?v=9",
   "./styles.css?v=43",
   "./ultimate-vfx.css?v=43",
   "./dice-overlay.css?v=46",
@@ -18,6 +22,8 @@ const APP_SHELL = [
   "./manifest.webmanifest?v=20260726-10",
   "./assets/app-icon-192.png",
   "./assets/app-icon-512.png",
+  "./art/v2-style/animation-practice/goblin-motion-sheet.jpg",
+  "./art/v2-style/animation-practice/minotaur-motion-sheet.jpg",
   "./assets/v2-battle-castle.png",
   "./art/v2-style/processed/192/ancient-treant.png",
   "./art/v2-style/processed/192/bone-golem.png",
