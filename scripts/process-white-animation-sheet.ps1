@@ -113,19 +113,25 @@ public static class WhiteAnimationSheetProcessor
             int top = horizontal[topIndex];
             double topRatio = (double)top / source.Height;
             if (topRatio < topRanges[row, 0] || topRatio > topRanges[row, 1]) continue;
-            for (int bottomIndex = topIndex + 1; bottomIndex < horizontal.Count; bottomIndex++)
+            var bottomCandidates = new List<int>();
+            for (int candidateIndex = topIndex + 1; candidateIndex < horizontal.Count; candidateIndex++)
+                bottomCandidates.Add(horizontal[candidateIndex]);
+            if (row == 2 && (bottomCandidates.Count == 0 || bottomCandidates[bottomCandidates.Count - 1] < source.Height - 2))
+                bottomCandidates.Add(source.Height - 1);
+            for (int bottomIndex = 0; bottomIndex < bottomCandidates.Count; bottomIndex++)
             {
-                int bottom = horizontal[bottomIndex];
+                int bottom = bottomCandidates[bottomIndex];
                 int frameHeight = bottom - top;
                 if (frameHeight < source.Height * .17 || frameHeight > source.Height * .46) continue;
                 var topRuns = HorizontalRuns(source, top);
                 var bottomRuns = HorizontalRuns(source, bottom);
                 var frames = new List<Rectangle>();
-                if (topRuns.Count == expected && bottomRuns.Count >= expected - 1 && bottomRuns.Count <= expected + 2)
+                bool imageEdgeIsBottom = bottom >= source.Height - 2;
+                if (topRuns.Count == expected && (imageEdgeIsBottom || (bottomRuns.Count >= expected - 1 && bottomRuns.Count <= expected + 2)))
                 {
                     for (int index = 0; index < expected; index++)
                     {
-                        const int inset = 4;
+                        const int inset = 6;
                         Span upper = topRuns[index];
                         int left = upper.Start + inset;
                         int right = upper.End - inset;
@@ -149,6 +155,23 @@ public static class WhiteAnimationSheetProcessor
     {
         using (var crop = source.Clone(rectangle, PixelFormat.Format32bppArgb))
         {
+            // Some uploaded sheets are clipped at the image edge, leaving part of the
+            // printed frame box inside the crop. Remove only long, dark, straight runs
+            // close to an edge; character contours are shorter and irregular.
+            int edgeBand = Math.Min(42, Math.Min(crop.Width, crop.Height) / 5);
+            for (int y = crop.Height - edgeBand; y < crop.Height; y++)
+            {
+                int longest = 0, run = 0;
+                for (int x = 0; x < crop.Width; x++)
+                {
+                    if (IsLine(crop.GetPixel(x, y))) { run++; longest = Math.Max(longest, run); }
+                    else run = 0;
+                }
+                if (longest < crop.Width * .60) continue;
+                for (int clearY = Math.Max(0, y - 3); clearY <= Math.Min(crop.Height - 1, y + 3); clearY++)
+                    for (int x = 0; x < crop.Width; x++) crop.SetPixel(x, clearY, Color.Transparent);
+            }
+
             int left = crop.Width, top = crop.Height, right = -1, bottom = -1;
             for (int y = 0; y < crop.Height; y++)
             {
@@ -199,31 +222,38 @@ public static class WhiteAnimationSheetProcessor
             using (var graphics = Graphics.FromImage(source)) graphics.DrawImageUnscaled(sourceFile, 0, 0);
             string[] motions = { "attack", "hit", "death" };
             int[] counts = { 5, 4, 6 };
-            var attackFrames = new List<Bitmap>();
+            var previewFrames = new List<List<Bitmap>>();
             for (int row = 0; row < 3; row++)
             {
+                var motionFrames = new List<Bitmap>();
                 var rectangles = DetectFrames(source, row, counts[row]);
                 for (int index = 0; index < rectangles.Count; index++)
                 {
                     Bitmap frame = Extract(source, rectangles[index]);
                     string output = Path.Combine(outputDirectory, motions[row] + "-" + (index + 1).ToString("00") + ".png");
                     frame.Save(output, ImageFormat.Png);
-                    if (row == 0) attackFrames.Add(frame); else frame.Dispose();
+                    motionFrames.Add(frame);
                 }
+                previewFrames.Add(motionFrames);
             }
             if (!String.IsNullOrWhiteSpace(previewPath))
             {
-                using (var preview = new Bitmap(1100, 230, PixelFormat.Format32bppArgb))
+                using (var preview = new Bitmap(1100, 660, PixelFormat.Format32bppArgb))
                 using (var graphics = Graphics.FromImage(preview))
                 {
                     graphics.Clear(Color.FromArgb(45, 17, 12));
                     graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                    for (int index = 0; index < attackFrames.Count; index++)
-                        graphics.DrawImage(attackFrames[index], new Rectangle(index * 220 + 8, 4, 214, 214));
+                    for (int row = 0; row < previewFrames.Count; row++)
+                    {
+                        int cellWidth = 1100 / previewFrames[row].Count;
+                        for (int index = 0; index < previewFrames[row].Count; index++)
+                            graphics.DrawImage(previewFrames[row][index], new Rectangle(index * cellWidth + 4, row * 220 + 4, cellWidth - 8, 212));
+                    }
                     preview.Save(previewPath, ImageFormat.Png);
                 }
             }
-            foreach (Bitmap frame in attackFrames) frame.Dispose();
+            foreach (var motionFrames in previewFrames)
+                foreach (Bitmap frame in motionFrames) frame.Dispose();
         }
     }
 }

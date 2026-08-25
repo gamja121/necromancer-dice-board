@@ -8,6 +8,18 @@
   ];
   const GRADE_LABELS = { normal: "일반", advanced: "고급", hero: "영웅", special: "특수" };
   const MOTION_LABELS = { attack: "공격", hit: "피격", death: "사망" };
+  const TEST_FRAME_ROOT = "art/v2-style/animation-test-frames/";
+  const TEST_FRAME_UNITS = Object.freeze({
+    goblinSoldier: "goblin-soldier",
+    demonDeathKnight: "death-knight",
+    spear: "skeleton-spear",
+    ragingTreant: "raging-treant",
+    stoneGolem: "stone-golem"
+  });
+  const TEST_FRAME_COUNTS = Object.freeze({ attack: 5, hit: 4, death: 6 });
+  const TEST_FRAME_MS = Object.freeze({ attack: 105, hit: 88, death: 118 });
+  const preparedTestFrames = new Map();
+  let testPlaySequence = 0;
   const units = window.V2Motion.registeredTypes().filter((type) => window.UNIT_TYPES[type]);
   const state = { type: "ghoul", token: 0, busy: false, battlefield: -1 };
   const el = {
@@ -22,6 +34,39 @@
   };
 
   function definition(type) { return window.UNIT_TYPES[type] || {}; }
+  function loadImage(url) {
+    return new Promise((resolve, reject) => {
+      const image = new Image(); image.onload = () => resolve(url); image.onerror = reject; image.src = url;
+    });
+  }
+  function prepareUnit(type) {
+    const folder = TEST_FRAME_UNITS[type];
+    if (!folder) return window.V2Motion.prepare(type);
+    if (preparedTestFrames.has(type)) return preparedTestFrames.get(type);
+    const pathFor = (motion, index) => `${TEST_FRAME_ROOT}${folder}/${motion}-${String(index + 1).padStart(2, "0")}.png`;
+    const frames = Object.fromEntries(Object.entries(TEST_FRAME_COUNTS).map(([motion, count]) => [
+      motion, Array.from({ length: count }, (_, index) => pathFor(motion, index))
+    ]));
+    frames.idle = frames.attack[frames.attack.length - 1];
+    const promise = Promise.all([...frames.attack, ...frames.hit, ...frames.death].map(loadImage)).then(() => frames)
+      .catch((error) => { preparedTestFrames.delete(type); throw error; });
+    preparedTestFrames.set(type, promise); return promise;
+  }
+  async function playPreparedTest(type, sprite, motion, options = {}) {
+    const frames = await prepareUnit(type); const guard = options.guard || (() => true);
+    if (!frames || !guard()) return false;
+    const playId = `test-${++testPlaySequence}`; sprite.dataset.motionPlayId = playId;
+    const sequence = frames[motion]; const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    const indices = reducedMotion ? [Math.min(2, sequence.length - 1), sequence.length - 1] : sequence.map((_, index) => index);
+    for (const index of [...new Set(indices)]) {
+      if (!guard() || sprite.dataset.motionPlayId !== playId) return false;
+      sprite.src = sequence[index]; options.onFrame?.(index, sequence.length);
+      await new Promise((resolve) => setTimeout(resolve, reducedMotion ? 1 : TEST_FRAME_MS[motion]));
+    }
+    if (guard() && sprite.dataset.motionPlayId === playId && motion !== "death") sprite.src = frames.idle;
+    if (sprite.dataset.motionPlayId === playId) delete sprite.dataset.motionPlayId;
+    return true;
+  }
   function artCandidates(type) {
     const file = String(definition(type).image || "assets/skeleton-spear.jpg").split("/").pop().replace(/\.jpg$/i, ".png");
     return [`art/v2-style/processed/192/${file}?v=20260825-originals1`, `art/processed/192/${file}`, definition(type).image];
@@ -68,7 +113,7 @@
     el.counter.textContent = "준비 중";
     el.status.textContent = `${data.label || type} 모션을 불러오고 있습니다.`;
     try {
-      const frames = await window.V2Motion.prepare(type);
+      const frames = await prepareUnit(type);
       if (token !== state.token) return;
       el.sprite.onerror = null; el.sprite.src = frames.idle;
       el.sprite.classList.add("is-motion-sprite");
@@ -90,7 +135,8 @@
     el.sprite.className = `is-motion-sprite motion-${motion}`;
     el.status.textContent = `${definition(type).label} ${label} 모션 재생 중`;
     el.counter.textContent = `${label} 준비`;
-    const played = await window.V2Motion.play(type, el.sprite, motion, {
+    const play = TEST_FRAME_UNITS[type] ? playPreparedTest : window.V2Motion.play;
+    const played = await play(type, el.sprite, motion, {
       guard: () => token === state.token,
       onFrame: (index, total) => { el.counter.textContent = `${label} ${index + 1} / ${total}`; }
     }).catch((error) => { console.error(error); return false; });

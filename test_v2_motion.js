@@ -81,8 +81,26 @@ for (const id of ["attackBtn", "hitBtn", "deathBtn"]) {
 }
 assert(!practiceHtml.includes("goblinFighter") && !practiceHtml.includes("minotaurFighter"), "Motion test must show only one unit at a time.");
 assert(practiceSource.includes("window.V2Motion.registeredTypes()"), "Motion test must expose every registered unit.");
-assert(practiceSource.includes("window.V2Motion.play(type, el.sprite, motion"), "Motion test must use the shared battle motion runtime.");
-assert(serviceWorker.includes("necromancer-expedition-v63"), "Service worker cache version was not bumped.");
+assert(practiceSource.includes("window.V2Motion.play"), "Motion test must retain the shared battle motion fallback.");
+const testOnlyFrames = {
+  goblinSoldier: "goblin-soldier",
+  demonDeathKnight: "death-knight",
+  spear: "skeleton-spear",
+  ragingTreant: "raging-treant",
+  stoneGolem: "stone-golem"
+};
+for (const [type, folder] of Object.entries(testOnlyFrames)) {
+  assert(practiceSource.includes(`${type}: "${folder}"`), `Motion test frame mapping is missing: ${type}`);
+  for (const [motionName, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
+    for (let index = 1; index <= count; index += 1) {
+      const relative = `art/v2-style/animation-test-frames/${folder}/${motionName}-${String(index).padStart(2, "0")}.png`;
+      assert(fs.existsSync(path.join(root, relative)), `Motion test frame is missing: ${relative}`);
+    }
+  }
+}
+assert(!motionSource.includes("animation-test-frames"), "Test-approved frames must not leak into the main battle runtime.");
+assert(serviceWorker.includes("necromancer-expedition-v64"), "Service worker cache version was not bumped.");
 assert(serviceWorker.includes("PROCESSED_ANIMATION_FRAMES"), "Processed animation frames must be added to the offline cache.");
+assert(serviceWorker.includes("MOTION_TEST_FRAMES"), "Motion-test frames must be added to the offline cache.");
 
 console.log("SUCCESS: shared V2 attack, hit, and death motion integration checks passed.");
