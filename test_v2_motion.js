@@ -34,6 +34,15 @@ enemyTypes.forEach((type) => {
   assert(motion.frameCount(type, "hit") >= 3, `Hit frames are incomplete: ${type}`);
   assert(motion.frameCount(type, "death") >= 4, `Death frames are incomplete: ${type}`);
   assert(serviceWorker.includes(`./${relativeSheet}`), `Offline cache is missing: ${relativeSheet}`);
+  const processedRoot = motion.frameRoot(type);
+  if (processedRoot) {
+    for (const animation of ["attack", "hit", "death"]) {
+      for (let index = 1; index <= motion.frameCount(type, animation); index += 1) {
+        const frame = path.join(root, "art", "v2-style", "animation-frames", processedRoot, `${animation}-${String(index).padStart(2, "0")}.png`);
+        assert(fs.existsSync(frame), `Processed animation frame is missing: ${frame}`);
+      }
+    }
+  }
 });
 assert(!motion.supports("summoner"), "The separate protagonist art must not consume an enemy sheet.");
 assert(motion.frameCount("goblinSoldier", "attack") === 5, "Goblin attack must have five frames.");
@@ -46,7 +55,7 @@ assert(motion.impactFrame("goblinSoldier") === 3, "Goblin impact frame must be s
 assert(motion.impactFrame("minotaur") === 3, "Minotaur impact frame must be synchronized.");
 
 assert(
-  battleHtml.indexOf("v2-motion.js?v=4") < battleHtml.indexOf("v2-battle.js?v=11"),
+  battleHtml.indexOf("v2-motion.js?v=5") < battleHtml.indexOf("v2-battle.js?v=11"),
   "V2 motion runtime must load before the battle controller."
 );
 assert(battleSource.includes('playUnitMotion(attacker, "attack"'), "Battle attack hook is missing.");
@@ -55,15 +64,16 @@ assert(battleSource.includes('playUnitMotion(unit, "death"'), "Battle death hook
 assert(battleSource.includes("if (!animated)"), "Static animation fallback is missing.");
 assert(!motionSource.includes("removeConnectedBackdrop"), "Dark animation frames must not remove the sheet background.");
 assert(!motionSource.includes("isBackdrop"), "Animation frames must preserve original dark pixels.");
-assert(motionSource.includes("removeConnectedWhiteBackdrop"), "White source sheets must be converted to transparent frames.");
-for (const type of ["ghoul", "minotaur", "yeti", "iceLord", "goblinCommoner"]) {
-  assert(motion.backdrop(type) === "white", `${type} must use its white-background original sheet.`);
+for (const [type, folder] of Object.entries({ ghoul: "ghoul", minotaur: "minotaur", yeti: "yeti", iceLord: "ice-lord", goblinCommoner: "goblin-commoner" })) {
+  assert(motion.backdrop(type) === "processed", `${type} must use preprocessed transparent frames.`);
+  assert(motion.frameRoot(type) === folder, `${type} processed frame folder is incorrect.`);
 }
 assert(
   motionSource.includes("left + 2, y0 + 2") && motionSource.includes("left - 4") && motionSource.includes("y0 - 4"),
   "Animation frames must crop only two pixels inside each sheet cell."
 );
 assert(indexHtml.includes('href="v2-animation-practice.html"'), "Start screen motion lab link is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v61"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v62"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("PROCESSED_ANIMATION_FRAMES"), "Processed animation frames must be added to the offline cache.");
 
 console.log("SUCCESS: shared V2 attack, hit, and death motion integration checks passed.");

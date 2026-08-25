@@ -2,14 +2,16 @@
   "use strict";
 
   const SHEET_ROOT = "art/v2-style/animation-sheets/uploaded-raw/";
+  const FRAME_ROOT = "art/v2-style/animation-frames/";
   const DEFAULT_COUNTS = Object.freeze({ attack: 5, hit: 4, death: 6 });
 
-  function definition(file, counts = {}, backdrop = "dark") {
+  function definition(file, counts = {}, backdrop = "dark", framesRoot = "") {
     const frameCount = { ...DEFAULT_COUNTS, ...counts };
     return {
       sheet: SHEET_ROOT + file + "-animation-sheet.jpg",
       counts: frameCount,
       backdrop,
+      framesRoot,
       frameMs: { attack: 105, hit: 88, death: 118 },
       impactFrame: Math.max(1, Math.min(frameCount.attack - 2, 3))
     };
@@ -18,13 +20,13 @@
   const DEFINITIONS = Object.freeze({
     spear: definition("skeleton-spear"), archer: definition("skeleton-archer"),
     knight: definition("skeleton-cavalry"), worm: definition("grave-worm"),
-    golem: definition("obese-zombie", { hit: 5 }), ghoul: definition("ghoul", {}, "white"),
+    golem: definition("obese-zombie", { hit: 5 }), ghoul: definition("ghoul", {}, "processed", "ghoul"),
     ogre: definition("boulder-ogre"), plague: definition("plague-doctor"),
     plagueFrog: definition("poison-toad"), hydra: definition("hydra"),
-    minotaur: definition("minotaur", {}, "white"), yeti: definition("yeti", {}, "white"),
-    iceLord: definition("ice-lord", {}, "white"), seaWolf: definition("sea-wolf"),
+    minotaur: definition("minotaur", {}, "processed", "minotaur"), yeti: definition("yeti", {}, "processed", "yeti"),
+    iceLord: definition("ice-lord", {}, "processed", "ice-lord"), seaWolf: definition("sea-wolf"),
     spiderQueen: definition("spider-queen"), spiderling: definition("giant-spider", { hit: 5 }),
-    goblinChief: definition("goblin-shaman"), goblinCommoner: definition("goblin-commoner", {}, "white"),
+    goblinChief: definition("goblin-shaman"), goblinCommoner: definition("goblin-commoner", {}, "processed", "goblin-commoner"),
     goblinSoldier: definition("goblin-soldier"), skeletonSummoner: definition("hooded-necromancer"),
     doomExecutor: definition("gargoyle"), abyssEye: definition("cyclops-monster"),
     demonDeathKnight: definition("death-knight"), hellMantis: definition("mantis-monster"),
@@ -170,10 +172,30 @@
     return output.toDataURL("image/png");
   }
 
+  function processedFrames(definitionValue) {
+    const framePath = (motion, index) => (
+      FRAME_ROOT + definitionValue.framesRoot + "/" + motion + "-" + String(index + 1).padStart(2, "0") + ".png"
+    );
+    const frames = {
+      attack: Array.from({ length: definitionValue.counts.attack }, (_, index) => framePath("attack", index)),
+      hit: Array.from({ length: definitionValue.counts.hit }, (_, index) => framePath("hit", index)),
+      death: Array.from({ length: definitionValue.counts.death }, (_, index) => framePath("death", index))
+    };
+    frames.idle = frames.attack[frames.attack.length - 1];
+    return frames;
+  }
+
   function prepare(type) {
     if (!supports(type)) return Promise.resolve(null);
     if (prepared.has(type)) return prepared.get(type);
     const definitionValue = DEFINITIONS[type];
+    if (definitionValue.framesRoot) {
+      const frames = processedFrames(definitionValue);
+      const urls = [...frames.attack, ...frames.hit, ...frames.death];
+      const promise = Promise.all(urls.map((url) => loadImage(url))).then(() => frames)
+        .catch((error) => { prepared.delete(type); throw error; });
+      prepared.set(type, promise); return promise;
+    }
     const promise = loadImage(definitionValue.sheet).then((sheet) => {
       const rectangles = frameRectangles(sheet, definitionValue);
       const frames = {
@@ -221,6 +243,7 @@
     supports, prepare, preload, applyIdle, play,
     registeredTypes: () => Object.keys(DEFINITIONS),
     sheetPath: (type) => DEFINITIONS[type]?.sheet || "",
+    frameRoot: (type) => DEFINITIONS[type]?.framesRoot || "",
     backdrop: (type) => DEFINITIONS[type]?.backdrop || "dark",
     impactFrame: (type) => DEFINITIONS[type]?.impactFrame ?? 0,
     frameCount: (type, motion) => DEFINITIONS[type]?.counts?.[motion] ?? 0

@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-expedition-v61";
+const CACHE_NAME = "necromancer-expedition-v62";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -7,7 +7,7 @@ const APP_SHELL = [
   "./v2-animation-practice.css",
   "./v2-animation-practice.js",
   "./v2-battle.css?v=7",
-  "./v2-motion.js?v=4",
+  "./v2-motion.js?v=5",
   "./v2-battle.js?v=11",
   "./styles.css?v=43",
   "./ultimate-vfx.css?v=43",
@@ -89,6 +89,22 @@ const APP_SHELL = [
   "./art/v2-style/processed/192/totem-plague.png",
   "./art/v2-style/processed/192/totem-plant.png"
 ];
+
+const PROCESSED_ANIMATION_FRAMES = Object.freeze({
+  ghoul: { attack: 5, hit: 4, death: 6 },
+  "ice-lord": { attack: 5, hit: 4, death: 6 },
+  yeti: { attack: 5, hit: 4, death: 6 },
+  minotaur: { attack: 5, hit: 4, death: 6 },
+  "goblin-commoner": { attack: 5, hit: 4, death: 6 }
+});
+
+Object.entries(PROCESSED_ANIMATION_FRAMES).forEach(([unit, counts]) => {
+  Object.entries(counts).forEach(([motion, count]) => {
+    for (let index = 1; index <= count; index += 1) {
+      APP_SHELL.push(`./art/v2-style/animation-frames/${unit}/${motion}-${String(index).padStart(2, "0")}.png`);
+    }
+  });
+});
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
