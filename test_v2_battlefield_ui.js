@@ -19,7 +19,7 @@ const battlefields = [
 
 assert(html.includes('id="battlefieldName"'), "Battlefield plaque is missing from V2.");
 assert(html.includes("v2-battle.css?v=7"), "V2 must load the illustrated UI stylesheet version.");
-assert(html.includes("v2-battle.js?v=10"), "V2 must load the battlefield controller version.");
+assert(html.includes("v2-battle.js?v=11"), "V2 must load the battlefield controller version.");
 assert(css.includes("V2 illustrated wood-and-parchment interface"), "Wood-and-parchment UI theme is missing.");
 assert(css.includes(".battlefield-plaque"), "Battlefield plaque styles are missing.");
 assert(battle.includes("function selectBattlefield()"), "Random battlefield selector is missing.");

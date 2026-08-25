@@ -25,7 +25,8 @@
     "spear", "archer", "knight", "ghoul", "worm", "golem", "plagueFrog", "yeti",
   "minotaur", "iceLord", "spiderQueen", "goblinChief", "doomExecutor", "ancientTreant",
   "abyssEye", "skeletonSummoner", "seaWolf", "goblinSoldier",
-    "scorpionKnight", "hellMantis", "demonDeathKnight", "hydra", "stoneGolem", "kraken", "crystalDevourer"
+    "scorpionKnight", "hellMantis", "demonDeathKnight", "hydra", "stoneGolem", "kraken", "crystalDevourer",
+    "icePrincess", "siren"
   ];
   const LEGIONS = {
     skeleton: { name: "언데드", need: 3, color: "#a66cff" },
@@ -63,7 +64,7 @@
   function artCandidates(type) {
     const file = String(def(type)?.image || "assets/skeleton-spear.jpg").split("/").pop().replace(/\.jpg$/i, ".png");
     return [
-      `art/v2-style/processed/192/${file}?v=20260817-v2`,
+      `art/v2-style/processed/192/${file}?v=20260825-originals1`,
       `art/processed/192/${file}`,
       def(type)?.image || "assets/skeleton-spear.jpg"
     ];

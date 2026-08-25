@@ -730,7 +730,7 @@ assert.strictEqual(batchPatchSnapshot.healedHp, batchPatchSnapshot.healedMaxHp, 
 assert.deepStrictEqual(Array.from(batchPatchSnapshot.hydraLegions), ['plague', 'demon'], '히드라는 역병·악마 이중 군단이어야 함');
 assert.strictEqual(batchPatchSnapshot.hydraMoves, 4, '히드라는 상하좌우 1칸 이동해야 함');
 assert.strictEqual(batchPatchSnapshot.hydraAttacks, 5, '히드라는 전방 3칸과 좌우를 공격해야 함');
-assert.deepStrictEqual(Array.from(batchPatchSnapshot.wormLegions), ['corpse', 'insect'], '묘지 벌래는 시체·벌래 군단이어야 함');
+assert.deepStrictEqual(Array.from(batchPatchSnapshot.wormLegions), ['plague', 'insect'], '역병 벌레는 역병·벌래 군단이어야 함');
 assert.deepStrictEqual(Array.from(batchPatchSnapshot.spiderLegions), ['summon', 'insect'], '거미여왕은 소환·벌래 군단이어야 함');
 console.log('Pass: 확률 합산, 주사위 변환 순서, 토템 회복·1회 부활, 히드라와 벌래 분류 검증 성공.');
 

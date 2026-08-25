@@ -4839,8 +4839,8 @@ function commercialArtPaths(type) {
   const basename = filename?.replace(/\.[^.]+$/, "");
   if (!basename) return null;
   return {
-    preview: `art/processed/192/${basename}.png?v=20260801-art1`,
-    full: `art/approved/${basename}.png?v=20260801-art1`,
+    preview: `art/v2-style/processed/192/${basename}.png?v=20260825-originals1`,
+    full: `${source}?v=20260825-originals1`,
   };
 }
 
