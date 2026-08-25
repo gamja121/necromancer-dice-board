@@ -1,56 +1,50 @@
 (function (root) {
   "use strict";
 
-  const DEFINITIONS = {
-    goblinSoldier: {
-      sheet: "art/v2-style/animation-practice/goblin-motion-sheet.jpg",
-      idle: [1002, 58, 220, 182],
-      attack: [
-        [52, 43, 185, 190], [270, 44, 190, 190], [492, 48, 210, 188],
-        [742, 54, 210, 180], [1001, 53, 210, 184]
-      ],
-      hit: [
-        [55, 245, 185, 174], [287, 244, 190, 174],
-        [526, 250, 190, 169], [769, 250, 190, 169]
-      ],
-      death: [
-        [46, 438, 190, 193], [274, 444, 188, 185], [487, 443, 198, 187],
-        [690, 448, 210, 180], [870, 467, 220, 160], [1041, 486, 226, 145]
-      ],
-      frameMs: { attack: 112, hit: 92, death: 125 },
-      impactFrame: 3
-    },
-    minotaur: {
-      sheet: "art/v2-style/animation-practice/minotaur-motion-sheet.jpg",
-      idle: [1037, 42, 226, 184],
-      attack: [
-        [45, 28, 198, 199], [277, 27, 197, 199], [500, 31, 220, 196],
-        [742, 41, 220, 188], [1009, 39, 235, 188]
-      ],
-      hit: [
-        [46, 255, 207, 174], [281, 254, 210, 175],
-        [526, 256, 205, 173], [779, 258, 210, 170]
-      ],
-      death: [
-        [45, 459, 205, 194], [273, 454, 205, 196], [485, 469, 211, 184],
-        [671, 484, 220, 169], [839, 505, 218, 145]
-      ],
-      frameMs: { attack: 132, hit: 105, death: 145 },
-      impactFrame: 3
-    }
-  };
+  const SHEET_ROOT = "art/v2-style/animation-sheets/uploaded-raw/";
+  const DEFAULT_COUNTS = Object.freeze({ attack: 5, hit: 4, death: 6 });
+
+  function definition(file, counts = {}) {
+    const frameCount = { ...DEFAULT_COUNTS, ...counts };
+    return {
+      sheet: SHEET_ROOT + file + "-animation-sheet.jpg",
+      counts: frameCount,
+      frameMs: { attack: 105, hit: 88, death: 118 },
+      impactFrame: Math.max(1, Math.min(frameCount.attack - 2, 3))
+    };
+  }
+
+  const DEFINITIONS = Object.freeze({
+    spear: definition("skeleton-spear"), archer: definition("skeleton-archer"),
+    knight: definition("skeleton-cavalry"), worm: definition("grave-worm"),
+    golem: definition("obese-zombie", { hit: 5 }), ghoul: definition("ghoul"),
+    ogre: definition("boulder-ogre"), plague: definition("plague-doctor"),
+    plagueFrog: definition("poison-toad"), hydra: definition("hydra"),
+    minotaur: definition("minotaur"), yeti: definition("yeti"),
+    iceLord: definition("ice-lord"), seaWolf: definition("sea-wolf"),
+    spiderQueen: definition("spider-queen"), spiderling: definition("giant-spider", { hit: 5 }),
+    goblinChief: definition("goblin-shaman"), goblinCommoner: definition("goblin-commoner"),
+    goblinSoldier: definition("goblin-soldier"), skeletonSummoner: definition("hooded-necromancer"),
+    doomExecutor: definition("gargoyle"), abyssEye: definition("cyclops-monster"),
+    demonDeathKnight: definition("death-knight"), hellMantis: definition("mantis-monster"),
+    scorpionKnight: definition("scorpion-warrior", { hit: 3 }), ancientTreant: definition("treant"),
+    stoneGolem: definition("stone-golem"), kraken: definition("octopus-monster"),
+    crystalDevourer: definition("carnivorous-flower", { hit: 5 }),
+    guardianSeed: definition("guardian-seed", { hit: 3, death: 4 }),
+    ragingTreant: definition("raging-treant"), cerberus: definition("cerberus"),
+    poisonMushroom: definition("mushroom-monster"), goblinRider: definition("goblin-rider", { death: 5 }),
+    abyssHarpy: definition("harpy", { attack: 4, death: 5 }), troll: definition("orc-warrior"),
+    boneGolem: definition("blood-skeleton", { hit: 5 }), forestFairy: definition("forest-fairy"),
+    mummyGuardian: definition("mummy"), soulReaper: definition("reaper"),
+    boneHound: definition("undead-hound"), mimic: definition("mimic"),
+    icePrincess: definition("ice-princess", { attack: 6 }), siren: definition("siren")
+  });
 
   const prepared = new Map();
   let playSequence = 0;
 
-  function wait(ms) {
-    return new Promise((resolve) => root.setTimeout(() => resolve(true), ms));
-  }
-
-  function supports(type) {
-    return Object.prototype.hasOwnProperty.call(DEFINITIONS, type);
-  }
-
+  function wait(ms) { return new Promise((resolve) => root.setTimeout(() => resolve(true), ms)); }
+  function supports(type) { return Object.prototype.hasOwnProperty.call(DEFINITIONS, type); }
   function loadImage(src) {
     return new Promise((resolve, reject) => {
       const image = new root.Image();
@@ -60,112 +54,172 @@
     });
   }
 
-  function cropFrame(sheet, rect) {
-    const [sx, sy, sw, sh] = rect;
-    const sample = root.document.createElement("canvas");
-    sample.width = sw;
-    sample.height = sh;
-    const sampleContext = sample.getContext("2d", { willReadFrequently: true });
-    sampleContext.drawImage(sheet, sx, sy, sw, sh, 0, 0, sw, sh);
-    const pixels = sampleContext.getImageData(0, 0, sw, sh);
-    let minX = sw;
-    let minY = sh;
-    let maxX = -1;
-    let maxY = -1;
-
-    for (let y = 0; y < sh; y += 1) {
-      for (let x = 0; x < sw; x += 1) {
-        const index = (y * sw + x) * 4;
-        const red = pixels.data[index];
-        const green = pixels.data[index + 1];
-        const blue = pixels.data[index + 2];
-        const whiteness = Math.min(red, green, blue);
-        const spread = Math.max(red, green, blue) - whiteness;
-        if (whiteness > 245 && spread < 8) pixels.data[index + 3] = 0;
-        else if (whiteness > 224 && spread < 16) {
-          pixels.data[index + 3] = Math.max(0, 255 - (whiteness - 224) * 8);
-        }
-        if (pixels.data[index + 3] > 24) {
-          minX = Math.min(minX, x);
-          minY = Math.min(minY, y);
-          maxX = Math.max(maxX, x);
-          maxY = Math.max(maxY, y);
-        }
+  function lineCandidates(pixels, width, y0, y1) {
+    const candidates = [];
+    const sampleCount = Math.max(1, Math.ceil((y1 - y0) / 3));
+    for (let x = 0; x < width; x += 1) {
+      let matches = 0;
+      for (let y = y0; y < y1; y += 3) {
+        const index = (y * width + x) * 4;
+        const red = pixels[index]; const green = pixels[index + 1]; const blue = pixels[index + 2];
+        const high = Math.max(red, green, blue); const low = Math.min(red, green, blue);
+        if (high >= 42 && high <= 230 && high - low <= 28) matches += 1;
+      }
+      const score = matches / sampleCount;
+      if (score >= .46) candidates.push({ x, score });
+    }
+    const groups = [];
+    for (const candidate of candidates) {
+      const last = groups[groups.length - 1];
+      if (!last || candidate.x - last.end > 2) groups.push({ start: candidate.x, end: candidate.x, best: candidate });
+      else {
+        last.end = candidate.x;
+        if (candidate.score > last.best.score) last.best = candidate;
       }
     }
-    sampleContext.putImageData(pixels, 0, 0);
+    return groups.map((group) => ({ x: Math.round((group.start + group.end) / 2), score: group.best.score }));
+  }
 
-    const output = root.document.createElement("canvas");
-    output.width = 384;
-    output.height = 384;
+  function chooseBoundaries(candidates, count, width, rowIndex) {
+    const usable = candidates.filter((item) => item.x >= width * .045 && item.x <= width * .998);
+    let best = null;
+    for (const start of usable.filter((item) => item.x <= width * .18)) {
+      for (const end of usable.filter((item) => item.x >= start.x + width * .42)) {
+        const step = (end.x - start.x) / count;
+        if (step < width * .105 || step > width * .255) continue;
+        const chosen = [start];
+        let error = Math.abs(start.x - width * .08) / width;
+        let valid = true;
+        for (let index = 1; index < count; index += 1) {
+          const target = start.x + step * index;
+          const nearest = usable.reduce((current, item) => (
+            Math.abs(item.x - target) < Math.abs(current.x - target) ? item : current
+          ), usable[0]);
+          const distance = Math.abs(nearest.x - target);
+          if (distance > width * .045 || chosen.includes(nearest)) { valid = false; break; }
+          chosen.push(nearest); error += distance / step;
+        }
+        if (!valid) continue;
+        chosen.push(end);
+        const scoreBonus = chosen.reduce((sum, item) => sum + item.score, 0) * .025;
+        const rightPreference = rowIndex === 1 ? 0 : Math.abs(end.x - width * .992) / width * .3;
+        const result = { points: chosen.map((item) => item.x), error: error + rightPreference - scoreBonus };
+        if (!best || result.error < best.error) best = result;
+      }
+    }
+    if (best) return best.points;
+    const start = Math.round(width * .08);
+    const end = Math.round(width * (rowIndex === 1 ? Math.min(.98, .08 + count * .18) : .99));
+    return Array.from({ length: count + 1 }, (_, index) => Math.round(start + (end - start) * index / count));
+  }
+
+  function frameRectangles(sheet, definitionValue) {
+    const scan = root.document.createElement("canvas");
+    scan.width = sheet.naturalWidth || sheet.width; scan.height = sheet.naturalHeight || sheet.height;
+    const context = scan.getContext("2d", { willReadFrequently: true });
+    context.drawImage(sheet, 0, 0);
+    const pixels = context.getImageData(0, 0, scan.width, scan.height).data;
+    const motions = ["attack", "hit", "death"]; const result = {};
+    motions.forEach((motion, rowIndex) => {
+      const y0 = Math.round(scan.height * rowIndex / 3); const y1 = Math.round(scan.height * (rowIndex + 1) / 3);
+      const candidates = lineCandidates(pixels, scan.width, y0 + 3, y1 - 3);
+      const boundaries = chooseBoundaries(candidates, definitionValue.counts[motion], scan.width, rowIndex);
+      result[motion] = boundaries.slice(0, -1).map((left, index) => [
+        left + 4, y0 + 4, Math.max(8, boundaries[index + 1] - left - 8), Math.max(8, y1 - y0 - 8)
+      ]);
+    });
+    return result;
+  }
+
+  function isBackdrop(data, index) {
+    const red = data[index]; const green = data[index + 1]; const blue = data[index + 2];
+    const high = Math.max(red, green, blue); const low = Math.min(red, green, blue);
+    return high < 94 && high - low < 32;
+  }
+
+  function removeConnectedBackdrop(pixels, width, height) {
+    const data = pixels.data; const visited = new Uint8Array(width * height); const queue = new Int32Array(width * height);
+    let head = 0; let tail = 0;
+    const enqueue = (x, y) => {
+      const pixel = y * width + x;
+      if (visited[pixel] || !isBackdrop(data, pixel * 4)) return;
+      visited[pixel] = 1; queue[tail++] = pixel;
+    };
+    for (let x = 0; x < width; x += 1) { enqueue(x, 0); enqueue(x, height - 1); }
+    for (let y = 1; y < height - 1; y += 1) { enqueue(0, y); enqueue(width - 1, y); }
+    while (head < tail) {
+      const pixel = queue[head++]; const x = pixel % width; const y = Math.floor(pixel / width);
+      if (x > 0) enqueue(x - 1, y); if (x + 1 < width) enqueue(x + 1, y);
+      if (y > 0) enqueue(x, y - 1); if (y + 1 < height) enqueue(x, y + 1);
+    }
+    for (let pixel = 0; pixel < visited.length; pixel += 1) if (visited[pixel]) data[pixel * 4 + 3] = 0;
+  }
+
+  function cropFrame(sheet, rect) {
+    const [sx, sy, sw, sh] = rect;
+    const sample = root.document.createElement("canvas"); sample.width = sw; sample.height = sh;
+    const sampleContext = sample.getContext("2d", { willReadFrequently: true });
+    sampleContext.drawImage(sheet, sx, sy, sw, sh, 0, 0, sw, sh);
+    const pixels = sampleContext.getImageData(0, 0, sw, sh); removeConnectedBackdrop(pixels, sw, sh);
+    let minX = sw; let minY = sh; let maxX = -1; let maxY = -1;
+    for (let y = 0; y < sh; y += 1) for (let x = 0; x < sw; x += 1) {
+      const index = (y * sw + x) * 4;
+      if (pixels.data[index + 3] <= 24) continue;
+      const high = Math.max(pixels.data[index], pixels.data[index + 1], pixels.data[index + 2]);
+      const low = Math.min(pixels.data[index], pixels.data[index + 1], pixels.data[index + 2]);
+      if (high < 52 && high - low < 18) continue;
+      minX = Math.min(minX, x); minY = Math.min(minY, y); maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+    }
+    sampleContext.putImageData(pixels, 0, 0);
+    const output = root.document.createElement("canvas"); output.width = 384; output.height = 384;
     if (maxX < minX || maxY < minY) return output.toDataURL("image/png");
-    const boundsWidth = maxX - minX + 1;
-    const boundsHeight = maxY - minY + 1;
-    const scale = Math.min(332 / boundsWidth, 332 / boundsHeight);
-    const drawWidth = boundsWidth * scale;
-    const drawHeight = boundsHeight * scale;
-    output.getContext("2d").drawImage(
-      sample, minX, minY, boundsWidth, boundsHeight,
-      (384 - drawWidth) / 2, 374 - drawHeight, drawWidth, drawHeight
-    );
+    const boundsWidth = maxX - minX + 1; const boundsHeight = maxY - minY + 1;
+    const scale = Math.min(350 / boundsWidth, 350 / boundsHeight);
+    const drawWidth = boundsWidth * scale; const drawHeight = boundsHeight * scale;
+    output.getContext("2d").drawImage(sample, minX, minY, boundsWidth, boundsHeight,
+      (384 - drawWidth) / 2, 376 - drawHeight, drawWidth, drawHeight);
     return output.toDataURL("image/png");
   }
 
   function prepare(type) {
     if (!supports(type)) return Promise.resolve(null);
     if (prepared.has(type)) return prepared.get(type);
-    const definition = DEFINITIONS[type];
-    const promise = loadImage(definition.sheet).then((sheet) => ({
-      idle: cropFrame(sheet, definition.idle),
-      attack: definition.attack.map((rect) => cropFrame(sheet, rect)),
-      hit: definition.hit.map((rect) => cropFrame(sheet, rect)),
-      death: definition.death.map((rect) => cropFrame(sheet, rect))
-    })).catch((error) => {
-      prepared.delete(type);
-      throw error;
-    });
-    prepared.set(type, promise);
-    return promise;
+    const definitionValue = DEFINITIONS[type];
+    const promise = loadImage(definitionValue.sheet).then((sheet) => {
+      const rectangles = frameRectangles(sheet, definitionValue);
+      const frames = {
+        attack: rectangles.attack.map((rect) => cropFrame(sheet, rect)),
+        hit: rectangles.hit.map((rect) => cropFrame(sheet, rect)),
+        death: rectangles.death.map((rect) => cropFrame(sheet, rect))
+      };
+      frames.idle = frames.attack[frames.attack.length - 1]; return frames;
+    }).catch((error) => { prepared.delete(type); throw error; });
+    prepared.set(type, promise); return promise;
   }
 
   async function applyIdle(type, sprite, options = {}) {
     if (!supports(type) || !sprite) return false;
-    const frames = await prepare(type);
-    const guard = options.guard || (() => true);
+    const frames = await prepare(type); const guard = options.guard || (() => true);
     if (!frames || !guard() || sprite.dataset.motionPlayId) return false;
-    sprite.classList.add("is-motion-sprite");
-    sprite.src = frames.idle;
-    return true;
+    sprite.classList.add("is-motion-sprite"); sprite.src = frames.idle; return true;
   }
 
   async function play(type, sprite, motion, options = {}) {
     if (!supports(type) || !sprite || !["attack", "hit", "death"].includes(motion)) return false;
-    const frames = await prepare(type);
-    const definition = DEFINITIONS[type];
-    const guard = options.guard || (() => true);
-    const waitFor = options.wait || wait;
+    const frames = await prepare(type); const definitionValue = DEFINITIONS[type];
+    const guard = options.guard || (() => true); const waitFor = options.wait || wait;
     if (!frames || !guard()) return false;
-
-    const playId = String(++playSequence);
-    sprite.dataset.motionPlayId = playId;
-    sprite.classList.add("is-motion-sprite");
-    const sequence = frames[motion];
-    const reducedMotion = root.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-    const indices = reducedMotion
-      ? [Math.min(definition.impactFrame, sequence.length - 1), sequence.length - 1]
+    const playId = String(++playSequence); sprite.dataset.motionPlayId = playId; sprite.classList.add("is-motion-sprite");
+    const sequence = frames[motion]; const reducedMotion = root.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    const indices = reducedMotion ? [Math.min(definitionValue.impactFrame, sequence.length - 1), sequence.length - 1]
       : sequence.map((_, index) => index);
-
     for (const index of [...new Set(indices)]) {
       if (!guard() || sprite.dataset.motionPlayId !== playId) return false;
-      sprite.src = sequence[index];
-      options.onFrame?.(index, sequence.length);
-      const continued = await waitFor(reducedMotion ? 1 : definition.frameMs[motion]);
+      sprite.src = sequence[index]; options.onFrame?.(index, sequence.length);
+      const continued = await waitFor(reducedMotion ? 1 : definitionValue.frameMs[motion]);
       if (continued === false) return false;
     }
-
-    if (guard() && sprite.dataset.motionPlayId === playId && motion !== "death") {
-      sprite.src = frames.idle;
-    }
+    if (guard() && sprite.dataset.motionPlayId === playId && motion !== "death") sprite.src = frames.idle;
     if (sprite.dataset.motionPlayId === playId) delete sprite.dataset.motionPlayId;
     return true;
   }
@@ -175,12 +229,10 @@
   }
 
   root.V2Motion = Object.freeze({
-    supports,
-    prepare,
-    preload,
-    applyIdle,
-    play,
+    supports, prepare, preload, applyIdle, play,
+    registeredTypes: () => Object.keys(DEFINITIONS),
+    sheetPath: (type) => DEFINITIONS[type]?.sheet || "",
     impactFrame: (type) => DEFINITIONS[type]?.impactFrame ?? 0,
-    frameCount: (type, motion) => DEFINITIONS[type]?.[motion]?.length ?? 0
+    frameCount: (type, motion) => DEFINITIONS[type]?.counts?.[motion] ?? 0
   });
 })(window);
