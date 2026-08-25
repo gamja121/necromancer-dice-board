@@ -46,14 +46,20 @@ assert(motion.impactFrame("goblinSoldier") === 3, "Goblin impact frame must be s
 assert(motion.impactFrame("minotaur") === 3, "Minotaur impact frame must be synchronized.");
 
 assert(
-  battleHtml.indexOf("v2-motion.js?v=2") < battleHtml.indexOf("v2-battle.js?v=11"),
+  battleHtml.indexOf("v2-motion.js?v=3") < battleHtml.indexOf("v2-battle.js?v=11"),
   "V2 motion runtime must load before the battle controller."
 );
 assert(battleSource.includes('playUnitMotion(attacker, "attack"'), "Battle attack hook is missing.");
 assert(battleSource.includes('playUnitMotion(target, "hit"'), "Battle hit hook is missing.");
 assert(battleSource.includes('playUnitMotion(unit, "death"'), "Battle death hook is missing.");
 assert(battleSource.includes("if (!animated)"), "Static animation fallback is missing.");
+assert(!motionSource.includes("removeConnectedBackdrop"), "Animation frames must not remove the sheet background.");
+assert(!motionSource.includes("isBackdrop"), "Animation frames must preserve original dark pixels.");
+assert(
+  motionSource.includes("left + 2, y0 + 2") && motionSource.includes("left - 4") && motionSource.includes("y0 - 4"),
+  "Animation frames must crop only two pixels inside each sheet cell."
+);
 assert(indexHtml.includes('href="v2-animation-practice.html"'), "Start screen motion lab link is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v59"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v60"), "Service worker cache version was not bumped.");
 
 console.log("SUCCESS: shared V2 attack, hit, and death motion integration checks passed.");

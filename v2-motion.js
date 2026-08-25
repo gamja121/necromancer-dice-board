@@ -125,59 +125,16 @@
       const candidates = lineCandidates(pixels, scan.width, y0 + 3, y1 - 3);
       const boundaries = chooseBoundaries(candidates, definitionValue.counts[motion], scan.width, rowIndex);
       result[motion] = boundaries.slice(0, -1).map((left, index) => [
-        left + 4, y0 + 4, Math.max(8, boundaries[index + 1] - left - 8), Math.max(8, y1 - y0 - 8)
+        left + 2, y0 + 2, Math.max(8, boundaries[index + 1] - left - 4), Math.max(8, y1 - y0 - 4)
       ]);
     });
     return result;
   }
 
-  function isBackdrop(data, index) {
-    const red = data[index]; const green = data[index + 1]; const blue = data[index + 2];
-    const high = Math.max(red, green, blue); const low = Math.min(red, green, blue);
-    return high < 94 && high - low < 32;
-  }
-
-  function removeConnectedBackdrop(pixels, width, height) {
-    const data = pixels.data; const visited = new Uint8Array(width * height); const queue = new Int32Array(width * height);
-    let head = 0; let tail = 0;
-    const enqueue = (x, y) => {
-      const pixel = y * width + x;
-      if (visited[pixel] || !isBackdrop(data, pixel * 4)) return;
-      visited[pixel] = 1; queue[tail++] = pixel;
-    };
-    for (let x = 0; x < width; x += 1) { enqueue(x, 0); enqueue(x, height - 1); }
-    for (let y = 1; y < height - 1; y += 1) { enqueue(0, y); enqueue(width - 1, y); }
-    while (head < tail) {
-      const pixel = queue[head++]; const x = pixel % width; const y = Math.floor(pixel / width);
-      if (x > 0) enqueue(x - 1, y); if (x + 1 < width) enqueue(x + 1, y);
-      if (y > 0) enqueue(x, y - 1); if (y + 1 < height) enqueue(x, y + 1);
-    }
-    for (let pixel = 0; pixel < visited.length; pixel += 1) if (visited[pixel]) data[pixel * 4 + 3] = 0;
-  }
-
   function cropFrame(sheet, rect) {
     const [sx, sy, sw, sh] = rect;
-    const sample = root.document.createElement("canvas"); sample.width = sw; sample.height = sh;
-    const sampleContext = sample.getContext("2d", { willReadFrequently: true });
-    sampleContext.drawImage(sheet, sx, sy, sw, sh, 0, 0, sw, sh);
-    const pixels = sampleContext.getImageData(0, 0, sw, sh); removeConnectedBackdrop(pixels, sw, sh);
-    let minX = sw; let minY = sh; let maxX = -1; let maxY = -1;
-    for (let y = 0; y < sh; y += 1) for (let x = 0; x < sw; x += 1) {
-      const index = (y * sw + x) * 4;
-      if (pixels.data[index + 3] <= 24) continue;
-      const high = Math.max(pixels.data[index], pixels.data[index + 1], pixels.data[index + 2]);
-      const low = Math.min(pixels.data[index], pixels.data[index + 1], pixels.data[index + 2]);
-      if (high < 52 && high - low < 18) continue;
-      minX = Math.min(minX, x); minY = Math.min(minY, y); maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
-    }
-    sampleContext.putImageData(pixels, 0, 0);
-    const output = root.document.createElement("canvas"); output.width = 384; output.height = 384;
-    if (maxX < minX || maxY < minY) return output.toDataURL("image/png");
-    const boundsWidth = maxX - minX + 1; const boundsHeight = maxY - minY + 1;
-    const scale = Math.min(350 / boundsWidth, 350 / boundsHeight);
-    const drawWidth = boundsWidth * scale; const drawHeight = boundsHeight * scale;
-    output.getContext("2d").drawImage(sample, minX, minY, boundsWidth, boundsHeight,
-      (384 - drawWidth) / 2, 376 - drawHeight, drawWidth, drawHeight);
+    const output = root.document.createElement("canvas"); output.width = sw; output.height = sh;
+    output.getContext("2d").drawImage(sheet, sx, sy, sw, sh, 0, 0, sw, sh);
     return output.toDataURL("image/png");
   }
 
