@@ -46,20 +46,24 @@ assert(motion.impactFrame("goblinSoldier") === 3, "Goblin impact frame must be s
 assert(motion.impactFrame("minotaur") === 3, "Minotaur impact frame must be synchronized.");
 
 assert(
-  battleHtml.indexOf("v2-motion.js?v=3") < battleHtml.indexOf("v2-battle.js?v=11"),
+  battleHtml.indexOf("v2-motion.js?v=4") < battleHtml.indexOf("v2-battle.js?v=11"),
   "V2 motion runtime must load before the battle controller."
 );
 assert(battleSource.includes('playUnitMotion(attacker, "attack"'), "Battle attack hook is missing.");
 assert(battleSource.includes('playUnitMotion(target, "hit"'), "Battle hit hook is missing.");
 assert(battleSource.includes('playUnitMotion(unit, "death"'), "Battle death hook is missing.");
 assert(battleSource.includes("if (!animated)"), "Static animation fallback is missing.");
-assert(!motionSource.includes("removeConnectedBackdrop"), "Animation frames must not remove the sheet background.");
+assert(!motionSource.includes("removeConnectedBackdrop"), "Dark animation frames must not remove the sheet background.");
 assert(!motionSource.includes("isBackdrop"), "Animation frames must preserve original dark pixels.");
+assert(motionSource.includes("removeConnectedWhiteBackdrop"), "White source sheets must be converted to transparent frames.");
+for (const type of ["ghoul", "minotaur", "yeti", "iceLord", "goblinCommoner"]) {
+  assert(motion.backdrop(type) === "white", `${type} must use its white-background original sheet.`);
+}
 assert(
   motionSource.includes("left + 2, y0 + 2") && motionSource.includes("left - 4") && motionSource.includes("y0 - 4"),
   "Animation frames must crop only two pixels inside each sheet cell."
 );
 assert(indexHtml.includes('href="v2-animation-practice.html"'), "Start screen motion lab link is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v60"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v61"), "Service worker cache version was not bumped.");
 
 console.log("SUCCESS: shared V2 attack, hit, and death motion integration checks passed.");

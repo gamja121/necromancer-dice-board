@@ -4,11 +4,12 @@
   const SHEET_ROOT = "art/v2-style/animation-sheets/uploaded-raw/";
   const DEFAULT_COUNTS = Object.freeze({ attack: 5, hit: 4, death: 6 });
 
-  function definition(file, counts = {}) {
+  function definition(file, counts = {}, backdrop = "dark") {
     const frameCount = { ...DEFAULT_COUNTS, ...counts };
     return {
       sheet: SHEET_ROOT + file + "-animation-sheet.jpg",
       counts: frameCount,
+      backdrop,
       frameMs: { attack: 105, hit: 88, death: 118 },
       impactFrame: Math.max(1, Math.min(frameCount.attack - 2, 3))
     };
@@ -17,13 +18,13 @@
   const DEFINITIONS = Object.freeze({
     spear: definition("skeleton-spear"), archer: definition("skeleton-archer"),
     knight: definition("skeleton-cavalry"), worm: definition("grave-worm"),
-    golem: definition("obese-zombie", { hit: 5 }), ghoul: definition("ghoul"),
+    golem: definition("obese-zombie", { hit: 5 }), ghoul: definition("ghoul", {}, "white"),
     ogre: definition("boulder-ogre"), plague: definition("plague-doctor"),
     plagueFrog: definition("poison-toad"), hydra: definition("hydra"),
-    minotaur: definition("minotaur"), yeti: definition("yeti"),
-    iceLord: definition("ice-lord"), seaWolf: definition("sea-wolf"),
+    minotaur: definition("minotaur", {}, "white"), yeti: definition("yeti", {}, "white"),
+    iceLord: definition("ice-lord", {}, "white"), seaWolf: definition("sea-wolf"),
     spiderQueen: definition("spider-queen"), spiderling: definition("giant-spider", { hit: 5 }),
-    goblinChief: definition("goblin-shaman"), goblinCommoner: definition("goblin-commoner"),
+    goblinChief: definition("goblin-shaman"), goblinCommoner: definition("goblin-commoner", {}, "white"),
     goblinSoldier: definition("goblin-soldier"), skeletonSummoner: definition("hooded-necromancer"),
     doomExecutor: definition("gargoyle"), abyssEye: definition("cyclops-monster"),
     demonDeathKnight: definition("death-knight"), hellMantis: definition("mantis-monster"),
@@ -131,10 +132,41 @@
     return result;
   }
 
-  function cropFrame(sheet, rect) {
+  function removeConnectedWhiteBackdrop(pixels, width, height) {
+    const data = pixels.data;
+    const visited = new Uint8Array(width * height);
+    const queue = new Int32Array(width * height);
+    let head = 0; let tail = 0;
+    const enqueue = (x, y) => {
+      const pixel = y * width + x;
+      if (visited[pixel]) return;
+      const index = pixel * 4;
+      const red = data[index]; const green = data[index + 1]; const blue = data[index + 2];
+      if (Math.min(red, green, blue) < 232 || Math.max(red, green, blue) - Math.min(red, green, blue) > 20) return;
+      visited[pixel] = 1; queue[tail++] = pixel;
+    };
+    for (let x = 0; x < width; x += 1) { enqueue(x, 0); enqueue(x, height - 1); }
+    for (let y = 1; y < height - 1; y += 1) { enqueue(0, y); enqueue(width - 1, y); }
+    while (head < tail) {
+      const pixel = queue[head++]; const x = pixel % width; const y = Math.floor(pixel / width);
+      if (x > 0) enqueue(x - 1, y); if (x + 1 < width) enqueue(x + 1, y);
+      if (y > 0) enqueue(x, y - 1); if (y + 1 < height) enqueue(x, y + 1);
+    }
+    for (let pixel = 0; pixel < visited.length; pixel += 1) {
+      if (visited[pixel]) data[pixel * 4 + 3] = 0;
+    }
+  }
+
+  function cropFrame(sheet, rect, backdrop) {
     const [sx, sy, sw, sh] = rect;
     const output = root.document.createElement("canvas"); output.width = sw; output.height = sh;
-    output.getContext("2d").drawImage(sheet, sx, sy, sw, sh, 0, 0, sw, sh);
+    const context = output.getContext("2d", { willReadFrequently: backdrop === "white" });
+    context.drawImage(sheet, sx, sy, sw, sh, 0, 0, sw, sh);
+    if (backdrop === "white") {
+      const pixels = context.getImageData(0, 0, sw, sh);
+      removeConnectedWhiteBackdrop(pixels, sw, sh);
+      context.putImageData(pixels, 0, 0);
+    }
     return output.toDataURL("image/png");
   }
 
@@ -145,9 +177,9 @@
     const promise = loadImage(definitionValue.sheet).then((sheet) => {
       const rectangles = frameRectangles(sheet, definitionValue);
       const frames = {
-        attack: rectangles.attack.map((rect) => cropFrame(sheet, rect)),
-        hit: rectangles.hit.map((rect) => cropFrame(sheet, rect)),
-        death: rectangles.death.map((rect) => cropFrame(sheet, rect))
+        attack: rectangles.attack.map((rect) => cropFrame(sheet, rect, definitionValue.backdrop)),
+        hit: rectangles.hit.map((rect) => cropFrame(sheet, rect, definitionValue.backdrop)),
+        death: rectangles.death.map((rect) => cropFrame(sheet, rect, definitionValue.backdrop))
       };
       frames.idle = frames.attack[frames.attack.length - 1]; return frames;
     }).catch((error) => { prepared.delete(type); throw error; });
@@ -189,6 +221,7 @@
     supports, prepare, preload, applyIdle, play,
     registeredTypes: () => Object.keys(DEFINITIONS),
     sheetPath: (type) => DEFINITIONS[type]?.sheet || "",
+    backdrop: (type) => DEFINITIONS[type]?.backdrop || "dark",
     impactFrame: (type) => DEFINITIONS[type]?.impactFrame ?? 0,
     frameCount: (type, motion) => DEFINITIONS[type]?.counts?.[motion] ?? 0
   });
