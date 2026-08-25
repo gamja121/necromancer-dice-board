@@ -11,6 +11,8 @@ const motionSource = fs.readFileSync(path.join(root, "v2-motion.js"), "utf8");
 const battleSource = fs.readFileSync(path.join(root, "v2-battle.js"), "utf8");
 const battleHtml = fs.readFileSync(path.join(root, "v2.html"), "utf8");
 const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
+const practiceHtml = fs.readFileSync(path.join(root, "v2-animation-practice.html"), "utf8");
+const practiceSource = fs.readFileSync(path.join(root, "v2-animation-practice.js"), "utf8");
 const serviceWorker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
 const unitData = require("./unit-data.js");
 
@@ -72,8 +74,15 @@ assert(
   motionSource.includes("left + 2, y0 + 2") && motionSource.includes("left - 4") && motionSource.includes("y0 - 4"),
   "Animation frames must crop only two pixels inside each sheet cell."
 );
-assert(indexHtml.includes('href="v2-animation-practice.html"'), "Start screen motion lab link is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v62"), "Service worker cache version was not bumped.");
+assert(indexHtml.includes('href="v2-animation-practice.html">모션 테스트</a>'), "Start screen motion test link is missing.");
+assert(practiceHtml.includes('id="unitSelect"'), "Motion test unit selector is missing.");
+for (const id of ["attackBtn", "hitBtn", "deathBtn"]) {
+  assert(practiceHtml.includes(`id="${id}"`), `Motion test control is missing: ${id}`);
+}
+assert(!practiceHtml.includes("goblinFighter") && !practiceHtml.includes("minotaurFighter"), "Motion test must show only one unit at a time.");
+assert(practiceSource.includes("window.V2Motion.registeredTypes()"), "Motion test must expose every registered unit.");
+assert(practiceSource.includes("window.V2Motion.play(type, el.sprite, motion"), "Motion test must use the shared battle motion runtime.");
+assert(serviceWorker.includes("necromancer-expedition-v63"), "Service worker cache version was not bumped.");
 assert(serviceWorker.includes("PROCESSED_ANIMATION_FRAMES"), "Processed animation frames must be added to the offline cache.");
 
 console.log("SUCCESS: shared V2 attack, hit, and death motion integration checks passed.");
