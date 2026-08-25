@@ -34,7 +34,7 @@ assert(motion.impactFrame("goblinSoldier") === 3, "Goblin impact frame must be s
 assert(motion.impactFrame("minotaur") === 3, "Minotaur impact frame must be synchronized.");
 
 assert(
-  battleHtml.indexOf("v2-motion.js?v=1") < battleHtml.indexOf("v2-battle.js?v=9"),
+  battleHtml.indexOf("v2-motion.js?v=1") < battleHtml.indexOf("v2-battle.js?v=10"),
   "V2 motion runtime must load before the battle controller."
 );
 assert(battleSource.includes('playUnitMotion(attacker, "attack"'), "Battle attack hook is missing.");
@@ -42,7 +42,7 @@ assert(battleSource.includes('playUnitMotion(target, "hit"'), "Battle hit hook i
 assert(battleSource.includes('playUnitMotion(unit, "death"'), "Battle death hook is missing.");
 assert(battleSource.includes("if (!animated)"), "Static animation fallback is missing.");
 assert(indexHtml.includes('href="v2-animation-practice.html"'), "Start screen motion lab link is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v56"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v57"), "Service worker cache version was not bumped.");
 assert(serviceWorker.includes("goblin-motion-sheet.jpg"), "Goblin motion sheet is not cached.");
 assert(serviceWorker.includes("minotaur-motion-sheet.jpg"), "Minotaur motion sheet is not cached.");
 

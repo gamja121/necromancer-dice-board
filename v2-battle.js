@@ -4,6 +4,23 @@
   const MAX_SQUAD = 4;
   const DEFAULT_SQUAD = ["spear", "knight", "ghoul"];
   const ENEMY_SQUAD = ["goblinSoldier", "ogre", "plagueFrog", "archer"];
+  const BATTLEFIELDS = [
+    {
+      id: "wasteland-chasm",
+      name: "황무지 협곡",
+      image: "art/v2-style/battle-backgrounds/uploaded-raw/wasteland-chasm-battlefield.jpg"
+    },
+    {
+      id: "haunted-forest-ruins",
+      name: "유령 숲 유적",
+      image: "art/v2-style/battle-backgrounds/uploaded-raw/haunted-forest-ruins-battlefield.jpg"
+    },
+    {
+      id: "necropolis-pyramids",
+      name: "사령 피라미드",
+      image: "art/v2-style/battle-backgrounds/uploaded-raw/necropolis-pyramids-battlefield.jpg"
+    }
+  ];
   const ROSTER = [
     "spear", "archer", "knight", "ghoul", "worm", "golem", "plagueFrog", "yeti",
   "minotaur", "iceLord", "spiderQueen", "goblinChief", "doomExecutor", "ancientTreant",
@@ -29,7 +46,8 @@
     chosen: DEFAULT_SQUAD.slice(), player: [], enemy: [], round: 1, soul: 0,
     paused: false, speed: 1, muted: false, ended: false, battleId: 0,
     actions: 0, damage: 0, kills: 0, feed: [], targetRequest: null, rollRequest: null,
-    corpses: [], nextCorpseId: 1, inspected: null, summoning: false
+    corpses: [], nextCorpseId: 1, inspected: null, summoning: false,
+    battlefield: null
   };
   let audioContext = null;
   const DIE_LANDING = [
@@ -64,6 +82,15 @@
       }
       img.src = candidates[index];
     };
+  }
+  function selectBattlefield() {
+    const choices = BATTLEFIELDS.filter((field) => field.id !== state.battlefield?.id);
+    const pool = choices.length ? choices : BATTLEFIELDS;
+    const field = pool[Math.floor(Math.random() * pool.length)];
+    state.battlefield = field;
+    scene.style.backgroundImage = `url("${field.image}")`;
+    scene.dataset.battlefield = field.id;
+    el("battlefieldName").textContent = field.name;
   }
   function delay(ms, token = state.battleId) {
     return new Promise((resolve) => {
@@ -649,6 +676,7 @@
   function startBattle() {
     cancelPendingInteractions();
     state.battleId += 1; const token = state.battleId;
+    selectBattlefield();
     state.player = state.chosen.map((type, index) => createUnit(type, "player", index));
     state.enemy = ENEMY_SQUAD.slice(0, Math.max(3, state.chosen.length)).map((type, index) => createUnit(type, "enemy", index));
     state.round = 1; state.soul = 0; state.paused = false; state.ended = false; state.actions = 0; state.damage = 0; state.kills = 0; state.feed = [];

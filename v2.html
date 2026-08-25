@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#100d19">
   <meta name="mobile-web-app-capable" content="yes">
   <title>네크로멘서 V2 전투 프로토타입</title>
-  <link rel="stylesheet" href="v2-battle.css?v=6">
+  <link rel="stylesheet" href="v2-battle.css?v=7">
 </head>
 <body>
   <main class="v2-app">
@@ -25,6 +25,10 @@
     <section class="battle-shell" aria-label="직접 조작 전투 화면">
       <div class="battle-scene" id="battleScene">
         <div class="scene-vignette"></div>
+        <div class="battlefield-plaque" aria-live="polite">
+          <span>전장</span>
+          <strong id="battlefieldName">망자의 폐허</strong>
+        </div>
         <div class="round-display"><span>ROUND</span><strong id="roundText">1</strong></div>
         <div class="legion-ribbon player-ribbon" id="playerLegion">언데드</div>
         <div class="legion-ribbon enemy-ribbon" id="enemyLegion">야수</div>
@@ -124,6 +128,6 @@
 
   <script src="unit-data.js?v=44"></script>
   <script src="v2-motion.js?v=1"></script>
-  <script src="v2-battle.js?v=9"></script>
+  <script src="v2-battle.js?v=10"></script>
 </body>
 </html>
