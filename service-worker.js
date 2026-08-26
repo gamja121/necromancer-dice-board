@@ -1,11 +1,11 @@
-const CACHE_NAME = "necromancer-expedition-v64";
+const CACHE_NAME = "necromancer-expedition-v65";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./v2.html",
   "./v2-animation-practice.html",
   "./v2-animation-practice.css?v=2",
-  "./v2-animation-practice.js?v=3",
+  "./v2-animation-practice.js?v=4",
   "./v2-battle.css?v=7",
   "./v2-motion.js?v=5",
   "./v2-battle.js?v=11",
@@ -107,7 +107,7 @@ Object.entries(PROCESSED_ANIMATION_FRAMES).forEach(([unit, counts]) => {
 });
 
 const MOTION_TEST_FRAMES = Object.freeze([
-  "goblin-soldier", "death-knight", "skeleton-spear", "raging-treant", "stone-golem"
+  "ghoul", "goblin-soldier", "death-knight", "skeleton-spear", "raging-treant", "stone-golem"
 ]);
 
 MOTION_TEST_FRAMES.forEach((unit) => {

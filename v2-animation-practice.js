@@ -10,6 +10,7 @@
   const MOTION_LABELS = { attack: "공격", hit: "피격", death: "사망" };
   const TEST_FRAME_ROOT = "art/v2-style/animation-test-frames/";
   const TEST_FRAME_UNITS = Object.freeze({
+    ghoul: "ghoul",
     goblinSoldier: "goblin-soldier",
     demonDeathKnight: "death-knight",
     spear: "skeleton-spear",
