@@ -75,34 +75,26 @@ assert(
   "Animation frames must crop only two pixels inside each sheet cell."
 );
 assert(indexHtml.includes('href="v2-animation-practice.html">모션 테스트</a>'), "Start screen motion test link is missing.");
-assert(practiceHtml.includes('id="unitSelect"'), "Motion test unit selector is missing.");
 for (const id of ["attackBtn", "hitBtn", "deathBtn"]) {
   assert(practiceHtml.includes(`id="${id}"`), `Motion test control is missing: ${id}`);
 }
-assert(!practiceHtml.includes("goblinFighter") && !practiceHtml.includes("minotaurFighter"), "Motion test must show only one unit at a time.");
-assert(practiceSource.includes("window.V2Motion.registeredTypes()"), "Motion test must expose every registered unit.");
-assert(practiceSource.includes("window.V2Motion.play"), "Motion test must retain the shared battle motion fallback.");
-assert(practiceSource.includes('type === "ghoul" ? frames.attack[0]'), "Ghoul idle must not retain the red final attack effect.");
-const testOnlyFrames = {
-  ghoul: "ghoul",
-  goblinSoldier: "goblin-soldier",
-  demonDeathKnight: "death-knight",
-  spear: "skeleton-spear",
-  ragingTreant: "raging-treant",
-  stoneGolem: "stone-golem"
-};
-for (const [type, folder] of Object.entries(testOnlyFrames)) {
-  assert(practiceSource.includes(`${type}: "${folder}"`), `Motion test frame mapping is missing: ${type}`);
+assert(practiceHtml.includes('id="jpgSprite"') && practiceHtml.includes('id="pngSprite"'), "Ghoul comparison sprites are missing.");
+assert(!practiceHtml.includes('id="unitSelect"'), "Comparison lab must not expose unrelated units.");
+assert(practiceSource.includes('jpg: "art/v2-style/animation-test-crops/ghoul-magenta-jpg-test-v3/"'), "JPG comparison source is missing.");
+assert(practiceSource.includes('png: "art/v2-style/animation-test-crops/ghoul-magenta-png-test/"'), "PNG comparison source is missing.");
+assert(practiceSource.includes("el.jpg.src = frameSets.jpg[motion][index]") && practiceSource.includes("el.png.src = frameSets.png[motion][index]"), "Comparison motions must advance in lockstep.");
+for (const folder of ["ghoul-magenta-jpg-test-v3", "ghoul-magenta-png-test"]) {
   for (const [motionName, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
     for (let index = 1; index <= count; index += 1) {
-      const relative = `art/v2-style/animation-test-frames/${folder}/${motionName}-${String(index).padStart(2, "0")}.png`;
-      assert(fs.existsSync(path.join(root, relative)), `Motion test frame is missing: ${relative}`);
+      const relative = `art/v2-style/animation-test-crops/${folder}/${motionName}-${String(index).padStart(2, "0")}.png`;
+      assert(fs.existsSync(path.join(root, relative)), `Comparison frame is missing: ${relative}`);
     }
   }
 }
 assert(!motionSource.includes("animation-test-frames"), "Test-approved frames must not leak into the main battle runtime.");
-assert(serviceWorker.includes("necromancer-expedition-v66"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v67"), "Service worker cache version was not bumped.");
 assert(serviceWorker.includes("PROCESSED_ANIMATION_FRAMES"), "Processed animation frames must be added to the offline cache.");
 assert(serviceWorker.includes("MOTION_TEST_FRAMES"), "Motion-test frames must be added to the offline cache.");
+assert(serviceWorker.includes("GHOUL_COMPARISON_FRAME_ROOTS"), "Ghoul comparison frames must be added to the offline cache.");
 
 console.log("SUCCESS: shared V2 attack, hit, and death motion integration checks passed.");

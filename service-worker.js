@@ -1,11 +1,11 @@
-const CACHE_NAME = "necromancer-expedition-v66";
+const CACHE_NAME = "necromancer-expedition-v67";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./v2.html",
   "./v2-animation-practice.html",
-  "./v2-animation-practice.css?v=2",
-  "./v2-animation-practice.js?v=5",
+  "./v2-animation-practice.css?v=3",
+  "./v2-animation-practice.js?v=6",
   "./v2-battle.css?v=7",
   "./v2-motion.js?v=5",
   "./v2-battle.js?v=11",
@@ -114,6 +114,18 @@ MOTION_TEST_FRAMES.forEach((unit) => {
   Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
     for (let index = 1; index <= count; index += 1) {
       APP_SHELL.push(`./art/v2-style/animation-test-frames/${unit}/${motion}-${String(index).padStart(2, "0")}.png`);
+    }
+  });
+});
+
+const GHOUL_COMPARISON_FRAME_ROOTS = Object.freeze([
+  "ghoul-magenta-jpg-test-v3", "ghoul-magenta-png-test"
+]);
+
+GHOUL_COMPARISON_FRAME_ROOTS.forEach((folder) => {
+  Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
+    for (let index = 1; index <= count; index += 1) {
+      APP_SHELL.push(`./art/v2-style/animation-test-crops/${folder}/${motion}-${String(index).padStart(2, "0")}.png`);
     }
   });
 });
