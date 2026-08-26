@@ -48,7 +48,7 @@
     const frames = Object.fromEntries(Object.entries(TEST_FRAME_COUNTS).map(([motion, count]) => [
       motion, Array.from({ length: count }, (_, index) => pathFor(motion, index))
     ]));
-    frames.idle = frames.attack[frames.attack.length - 1];
+    frames.idle = type === "ghoul" ? frames.attack[0] : frames.attack[frames.attack.length - 1];
     const promise = Promise.all([...frames.attack, ...frames.hit, ...frames.death].map(loadImage)).then(() => frames)
       .catch((error) => { preparedTestFrames.delete(type); throw error; });
     preparedTestFrames.set(type, promise); return promise;

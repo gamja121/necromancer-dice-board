@@ -82,6 +82,7 @@ for (const id of ["attackBtn", "hitBtn", "deathBtn"]) {
 assert(!practiceHtml.includes("goblinFighter") && !practiceHtml.includes("minotaurFighter"), "Motion test must show only one unit at a time.");
 assert(practiceSource.includes("window.V2Motion.registeredTypes()"), "Motion test must expose every registered unit.");
 assert(practiceSource.includes("window.V2Motion.play"), "Motion test must retain the shared battle motion fallback.");
+assert(practiceSource.includes('type === "ghoul" ? frames.attack[0]'), "Ghoul idle must not retain the red final attack effect.");
 const testOnlyFrames = {
   ghoul: "ghoul",
   goblinSoldier: "goblin-soldier",
@@ -100,7 +101,7 @@ for (const [type, folder] of Object.entries(testOnlyFrames)) {
   }
 }
 assert(!motionSource.includes("animation-test-frames"), "Test-approved frames must not leak into the main battle runtime.");
-assert(serviceWorker.includes("necromancer-expedition-v65"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v66"), "Service worker cache version was not bumped.");
 assert(serviceWorker.includes("PROCESSED_ANIMATION_FRAMES"), "Processed animation frames must be added to the offline cache.");
 assert(serviceWorker.includes("MOTION_TEST_FRAMES"), "Motion-test frames must be added to the offline cache.");
 
