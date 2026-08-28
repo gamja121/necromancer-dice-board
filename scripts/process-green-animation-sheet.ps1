@@ -104,6 +104,26 @@ public static class GreenAnimationProcessor
 
     private static Rectangle[][] GetCells(string unitName)
     {
+        if (String.Equals(unitName, "goblin-rider", StringComparison.OrdinalIgnoreCase))
+        {
+            return new Rectangle[][] {
+                new Rectangle[] {
+                    Rectangle.FromLTRB(75, 0, 355, 210), Rectangle.FromLTRB(356, 0, 615, 210),
+                    Rectangle.FromLTRB(616, 0, 830, 210), Rectangle.FromLTRB(831, 0, 1060, 210),
+                    Rectangle.FromLTRB(1061, 0, 1280, 210)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(75, 211, 340, 407), Rectangle.FromLTRB(341, 211, 590, 407),
+                    Rectangle.FromLTRB(591, 211, 830, 407), Rectangle.FromLTRB(831, 211, 1060, 407)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(75, 408, 330, 575), Rectangle.FromLTRB(331, 408, 580, 575),
+                    Rectangle.FromLTRB(581, 408, 810, 575), Rectangle.FromLTRB(811, 408, 1050, 575),
+                    Rectangle.FromLTRB(1051, 408, 1280, 575)
+                }
+            };
+        }
+
         if (String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase))
         {
             return new Rectangle[][] {
@@ -194,6 +214,7 @@ public static class GreenAnimationProcessor
             string[] names = { "attack", "hit", "death" };
             int[] counts = String.Equals(unitName, "skeleton-spear", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
+                || String.Equals(unitName, "goblin-rider", StringComparison.OrdinalIgnoreCase)
                 ? new int[] { 5, 4, 5 }
                 : new int[] { 5, 4, 6 };
 
@@ -227,6 +248,7 @@ public static class GreenAnimationProcessor
         const int columns = 6, cellWidth = 280, cellHeight = 250, headerHeight = 64;
         int[] counts = String.Equals(unitName, "skeleton-spear", StringComparison.OrdinalIgnoreCase)
             || String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
+            || String.Equals(unitName, "goblin-rider", StringComparison.OrdinalIgnoreCase)
             ? new int[] { 5, 4, 5 }
             : new int[] { 5, 4, 6 };
         string[] labels = { "ATTACK", "HIT", "DEATH" };
