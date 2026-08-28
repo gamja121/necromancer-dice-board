@@ -46,6 +46,9 @@ for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
     assert(fs.existsSync(path.join(root, relative)), `Death Knight frame is missing: ${relative}`);
   }
 }
+assert(!fs.existsSync(path.join(root, "art/v2-style/animation-test-frames/boulder-ogre/death-06.png")), "Boulder Ogre death frame 6 must not be used.");
+assert(practiceSource.includes('state.unit === "boulder-ogre" && motion === "attack" && index === 1'), "Boulder Ogre attack frame 2 enlargement condition is missing.");
+assert(practiceSource.includes('"scale(1.3)"'), "Boulder Ogre attack frame 2 must be enlarged to 1.3x.");
 for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 5 })) {
   for (let index = 1; index <= count; index += 1) {
     const relative = `art/v2-style/animation-test-frames/stone-golem/${motion}-${String(index).padStart(2, "0")}.png`;
@@ -66,7 +69,7 @@ for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 5 })) {
   }
 }
 assert(!fs.existsSync(path.join(root, "art/v2-style/animation-test-frames/orc-warrior/death-06.png")), "Orc Warrior death frame 6 must not be used.");
-for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
+for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 5 })) {
   for (let index = 1; index <= count; index += 1) {
     const relative = `art/v2-style/animation-test-frames/boulder-ogre/${motion}-${String(index).padStart(2, "0")}.png`;
     assert(fs.existsSync(path.join(root, relative)), `Boulder Ogre frame is missing: ${relative}`);
@@ -100,7 +103,7 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/st
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/goblin-rider-animation-sheet.jpg")), "New raw Goblin Rider sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/orc-warrior-animation-sheet.jpg")), "New raw Orc Warrior sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/boulder-ogre-animation-sheet.jpg")), "New raw Boulder Ogre sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v77"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v78"), "Service worker cache version was not bumped.");
 assert(!serviceWorker.includes("animation-sheets/uploaded-raw"), "Deleted legacy animation sheets remain in offline cache.");
 assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
 for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {

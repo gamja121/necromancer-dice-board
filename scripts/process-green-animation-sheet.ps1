@@ -270,6 +270,7 @@ public static class GreenAnimationProcessor
                 || String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "goblin-rider", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "orc-warrior", StringComparison.OrdinalIgnoreCase)
+                || String.Equals(unitName, "boulder-ogre", StringComparison.OrdinalIgnoreCase)
                 ? new int[] { 5, 4, 5 }
                 : new int[] { 5, 4, 6 };
 
@@ -314,6 +315,7 @@ public static class GreenAnimationProcessor
             || String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
             || String.Equals(unitName, "goblin-rider", StringComparison.OrdinalIgnoreCase)
             || String.Equals(unitName, "orc-warrior", StringComparison.OrdinalIgnoreCase)
+            || String.Equals(unitName, "boulder-ogre", StringComparison.OrdinalIgnoreCase)
             ? new int[] { 5, 4, 5 }
             : new int[] { 5, 4, 6 };
         string[] labels = { "ATTACK", "HIT", "DEATH" };

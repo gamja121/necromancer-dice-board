@@ -12,7 +12,7 @@
     "stone-golem": { name: "암석 골렘", root: "art/v2-style/animation-test-frames/stone-golem/", counts: { attack: 5, hit: 4, death: 5 } },
     "goblin-rider": { name: "고블린 라이더", root: "art/v2-style/animation-test-frames/goblin-rider/", counts: { attack: 5, hit: 4, death: 5 } },
     "orc-warrior": { name: "오크 전사", root: "art/v2-style/animation-test-frames/orc-warrior/", counts: { attack: 5, hit: 4, death: 5 } },
-    "boulder-ogre": { name: "오우거", root: "art/v2-style/animation-test-frames/boulder-ogre/", counts: { attack: 5, hit: 4, death: 6 } }
+    "boulder-ogre": { name: "오우거", root: "art/v2-style/animation-test-frames/boulder-ogre/", counts: { attack: 5, hit: 4, death: 5 } }
   });
   const FRAME_MS = Object.freeze({ attack: 145, hit: 135, death: 175 });
   const MOTION_LABELS = Object.freeze({ attack: "공격", hit: "피격", death: "사망" });
@@ -44,6 +44,8 @@
   function setIdle() {
     el.sprite.src = frameSets.idle;
     el.sprite.className = "";
+    el.sprite.style.transform = "";
+    el.sprite.style.transformOrigin = "";
     el.counter.textContent = "대기 자세";
   }
   function selectBattlefield(forceNext = false) {
@@ -88,6 +90,9 @@
     for (let index = 0; index < frames.length; index += 1) {
       if (token !== state.token) return;
       el.sprite.src = frames[index];
+      const enlargeBoulderOgreAttack = state.unit === "boulder-ogre" && motion === "attack" && index === 1;
+      el.sprite.style.transform = enlargeBoulderOgreAttack ? "scale(1.3)" : "";
+      el.sprite.style.transformOrigin = enlargeBoulderOgreAttack ? "center bottom" : "";
       el.counter.textContent = `${label} ${index + 1} / ${frames.length}`;
       await new Promise((resolve) => setTimeout(resolve, FRAME_MS[motion]));
     }
