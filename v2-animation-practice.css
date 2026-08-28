@@ -15,6 +15,7 @@ h1 { margin: 2px 0 0; font-size: clamp(24px, 6vw, 34px); }
 .stage-heading strong { color: #f2d5a7; font-size: 18px; }
 .stage-heading span { color: #cbbda8; font-size: 12px; font-weight: 800; }
 .compare-units { position: absolute; z-index: 2; inset: 70px 2% 60px; display: grid; grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr); }
+.compare-units.single-unit { left: 16%; right: 16%; grid-template-columns: minmax(0, 1fr); }
 .compare-divider { margin: 26px 0 18px; background: linear-gradient(transparent, #e0bc7f99 18%, #e0bc7f99 82%, transparent); box-shadow: 0 0 12px #000; }
 .compare-unit { position: relative; min-width: 0; margin: 0; }
 .compare-unit h2 { position: absolute; z-index: 4; top: 0; left: 50%; display: flex; align-items: baseline; gap: 6px; transform: translateX(-50%); width: max-content; margin: 0; padding: 5px 9px; border: 1px solid #74543d; background: #140d0cd9; }
@@ -39,6 +40,7 @@ h1 { margin: 2px 0 0; font-size: clamp(24px, 6vw, 34px); }
   .compare-note { font-size: 11px; }
   .motion-stage { height: 58vh; min-height: 410px; }
   .compare-units { inset: 64px 0 55px; }
+  .compare-units.single-unit { left: 8%; right: 8%; }
   .compare-unit h2 { gap: 3px; padding: 4px 6px; }
   .compare-unit h2 b { font-size: 15px; }
   .compare-unit h2 span { display: none; }

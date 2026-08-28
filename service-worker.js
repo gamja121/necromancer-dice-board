@@ -1,11 +1,11 @@
-const CACHE_NAME = "necromancer-expedition-v67";
+const CACHE_NAME = "necromancer-expedition-v68";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./v2.html",
   "./v2-animation-practice.html",
-  "./v2-animation-practice.css?v=3",
-  "./v2-animation-practice.js?v=6",
+  "./v2-animation-practice.css?v=4",
+  "./v2-animation-practice.js?v=7",
   "./v2-battle.css?v=7",
   "./v2-motion.js?v=5",
   "./v2-battle.js?v=11",
@@ -22,50 +22,7 @@ const APP_SHELL = [
   "./manifest.webmanifest?v=20260726-10",
   "./assets/app-icon-192.png",
   "./assets/app-icon-512.png",
-  "./art/v2-style/animation-sheets/uploaded-raw/blood-skeleton-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/boulder-ogre-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/carnivorous-flower-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/cerberus-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/cyclops-monster-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/death-knight-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/forest-fairy-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/gargoyle-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/ghoul-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/giant-spider-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/goblin-commoner-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/goblin-rider-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/goblin-shaman-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/goblin-soldier-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/grave-worm-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/guardian-seed-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/harpy-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/hooded-necromancer-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/hydra-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/ice-lord-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/ice-princess-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/mantis-monster-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/mimic-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/minotaur-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/mummy-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/mushroom-monster-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/obese-zombie-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/octopus-monster-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/orc-warrior-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/plague-doctor-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/poison-toad-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/raging-treant-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/reaper-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/scorpion-warrior-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/sea-wolf-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/siren-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/skeleton-archer-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/skeleton-cavalry-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/skeleton-spear-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/spider-queen-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/stone-golem-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/treant-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/undead-hound-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/yeti-animation-sheet.jpg",
+  "./art/v2-style/animation-sheets/green-raw/death-knight-animation-sheet.jpg",
   "./assets/v2-battle-castle.png",
   "./art/v2-style/battle-backgrounds/uploaded-raw/wasteland-chasm-battlefield.jpg",
   "./art/v2-style/battle-backgrounds/uploaded-raw/haunted-forest-ruins-battlefield.jpg",
@@ -90,44 +47,10 @@ const APP_SHELL = [
   "./art/v2-style/processed/192/totem-plant.png"
 ];
 
-const PROCESSED_ANIMATION_FRAMES = Object.freeze({
-  ghoul: { attack: 5, hit: 4, death: 6 },
-  "ice-lord": { attack: 5, hit: 4, death: 6 },
-  yeti: { attack: 5, hit: 4, death: 6 },
-  minotaur: { attack: 5, hit: 4, death: 6 },
-  "goblin-commoner": { attack: 5, hit: 4, death: 6 }
-});
-
-Object.entries(PROCESSED_ANIMATION_FRAMES).forEach(([unit, counts]) => {
-  Object.entries(counts).forEach(([motion, count]) => {
-    for (let index = 1; index <= count; index += 1) {
-      APP_SHELL.push(`./art/v2-style/animation-frames/${unit}/${motion}-${String(index).padStart(2, "0")}.png`);
-    }
-  });
-});
-
-const MOTION_TEST_FRAMES = Object.freeze([
-  "ghoul", "goblin-soldier", "death-knight", "skeleton-spear", "raging-treant", "stone-golem"
-]);
-
-MOTION_TEST_FRAMES.forEach((unit) => {
-  Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
-    for (let index = 1; index <= count; index += 1) {
-      APP_SHELL.push(`./art/v2-style/animation-test-frames/${unit}/${motion}-${String(index).padStart(2, "0")}.png`);
-    }
-  });
-});
-
-const GHOUL_COMPARISON_FRAME_ROOTS = Object.freeze([
-  "ghoul-magenta-jpg-test-v3", "ghoul-magenta-png-test"
-]);
-
-GHOUL_COMPARISON_FRAME_ROOTS.forEach((folder) => {
-  Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
-    for (let index = 1; index <= count; index += 1) {
-      APP_SHELL.push(`./art/v2-style/animation-test-crops/${folder}/${motion}-${String(index).padStart(2, "0")}.png`);
-    }
-  });
+Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
+  for (let index = 1; index <= count; index += 1) {
+    APP_SHELL.push(`./art/v2-style/animation-test-frames/death-knight/${motion}-${String(index).padStart(2, "0")}.png`);
+  }
 });
 
 self.addEventListener("install", (event) => {

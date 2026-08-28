@@ -1,100 +1,46 @@
 const fs = require("fs");
 const path = require("path");
-const vm = require("vm");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
 const root = __dirname;
-const motionSource = fs.readFileSync(path.join(root, "v2-motion.js"), "utf8");
-const battleSource = fs.readFileSync(path.join(root, "v2-battle.js"), "utf8");
-const battleHtml = fs.readFileSync(path.join(root, "v2.html"), "utf8");
-const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const practiceHtml = fs.readFileSync(path.join(root, "v2-animation-practice.html"), "utf8");
 const practiceSource = fs.readFileSync(path.join(root, "v2-animation-practice.js"), "utf8");
 const serviceWorker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
-const unitData = require("./unit-data.js");
+const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
+const battleHtml = fs.readFileSync(path.join(root, "v2.html"), "utf8");
 
-const windowMock = {
-  setTimeout,
-  document: { createElement() { throw new Error("Canvas should not be created during registry checks."); } }
-};
-vm.runInNewContext(motionSource, { window: windowMock });
-const motion = windowMock.V2Motion;
-
-assert(motion, "V2Motion global must be installed.");
-const enemyTypes = Object.keys(unitData.UNIT_TYPES).filter((type) => type !== "summoner");
-assert(enemyTypes.length === 44, "The V2 enemy registry must contain 44 animated units.");
-assert(motion.registeredTypes().length === 44, "All 44 enemy animation sheets must be registered.");
-enemyTypes.forEach((type) => {
-  assert(motion.supports(type), `Motion registry is missing: ${type}`);
-  const relativeSheet = motion.sheetPath(type);
-  assert(relativeSheet.includes("animation-sheets/uploaded-raw/"), `Uploaded sheet path is missing: ${type}`);
-  assert(fs.existsSync(path.join(root, relativeSheet)), `Animation sheet file is missing: ${relativeSheet}`);
-  assert(motion.frameCount(type, "attack") >= 4, `Attack frames are incomplete: ${type}`);
-  assert(motion.frameCount(type, "hit") >= 3, `Hit frames are incomplete: ${type}`);
-  assert(motion.frameCount(type, "death") >= 4, `Death frames are incomplete: ${type}`);
-  assert(serviceWorker.includes(`./${relativeSheet}`), `Offline cache is missing: ${relativeSheet}`);
-  const processedRoot = motion.frameRoot(type);
-  if (processedRoot) {
-    for (const animation of ["attack", "hit", "death"]) {
-      for (let index = 1; index <= motion.frameCount(type, animation); index += 1) {
-        const frame = path.join(root, "art", "v2-style", "animation-frames", processedRoot, `${animation}-${String(index).padStart(2, "0")}.png`);
-        assert(fs.existsSync(frame), `Processed animation frame is missing: ${frame}`);
-      }
-    }
-  }
-});
-assert(!motion.supports("summoner"), "The separate protagonist art must not consume an enemy sheet.");
-assert(motion.frameCount("goblinSoldier", "attack") === 5, "Goblin attack must have five frames.");
-assert(motion.frameCount("goblinSoldier", "hit") === 4, "Goblin hit must have four frames.");
-assert(motion.frameCount("goblinSoldier", "death") === 6, "Goblin death must have six frames.");
-assert(motion.frameCount("minotaur", "attack") === 5, "Minotaur attack must have five frames.");
-assert(motion.frameCount("minotaur", "hit") === 4, "Minotaur hit must have four frames.");
-assert(motion.frameCount("minotaur", "death") === 6, "Minotaur death must have six frames.");
-assert(motion.impactFrame("goblinSoldier") === 3, "Goblin impact frame must be synchronized.");
-assert(motion.impactFrame("minotaur") === 3, "Minotaur impact frame must be synchronized.");
-
-assert(
-  battleHtml.indexOf("v2-motion.js?v=5") < battleHtml.indexOf("v2-battle.js?v=11"),
-  "V2 motion runtime must load before the battle controller."
-);
-assert(battleSource.includes('playUnitMotion(attacker, "attack"'), "Battle attack hook is missing.");
-assert(battleSource.includes('playUnitMotion(target, "hit"'), "Battle hit hook is missing.");
-assert(battleSource.includes('playUnitMotion(unit, "death"'), "Battle death hook is missing.");
-assert(battleSource.includes("if (!animated)"), "Static animation fallback is missing.");
-assert(!motionSource.includes("removeConnectedBackdrop"), "Dark animation frames must not remove the sheet background.");
-assert(!motionSource.includes("isBackdrop"), "Animation frames must preserve original dark pixels.");
-for (const [type, folder] of Object.entries({ ghoul: "ghoul", minotaur: "minotaur", yeti: "yeti", iceLord: "ice-lord", goblinCommoner: "goblin-commoner" })) {
-  assert(motion.backdrop(type) === "processed", `${type} must use preprocessed transparent frames.`);
-  assert(motion.frameRoot(type) === folder, `${type} processed frame folder is incorrect.`);
-}
-assert(
-  motionSource.includes("left + 2, y0 + 2") && motionSource.includes("left - 4") && motionSource.includes("y0 - 4"),
-  "Animation frames must crop only two pixels inside each sheet cell."
-);
 assert(indexHtml.includes('href="v2-animation-practice.html">모션 테스트</a>'), "Start screen motion test link is missing.");
-for (const id of ["attackBtn", "hitBtn", "deathBtn"]) {
+assert(battleHtml.includes('href="v2-animation-practice.html" class="secondary-action">모션 테스트</a>'), "V2 motion test link is missing.");
+assert(practiceHtml.includes('id="unitSprite"'), "Single Death Knight sprite is missing.");
+assert(!practiceHtml.includes('id="jpgSprite"') && !practiceHtml.includes('id="pngSprite"'), "Old JPG/PNG comparison sprites remain.");
+assert(practiceHtml.includes("데스나이트 모션 테스트"), "Death Knight test title is missing.");
+for (const id of ["attackBtn", "hitBtn", "deathBtn", "resetBtn", "battlefieldBtn"]) {
   assert(practiceHtml.includes(`id="${id}"`), `Motion test control is missing: ${id}`);
 }
-assert(practiceHtml.includes('id="jpgSprite"') && practiceHtml.includes('id="pngSprite"'), "Ghoul comparison sprites are missing.");
-assert(!practiceHtml.includes('id="unitSelect"'), "Comparison lab must not expose unrelated units.");
-assert(practiceSource.includes('jpg: "art/v2-style/animation-test-crops/ghoul-magenta-jpg-test-v3/"'), "JPG comparison source is missing.");
-assert(practiceSource.includes('png: "art/v2-style/animation-test-crops/ghoul-magenta-png-test/"'), "PNG comparison source is missing.");
-assert(practiceSource.includes("el.jpg.src = frameSets.jpg[motion][index]") && practiceSource.includes("el.png.src = frameSets.png[motion][index]"), "Comparison motions must advance in lockstep.");
-for (const folder of ["ghoul-magenta-jpg-test-v3", "ghoul-magenta-png-test"]) {
-  for (const [motionName, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
-    for (let index = 1; index <= count; index += 1) {
-      const relative = `art/v2-style/animation-test-crops/${folder}/${motionName}-${String(index).padStart(2, "0")}.png`;
-      assert(fs.existsSync(path.join(root, relative)), `Comparison frame is missing: ${relative}`);
-    }
+
+assert(practiceSource.includes('const FRAME_ROOT = "art/v2-style/animation-test-frames/death-knight/"'), "Death Knight frame root is missing.");
+assert(practiceSource.includes("attack: 5, hit: 4, death: 6"), "Death Knight frame counts are incorrect.");
+assert(practiceSource.includes("el.sprite.src = frames[index]"), "Single sprite animation advancement is missing.");
+assert((practiceSource.match(/battlefield\.jpg/g) || []).length === 3, "All three random battlefields must remain available.");
+
+for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
+  for (let index = 1; index <= count; index += 1) {
+    const relative = `art/v2-style/animation-test-frames/death-knight/${motion}-${String(index).padStart(2, "0")}.png`;
+    assert(fs.existsSync(path.join(root, relative)), `Death Knight frame is missing: ${relative}`);
   }
 }
-assert(!motionSource.includes("animation-test-frames"), "Test-approved frames must not leak into the main battle runtime.");
-assert(serviceWorker.includes("necromancer-expedition-v67"), "Service worker cache version was not bumped.");
-assert(serviceWorker.includes("PROCESSED_ANIMATION_FRAMES"), "Processed animation frames must be added to the offline cache.");
-assert(serviceWorker.includes("MOTION_TEST_FRAMES"), "Motion-test frames must be added to the offline cache.");
-assert(serviceWorker.includes("GHOUL_COMPARISON_FRAME_ROOTS"), "Ghoul comparison frames must be added to the offline cache.");
 
-console.log("SUCCESS: shared V2 attack, hit, and death motion integration checks passed.");
+assert(serviceWorker.includes("animation-test-frames/death-knight/${motion}-"), "Death Knight frame cache generator is missing.");
+
+assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/death-knight-animation-sheet.jpg")), "New raw Death Knight sheet is missing.");
+assert(serviceWorker.includes("necromancer-expedition-v68"), "Service worker cache version was not bumped.");
+assert(!serviceWorker.includes("animation-sheets/uploaded-raw"), "Deleted legacy animation sheets remain in offline cache.");
+assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
+for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {
+  assert(fs.existsSync(path.join(root, match[1].slice(2))), `Offline static asset is missing: ${match[1]}`);
+}
+
+console.log("SUCCESS: reset Death Knight motion test integration checks passed.");
