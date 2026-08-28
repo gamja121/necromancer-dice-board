@@ -47,8 +47,8 @@ for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
   }
 }
 assert(!fs.existsSync(path.join(root, "art/v2-style/animation-test-frames/boulder-ogre/death-06.png")), "Boulder Ogre death frame 6 must not be used.");
-assert(practiceSource.includes('state.unit === "death-knight" ? 1.1'), "Death Knight attack frame 2 must be enlarged to 1.1x.");
-assert(practiceSource.includes('state.unit === "boulder-ogre" ? 1.3'), "Boulder Ogre attack frame 2 must remain enlarged to 1.3x.");
+assert(practiceSource.includes('(index === 1 || index === 2) ? 1.1'), "Death Knight attack frames 2 and 3 must be enlarged to 1.1x.");
+assert(practiceSource.includes('index === 1 ? 1.3'), "Boulder Ogre attack frame 2 must remain enlarged to 1.3x.");
 for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 5 })) {
   for (let index = 1; index <= count; index += 1) {
     const relative = `art/v2-style/animation-test-frames/stone-golem/${motion}-${String(index).padStart(2, "0")}.png`;
@@ -103,7 +103,7 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/st
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/goblin-rider-animation-sheet.jpg")), "New raw Goblin Rider sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/orc-warrior-animation-sheet.jpg")), "New raw Orc Warrior sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/boulder-ogre-animation-sheet.jpg")), "New raw Boulder Ogre sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v80"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v81"), "Service worker cache version was not bumped.");
 assert(!serviceWorker.includes("animation-sheets/uploaded-raw"), "Deleted legacy animation sheets remain in offline cache.");
 assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
 for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {
