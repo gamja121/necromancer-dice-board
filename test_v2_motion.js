@@ -40,12 +40,13 @@ for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
     assert(fs.existsSync(path.join(root, relative)), `Death Knight frame is missing: ${relative}`);
   }
 }
-for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
+for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 5 })) {
   for (let index = 1; index <= count; index += 1) {
     const relative = `art/v2-style/animation-test-frames/stone-golem/${motion}-${String(index).padStart(2, "0")}.png`;
     assert(fs.existsSync(path.join(root, relative)), `Stone Golem frame is missing: ${relative}`);
   }
 }
+assert(!fs.existsSync(path.join(root, "art/v2-style/animation-test-frames/stone-golem/death-06.png")), "Stone Golem death frame 6 must not be used.");
 for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 5 })) {
   for (let index = 1; index <= count; index += 1) {
     const relative = `art/v2-style/animation-test-frames/skeleton-spear/${motion}-${String(index).padStart(2, "0")}.png`;
@@ -68,7 +69,7 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/de
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/skeleton-spear-animation-sheet.jpg")), "New raw Skeleton Spearman sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/ancient-treant-animation-sheet.jpg")), "New raw Ancient Treant sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/stone-golem-animation-sheet.jpg")), "New raw Stone Golem sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v71"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v72"), "Service worker cache version was not bumped.");
 assert(!serviceWorker.includes("animation-sheets/uploaded-raw"), "Deleted legacy animation sheets remain in offline cache.");
 assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
 for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {

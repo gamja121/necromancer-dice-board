@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-expedition-v71";
+const CACHE_NAME = "necromancer-expedition-v72";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -65,7 +65,7 @@ Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
     APP_SHELL.push(`./art/v2-style/animation-test-frames/ancient-treant/${motion}-${String(index).padStart(2, "0")}.png`);
   }
 });
-Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
+Object.entries({ attack: 5, hit: 4, death: 5 }).forEach(([motion, count]) => {
   for (let index = 1; index <= count; index += 1) {
     APP_SHELL.push(`./art/v2-style/animation-test-frames/stone-golem/${motion}-${String(index).padStart(2, "0")}.png`);
   }

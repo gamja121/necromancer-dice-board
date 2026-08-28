@@ -47,7 +47,7 @@ public static class GreenAnimationProcessor
         return c;
     }
 
-    private static Bitmap Extract(Bitmap source, Rectangle cell, bool magenta)
+    private static Bitmap Extract(Bitmap source, Rectangle cell, bool magenta, bool clearWhite = false)
     {
         using (var keyed = new Bitmap(cell.Width, cell.Height, PixelFormat.Format32bppArgb))
         {
@@ -55,7 +55,22 @@ public static class GreenAnimationProcessor
             for (int y = 0; y < cell.Height; y++)
             for (int x = 0; x < cell.Width; x++)
             {
-                Color output = RemoveChroma(source.GetPixel(cell.X + x, cell.Y + y), magenta);
+                Color input = source.GetPixel(cell.X + x, cell.Y + y);
+                Color output = clearWhite && input.R >= 242 && input.G >= 242 && input.B >= 242
+                    ? Color.Transparent
+                    : RemoveChroma(input, magenta);
+
+                // The Stone Golem's first death pose overlaps the white label gutter.
+                // Remove the divider above/below the arm and neutral white residue beside it.
+                if (clearWhite && cell.X + x < 122)
+                {
+                    int globalY = cell.Y + y;
+                    int neutralRange = Math.Max(input.R, Math.Max(input.G, input.B))
+                        - Math.Min(input.R, Math.Min(input.G, input.B));
+                    if (globalY < 552 || globalY > 660 ||
+                        (Math.Min(input.R, Math.Min(input.G, input.B)) > 178 && neutralRange < 22))
+                        output = Color.Transparent;
+                }
                 keyed.SetPixel(x, y, output);
                 if (output.A > 8)
                 {
@@ -102,7 +117,7 @@ public static class GreenAnimationProcessor
                     Rectangle.FromLTRB(575, 246, 798, 467), Rectangle.FromLTRB(804, 246, 1027, 467)
                 },
                 new Rectangle[] {
-                    Rectangle.FromLTRB(118, 481, 303, 676), Rectangle.FromLTRB(309, 481, 495, 676),
+                    Rectangle.FromLTRB(88, 481, 303, 676), Rectangle.FromLTRB(309, 481, 495, 676),
                     Rectangle.FromLTRB(501, 481, 685, 676), Rectangle.FromLTRB(691, 481, 876, 676),
                     Rectangle.FromLTRB(882, 481, 1067, 676), Rectangle.FromLTRB(1073, 481, 1256, 676)
                 }
@@ -178,6 +193,7 @@ public static class GreenAnimationProcessor
                 || String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase);
             string[] names = { "attack", "hit", "death" };
             int[] counts = String.Equals(unitName, "skeleton-spear", StringComparison.OrdinalIgnoreCase)
+                || String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
                 ? new int[] { 5, 4, 5 }
                 : new int[] { 5, 4, 6 };
 
@@ -185,7 +201,9 @@ public static class GreenAnimationProcessor
             for (int frame = 0; frame < counts[row]; frame++)
             {
                 Rectangle cell = cells[row][frame];
-                using (var output = Extract(source, cell, magenta))
+                bool clearWhite = String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
+                    && row == 2 && frame == 0;
+                using (var output = Extract(source, cell, magenta, clearWhite))
                 {
                     // The Ancient Treant's final death pose should face the opposite direction.
                     // Keep this deterministic adjustment here so regenerating the frames preserves it.
@@ -208,6 +226,7 @@ public static class GreenAnimationProcessor
     {
         const int columns = 6, cellWidth = 280, cellHeight = 250, headerHeight = 64;
         int[] counts = String.Equals(unitName, "skeleton-spear", StringComparison.OrdinalIgnoreCase)
+            || String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
             ? new int[] { 5, 4, 5 }
             : new int[] { 5, 4, 6 };
         string[] labels = { "ATTACK", "HIT", "DEATH" };
