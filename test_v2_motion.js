@@ -57,12 +57,13 @@ for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 5 })) {
     assert(fs.existsSync(path.join(root, relative)), `Goblin Rider frame is missing: ${relative}`);
   }
 }
-for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
+for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 5 })) {
   for (let index = 1; index <= count; index += 1) {
     const relative = `art/v2-style/animation-test-frames/orc-warrior/${motion}-${String(index).padStart(2, "0")}.png`;
     assert(fs.existsSync(path.join(root, relative)), `Orc Warrior frame is missing: ${relative}`);
   }
 }
+assert(!fs.existsSync(path.join(root, "art/v2-style/animation-test-frames/orc-warrior/death-06.png")), "Orc Warrior death frame 6 must not be used.");
 for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 5 })) {
   for (let index = 1; index <= count; index += 1) {
     const relative = `art/v2-style/animation-test-frames/skeleton-spear/${motion}-${String(index).padStart(2, "0")}.png`;
@@ -89,7 +90,7 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/an
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/stone-golem-animation-sheet.jpg")), "New raw Stone Golem sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/goblin-rider-animation-sheet.jpg")), "New raw Goblin Rider sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/orc-warrior-animation-sheet.jpg")), "New raw Orc Warrior sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v75"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v76"), "Service worker cache version was not bumped.");
 assert(!serviceWorker.includes("animation-sheets/uploaded-raw"), "Deleted legacy animation sheets remain in offline cache.");
 assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
 for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {

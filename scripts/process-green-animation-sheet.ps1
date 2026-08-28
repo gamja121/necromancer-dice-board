@@ -222,6 +222,20 @@ public static class GreenAnimationProcessor
         };
     }
 
+    private static Bitmap PlaceOnCanvas(Bitmap frame, int width, int height)
+    {
+        var canvas = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+        using (var g = Graphics.FromImage(canvas))
+        {
+            g.Clear(Color.Transparent);
+            g.CompositingMode = CompositingMode.SourceCopy;
+            int x = (width - frame.Width) / 2;
+            int y = height - frame.Height;
+            g.DrawImageUnscaled(frame, x, y);
+        }
+        return canvas;
+    }
+
     public static string[] Process(string inputPath, string outputDirectory, string unitName)
     {
         System.IO.Directory.CreateDirectory(outputDirectory);
@@ -235,6 +249,7 @@ public static class GreenAnimationProcessor
             int[] counts = String.Equals(unitName, "skeleton-spear", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "goblin-rider", StringComparison.OrdinalIgnoreCase)
+                || String.Equals(unitName, "orc-warrior", StringComparison.OrdinalIgnoreCase)
                 ? new int[] { 5, 4, 5 }
                 : new int[] { 5, 4, 6 };
 
@@ -255,7 +270,15 @@ public static class GreenAnimationProcessor
                     }
 
                     string path = System.IO.Path.Combine(outputDirectory, names[row] + "-" + (frame + 1).ToString("00") + ".png");
-                    output.Save(path, ImageFormat.Png);
+                    if (String.Equals(unitName, "orc-warrior", StringComparison.OrdinalIgnoreCase))
+                    {
+                        using (var normalized = PlaceOnCanvas(output, 250, 250))
+                            normalized.Save(path, ImageFormat.Png);
+                    }
+                    else
+                    {
+                        output.Save(path, ImageFormat.Png);
+                    }
                     outputs.Add(path);
                 }
             }
@@ -269,6 +292,7 @@ public static class GreenAnimationProcessor
         int[] counts = String.Equals(unitName, "skeleton-spear", StringComparison.OrdinalIgnoreCase)
             || String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
             || String.Equals(unitName, "goblin-rider", StringComparison.OrdinalIgnoreCase)
+            || String.Equals(unitName, "orc-warrior", StringComparison.OrdinalIgnoreCase)
             ? new int[] { 5, 4, 5 }
             : new int[] { 5, 4, 6 };
         string[] labels = { "ATTACK", "HIT", "DEATH" };
