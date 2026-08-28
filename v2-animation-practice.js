@@ -90,9 +90,10 @@
     for (let index = 0; index < frames.length; index += 1) {
       if (token !== state.token) return;
       el.sprite.src = frames[index];
-      const enlargeBoulderOgreAttack = state.unit === "boulder-ogre" && motion === "attack" && index === 1;
-      el.sprite.style.transform = enlargeBoulderOgreAttack ? "scale(1.3)" : "";
-      el.sprite.style.transformOrigin = enlargeBoulderOgreAttack ? "center bottom" : "";
+      const enlargeAttackFrameTwo = ["death-knight", "boulder-ogre"].includes(state.unit)
+        && motion === "attack" && index === 1;
+      el.sprite.style.transform = enlargeAttackFrameTwo ? "scale(1.3)" : "";
+      el.sprite.style.transformOrigin = enlargeAttackFrameTwo ? "center bottom" : "";
       el.counter.textContent = `${label} ${index + 1} / ${frames.length}`;
       await new Promise((resolve) => setTimeout(resolve, FRAME_MS[motion]));
     }
