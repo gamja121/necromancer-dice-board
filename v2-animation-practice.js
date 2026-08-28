@@ -90,9 +90,11 @@
     for (let index = 0; index < frames.length; index += 1) {
       if (token !== state.token) return;
       el.sprite.src = frames[index];
-      const enlargeAttackFrameTwo = ["death-knight", "boulder-ogre"].includes(state.unit)
-        && motion === "attack" && index === 1;
-      el.sprite.style.transform = enlargeAttackFrameTwo ? "scale(1.3)" : "";
+      const isAttackFrameTwo = motion === "attack" && index === 1;
+      const attackFrameTwoScale = state.unit === "death-knight" ? 1.1
+        : state.unit === "boulder-ogre" ? 1.3 : 1;
+      const enlargeAttackFrameTwo = isAttackFrameTwo && attackFrameTwoScale > 1;
+      el.sprite.style.transform = enlargeAttackFrameTwo ? `scale(${attackFrameTwoScale})` : "";
       el.sprite.style.transformOrigin = enlargeAttackFrameTwo ? "center bottom" : "";
       el.counter.textContent = `${label} ${index + 1} / ${frames.length}`;
       await new Promise((resolve) => setTimeout(resolve, FRAME_MS[motion]));
