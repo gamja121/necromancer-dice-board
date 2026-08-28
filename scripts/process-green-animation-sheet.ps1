@@ -71,28 +71,62 @@ public static class GreenAnimationProcessor
         }
     }
 
-    public static string[] Process(string inputPath, string outputDirectory)
+    private static Rectangle[][] GetCells(string unitName)
+    {
+        if (String.Equals(unitName, "skeleton-spear", StringComparison.OrdinalIgnoreCase))
+        {
+            return new Rectangle[][] {
+                new Rectangle[] {
+                    Rectangle.FromLTRB(96, 23, 314, 241), Rectangle.FromLTRB(324, 23, 540, 241),
+                    Rectangle.FromLTRB(552, 23, 791, 241), Rectangle.FromLTRB(804, 23, 1027, 241),
+                    Rectangle.FromLTRB(1038, 23, 1252, 241)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(96, 259, 313, 474), Rectangle.FromLTRB(324, 259, 527, 474),
+                    Rectangle.FromLTRB(538, 259, 745, 474), Rectangle.FromLTRB(756, 259, 965, 474)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(96, 490, 280, 693), Rectangle.FromLTRB(289, 490, 475, 693),
+                    Rectangle.FromLTRB(485, 490, 669, 693), Rectangle.FromLTRB(679, 490, 868, 693),
+                    Rectangle.FromLTRB(878, 490, 1062, 693), Rectangle.FromLTRB(1071, 490, 1254, 693)
+                }
+            };
+        }
+
+        return new Rectangle[][] {
+            new Rectangle[] {
+                Rectangle.FromLTRB(4, 2, 238, 230), Rectangle.FromLTRB(242, 2, 478, 230),
+                Rectangle.FromLTRB(482, 2, 775, 230), Rectangle.FromLTRB(779, 2, 1040, 230),
+                Rectangle.FromLTRB(1044, 2, 1276, 230)
+            },
+            new Rectangle[] {
+                Rectangle.FromLTRB(4, 236, 238, 458), Rectangle.FromLTRB(242, 236, 477, 458),
+                Rectangle.FromLTRB(481, 236, 711, 458), Rectangle.FromLTRB(715, 236, 941, 458)
+            },
+            new Rectangle[] {
+                Rectangle.FromLTRB(4, 464, 212, 658), Rectangle.FromLTRB(216, 464, 426, 658),
+                Rectangle.FromLTRB(430, 464, 638, 658), Rectangle.FromLTRB(642, 464, 852, 658),
+                Rectangle.FromLTRB(856, 464, 1064, 658), Rectangle.FromLTRB(1068, 464, 1276, 658)
+            }
+        };
+    }
+
+    public static string[] Process(string inputPath, string outputDirectory, string unitName)
     {
         System.IO.Directory.CreateDirectory(outputDirectory);
         var outputs = new List<string>();
         using (var source = new Bitmap(inputPath))
         {
-            int[][] xBounds = {
-                new int[] { 2, 240, 480, 777, 1042, 1278 },
-                new int[] { 2, 240, 479, 713, 943 },
-                new int[] { 2, 214, 428, 640, 854, 1066, 1278 }
-            };
-            int[] tops = { 2, 236, 464 };
-            int[] bottoms = { 230, 458, 658 };
+            Rectangle[][] cells = GetCells(unitName);
             string[] names = { "attack", "hit", "death" };
-            int[] counts = { 5, 4, 6 };
+            int[] counts = String.Equals(unitName, "skeleton-spear", StringComparison.OrdinalIgnoreCase)
+                ? new int[] { 5, 4, 5 }
+                : new int[] { 5, 4, 6 };
 
             for (int row = 0; row < 3; row++)
             for (int frame = 0; frame < counts[row]; frame++)
             {
-                int left = xBounds[row][frame] + 2;
-                int right = xBounds[row][frame + 1] - 2;
-                Rectangle cell = Rectangle.FromLTRB(left, tops[row], right, bottoms[row]);
+                Rectangle cell = cells[row][frame];
                 using (var output = Extract(source, cell))
                 {
                     string path = System.IO.Path.Combine(outputDirectory, names[row] + "-" + (frame + 1).ToString("00") + ".png");
@@ -107,7 +141,9 @@ public static class GreenAnimationProcessor
     public static void CreatePreview(string[] paths, string unitName, string previewPath)
     {
         const int columns = 6, cellWidth = 280, cellHeight = 250, headerHeight = 64;
-        int[] counts = { 5, 4, 6 };
+        int[] counts = String.Equals(unitName, "skeleton-spear", StringComparison.OrdinalIgnoreCase)
+            ? new int[] { 5, 4, 5 }
+            : new int[] { 5, 4, 6 };
         string[] labels = { "ATTACK", "HIT", "DEATH" };
         using (var preview = new Bitmap(columns * cellWidth, headerHeight + 3 * cellHeight, PixelFormat.Format32bppArgb))
         using (var g = Graphics.FromImage(preview))
@@ -143,7 +179,7 @@ Add-Type -TypeDefinition $sourceCode -ReferencedAssemblies System.Drawing
 $resolvedInput = (Resolve-Path -LiteralPath $InputPath).Path
 New-Item -ItemType Directory -Force -Path $OutputDirectory | Out-Null
 $resolvedOutput = (Resolve-Path -LiteralPath $OutputDirectory).Path
-$paths = [GreenAnimationProcessor]::Process($resolvedInput, $resolvedOutput)
+$paths = [GreenAnimationProcessor]::Process($resolvedInput, $resolvedOutput, $UnitName)
 $preview = Join-Path $resolvedOutput ($UnitName + "-preview.png")
 [GreenAnimationProcessor]::CreatePreview($paths, $UnitName, $preview)
 Write-Output ("Processed: {0}" -f $UnitName)

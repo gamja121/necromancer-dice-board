@@ -5,21 +5,24 @@
     { name: "유령 숲 유적", image: "art/v2-style/battle-backgrounds/uploaded-raw/haunted-forest-ruins-battlefield.jpg" },
     { name: "사령 피라미드", image: "art/v2-style/battle-backgrounds/uploaded-raw/necropolis-pyramids-battlefield.jpg" }
   ];
-  const FRAME_ROOT = "art/v2-style/animation-test-frames/death-knight/";
-  const FRAME_COUNTS = Object.freeze({ attack: 5, hit: 4, death: 6 });
+  const UNITS = Object.freeze({
+    "death-knight": { name: "데스나이트", root: "art/v2-style/animation-test-frames/death-knight/", counts: { attack: 5, hit: 4, death: 6 } },
+    "skeleton-spear": { name: "해골 창병", root: "art/v2-style/animation-test-frames/skeleton-spear/", counts: { attack: 5, hit: 4, death: 5 } }
+  });
   const FRAME_MS = Object.freeze({ attack: 145, hit: 135, death: 175 });
   const MOTION_LABELS = Object.freeze({ attack: "공격", hit: "피격", death: "사망" });
   const frameSets = {};
-  const state = { busy: false, token: 0, battlefield: -1 };
+  const state = { busy: false, token: 0, battlefield: -1, unit: "death-knight" };
   const el = {
     stage: document.querySelector("#motionStage"), sprite: document.querySelector("#unitSprite"),
     counter: document.querySelector("#frameCounter"), status: document.querySelector("#motionStatus"),
     attack: document.querySelector("#attackBtn"), hit: document.querySelector("#hitBtn"), death: document.querySelector("#deathBtn"),
-    reset: document.querySelector("#resetBtn"), battlefield: document.querySelector("#battlefieldBtn")
+    reset: document.querySelector("#resetBtn"), battlefield: document.querySelector("#battlefieldBtn"),
+    unitName: document.querySelector("#unitName"), unitButtons: [...document.querySelectorAll(".unit-button")]
   };
-  function pathFor(motion, index) { return `${FRAME_ROOT}${motion}-${String(index + 1).padStart(2, "0")}.png`; }
+  function pathFor(motion, index) { return `${UNITS[state.unit].root}${motion}-${String(index + 1).padStart(2, "0")}.png`; }
   function buildFrames() {
-    Object.entries(FRAME_COUNTS).forEach(([motion, count]) => {
+    Object.entries(UNITS[state.unit].counts).forEach(([motion, count]) => {
       frameSets[motion] = Array.from({ length: count }, (_, index) => pathFor(motion, index));
     });
     frameSets.idle = frameSets.attack[0];
@@ -52,7 +55,21 @@
     await Promise.all(urls.map(loadImage));
     setIdle();
     setButtons(false);
-    el.status.textContent = "버튼을 누르면 데스나이트 모션이 재생됩니다.";
+    el.status.textContent = `버튼을 누르면 ${UNITS[state.unit].name} 모션이 재생됩니다.`;
+  }
+  async function selectUnit(unit) {
+    if (!UNITS[unit] || state.busy || unit === state.unit) return;
+    state.token += 1;
+    state.unit = unit;
+    setButtons(true);
+    el.unitName.textContent = UNITS[unit].name;
+    el.unitButtons.forEach((button) => button.classList.toggle("is-active", button.dataset.unit === unit));
+    el.status.textContent = `${UNITS[unit].name} 프레임을 불러오고 있습니다.`;
+    try { await prepare(); }
+    catch (error) {
+      console.error(error);
+      el.status.textContent = `${UNITS[unit].name} 프레임을 불러오지 못했습니다.`;
+    }
   }
   async function playMotion(motion) {
     if (state.busy) return;
@@ -87,9 +104,10 @@
   el.death.addEventListener("click", () => playMotion("death"));
   el.reset.addEventListener("click", reset);
   el.battlefield.addEventListener("click", () => selectBattlefield(true));
+  el.unitButtons.forEach((button) => button.addEventListener("click", () => selectUnit(button.dataset.unit)));
   selectBattlefield();
   prepare().catch((error) => {
     console.error(error);
-    el.status.textContent = "데스나이트 프레임을 불러오지 못했습니다.";
+    el.status.textContent = "유닛 프레임을 불러오지 못했습니다.";
   });
 })();
