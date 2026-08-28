@@ -166,6 +166,14 @@ public static class GreenAnimationProcessor
                 Rectangle cell = cells[row][frame];
                 using (var output = Extract(source, cell, magenta))
                 {
+                    // The Ancient Treant's final death pose should face the opposite direction.
+                    // Keep this deterministic adjustment here so regenerating the frames preserves it.
+                    if (String.Equals(unitName, "ancient-treant", StringComparison.OrdinalIgnoreCase)
+                        && row == 2 && frame == 5)
+                    {
+                        output.RotateFlip(RotateFlipType.RotateNoneFlipX);
+                    }
+
                     string path = System.IO.Path.Combine(outputDirectory, names[row] + "-" + (frame + 1).ToString("00") + ".png");
                     output.Save(path, ImageFormat.Png);
                     outputs.Add(path);
