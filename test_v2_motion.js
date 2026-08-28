@@ -23,6 +23,7 @@ assert(practiceHtml.includes('data-unit="ancient-treant"'), "Ancient Treant pick
 assert(practiceHtml.includes('data-unit="stone-golem"'), "Stone Golem picker is missing.");
 assert(practiceHtml.includes('data-unit="goblin-rider"'), "Goblin Rider picker is missing.");
 assert(practiceHtml.includes('data-unit="orc-warrior"'), "Orc Warrior picker is missing.");
+assert(practiceHtml.includes('data-unit="boulder-ogre"'), "Boulder Ogre picker is missing.");
 for (const id of ["attackBtn", "hitBtn", "deathBtn", "resetBtn", "battlefieldBtn"]) {
   assert(practiceHtml.includes(`id="${id}"`), `Motion test control is missing: ${id}`);
 }
@@ -33,6 +34,7 @@ assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/ancien
 assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/stone-golem/"'), "Stone Golem frame root is missing.");
 assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/goblin-rider/"'), "Goblin Rider frame root is missing.");
 assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/orc-warrior/"'), "Orc Warrior frame root is missing.");
+assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/boulder-ogre/"'), "Boulder Ogre frame root is missing.");
 assert(practiceSource.includes("counts: { attack: 5, hit: 4, death: 6 }"), "Death Knight frame counts are incorrect.");
 assert(practiceSource.includes("counts: { attack: 5, hit: 4, death: 5 }"), "Skeleton Spearman frame counts are incorrect.");
 assert(practiceSource.includes("el.sprite.src = frames[index]"), "Single sprite animation advancement is missing.");
@@ -64,6 +66,12 @@ for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 5 })) {
   }
 }
 assert(!fs.existsSync(path.join(root, "art/v2-style/animation-test-frames/orc-warrior/death-06.png")), "Orc Warrior death frame 6 must not be used.");
+for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
+  for (let index = 1; index <= count; index += 1) {
+    const relative = `art/v2-style/animation-test-frames/boulder-ogre/${motion}-${String(index).padStart(2, "0")}.png`;
+    assert(fs.existsSync(path.join(root, relative)), `Boulder Ogre frame is missing: ${relative}`);
+  }
+}
 for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 5 })) {
   for (let index = 1; index <= count; index += 1) {
     const relative = `art/v2-style/animation-test-frames/skeleton-spear/${motion}-${String(index).padStart(2, "0")}.png`;
@@ -83,6 +91,7 @@ assert(serviceWorker.includes("animation-test-frames/ancient-treant/${motion}-")
 assert(serviceWorker.includes("animation-test-frames/stone-golem/${motion}-"), "Stone Golem frame cache generator is missing.");
 assert(serviceWorker.includes("animation-test-frames/goblin-rider/${motion}-"), "Goblin Rider frame cache generator is missing.");
 assert(serviceWorker.includes("animation-test-frames/orc-warrior/${motion}-"), "Orc Warrior frame cache generator is missing.");
+assert(serviceWorker.includes("animation-test-frames/boulder-ogre/${motion}-"), "Boulder Ogre frame cache generator is missing.");
 
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/death-knight-animation-sheet.jpg")), "New raw Death Knight sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/skeleton-spear-animation-sheet.jpg")), "New raw Skeleton Spearman sheet is missing.");
@@ -90,11 +99,12 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/an
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/stone-golem-animation-sheet.jpg")), "New raw Stone Golem sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/goblin-rider-animation-sheet.jpg")), "New raw Goblin Rider sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/orc-warrior-animation-sheet.jpg")), "New raw Orc Warrior sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v76"), "Service worker cache version was not bumped.");
+assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/boulder-ogre-animation-sheet.jpg")), "New raw Boulder Ogre sheet is missing.");
+assert(serviceWorker.includes("necromancer-expedition-v77"), "Service worker cache version was not bumped.");
 assert(!serviceWorker.includes("animation-sheets/uploaded-raw"), "Deleted legacy animation sheets remain in offline cache.");
 assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
 for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {
   assert(fs.existsSync(path.join(root, match[1].slice(2))), `Offline static asset is missing: ${match[1]}`);
 }
 
-console.log("SUCCESS: Death Knight, Skeleton Spearman, Ancient Treant, Stone Golem, Goblin Rider, and Orc Warrior motion test integration checks passed.");
+console.log("SUCCESS: Death Knight, Skeleton Spearman, Ancient Treant, Stone Golem, Goblin Rider, Orc Warrior, and Boulder Ogre motion test integration checks passed.");

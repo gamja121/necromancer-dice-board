@@ -104,6 +104,26 @@ public static class GreenAnimationProcessor
 
     private static Rectangle[][] GetCells(string unitName)
     {
+        if (String.Equals(unitName, "boulder-ogre", StringComparison.OrdinalIgnoreCase))
+        {
+            return new Rectangle[][] {
+                new Rectangle[] {
+                    Rectangle.FromLTRB(120, 18, 338, 242), Rectangle.FromLTRB(348, 18, 568, 242),
+                    Rectangle.FromLTRB(578, 18, 797, 242), Rectangle.FromLTRB(807, 18, 1027, 242),
+                    Rectangle.FromLTRB(1036, 18, 1255, 242)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(120, 252, 339, 475), Rectangle.FromLTRB(348, 252, 569, 475),
+                    Rectangle.FromLTRB(578, 252, 798, 475), Rectangle.FromLTRB(807, 252, 1028, 475)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(120, 493, 303, 714), Rectangle.FromLTRB(311, 493, 493, 714),
+                    Rectangle.FromLTRB(501, 493, 683, 714), Rectangle.FromLTRB(691, 493, 873, 714),
+                    Rectangle.FromLTRB(882, 493, 1064, 714), Rectangle.FromLTRB(1073, 493, 1255, 714)
+                }
+            };
+        }
+
         if (String.Equals(unitName, "orc-warrior", StringComparison.OrdinalIgnoreCase))
         {
             return new Rectangle[][] {
@@ -270,7 +290,8 @@ public static class GreenAnimationProcessor
                     }
 
                     string path = System.IO.Path.Combine(outputDirectory, names[row] + "-" + (frame + 1).ToString("00") + ".png");
-                    if (String.Equals(unitName, "orc-warrior", StringComparison.OrdinalIgnoreCase))
+                    if (String.Equals(unitName, "orc-warrior", StringComparison.OrdinalIgnoreCase)
+                        || String.Equals(unitName, "boulder-ogre", StringComparison.OrdinalIgnoreCase))
                     {
                         using (var normalized = PlaceOnCanvas(output, 250, 250))
                             normalized.Save(path, ImageFormat.Png);
