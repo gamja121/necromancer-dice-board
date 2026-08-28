@@ -118,8 +118,8 @@ public static class GreenAnimationProcessor
                 },
                 new Rectangle[] {
                     Rectangle.FromLTRB(88, 481, 303, 676), Rectangle.FromLTRB(309, 481, 495, 676),
-                    Rectangle.FromLTRB(501, 481, 685, 676), Rectangle.FromLTRB(691, 481, 876, 676),
-                    Rectangle.FromLTRB(882, 481, 1067, 676), Rectangle.FromLTRB(1073, 481, 1256, 676)
+                    Rectangle.FromLTRB(501, 481, 685, 676), Rectangle.FromLTRB(691, 481, 873, 676),
+                    Rectangle.FromLTRB(882, 481, 1064, 676), Rectangle.FromLTRB(1073, 481, 1256, 676)
                 }
             };
         }
