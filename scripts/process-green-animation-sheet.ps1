@@ -104,6 +104,26 @@ public static class GreenAnimationProcessor
 
     private static Rectangle[][] GetCells(string unitName)
     {
+        if (String.Equals(unitName, "orc-warrior", StringComparison.OrdinalIgnoreCase))
+        {
+            return new Rectangle[][] {
+                new Rectangle[] {
+                    Rectangle.FromLTRB(121, 17, 338, 231), Rectangle.FromLTRB(348, 17, 567, 231),
+                    Rectangle.FromLTRB(578, 17, 795, 231), Rectangle.FromLTRB(807, 17, 1025, 231),
+                    Rectangle.FromLTRB(1036, 17, 1254, 231)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(121, 248, 338, 467), Rectangle.FromLTRB(348, 248, 567, 467),
+                    Rectangle.FromLTRB(578, 248, 795, 467), Rectangle.FromLTRB(807, 248, 1025, 467)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(121, 483, 302, 698), Rectangle.FromLTRB(312, 483, 493, 698),
+                    Rectangle.FromLTRB(502, 483, 683, 698), Rectangle.FromLTRB(692, 483, 873, 698),
+                    Rectangle.FromLTRB(883, 483, 1064, 698), Rectangle.FromLTRB(1074, 483, 1254, 698)
+                }
+            };
+        }
+
         if (String.Equals(unitName, "goblin-rider", StringComparison.OrdinalIgnoreCase))
         {
             return new Rectangle[][] {

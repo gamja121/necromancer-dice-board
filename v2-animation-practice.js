@@ -10,7 +10,8 @@
     "skeleton-spear": { name: "해골 창병", root: "art/v2-style/animation-test-frames/skeleton-spear/", counts: { attack: 5, hit: 4, death: 5 } },
     "ancient-treant": { name: "고대 트렌트", root: "art/v2-style/animation-test-frames/ancient-treant/", counts: { attack: 5, hit: 4, death: 6 } },
     "stone-golem": { name: "암석 골렘", root: "art/v2-style/animation-test-frames/stone-golem/", counts: { attack: 5, hit: 4, death: 5 } },
-    "goblin-rider": { name: "고블린 라이더", root: "art/v2-style/animation-test-frames/goblin-rider/", counts: { attack: 5, hit: 4, death: 5 } }
+    "goblin-rider": { name: "고블린 라이더", root: "art/v2-style/animation-test-frames/goblin-rider/", counts: { attack: 5, hit: 4, death: 5 } },
+    "orc-warrior": { name: "오크 전사", root: "art/v2-style/animation-test-frames/orc-warrior/", counts: { attack: 5, hit: 4, death: 6 } }
   });
   const FRAME_MS = Object.freeze({ attack: 145, hit: 135, death: 175 });
   const MOTION_LABELS = Object.freeze({ attack: "공격", hit: "피격", death: "사망" });
