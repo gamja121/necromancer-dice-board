@@ -89,6 +89,26 @@ public static class GreenAnimationProcessor
 
     private static Rectangle[][] GetCells(string unitName)
     {
+        if (String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase))
+        {
+            return new Rectangle[][] {
+                new Rectangle[] {
+                    Rectangle.FromLTRB(118, 14, 341, 233), Rectangle.FromLTRB(347, 14, 569, 233),
+                    Rectangle.FromLTRB(575, 14, 798, 233), Rectangle.FromLTRB(804, 14, 1027, 233),
+                    Rectangle.FromLTRB(1033, 14, 1256, 233)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(118, 246, 341, 467), Rectangle.FromLTRB(347, 246, 569, 467),
+                    Rectangle.FromLTRB(575, 246, 798, 467), Rectangle.FromLTRB(804, 246, 1027, 467)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(118, 481, 303, 676), Rectangle.FromLTRB(309, 481, 495, 676),
+                    Rectangle.FromLTRB(501, 481, 685, 676), Rectangle.FromLTRB(691, 481, 876, 676),
+                    Rectangle.FromLTRB(882, 481, 1067, 676), Rectangle.FromLTRB(1073, 481, 1256, 676)
+                }
+            };
+        }
+
         if (String.Equals(unitName, "ancient-treant", StringComparison.OrdinalIgnoreCase))
         {
             return new Rectangle[][] {
@@ -154,7 +174,8 @@ public static class GreenAnimationProcessor
         using (var source = new Bitmap(inputPath))
         {
             Rectangle[][] cells = GetCells(unitName);
-            bool magenta = String.Equals(unitName, "ancient-treant", StringComparison.OrdinalIgnoreCase);
+            bool magenta = String.Equals(unitName, "ancient-treant", StringComparison.OrdinalIgnoreCase)
+                || String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase);
             string[] names = { "attack", "hit", "death" };
             int[] counts = String.Equals(unitName, "skeleton-spear", StringComparison.OrdinalIgnoreCase)
                 ? new int[] { 5, 4, 5 }
