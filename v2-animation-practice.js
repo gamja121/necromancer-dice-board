@@ -7,7 +7,8 @@
   ];
   const UNITS = Object.freeze({
     "death-knight": { name: "데스나이트", root: "art/v2-style/animation-test-frames/death-knight/", counts: { attack: 5, hit: 4, death: 6 } },
-    "skeleton-spear": { name: "해골 창병", root: "art/v2-style/animation-test-frames/skeleton-spear/", counts: { attack: 5, hit: 4, death: 5 } }
+    "skeleton-spear": { name: "해골 창병", root: "art/v2-style/animation-test-frames/skeleton-spear/", counts: { attack: 5, hit: 4, death: 5 } },
+    "ancient-treant": { name: "고대 트렌트", root: "art/v2-style/animation-test-frames/ancient-treant/", counts: { attack: 5, hit: 4, death: 6 } }
   });
   const FRAME_MS = Object.freeze({ attack: 145, hit: 135, death: 175 });
   const MOTION_LABELS = Object.freeze({ attack: "공격", hit: "피격", death: "사망" });

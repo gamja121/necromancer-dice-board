@@ -16,8 +16,24 @@ using System.Drawing.Imaging;
 
 public static class GreenAnimationProcessor
 {
-    private static Color RemoveGreen(Color c)
+    private static Color RemoveChroma(Color c, bool magenta)
     {
+        if (magenta)
+        {
+            int baseChannel = Math.Max(c.G, Math.Min(c.R, c.B) / 3);
+            int magentaExcess = Math.Min(c.R, c.B) - c.G;
+            if (c.R >= 58 && c.B >= 54 && magentaExcess >= 14)
+            {
+                if (magentaExcess >= 34) return Color.Transparent;
+                int alpha = (int)Math.Round(255.0 * (34 - magentaExcess) / 20.0);
+                alpha = Math.Max(0, Math.Min(255, alpha));
+                int red = Math.Min(c.R, baseChannel + 10);
+                int blue = Math.Min(c.B, baseChannel + 10);
+                return Color.FromArgb(alpha, red, c.G, blue);
+            }
+            return c;
+        }
+
         int other = Math.Max(c.R, c.B);
         int excess = c.G - other;
         if (c.G >= 65 && excess >= 28)
@@ -31,7 +47,7 @@ public static class GreenAnimationProcessor
         return c;
     }
 
-    private static Bitmap Extract(Bitmap source, Rectangle cell)
+    private static Bitmap Extract(Bitmap source, Rectangle cell, bool magenta)
     {
         using (var keyed = new Bitmap(cell.Width, cell.Height, PixelFormat.Format32bppArgb))
         {
@@ -39,7 +55,7 @@ public static class GreenAnimationProcessor
             for (int y = 0; y < cell.Height; y++)
             for (int x = 0; x < cell.Width; x++)
             {
-                Color output = RemoveGreen(source.GetPixel(cell.X + x, cell.Y + y));
+                Color output = RemoveChroma(source.GetPixel(cell.X + x, cell.Y + y), magenta);
                 keyed.SetPixel(x, y, output);
                 if (output.A > 8)
                 {
@@ -73,6 +89,26 @@ public static class GreenAnimationProcessor
 
     private static Rectangle[][] GetCells(string unitName)
     {
+        if (String.Equals(unitName, "ancient-treant", StringComparison.OrdinalIgnoreCase))
+        {
+            return new Rectangle[][] {
+                new Rectangle[] {
+                    Rectangle.FromLTRB(118, 2, 312, 190), Rectangle.FromLTRB(322, 2, 514, 190),
+                    Rectangle.FromLTRB(522, 2, 724, 190), Rectangle.FromLTRB(734, 2, 1010, 190),
+                    Rectangle.FromLTRB(1012, 2, 1202, 190)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(112, 192, 312, 390), Rectangle.FromLTRB(322, 192, 512, 390),
+                    Rectangle.FromLTRB(522, 192, 718, 390), Rectangle.FromLTRB(728, 192, 926, 390)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(112, 392, 310, 573), Rectangle.FromLTRB(316, 392, 500, 573),
+                    Rectangle.FromLTRB(500, 392, 684, 573), Rectangle.FromLTRB(680, 392, 876, 573),
+                    Rectangle.FromLTRB(878, 392, 1068, 573), Rectangle.FromLTRB(1092, 392, 1276, 573)
+                }
+            };
+        }
+
         if (String.Equals(unitName, "skeleton-spear", StringComparison.OrdinalIgnoreCase))
         {
             return new Rectangle[][] {
@@ -118,6 +154,7 @@ public static class GreenAnimationProcessor
         using (var source = new Bitmap(inputPath))
         {
             Rectangle[][] cells = GetCells(unitName);
+            bool magenta = String.Equals(unitName, "ancient-treant", StringComparison.OrdinalIgnoreCase);
             string[] names = { "attack", "hit", "death" };
             int[] counts = String.Equals(unitName, "skeleton-spear", StringComparison.OrdinalIgnoreCase)
                 ? new int[] { 5, 4, 5 }
@@ -127,7 +164,7 @@ public static class GreenAnimationProcessor
             for (int frame = 0; frame < counts[row]; frame++)
             {
                 Rectangle cell = cells[row][frame];
-                using (var output = Extract(source, cell))
+                using (var output = Extract(source, cell, magenta))
                 {
                     string path = System.IO.Path.Combine(outputDirectory, names[row] + "-" + (frame + 1).ToString("00") + ".png");
                     output.Save(path, ImageFormat.Png);
