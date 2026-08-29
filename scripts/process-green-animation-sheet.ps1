@@ -527,6 +527,13 @@ public static class GreenAnimationProcessor
                 for (int frame = 0; frame < yetiCounts[row]; frame++)
                     outputs.Add(System.IO.Path.Combine(outputDirectory, names[row] + "-" + (frame + 1).ToString("00") + ".png"));
             }
+
+            if (String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase))
+            {
+                // Begin the attack loop from the settled final pose without resampling it.
+                string finalAttack = System.IO.Path.Combine(outputDirectory, "attack-05.png");
+                System.IO.File.Copy(finalAttack, System.IO.Path.Combine(outputDirectory, "attack-01.png"), true);
+            }
         }
         return outputs.ToArray();
     }
