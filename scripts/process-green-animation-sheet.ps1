@@ -176,6 +176,26 @@ public static class GreenAnimationProcessor
 
     private static Rectangle[][] GetCells(string unitName)
     {
+        if (String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase))
+        {
+            return new Rectangle[][] {
+                new Rectangle[] {
+                    Rectangle.FromLTRB(0, 0, 285, 270), Rectangle.FromLTRB(285, 0, 510, 270),
+                    Rectangle.FromLTRB(510, 0, 755, 270), Rectangle.FromLTRB(755, 0, 1010, 270),
+                    Rectangle.FromLTRB(1010, 0, 1280, 270)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(0, 260, 285, 495), Rectangle.FromLTRB(285, 260, 505, 495),
+                    Rectangle.FromLTRB(505, 260, 725, 495), Rectangle.FromLTRB(725, 260, 975, 495)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(0, 495, 255, 714), Rectangle.FromLTRB(255, 495, 460, 714),
+                    Rectangle.FromLTRB(460, 495, 660, 714), Rectangle.FromLTRB(660, 495, 870, 714),
+                    Rectangle.FromLTRB(870, 495, 1080, 714), Rectangle.FromLTRB(1080, 495, 1280, 714)
+                }
+            };
+        }
+
         if (String.Equals(unitName, "ghoul", StringComparison.OrdinalIgnoreCase))
         {
             return new Rectangle[][] {
@@ -420,6 +440,7 @@ public static class GreenAnimationProcessor
                 || String.Equals(unitName, "ice-lord", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "ghoul", StringComparison.OrdinalIgnoreCase)
+                || String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase);
             bool strictMagenta = String.Equals(unitName, "ice-lord", StringComparison.OrdinalIgnoreCase);
             string[] names = { "attack", "hit", "death" };
@@ -459,9 +480,12 @@ public static class GreenAnimationProcessor
                         || String.Equals(unitName, "ice-lord", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "ghoul", StringComparison.OrdinalIgnoreCase)
+                        || String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase))
                     {
-                        using (var normalized = PlaceOnCanvas(output, 250, 250))
+                        int canvasWidth = String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase) ? 300 : 250;
+                        int canvasHeight = String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase) ? 270 : 250;
+                        using (var normalized = PlaceOnCanvas(output, canvasWidth, canvasHeight))
                         {
                             // Ice Lord hit poses sit very close together in the source sheet.
                             // Remove only the detached scythe tips leaking in from adjacent cells.
