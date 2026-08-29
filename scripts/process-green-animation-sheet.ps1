@@ -16,6 +16,17 @@ using System.Drawing.Imaging;
 
 public static class GreenAnimationProcessor
 {
+    private static void ClearEdgeStrip(Bitmap bitmap, int leftWidth, int rightWidth)
+    {
+        for (int y = 0; y < bitmap.Height; y++)
+        {
+            for (int x = 0; x < leftWidth; x++)
+                bitmap.SetPixel(x, y, Color.FromArgb(0, 0, 0, 0));
+            for (int x = Math.Max(0, bitmap.Width - rightWidth); x < bitmap.Width; x++)
+                bitmap.SetPixel(x, y, Color.FromArgb(0, 0, 0, 0));
+        }
+    }
+
     private static Color RemoveChroma(Color c, bool magenta, bool strictMagenta = false)
     {
         if (magenta)
@@ -359,7 +370,16 @@ public static class GreenAnimationProcessor
                         || String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase))
                     {
                         using (var normalized = PlaceOnCanvas(output, 250, 250))
+                        {
+                            // Ice Lord hit poses sit very close together in the source sheet.
+                            // Remove only the detached scythe tips leaking in from adjacent cells.
+                            if (String.Equals(unitName, "ice-lord", StringComparison.OrdinalIgnoreCase) && row == 1)
+                            {
+                                if (frame == 1) ClearEdgeStrip(normalized, 28, 0);
+                                if (frame == 2) ClearEdgeStrip(normalized, 32, 26);
+                            }
                             normalized.Save(path, ImageFormat.Png);
+                        }
                     }
                     else
                     {
