@@ -176,6 +176,26 @@ public static class GreenAnimationProcessor
 
     private static Rectangle[][] GetCells(string unitName)
     {
+        if (String.Equals(unitName, "ghoul", StringComparison.OrdinalIgnoreCase))
+        {
+            return new Rectangle[][] {
+                new Rectangle[] {
+                    Rectangle.FromLTRB(104, 7, 321, 248), Rectangle.FromLTRB(328, 7, 520, 248),
+                    Rectangle.FromLTRB(528, 7, 797, 248), Rectangle.FromLTRB(804, 7, 1046, 248),
+                    Rectangle.FromLTRB(1054, 7, 1273, 248)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(104, 260, 301, 484), Rectangle.FromLTRB(306, 260, 496, 484),
+                    Rectangle.FromLTRB(501, 260, 696, 484), Rectangle.FromLTRB(701, 260, 895, 484)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(104, 495, 280, 691), Rectangle.FromLTRB(285, 495, 470, 691),
+                    Rectangle.FromLTRB(475, 495, 655, 691), Rectangle.FromLTRB(660, 495, 842, 691),
+                    Rectangle.FromLTRB(846, 495, 1040, 691), Rectangle.FromLTRB(1045, 495, 1230, 691)
+                }
+            };
+        }
+
         if (String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase))
         {
             return new Rectangle[][] {
@@ -399,6 +419,7 @@ public static class GreenAnimationProcessor
                 || String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "ice-lord", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase)
+                || String.Equals(unitName, "ghoul", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase);
             bool strictMagenta = String.Equals(unitName, "ice-lord", StringComparison.OrdinalIgnoreCase);
             string[] names = { "attack", "hit", "death" };
@@ -416,8 +437,10 @@ public static class GreenAnimationProcessor
                 Rectangle cell = cells[row][frame];
                 bool clearWhite = (String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
                     && row == 2 && frame == 0)
-                    || String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase);
-                bool clearNeutralWhite = String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase);
+                    || String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase)
+                    || String.Equals(unitName, "ghoul", StringComparison.OrdinalIgnoreCase);
+                bool clearNeutralWhite = String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase)
+                    || String.Equals(unitName, "ghoul", StringComparison.OrdinalIgnoreCase);
                 using (var output = Extract(source, cell, magenta, clearWhite, strictMagenta, clearNeutralWhite))
                 {
                     // The Ancient Treant's final death pose should face the opposite direction.
@@ -435,6 +458,7 @@ public static class GreenAnimationProcessor
                         || String.Equals(unitName, "boulder-ogre", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "ice-lord", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase)
+                        || String.Equals(unitName, "ghoul", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase))
                     {
                         using (var normalized = PlaceOnCanvas(output, 250, 250))
@@ -446,8 +470,17 @@ public static class GreenAnimationProcessor
                                 if (frame == 1) ClearEdgeStrip(normalized, 28, 0);
                                 if (frame == 2) ClearEdgeStrip(normalized, 32, 26);
                             }
-                            if (String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase))
+                            if (String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase)
+                                || String.Equals(unitName, "ghoul", StringComparison.OrdinalIgnoreCase))
                                 KeepLargestComponent(normalized);
+                            if (String.Equals(unitName, "ghoul", StringComparison.OrdinalIgnoreCase)
+                                && row == 2 && frame == 5)
+                            {
+                                // Remove only the disconnected Gemini sparkle above the final corpse.
+                                for (int y = 0; y < 92; y++)
+                                for (int x = 145; x < normalized.Width; x++)
+                                    normalized.SetPixel(x, y, Color.Transparent);
+                            }
                             normalized.Save(path, ImageFormat.Png);
                         }
                     }
