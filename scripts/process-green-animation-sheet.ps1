@@ -16,10 +16,29 @@ using System.Drawing.Imaging;
 
 public static class GreenAnimationProcessor
 {
-    private static Color RemoveChroma(Color c, bool magenta)
+    private static Color RemoveChroma(Color c, bool magenta, bool strictMagenta = false)
     {
         if (magenta)
         {
+            if (strictMagenta)
+            {
+                int strictExcess = Math.Min(c.R, c.B) - c.G;
+                if (c.R >= 120 && c.B >= 112 && c.G <= 130 && strictExcess >= 42)
+                {
+                    if (strictExcess >= 82) return Color.Transparent;
+                    int strictAlpha = (int)Math.Round(255.0 * (82 - strictExcess) / 40.0);
+                    strictAlpha = Math.Max(0, Math.Min(255, strictAlpha));
+                    int neutral = Math.Max(c.G, Math.Min(c.R, c.B) / 3);
+                    return Color.FromArgb(strictAlpha, Math.Min(c.R, neutral + 10), c.G, Math.Min(c.B, neutral + 10));
+                }
+                if (c.R >= 48 && c.B >= 44 && strictExcess >= 10)
+                {
+                    int spillBase = Math.Max(c.G, Math.Min(c.R, c.B) / 3);
+                    return Color.FromArgb(c.A, Math.Min(c.R, spillBase + 10), c.G, Math.Min(c.B, spillBase + 10));
+                }
+                return c;
+            }
+
             int baseChannel = Math.Max(c.G, Math.Min(c.R, c.B) / 3);
             int magentaExcess = Math.Min(c.R, c.B) - c.G;
             if (c.R >= 58 && c.B >= 54 && magentaExcess >= 14)
@@ -47,7 +66,7 @@ public static class GreenAnimationProcessor
         return c;
     }
 
-    private static Bitmap Extract(Bitmap source, Rectangle cell, bool magenta, bool clearWhite = false)
+    private static Bitmap Extract(Bitmap source, Rectangle cell, bool magenta, bool clearWhite = false, bool strictMagenta = false)
     {
         using (var keyed = new Bitmap(cell.Width, cell.Height, PixelFormat.Format32bppArgb))
         {
@@ -58,7 +77,7 @@ public static class GreenAnimationProcessor
                 Color input = source.GetPixel(cell.X + x, cell.Y + y);
                 Color output = clearWhite && input.R >= 242 && input.G >= 242 && input.B >= 242
                     ? Color.Transparent
-                    : RemoveChroma(input, magenta);
+                    : RemoveChroma(input, magenta, strictMagenta);
 
                 // The Stone Golem's first death pose overlaps the white label gutter.
                 // Remove the divider above/below the arm and neutral white residue beside it.
@@ -104,6 +123,26 @@ public static class GreenAnimationProcessor
 
     private static Rectangle[][] GetCells(string unitName)
     {
+        if (String.Equals(unitName, "ice-lord", StringComparison.OrdinalIgnoreCase))
+        {
+            return new Rectangle[][] {
+                new Rectangle[] {
+                    Rectangle.FromLTRB(90, 140, 305, 395), Rectangle.FromLTRB(305, 140, 520, 395),
+                    Rectangle.FromLTRB(520, 140, 750, 395), Rectangle.FromLTRB(750, 140, 995, 395),
+                    Rectangle.FromLTRB(995, 140, 1265, 395)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(90, 395, 305, 600), Rectangle.FromLTRB(305, 395, 515, 600),
+                    Rectangle.FromLTRB(515, 395, 725, 600), Rectangle.FromLTRB(725, 395, 935, 600)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(90, 600, 290, 825), Rectangle.FromLTRB(290, 600, 485, 825),
+                    Rectangle.FromLTRB(485, 600, 680, 825), Rectangle.FromLTRB(680, 600, 875, 825),
+                    Rectangle.FromLTRB(875, 600, 1070, 825), Rectangle.FromLTRB(1070, 600, 1275, 825)
+                }
+            };
+        }
+
         if (String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase))
         {
             return new Rectangle[][] {
@@ -285,7 +324,9 @@ public static class GreenAnimationProcessor
             Rectangle[][] cells = GetCells(unitName);
             bool magenta = String.Equals(unitName, "ancient-treant", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
+                || String.Equals(unitName, "ice-lord", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase);
+            bool strictMagenta = String.Equals(unitName, "ice-lord", StringComparison.OrdinalIgnoreCase);
             string[] names = { "attack", "hit", "death" };
             int[] counts = String.Equals(unitName, "skeleton-spear", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
@@ -301,7 +342,7 @@ public static class GreenAnimationProcessor
                 Rectangle cell = cells[row][frame];
                 bool clearWhite = String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
                     && row == 2 && frame == 0;
-                using (var output = Extract(source, cell, magenta, clearWhite))
+                using (var output = Extract(source, cell, magenta, clearWhite, strictMagenta))
                 {
                     // The Ancient Treant's final death pose should face the opposite direction.
                     // Keep this deterministic adjustment here so regenerating the frames preserves it.
@@ -314,6 +355,7 @@ public static class GreenAnimationProcessor
                     string path = System.IO.Path.Combine(outputDirectory, names[row] + "-" + (frame + 1).ToString("00") + ".png");
                     if (String.Equals(unitName, "orc-warrior", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "boulder-ogre", StringComparison.OrdinalIgnoreCase)
+                        || String.Equals(unitName, "ice-lord", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase))
                     {
                         using (var normalized = PlaceOnCanvas(output, 250, 250))
