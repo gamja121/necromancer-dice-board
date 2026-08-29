@@ -176,6 +176,26 @@ public static class GreenAnimationProcessor
 
     private static Rectangle[][] GetCells(string unitName)
     {
+        if (String.Equals(unitName, "soul-reaper", StringComparison.OrdinalIgnoreCase))
+        {
+            return new Rectangle[][] {
+                new Rectangle[] {
+                    Rectangle.FromLTRB(50, 0, 205, 250), Rectangle.FromLTRB(295, 0, 465, 250),
+                    Rectangle.FromLTRB(540, 0, 835, 250), Rectangle.FromLTRB(835, 0, 975, 250),
+                    Rectangle.FromLTRB(1060, 0, 1270, 250)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(70, 245, 215, 500), Rectangle.FromLTRB(315, 245, 480, 500),
+                    Rectangle.FromLTRB(560, 245, 720, 500), Rectangle.FromLTRB(800, 245, 955, 500)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(45, 480, 195, 714), Rectangle.FromLTRB(240, 480, 435, 714),
+                    Rectangle.FromLTRB(440, 480, 645, 714), Rectangle.FromLTRB(645, 480, 850, 714),
+                    Rectangle.FromLTRB(870, 480, 1065, 714), Rectangle.FromLTRB(1065, 480, 1275, 714)
+                }
+            };
+        }
+
         if (String.Equals(unitName, "skeleton-cavalry", StringComparison.OrdinalIgnoreCase))
         {
             return new Rectangle[][] {
@@ -464,6 +484,7 @@ public static class GreenAnimationProcessor
                 || String.Equals(unitName, "ghoul", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "skeleton-cavalry", StringComparison.OrdinalIgnoreCase)
+                || String.Equals(unitName, "soul-reaper", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase);
             bool strictMagenta = String.Equals(unitName, "ice-lord", StringComparison.OrdinalIgnoreCase);
             string[] names = { "attack", "hit", "death" };
@@ -505,6 +526,7 @@ public static class GreenAnimationProcessor
                         || String.Equals(unitName, "ghoul", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "skeleton-cavalry", StringComparison.OrdinalIgnoreCase)
+                        || String.Equals(unitName, "soul-reaper", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase))
                     {
                         int canvasWidth = String.Equals(unitName, "skeleton-cavalry", StringComparison.OrdinalIgnoreCase)
@@ -586,6 +608,27 @@ public static class GreenAnimationProcessor
                 System.IO.File.Copy(attack05, attack04, true);
                 System.IO.File.WriteAllBytes(attack05, firstAttack);
             }
+
+            if (String.Equals(unitName, "soul-reaper", StringComparison.OrdinalIgnoreCase))
+            {
+                // Requested attack order: source 5, 1, 2, 3, 4, 5.
+                // Shift the original five frames right, then duplicate source 5 at front.
+                for (int frame = 5; frame >= 1; frame--)
+                {
+                    string sourcePath = System.IO.Path.Combine(outputDirectory, "attack-" + frame.ToString("00") + ".png");
+                    string shiftedPath = System.IO.Path.Combine(outputDirectory, "attack-" + (frame + 1).ToString("00") + ".png");
+                    System.IO.File.Copy(sourcePath, shiftedPath, true);
+                }
+                System.IO.File.Copy(
+                    System.IO.Path.Combine(outputDirectory, "attack-06.png"),
+                    System.IO.Path.Combine(outputDirectory, "attack-01.png"),
+                    true);
+                outputs.Clear();
+                int[] soulReaperCounts = { 6, 4, 6 };
+                for (int row = 0; row < 3; row++)
+                for (int frame = 0; frame < soulReaperCounts[row]; frame++)
+                    outputs.Add(System.IO.Path.Combine(outputDirectory, names[row] + "-" + (frame + 1).ToString("00") + ".png"));
+            }
         }
         return outputs.ToArray();
     }
@@ -597,6 +640,7 @@ public static class GreenAnimationProcessor
         int[] counts = String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase)
             ? new int[] { 6, 4, 7 }
             : String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase)
+            || String.Equals(unitName, "soul-reaper", StringComparison.OrdinalIgnoreCase)
             ? new int[] { 6, 4, 6 }
             : String.Equals(unitName, "skeleton-spear", StringComparison.OrdinalIgnoreCase)
             || String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
