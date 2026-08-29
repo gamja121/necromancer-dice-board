@@ -189,9 +189,11 @@ public static class GreenAnimationProcessor
                     Rectangle.FromLTRB(585, 245, 815, 500), Rectangle.FromLTRB(815, 245, 1080, 500)
                 },
                 new Rectangle[] {
-                    Rectangle.FromLTRB(0, 480, 340, 714), Rectangle.FromLTRB(340, 480, 550, 714),
-                    Rectangle.FromLTRB(550, 480, 740, 714), Rectangle.FromLTRB(740, 480, 920, 714),
-                    Rectangle.FromLTRB(920, 480, 1090, 714), Rectangle.FromLTRB(1090, 480, 1280, 714)
+                    // The death poses have clean vertical gaps between them. Crop inside
+                    // those gaps so no sword, horse, or debris leaks from a neighbour.
+                    Rectangle.FromLTRB(120, 480, 309, 714), Rectangle.FromLTRB(316, 480, 495, 714),
+                    Rectangle.FromLTRB(506, 480, 686, 714), Rectangle.FromLTRB(698, 480, 878, 714),
+                    Rectangle.FromLTRB(888, 480, 1068, 714), Rectangle.FromLTRB(1083, 480, 1270, 714)
                 }
             };
         }
