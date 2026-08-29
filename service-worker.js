@@ -1,11 +1,11 @@
-const CACHE_NAME = "necromancer-expedition-v84";
+const CACHE_NAME = "necromancer-expedition-v85";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./v2.html",
   "./v2-animation-practice.html",
   "./v2-animation-practice.css?v=5",
-  "./v2-animation-practice.js?v=20",
+  "./v2-animation-practice.js?v=21",
   "./v2-battle.css?v=7",
   "./v2-motion.js?v=5",
   "./v2-battle.js?v=11",
@@ -31,6 +31,7 @@ const APP_SHELL = [
   "./art/v2-style/animation-sheets/green-raw/boulder-ogre-animation-sheet.jpg",
   "./art/v2-style/animation-sheets/green-raw/goblin-commoner-animation-sheet.png",
   "./art/v2-style/animation-sheets/green-raw/ice-lord-animation-sheet.jpg",
+  "./art/v2-style/animation-sheets/green-raw/yeti-animation-sheet.jpg",
   "./assets/v2-battle-castle.png",
   "./art/v2-style/battle-backgrounds/uploaded-raw/wasteland-chasm-battlefield.jpg",
   "./art/v2-style/battle-backgrounds/uploaded-raw/haunted-forest-ruins-battlefield.jpg",
@@ -58,6 +59,11 @@ const APP_SHELL = [
 Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
   for (let index = 1; index <= count; index += 1) {
     APP_SHELL.push(`./art/v2-style/animation-test-frames/death-knight/${motion}-${String(index).padStart(2, "0")}.png`);
+  }
+});
+Object.entries({ attack: 6, hit: 4, death: 7 }).forEach(([motion, count]) => {
+  for (let index = 1; index <= count; index += 1) {
+    APP_SHELL.push(`./art/v2-style/animation-test-frames/yeti/${motion}-${String(index).padStart(2, "0")}.png`);
   }
 });
 Object.entries({ attack: 5, hit: 4, death: 5 }).forEach(([motion, count]) => {

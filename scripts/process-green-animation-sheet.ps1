@@ -27,6 +27,43 @@ public static class GreenAnimationProcessor
         }
     }
 
+    private static void KeepLargestComponent(Bitmap bitmap)
+    {
+        var visited = new bool[bitmap.Width, bitmap.Height];
+        List<Point> largest = null;
+        for (int y = 0; y < bitmap.Height; y++)
+        for (int x = 0; x < bitmap.Width; x++)
+        {
+            if (visited[x, y] || bitmap.GetPixel(x, y).A <= 8) continue;
+            var component = new List<Point>();
+            var queue = new Queue<Point>();
+            queue.Enqueue(new Point(x, y));
+            visited[x, y] = true;
+            while (queue.Count > 0)
+            {
+                Point point = queue.Dequeue();
+                component.Add(point);
+                int[] dx = { -1, 1, 0, 0 };
+                int[] dy = { 0, 0, -1, 1 };
+                for (int i = 0; i < 4; i++)
+                {
+                    int nx = point.X + dx[i], ny = point.Y + dy[i];
+                    if (nx < 0 || ny < 0 || nx >= bitmap.Width || ny >= bitmap.Height || visited[nx, ny]) continue;
+                    visited[nx, ny] = true;
+                    if (bitmap.GetPixel(nx, ny).A > 8) queue.Enqueue(new Point(nx, ny));
+                }
+            }
+            if (largest == null || component.Count > largest.Count) largest = component;
+        }
+
+        var keep = new HashSet<int>();
+        if (largest != null)
+            foreach (Point point in largest) keep.Add(point.Y * bitmap.Width + point.X);
+        for (int y = 0; y < bitmap.Height; y++)
+        for (int x = 0; x < bitmap.Width; x++)
+            if (!keep.Contains(y * bitmap.Width + x)) bitmap.SetPixel(x, y, Color.FromArgb(0, 0, 0, 0));
+    }
+
     private static Color RemoveChroma(Color c, bool magenta, bool strictMagenta = false)
     {
         if (magenta)
@@ -77,7 +114,7 @@ public static class GreenAnimationProcessor
         return c;
     }
 
-    private static Bitmap Extract(Bitmap source, Rectangle cell, bool magenta, bool clearWhite = false, bool strictMagenta = false)
+    private static Bitmap Extract(Bitmap source, Rectangle cell, bool magenta, bool clearWhite = false, bool strictMagenta = false, bool clearNeutralWhite = false)
     {
         using (var keyed = new Bitmap(cell.Width, cell.Height, PixelFormat.Format32bppArgb))
         {
@@ -86,7 +123,12 @@ public static class GreenAnimationProcessor
             for (int x = 0; x < cell.Width; x++)
             {
                 Color input = source.GetPixel(cell.X + x, cell.Y + y);
-                Color output = clearWhite && input.R >= 242 && input.G >= 242 && input.B >= 242
+                int inputMax = Math.Max(input.R, Math.Max(input.G, input.B));
+                int inputMin = Math.Min(input.R, Math.Min(input.G, input.B));
+                int inputRange = inputMax - inputMin;
+                bool removeWhite = clearWhite && (inputMin >= 242
+                    || (clearNeutralWhite && inputMin >= 168 && inputRange <= 18));
+                Color output = removeWhite
                     ? Color.Transparent
                     : RemoveChroma(input, magenta, strictMagenta);
 
@@ -134,6 +176,26 @@ public static class GreenAnimationProcessor
 
     private static Rectangle[][] GetCells(string unitName)
     {
+        if (String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase))
+        {
+            return new Rectangle[][] {
+                new Rectangle[] {
+                    Rectangle.FromLTRB(104, 8, 318, 247), Rectangle.FromLTRB(329, 8, 518, 247),
+                    Rectangle.FromLTRB(529, 8, 794, 247), Rectangle.FromLTRB(805, 8, 1042, 247),
+                    Rectangle.FromLTRB(1055, 8, 1272, 247)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(104, 263, 298, 482), Rectangle.FromLTRB(310, 263, 510, 482),
+                    Rectangle.FromLTRB(532, 263, 698, 482), Rectangle.FromLTRB(712, 263, 894, 482)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(104, 500, 278, 688), Rectangle.FromLTRB(290, 500, 468, 688),
+                    Rectangle.FromLTRB(480, 500, 662, 688), Rectangle.FromLTRB(674, 500, 838, 688),
+                    Rectangle.FromLTRB(850, 500, 1036, 688), Rectangle.FromLTRB(1048, 500, 1228, 688)
+                }
+            };
+        }
+
         if (String.Equals(unitName, "ice-lord", StringComparison.OrdinalIgnoreCase))
         {
             return new Rectangle[][] {
@@ -336,6 +398,7 @@ public static class GreenAnimationProcessor
             bool magenta = String.Equals(unitName, "ancient-treant", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "ice-lord", StringComparison.OrdinalIgnoreCase)
+                || String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase);
             bool strictMagenta = String.Equals(unitName, "ice-lord", StringComparison.OrdinalIgnoreCase);
             string[] names = { "attack", "hit", "death" };
@@ -351,9 +414,11 @@ public static class GreenAnimationProcessor
             for (int frame = 0; frame < counts[row]; frame++)
             {
                 Rectangle cell = cells[row][frame];
-                bool clearWhite = String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
-                    && row == 2 && frame == 0;
-                using (var output = Extract(source, cell, magenta, clearWhite, strictMagenta))
+                bool clearWhite = (String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
+                    && row == 2 && frame == 0)
+                    || String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase);
+                bool clearNeutralWhite = String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase);
+                using (var output = Extract(source, cell, magenta, clearWhite, strictMagenta, clearNeutralWhite))
                 {
                     // The Ancient Treant's final death pose should face the opposite direction.
                     // Keep this deterministic adjustment here so regenerating the frames preserves it.
@@ -364,9 +429,12 @@ public static class GreenAnimationProcessor
                     }
 
                     string path = System.IO.Path.Combine(outputDirectory, names[row] + "-" + (frame + 1).ToString("00") + ".png");
+                    if (String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase) && row != 1)
+                        path = System.IO.Path.Combine(outputDirectory, names[row] + "-" + (frame + 2).ToString("00") + ".png");
                     if (String.Equals(unitName, "orc-warrior", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "boulder-ogre", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "ice-lord", StringComparison.OrdinalIgnoreCase)
+                        || String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase))
                     {
                         using (var normalized = PlaceOnCanvas(output, 250, 250))
@@ -378,6 +446,8 @@ public static class GreenAnimationProcessor
                                 if (frame == 1) ClearEdgeStrip(normalized, 28, 0);
                                 if (frame == 2) ClearEdgeStrip(normalized, 32, 26);
                             }
+                            if (String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase))
+                                KeepLargestComponent(normalized);
                             normalized.Save(path, ImageFormat.Png);
                         }
                     }
@@ -388,14 +458,29 @@ public static class GreenAnimationProcessor
                     outputs.Add(path);
                 }
             }
+
+            if (String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase))
+            {
+                string hitStart = System.IO.Path.Combine(outputDirectory, "hit-01.png");
+                System.IO.File.Copy(hitStart, System.IO.Path.Combine(outputDirectory, "attack-01.png"), true);
+                System.IO.File.Copy(hitStart, System.IO.Path.Combine(outputDirectory, "death-01.png"), true);
+                outputs.Clear();
+                int[] yetiCounts = { 6, 4, 7 };
+                for (int row = 0; row < 3; row++)
+                for (int frame = 0; frame < yetiCounts[row]; frame++)
+                    outputs.Add(System.IO.Path.Combine(outputDirectory, names[row] + "-" + (frame + 1).ToString("00") + ".png"));
+            }
         }
         return outputs.ToArray();
     }
 
     public static void CreatePreview(string[] paths, string unitName, string previewPath)
     {
-        const int columns = 6, cellWidth = 280, cellHeight = 250, headerHeight = 64;
-        int[] counts = String.Equals(unitName, "skeleton-spear", StringComparison.OrdinalIgnoreCase)
+        int columns = String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase) ? 7 : 6;
+        const int cellWidth = 280, cellHeight = 250, headerHeight = 64;
+        int[] counts = String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase)
+            ? new int[] { 6, 4, 7 }
+            : String.Equals(unitName, "skeleton-spear", StringComparison.OrdinalIgnoreCase)
             || String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
             || String.Equals(unitName, "goblin-rider", StringComparison.OrdinalIgnoreCase)
             || String.Equals(unitName, "orc-warrior", StringComparison.OrdinalIgnoreCase)

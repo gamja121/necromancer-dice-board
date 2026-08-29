@@ -14,7 +14,8 @@
     "orc-warrior": { name: "오크 전사", root: "art/v2-style/animation-test-frames/orc-warrior/", counts: { attack: 5, hit: 4, death: 5 } },
     "boulder-ogre": { name: "오우거", root: "art/v2-style/animation-test-frames/boulder-ogre/", counts: { attack: 5, hit: 4, death: 5 } },
     "goblin-commoner": { name: "평민고블린", root: "art/v2-style/animation-test-frames/goblin-commoner/", counts: { attack: 5, hit: 4, death: 6 } },
-    "ice-lord": { name: "얼음 군주", root: "art/v2-style/animation-test-frames/ice-lord/", counts: { attack: 5, hit: 4, death: 6 } }
+    "ice-lord": { name: "얼음 군주", root: "art/v2-style/animation-test-frames/ice-lord/", counts: { attack: 5, hit: 4, death: 6 } },
+    "yeti": { name: "설인", root: "art/v2-style/animation-test-frames/yeti/", counts: { attack: 6, hit: 4, death: 7 } }
   });
   const FRAME_MS = Object.freeze({ attack: 145, hit: 135, death: 175 });
   const MOTION_LABELS = Object.freeze({ attack: "공격", hit: "피격", death: "사망" });
