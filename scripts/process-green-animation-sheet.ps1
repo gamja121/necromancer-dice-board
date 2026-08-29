@@ -530,9 +530,23 @@ public static class GreenAnimationProcessor
 
             if (String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase))
             {
-                // Begin the attack loop from the settled final pose without resampling it.
-                string finalAttack = System.IO.Path.Combine(outputDirectory, "attack-05.png");
-                System.IO.File.Copy(finalAttack, System.IO.Path.Combine(outputDirectory, "attack-01.png"), true);
+                // Duplicate the settled fifth attack pose at the front, shifting the
+                // original five frames right so no source pose is discarded or resampled.
+                for (int frame = 5; frame >= 1; frame--)
+                {
+                    string sourcePath = System.IO.Path.Combine(outputDirectory, "attack-" + frame.ToString("00") + ".png");
+                    string shiftedPath = System.IO.Path.Combine(outputDirectory, "attack-" + (frame + 1).ToString("00") + ".png");
+                    System.IO.File.Copy(sourcePath, shiftedPath, true);
+                }
+                System.IO.File.Copy(
+                    System.IO.Path.Combine(outputDirectory, "attack-06.png"),
+                    System.IO.Path.Combine(outputDirectory, "attack-01.png"),
+                    true);
+                outputs.Clear();
+                int[] minotaurCounts = { 6, 4, 6 };
+                for (int row = 0; row < 3; row++)
+                for (int frame = 0; frame < minotaurCounts[row]; frame++)
+                    outputs.Add(System.IO.Path.Combine(outputDirectory, names[row] + "-" + (frame + 1).ToString("00") + ".png"));
             }
         }
         return outputs.ToArray();
@@ -544,6 +558,8 @@ public static class GreenAnimationProcessor
         const int cellWidth = 280, cellHeight = 250, headerHeight = 64;
         int[] counts = String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase)
             ? new int[] { 6, 4, 7 }
+            : String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase)
+            ? new int[] { 6, 4, 6 }
             : String.Equals(unitName, "skeleton-spear", StringComparison.OrdinalIgnoreCase)
             || String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
             || String.Equals(unitName, "goblin-rider", StringComparison.OrdinalIgnoreCase)

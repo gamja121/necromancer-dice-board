@@ -45,6 +45,7 @@ assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/ice-lo
 assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/yeti/"'), "Yeti frame root is missing.");
 assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/ghoul/"'), "Ghoul frame root is missing.");
 assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/minotaur/"'), "Minotaur frame root is missing.");
+assert(practiceSource.includes('"minotaur": { name: "미노타우로스", root: "art/v2-style/animation-test-frames/minotaur/", counts: { attack: 6, hit: 4, death: 6 } }'), "Minotaur frame counts are incorrect.");
 assert(practiceSource.includes("counts: { attack: 6, hit: 4, death: 7 }"), "Yeti frame counts are incorrect.");
 assert(practiceSource.includes("counts: { attack: 5, hit: 4, death: 6 }"), "Death Knight frame counts are incorrect.");
 assert(practiceSource.includes("counts: { attack: 5, hit: 4, death: 5 }"), "Skeleton Spearman frame counts are incorrect.");
@@ -72,12 +73,14 @@ for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
     assert(fs.existsSync(path.join(root, relative)), `Ghoul frame is missing: ${relative}`);
   }
 }
-for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
+for (const [motion, count] of Object.entries({ attack: 6, hit: 4, death: 6 })) {
   for (let index = 1; index <= count; index += 1) {
     const relative = `art/v2-style/animation-test-frames/minotaur/${motion}-${String(index).padStart(2, "0")}.png`;
     assert(fs.existsSync(path.join(root, relative)), `Minotaur frame is missing: ${relative}`);
   }
 }
+const minotaurAttackStart = fs.readFileSync(path.join(root, "art/v2-style/animation-test-frames/minotaur/attack-01.png"));
+assert(minotaurAttackStart.equals(fs.readFileSync(path.join(root, "art/v2-style/animation-test-frames/minotaur/attack-06.png"))), "Minotaur attack frame 1 must duplicate the original final pose.");
 assert(!fs.existsSync(path.join(root, "art/v2-style/animation-test-frames/boulder-ogre/death-06.png")), "Boulder Ogre death frame 6 must not be used.");
 assert(practiceSource.includes('(index === 1 || index === 2) ? 1.1'), "Death Knight attack frames 2 and 3 must be enlarged to 1.1x.");
 assert(practiceSource.includes('index === 1 ? 1.3'), "Boulder Ogre attack frame 2 must remain enlarged to 1.3x.");
@@ -157,7 +160,7 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/ic
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/yeti-animation-sheet.jpg")), "New raw Yeti sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/ghoul-animation-sheet.jpg")), "New raw Ghoul sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/minotaur-animation-sheet.jpg")), "New raw Minotaur sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v88"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v89"), "Service worker cache version was not bumped.");
 assert(!serviceWorker.includes("animation-sheets/uploaded-raw"), "Deleted legacy animation sheets remain in offline cache.");
 assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
 for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {
