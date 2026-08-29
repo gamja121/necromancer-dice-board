@@ -185,7 +185,7 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/gh
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/minotaur-animation-sheet.jpg")), "New raw Minotaur sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/skeleton-cavalry-animation-sheet.jpg")), "New raw Skeleton Cavalry sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/soul-reaper-animation-sheet.jpg")), "New raw Soul Reaper sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v92"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v93"), "Service worker cache version was not bumped.");
 assert(!serviceWorker.includes("animation-sheets/uploaded-raw"), "Deleted legacy animation sheets remain in offline cache.");
 assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
 for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {

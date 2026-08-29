@@ -530,6 +530,7 @@ public static class GreenAnimationProcessor
                         || String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase))
                     {
                         int canvasWidth = String.Equals(unitName, "skeleton-cavalry", StringComparison.OrdinalIgnoreCase)
+                            || String.Equals(unitName, "soul-reaper", StringComparison.OrdinalIgnoreCase)
                             ? 320
                             : String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase) ? 300 : 250;
                         int canvasHeight = String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase) ? 270 : 250;
