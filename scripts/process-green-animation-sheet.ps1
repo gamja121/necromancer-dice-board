@@ -104,6 +104,26 @@ public static class GreenAnimationProcessor
 
     private static Rectangle[][] GetCells(string unitName)
     {
+        if (String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase))
+        {
+            return new Rectangle[][] {
+                new Rectangle[] {
+                    Rectangle.FromLTRB(110, 0, 320, 205), Rectangle.FromLTRB(320, 0, 520, 205),
+                    Rectangle.FromLTRB(520, 0, 735, 205), Rectangle.FromLTRB(735, 0, 985, 205),
+                    Rectangle.FromLTRB(985, 0, 1170, 205)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(110, 205, 320, 405), Rectangle.FromLTRB(320, 205, 510, 405),
+                    Rectangle.FromLTRB(510, 205, 730, 405), Rectangle.FromLTRB(730, 205, 930, 405)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(100, 405, 300, 575), Rectangle.FromLTRB(300, 405, 490, 575),
+                    Rectangle.FromLTRB(490, 405, 690, 575), Rectangle.FromLTRB(690, 405, 890, 575),
+                    Rectangle.FromLTRB(890, 405, 1095, 575), Rectangle.FromLTRB(1095, 495, 1280, 575)
+                }
+            };
+        }
+
         if (String.Equals(unitName, "boulder-ogre", StringComparison.OrdinalIgnoreCase))
         {
             return new Rectangle[][] {
@@ -264,7 +284,8 @@ public static class GreenAnimationProcessor
         {
             Rectangle[][] cells = GetCells(unitName);
             bool magenta = String.Equals(unitName, "ancient-treant", StringComparison.OrdinalIgnoreCase)
-                || String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase);
+                || String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
+                || String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase);
             string[] names = { "attack", "hit", "death" };
             int[] counts = String.Equals(unitName, "skeleton-spear", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
@@ -292,7 +313,8 @@ public static class GreenAnimationProcessor
 
                     string path = System.IO.Path.Combine(outputDirectory, names[row] + "-" + (frame + 1).ToString("00") + ".png");
                     if (String.Equals(unitName, "orc-warrior", StringComparison.OrdinalIgnoreCase)
-                        || String.Equals(unitName, "boulder-ogre", StringComparison.OrdinalIgnoreCase))
+                        || String.Equals(unitName, "boulder-ogre", StringComparison.OrdinalIgnoreCase)
+                        || String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase))
                     {
                         using (var normalized = PlaceOnCanvas(output, 250, 250))
                             normalized.Save(path, ImageFormat.Png);

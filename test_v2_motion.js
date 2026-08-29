@@ -24,6 +24,7 @@ assert(practiceHtml.includes('data-unit="stone-golem"'), "Stone Golem picker is 
 assert(practiceHtml.includes('data-unit="goblin-rider"'), "Goblin Rider picker is missing.");
 assert(practiceHtml.includes('data-unit="orc-warrior"'), "Orc Warrior picker is missing.");
 assert(practiceHtml.includes('data-unit="boulder-ogre"'), "Boulder Ogre picker is missing.");
+assert(practiceHtml.includes('data-unit="goblin-commoner"'), "Goblin Commoner picker is missing.");
 for (const id of ["attackBtn", "hitBtn", "deathBtn", "resetBtn", "battlefieldBtn"]) {
   assert(practiceHtml.includes(`id="${id}"`), `Motion test control is missing: ${id}`);
 }
@@ -35,6 +36,7 @@ assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/stone-
 assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/goblin-rider/"'), "Goblin Rider frame root is missing.");
 assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/orc-warrior/"'), "Orc Warrior frame root is missing.");
 assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/boulder-ogre/"'), "Boulder Ogre frame root is missing.");
+assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/goblin-commoner/"'), "Goblin Commoner frame root is missing.");
 assert(practiceSource.includes("counts: { attack: 5, hit: 4, death: 6 }"), "Death Knight frame counts are incorrect.");
 assert(practiceSource.includes("counts: { attack: 5, hit: 4, death: 5 }"), "Skeleton Spearman frame counts are incorrect.");
 assert(practiceSource.includes("el.sprite.src = frames[index]"), "Single sprite animation advancement is missing.");
@@ -53,6 +55,12 @@ for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 5 })) {
   for (let index = 1; index <= count; index += 1) {
     const relative = `art/v2-style/animation-test-frames/stone-golem/${motion}-${String(index).padStart(2, "0")}.png`;
     assert(fs.existsSync(path.join(root, relative)), `Stone Golem frame is missing: ${relative}`);
+  }
+}
+for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
+  for (let index = 1; index <= count; index += 1) {
+    const relative = `art/v2-style/animation-test-frames/goblin-commoner/${motion}-${String(index).padStart(2, "0")}.png`;
+    assert(fs.existsSync(path.join(root, relative)), `Goblin Commoner frame is missing: ${relative}`);
   }
 }
 assert(!fs.existsSync(path.join(root, "art/v2-style/animation-test-frames/stone-golem/death-06.png")), "Stone Golem death frame 6 must not be used.");
@@ -95,6 +103,7 @@ assert(serviceWorker.includes("animation-test-frames/stone-golem/${motion}-"), "
 assert(serviceWorker.includes("animation-test-frames/goblin-rider/${motion}-"), "Goblin Rider frame cache generator is missing.");
 assert(serviceWorker.includes("animation-test-frames/orc-warrior/${motion}-"), "Orc Warrior frame cache generator is missing.");
 assert(serviceWorker.includes("animation-test-frames/boulder-ogre/${motion}-"), "Boulder Ogre frame cache generator is missing.");
+assert(serviceWorker.includes("animation-test-frames/goblin-commoner/${motion}-"), "Goblin Commoner frame cache generator is missing.");
 
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/death-knight-animation-sheet.jpg")), "New raw Death Knight sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/skeleton-spear-animation-sheet.jpg")), "New raw Skeleton Spearman sheet is missing.");
@@ -103,11 +112,12 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/st
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/goblin-rider-animation-sheet.jpg")), "New raw Goblin Rider sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/orc-warrior-animation-sheet.jpg")), "New raw Orc Warrior sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/boulder-ogre-animation-sheet.jpg")), "New raw Boulder Ogre sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v81"), "Service worker cache version was not bumped.");
+assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/goblin-commoner-animation-sheet.png")), "New raw Goblin Commoner sheet is missing.");
+assert(serviceWorker.includes("necromancer-expedition-v82"), "Service worker cache version was not bumped.");
 assert(!serviceWorker.includes("animation-sheets/uploaded-raw"), "Deleted legacy animation sheets remain in offline cache.");
 assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
 for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {
   assert(fs.existsSync(path.join(root, match[1].slice(2))), `Offline static asset is missing: ${match[1]}`);
 }
 
-console.log("SUCCESS: Death Knight, Skeleton Spearman, Ancient Treant, Stone Golem, Goblin Rider, Orc Warrior, and Boulder Ogre motion test integration checks passed.");
+console.log("SUCCESS: Death Knight, Skeleton Spearman, Ancient Treant, Stone Golem, Goblin Rider, Orc Warrior, Boulder Ogre, and Goblin Commoner motion test integration checks passed.");
