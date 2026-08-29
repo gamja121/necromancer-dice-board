@@ -176,6 +176,26 @@ public static class GreenAnimationProcessor
 
     private static Rectangle[][] GetCells(string unitName)
     {
+        if (String.Equals(unitName, "skeleton-cavalry", StringComparison.OrdinalIgnoreCase))
+        {
+            return new Rectangle[][] {
+                new Rectangle[] {
+                    Rectangle.FromLTRB(0, 0, 345, 270), Rectangle.FromLTRB(345, 0, 590, 270),
+                    Rectangle.FromLTRB(590, 0, 830, 270), Rectangle.FromLTRB(830, 0, 1065, 270),
+                    Rectangle.FromLTRB(1065, 0, 1280, 270)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(0, 245, 350, 500), Rectangle.FromLTRB(350, 245, 585, 500),
+                    Rectangle.FromLTRB(585, 245, 815, 500), Rectangle.FromLTRB(815, 245, 1080, 500)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(0, 480, 340, 714), Rectangle.FromLTRB(340, 480, 550, 714),
+                    Rectangle.FromLTRB(550, 480, 740, 714), Rectangle.FromLTRB(740, 480, 920, 714),
+                    Rectangle.FromLTRB(920, 480, 1090, 714), Rectangle.FromLTRB(1090, 480, 1280, 714)
+                }
+            };
+        }
+
         if (String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase))
         {
             return new Rectangle[][] {
@@ -441,6 +461,7 @@ public static class GreenAnimationProcessor
                 || String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "ghoul", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase)
+                || String.Equals(unitName, "skeleton-cavalry", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase);
             bool strictMagenta = String.Equals(unitName, "ice-lord", StringComparison.OrdinalIgnoreCase);
             string[] names = { "attack", "hit", "death" };
@@ -481,9 +502,12 @@ public static class GreenAnimationProcessor
                         || String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "ghoul", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase)
+                        || String.Equals(unitName, "skeleton-cavalry", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase))
                     {
-                        int canvasWidth = String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase) ? 300 : 250;
+                        int canvasWidth = String.Equals(unitName, "skeleton-cavalry", StringComparison.OrdinalIgnoreCase)
+                            ? 320
+                            : String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase) ? 300 : 250;
                         int canvasHeight = String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase) ? 270 : 250;
                         using (var normalized = PlaceOnCanvas(output, canvasWidth, canvasHeight))
                         {
@@ -547,6 +571,18 @@ public static class GreenAnimationProcessor
                 for (int row = 0; row < 3; row++)
                 for (int frame = 0; frame < minotaurCounts[row]; frame++)
                     outputs.Add(System.IO.Path.Combine(outputDirectory, names[row] + "-" + (frame + 1).ToString("00") + ".png"));
+            }
+
+            if (String.Equals(unitName, "skeleton-cavalry", StringComparison.OrdinalIgnoreCase))
+            {
+                // Requested attack order: source 1, 2, 3, 5, 1. Keep all copied
+                // frames byte-identical and discard source attack frame 4.
+                string attack01 = System.IO.Path.Combine(outputDirectory, "attack-01.png");
+                string attack04 = System.IO.Path.Combine(outputDirectory, "attack-04.png");
+                string attack05 = System.IO.Path.Combine(outputDirectory, "attack-05.png");
+                byte[] firstAttack = System.IO.File.ReadAllBytes(attack01);
+                System.IO.File.Copy(attack05, attack04, true);
+                System.IO.File.WriteAllBytes(attack05, firstAttack);
             }
         }
         return outputs.ToArray();
