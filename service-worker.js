@@ -1,11 +1,11 @@
-const CACHE_NAME = "necromancer-expedition-v95";
+const CACHE_NAME = "necromancer-expedition-v96";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./v2.html",
   "./v2-animation-practice.html",
   "./v2-animation-practice.css?v=5",
-  "./v2-animation-practice.js?v=27",
+  "./v2-animation-practice.js?v=28",
   "./v2-battle.css?v=7",
   "./v2-motion.js?v=5",
   "./v2-battle.js?v=11",
@@ -37,6 +37,7 @@ const APP_SHELL = [
   "./art/v2-style/animation-sheets/green-raw/skeleton-cavalry-animation-sheet.jpg",
   "./art/v2-style/animation-sheets/green-raw/soul-reaper-animation-sheet.jpg",
   "./art/v2-style/animation-sheets/green-raw/mummy-guardian-animation-sheet.jpg",
+  "./art/v2-style/animation-sheets/green-raw/doom-executor-animation-sheet.jpg",
   "./assets/v2-battle-castle.png",
   "./art/v2-style/battle-backgrounds/uploaded-raw/wasteland-chasm-battlefield.jpg",
   "./art/v2-style/battle-backgrounds/uploaded-raw/haunted-forest-ruins-battlefield.jpg",
@@ -94,6 +95,11 @@ Object.entries({ attack: 6, hit: 4, death: 6 }).forEach(([motion, count]) => {
 Object.entries({ attack: 5, hit: 4, death: 5 }).forEach(([motion, count]) => {
   for (let index = 1; index <= count; index += 1) {
     APP_SHELL.push(`./art/v2-style/animation-test-frames/mummy-guardian/${motion}-${String(index).padStart(2, "0")}.png`);
+  }
+});
+Object.entries({ attack: 5, hit: 4, death: 5 }).forEach(([motion, count]) => {
+  for (let index = 1; index <= count; index += 1) {
+    APP_SHELL.push(`./art/v2-style/animation-test-frames/doom-executor/${motion}-${String(index).padStart(2, "0")}.png`);
   }
 });
 Object.entries({ attack: 5, hit: 4, death: 5 }).forEach(([motion, count]) => {

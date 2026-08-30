@@ -20,7 +20,8 @@
     "minotaur": { name: "미노타우로스", root: "art/v2-style/animation-test-frames/minotaur/", counts: { attack: 6, hit: 4, death: 6 } },
     "skeleton-cavalry": { name: "해골 기사", root: "art/v2-style/animation-test-frames/skeleton-cavalry/", counts: { attack: 5, hit: 4, death: 6 } },
     "soul-reaper": { name: "영혼 수확자", root: "art/v2-style/animation-test-frames/soul-reaper/", counts: { attack: 6, hit: 4, death: 6 } },
-    "mummy-guardian": { name: "미라 수호병", root: "art/v2-style/animation-test-frames/mummy-guardian/", counts: { attack: 5, hit: 4, death: 5 } }
+    "mummy-guardian": { name: "미라 수호병", root: "art/v2-style/animation-test-frames/mummy-guardian/", counts: { attack: 5, hit: 4, death: 5 } },
+    "doom-executor": { name: "석상 가고일", root: "art/v2-style/animation-test-frames/doom-executor/", counts: { attack: 5, hit: 4, death: 5 } }
   });
   const FRAME_MS = Object.freeze({ attack: 145, hit: 135, death: 175 });
   const MOTION_LABELS = Object.freeze({ attack: "공격", hit: "피격", death: "사망" });
