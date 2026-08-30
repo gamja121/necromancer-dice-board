@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-expedition-v99";
+const CACHE_NAME = "necromancer-expedition-v100";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -6,6 +6,9 @@ const APP_SHELL = [
   "./v2-animation-practice.html",
   "./v2-animation-practice.css?v=5",
   "./v2-animation-practice.js?v=31",
+  "./v2-dice-practice.html",
+  "./v2-dice-practice.css?v=1",
+  "./v2-dice-practice.js?v=1",
   "./v2-battle.css?v=7",
   "./v2-motion.js?v=5",
   "./v2-battle.js?v=11",
@@ -64,6 +67,13 @@ const APP_SHELL = [
   "./art/v2-style/processed/192/totem-plague.png",
   "./art/v2-style/processed/192/totem-plant.png"
 ];
+
+for (let index = 1; index <= 12; index += 1) {
+  APP_SHELL.push(`./art/v2-style/dice-test/frames/roll-${String(index).padStart(2, "0")}.png`);
+}
+for (let value = 1; value <= 6; value += 1) {
+  APP_SHELL.push(`./art/v2-style/dice-test/frames/result-${String(value).padStart(2, "0")}.png`);
+}
 
 Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
   for (let index = 1; index <= count; index += 1) {

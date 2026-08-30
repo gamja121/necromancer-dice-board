@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#100d0b">
+  <title>주사위 모션 테스트</title>
+  <link rel="stylesheet" href="v2-dice-practice.css?v=1">
+</head>
+<body>
+  <main class="dice-lab">
+    <header class="lab-header">
+      <div><span>V2 DICE LAB</span><h1>주사위 모션 테스트</h1></div>
+      <a href="index.html" aria-label="시작 화면으로 돌아가기">⌂</a>
+    </header>
+
+    <section class="test-card" aria-label="주사위 굴리기 테스트">
+      <div class="stage-copy">
+        <span id="stateLabel">굴리기 전</span>
+        <strong id="resultLabel">주사위를 눌러주세요</strong>
+      </div>
+      <button id="rollButton" class="dice-stage" type="button" aria-label="주사위 굴리기">
+        <span class="floor-shadow" aria-hidden="true"></span>
+        <img id="diceImage" src="art/v2-style/dice-test/frames/roll-01.png" alt="굴리기 전 주사위">
+      </button>
+      <button id="rollAction" class="roll-action" type="button">주사위 굴리기</button>
+    </section>
+
+    <section class="roll-history" aria-label="최근 주사위 결과">
+      <strong>최근 결과</strong>
+      <ol id="historyList"><li class="empty">아직 굴리지 않았습니다.</li></ol>
+    </section>
+    <p class="test-note">회전 12컷 뒤 1~6 중 하나가 무작위로 나옵니다. 본게임에는 아직 적용하지 않은 테스트입니다.</p>
+  </main>
+  <script src="v2-dice-practice.js?v=1"></script>
+</body>
+</html>

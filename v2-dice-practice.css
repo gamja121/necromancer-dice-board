@@ -1,0 +1,30 @@
+:root { color-scheme: dark; font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; background: #080605; color: #f6ecd9; }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: radial-gradient(circle at 50% 12%, #3b281c 0, #17100c 43%, #070504 100%); }
+button { font: inherit; }
+.dice-lab { width: min(100%, 680px); min-height: 100vh; margin: 0 auto; padding: max(13px, env(safe-area-inset-top)) 10px max(24px, env(safe-area-inset-bottom)); }
+.lab-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.lab-header span { color: #c99951; font-size: 10px; font-weight: 900; letter-spacing: 2px; }
+h1 { margin: 2px 0 0; font-size: clamp(24px, 6vw, 34px); }
+.lab-header a { display: grid; place-items: center; width: 46px; height: 46px; border: 2px solid #72533c; border-radius: 5px; background: #241915; color: #f7e5c3; font-size: 25px; text-decoration: none; }
+.test-card { position: relative; min-height: min(70vh, 590px); overflow: hidden; border: 3px solid #76573f; background: radial-gradient(circle at 50% 46%, #60462e 0 11%, #2d2017 38%, #110c09 76%); box-shadow: inset 0 0 0 4px #25120d, 0 15px 38px #000b; }
+.test-card::before { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 15%, #fff1 48%, transparent 70%), repeating-linear-gradient(90deg, #0000 0 42px, #0001 43px); pointer-events: none; }
+.stage-copy { position: absolute; z-index: 3; top: 16px; left: 50%; display: grid; gap: 4px; transform: translateX(-50%); width: max-content; max-width: calc(100% - 24px); padding: 9px 16px; border: 1px solid #826044; background: #110d0de8; text-align: center; }
+.stage-copy span { color: #c9b89d; font-size: 11px; font-weight: 800; }
+.stage-copy strong { color: #f4d39b; font-size: 18px; }
+.dice-stage { position: absolute; inset: 86px 5% 88px; display: grid; place-items: center; width: 90%; border: 0; background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.dice-stage img { position: relative; z-index: 2; display: block; width: min(76vw, 360px); height: min(76vw, 360px); object-fit: contain; filter: drop-shadow(0 18px 13px #000c); transform-origin: 50% 70%; }
+.dice-stage.is-rolling img { animation: dice-hop 260ms ease-in-out infinite alternate; }
+.floor-shadow { position: absolute; z-index: 1; bottom: 15%; width: min(52vw, 260px); height: 11%; border-radius: 50%; background: #000a; filter: blur(13px); transition: transform 180ms ease, opacity 180ms ease; }
+.dice-stage.is-rolling .floor-shadow { opacity: .48; transform: scale(.78); }
+.roll-action { position: absolute; z-index: 4; left: 50%; bottom: 18px; transform: translateX(-50%); min-width: min(82%, 360px); min-height: 58px; border: 2px solid #a97943; border-radius: 4px; background: linear-gradient(#5d351f, #351b12); color: #fff0d1; font-weight: 900; box-shadow: inset 0 0 0 2px #1a0d09, 0 6px 15px #0008; }
+.roll-action:disabled { opacity: .62; }
+.roll-history { display: flex; align-items: center; gap: 12px; margin-top: 10px; padding: 11px; border: 1px solid #4f382d; background: #1b110e; }
+.roll-history > strong { flex: 0 0 auto; color: #d9bc8c; font-size: 12px; }
+.roll-history ol { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.roll-history li { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid #72513a; background: #2a1b15; color: #ffe1aa; font-weight: 900; }
+.roll-history li.empty { width: auto; border: 0; background: transparent; color: #a99b8b; font-size: 11px; font-weight: 400; }
+.test-note { margin: 9px 4px 0; color: #bfb3a6; font-size: 11px; text-align: center; }
+@keyframes dice-hop { from { transform: translateY(8px) rotate(-2deg) scale(.97); } to { transform: translateY(-14px) rotate(2deg) scale(1.03); } }
+@media (max-width: 520px) { .dice-lab { padding-left: 7px; padding-right: 7px; } .test-card { min-height: 500px; height: 66vh; } .dice-stage { top: 78px; } }
+@media (prefers-reduced-motion: reduce) { .dice-stage.is-rolling img { animation: none; } }
