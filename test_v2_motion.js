@@ -31,6 +31,7 @@ assert(practiceHtml.includes('data-unit="ghoul"'), "Ghoul picker is missing.");
 assert(practiceHtml.includes('data-unit="minotaur"'), "Minotaur picker is missing.");
 assert(practiceHtml.includes('data-unit="skeleton-cavalry"'), "Skeleton Cavalry picker is missing.");
 assert(practiceHtml.includes('data-unit="soul-reaper"'), "Soul Reaper picker is missing.");
+assert(practiceHtml.includes('data-unit="mummy-guardian"'), "Mummy Guardian picker is missing.");
 for (const id of ["attackBtn", "hitBtn", "deathBtn", "resetBtn", "battlefieldBtn"]) {
   assert(practiceHtml.includes(`id="${id}"`), `Motion test control is missing: ${id}`);
 }
@@ -49,6 +50,8 @@ assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/ghoul/
 assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/minotaur/"'), "Minotaur frame root is missing.");
 assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/skeleton-cavalry/"'), "Skeleton Cavalry frame root is missing.");
 assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/soul-reaper/"'), "Soul Reaper frame root is missing.");
+assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/mummy-guardian/"'), "Mummy Guardian frame root is missing.");
+assert(practiceSource.includes('"mummy-guardian": { name: "미라 수호병", root: "art/v2-style/animation-test-frames/mummy-guardian/", counts: { attack: 5, hit: 4, death: 5 } }'), "Mummy Guardian frame counts are incorrect.");
 assert(practiceSource.includes('"soul-reaper": { name: "영혼 수확자", root: "art/v2-style/animation-test-frames/soul-reaper/", counts: { attack: 6, hit: 4, death: 6 } }'), "Soul Reaper frame counts are incorrect.");
 assert(practiceSource.includes('"minotaur": { name: "미노타우로스", root: "art/v2-style/animation-test-frames/minotaur/", counts: { attack: 6, hit: 4, death: 6 } }'), "Minotaur frame counts are incorrect.");
 assert(practiceSource.includes("counts: { attack: 6, hit: 4, death: 7 }"), "Yeti frame counts are incorrect.");
@@ -102,6 +105,13 @@ for (const [motion, count] of Object.entries({ attack: 6, hit: 4, death: 6 })) {
 }
 const soulReaperAttackStart = fs.readFileSync(path.join(root, "art/v2-style/animation-test-frames/soul-reaper/attack-01.png"));
 assert(soulReaperAttackStart.equals(fs.readFileSync(path.join(root, "art/v2-style/animation-test-frames/soul-reaper/attack-06.png"))), "Soul Reaper attack frames 1 and 6 must both use source frame 5.");
+for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 5 })) {
+  for (let index = 1; index <= count; index += 1) {
+    const relative = `art/v2-style/animation-test-frames/mummy-guardian/${motion}-${String(index).padStart(2, "0")}.png`;
+    assert(fs.existsSync(path.join(root, relative)), `Mummy Guardian frame is missing: ${relative}`);
+  }
+}
+assert(!fs.existsSync(path.join(root, "art/v2-style/animation-test-frames/mummy-guardian/death-06.png")), "Mummy Guardian final source death frame must not be used.");
 assert(!fs.existsSync(path.join(root, "art/v2-style/animation-test-frames/boulder-ogre/death-06.png")), "Boulder Ogre death frame 6 must not be used.");
 assert(practiceSource.includes('(index === 1 || index === 2) ? 1.1'), "Death Knight attack frames 2 and 3 must be enlarged to 1.1x.");
 assert(practiceSource.includes('index === 1 ? 1.3'), "Boulder Ogre attack frame 2 must remain enlarged to 1.3x.");
@@ -170,6 +180,7 @@ assert(serviceWorker.includes("animation-test-frames/ghoul/${motion}-"), "Ghoul 
 assert(serviceWorker.includes("animation-test-frames/minotaur/${motion}-"), "Minotaur frame cache generator is missing.");
 assert(serviceWorker.includes("animation-test-frames/skeleton-cavalry/${motion}-"), "Skeleton Cavalry frame cache generator is missing.");
 assert(serviceWorker.includes("animation-test-frames/soul-reaper/${motion}-"), "Soul Reaper frame cache generator is missing.");
+assert(serviceWorker.includes("animation-test-frames/mummy-guardian/${motion}-"), "Mummy Guardian frame cache generator is missing.");
 
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/death-knight-animation-sheet.jpg")), "New raw Death Knight sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/skeleton-spear-animation-sheet.jpg")), "New raw Skeleton Spearman sheet is missing.");
@@ -185,11 +196,12 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/gh
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/minotaur-animation-sheet.jpg")), "New raw Minotaur sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/skeleton-cavalry-animation-sheet.jpg")), "New raw Skeleton Cavalry sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/soul-reaper-animation-sheet.jpg")), "New raw Soul Reaper sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v93"), "Service worker cache version was not bumped.");
+assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/mummy-guardian-animation-sheet.jpg")), "New raw Mummy Guardian sheet is missing.");
+assert(serviceWorker.includes("necromancer-expedition-v94"), "Service worker cache version was not bumped.");
 assert(!serviceWorker.includes("animation-sheets/uploaded-raw"), "Deleted legacy animation sheets remain in offline cache.");
 assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
 for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {
   assert(fs.existsSync(path.join(root, match[1].slice(2))), `Offline static asset is missing: ${match[1]}`);
 }
 
-console.log("SUCCESS: Death Knight, Skeleton Spearman, Ancient Treant, Stone Golem, Goblin Rider, Orc Warrior, Boulder Ogre, Goblin Commoner, Ice Lord, Yeti, Ghoul, Minotaur, Skeleton Cavalry, and Soul Reaper motion test integration checks passed.");
+console.log("SUCCESS: Death Knight, Skeleton Spearman, Ancient Treant, Stone Golem, Goblin Rider, Orc Warrior, Boulder Ogre, Goblin Commoner, Ice Lord, Yeti, Ghoul, Minotaur, Skeleton Cavalry, Soul Reaper, and Mummy Guardian motion test integration checks passed.");

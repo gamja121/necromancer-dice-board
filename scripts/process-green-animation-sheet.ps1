@@ -176,6 +176,26 @@ public static class GreenAnimationProcessor
 
     private static Rectangle[][] GetCells(string unitName)
     {
+        if (String.Equals(unitName, "mummy-guardian", StringComparison.OrdinalIgnoreCase))
+        {
+            return new Rectangle[][] {
+                new Rectangle[] {
+                    Rectangle.FromLTRB(108, 12, 331, 237), Rectangle.FromLTRB(338, 12, 563, 237),
+                    Rectangle.FromLTRB(569, 12, 794, 237), Rectangle.FromLTRB(800, 12, 1025, 237),
+                    Rectangle.FromLTRB(1032, 12, 1257, 237)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(108, 251, 331, 476), Rectangle.FromLTRB(338, 251, 563, 476),
+                    Rectangle.FromLTRB(569, 251, 794, 477), Rectangle.FromLTRB(800, 251, 1025, 476)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(108, 490, 294, 702), Rectangle.FromLTRB(300, 490, 487, 702),
+                    Rectangle.FromLTRB(493, 490, 678, 702), Rectangle.FromLTRB(685, 490, 871, 702),
+                    Rectangle.FromLTRB(877, 490, 1063, 702)
+                }
+            };
+        }
+
         if (String.Equals(unitName, "soul-reaper", StringComparison.OrdinalIgnoreCase))
         {
             return new Rectangle[][] {
@@ -485,6 +505,7 @@ public static class GreenAnimationProcessor
                 || String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "skeleton-cavalry", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "soul-reaper", StringComparison.OrdinalIgnoreCase)
+                || String.Equals(unitName, "mummy-guardian", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase);
             bool strictMagenta = String.Equals(unitName, "ice-lord", StringComparison.OrdinalIgnoreCase);
             string[] names = { "attack", "hit", "death" };
@@ -493,6 +514,7 @@ public static class GreenAnimationProcessor
                 || String.Equals(unitName, "goblin-rider", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "orc-warrior", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "boulder-ogre", StringComparison.OrdinalIgnoreCase)
+                || String.Equals(unitName, "mummy-guardian", StringComparison.OrdinalIgnoreCase)
                 ? new int[] { 5, 4, 5 }
                 : new int[] { 5, 4, 6 };
 
@@ -527,6 +549,7 @@ public static class GreenAnimationProcessor
                         || String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "skeleton-cavalry", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "soul-reaper", StringComparison.OrdinalIgnoreCase)
+                        || String.Equals(unitName, "mummy-guardian", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase))
                     {
                         int canvasWidth = String.Equals(unitName, "skeleton-cavalry", StringComparison.OrdinalIgnoreCase)
@@ -648,6 +671,7 @@ public static class GreenAnimationProcessor
             || String.Equals(unitName, "goblin-rider", StringComparison.OrdinalIgnoreCase)
             || String.Equals(unitName, "orc-warrior", StringComparison.OrdinalIgnoreCase)
             || String.Equals(unitName, "boulder-ogre", StringComparison.OrdinalIgnoreCase)
+            || String.Equals(unitName, "mummy-guardian", StringComparison.OrdinalIgnoreCase)
             ? new int[] { 5, 4, 5 }
             : new int[] { 5, 4, 6 };
         string[] labels = { "ATTACK", "HIT", "DEATH" };
