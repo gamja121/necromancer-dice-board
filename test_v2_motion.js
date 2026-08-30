@@ -11,6 +11,7 @@ const practiceSource = fs.readFileSync(path.join(root, "v2-animation-practice.js
 const serviceWorker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
 const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const battleHtml = fs.readFileSync(path.join(root, "v2.html"), "utf8");
+const greenProcessor = fs.readFileSync(path.join(root, "scripts/process-green-animation-sheet.ps1"), "utf8");
 
 assert(indexHtml.includes('href="v2-animation-practice.html">모션 테스트</a>'), "Start screen motion test link is missing.");
 assert(battleHtml.includes('href="v2-animation-practice.html" class="secondary-action">모션 테스트</a>'), "V2 motion test link is missing.");
@@ -112,6 +113,7 @@ for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 5 })) {
   }
 }
 assert(!fs.existsSync(path.join(root, "art/v2-style/animation-test-frames/mummy-guardian/death-06.png")), "Mummy Guardian final source death frame must not be used.");
+assert(greenProcessor.includes('|| String.Equals(unitName, "mummy-guardian", StringComparison.OrdinalIgnoreCase);'), "Mummy Guardian must use conservative magenta removal to preserve its legs and staff.");
 assert(!fs.existsSync(path.join(root, "art/v2-style/animation-test-frames/boulder-ogre/death-06.png")), "Boulder Ogre death frame 6 must not be used.");
 assert(practiceSource.includes('(index === 1 || index === 2) ? 1.1'), "Death Knight attack frames 2 and 3 must be enlarged to 1.1x.");
 assert(practiceSource.includes('index === 1 ? 1.3'), "Boulder Ogre attack frame 2 must remain enlarged to 1.3x.");
@@ -197,7 +199,7 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/mi
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/skeleton-cavalry-animation-sheet.jpg")), "New raw Skeleton Cavalry sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/soul-reaper-animation-sheet.jpg")), "New raw Soul Reaper sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/mummy-guardian-animation-sheet.jpg")), "New raw Mummy Guardian sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v94"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v95"), "Service worker cache version was not bumped.");
 assert(!serviceWorker.includes("animation-sheets/uploaded-raw"), "Deleted legacy animation sheets remain in offline cache.");
 assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
 for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {

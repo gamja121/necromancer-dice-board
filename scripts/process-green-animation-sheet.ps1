@@ -507,7 +507,8 @@ public static class GreenAnimationProcessor
                 || String.Equals(unitName, "soul-reaper", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "mummy-guardian", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase);
-            bool strictMagenta = String.Equals(unitName, "ice-lord", StringComparison.OrdinalIgnoreCase);
+            bool strictMagenta = String.Equals(unitName, "ice-lord", StringComparison.OrdinalIgnoreCase)
+                || String.Equals(unitName, "mummy-guardian", StringComparison.OrdinalIgnoreCase);
             string[] names = { "attack", "hit", "death" };
             int[] counts = String.Equals(unitName, "skeleton-spear", StringComparison.OrdinalIgnoreCase)
                 || String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
