@@ -1,6 +1,8 @@
 param(
     [string]$SourceDirectory = "art/v2-style/map-test/tiles-source",
-    [string]$OutputDirectory = "art/v2-style/map-test/tiles"
+    [string]$OutputDirectory = "art/v2-style/map-test/tiles",
+    [string]$HeroSourcePath = "art/v2-style/map-test/hero-source/necromancer-hero.jpg",
+    [string]$HeroOutputPath = "art/v2-style/map-test/hero/necromancer-hero.png"
 )
 
 $ErrorActionPreference = "Stop"
@@ -74,4 +76,9 @@ foreach ($name in $names) {
         (Join-Path $source ($name + '.jpg')),
         (Join-Path $output ($name + '.png')))
 }
-Write-Output "Processed 10 transparent map tiles without resizing."
+$heroSource = (Resolve-Path -LiteralPath $HeroSourcePath).Path
+$heroOutputDirectory = Split-Path -Parent $HeroOutputPath
+New-Item -ItemType Directory -Force -Path $heroOutputDirectory | Out-Null
+$heroOutput = Join-Path (Resolve-Path -LiteralPath $heroOutputDirectory).Path (Split-Path -Leaf $HeroOutputPath)
+[MapTileProcessor]::Process($heroSource, $heroOutput)
+Write-Output "Processed 10 transparent map tiles and 1 hero token without resizing."

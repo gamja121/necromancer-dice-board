@@ -13,9 +13,14 @@ const worker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
 
 assert(html.includes('id="tileRing"'), "Map tile ring is missing.");
 assert(html.includes('id="regenerateButton"'), "Tile regeneration button is missing.");
+assert(html.includes('id="heroToken"'), "Hero token is missing.");
+assert(html.includes('id="mapDiceButton"'), "Map dice control is missing.");
 assert(css.includes("@media (orientation: portrait)"), "Portrait rotation guidance is missing.");
 assert(source.includes("for (let index = 0; index < 8"), "Top and bottom perimeter positions are missing.");
 assert(source.includes("for (let index = 0; index < 4"), "Side perimeter positions are missing.");
+assert(source.includes("Math.floor(Math.random() * 6) + 1"), "Random dice result is missing.");
+assert(source.includes("heroIndex = (heroIndex + 1) % positions.length"), "Clockwise wraparound movement is missing.");
+assert(source.includes("await wait(230)"), "Step-by-step movement timing is missing.");
 assert(tileCount(source) === 24, "Tile distribution must total 24.");
 
 function tileCount(text) {
@@ -32,4 +37,7 @@ for (const tile of ["basic", "graveyard", "altar", "unknown", "forest", "rest", 
   assert(worker.includes(relative), `Tile is not cached: ${relative}`);
 }
 assert(worker.includes("v2-map-practice.html"), "Map test page is not cached.");
-console.log("SUCCESS: landscape map and 24-tile perimeter integration checks passed.");
+const hero = "art/v2-style/map-test/hero/necromancer-hero.png";
+assert(fs.existsSync(path.join(root, hero)), "Processed hero token is missing.");
+assert(worker.includes(hero), "Hero token is not cached.");
+console.log("SUCCESS: landscape map, dice roll, hero token, and step movement checks passed.");

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
   <title>외곽 타일 맵 테스트</title>
-  <link rel="stylesheet" href="v2-map-practice.css?v=1">
+  <link rel="stylesheet" href="v2-map-practice.css?v=2">
 </head>
 <body>
   <main class="map-lab">
@@ -21,6 +21,15 @@
         <button id="regenerateButton" class="regenerate" type="button">타일 재생성</button>
       </header>
       <div id="tileRing" class="tile-ring" aria-label="생성된 외곽 타일 24칸"></div>
+      <div id="heroToken" class="hero-token" aria-label="주인공 말, 현재 1번 타일">
+        <img src="art/v2-style/map-test/hero/necromancer-hero.png" alt="주인공 네크로맨서">
+      </div>
+      <section class="dice-controller" aria-label="주사위 이동 테스트">
+        <button id="mapDiceButton" type="button" aria-label="주사위를 굴려 말을 이동하기">
+          <img id="mapDiceImage" src="art/v2-style/dice-test/frames/roll-01.png" alt="굴리기 전 주사위">
+        </button>
+        <div><span id="moveState">현재 1번 타일</span><strong id="diceResult">주사위 굴리기</strong></div>
+      </section>
       <div class="tile-info" aria-live="polite">
         <span id="mapName">기본 지역</span>
         <strong id="tileName">타일을 선택하세요</strong>
@@ -28,6 +37,6 @@
     </section>
   </main>
   <aside class="portrait-warning"><strong>핸드폰을 가로로 돌려주세요</strong><span>이 맵은 가로 화면 전용 테스트입니다.</span></aside>
-  <script src="v2-map-practice.js?v=1"></script>
+  <script src="v2-map-practice.js?v=2"></script>
 </body>
 </html>
