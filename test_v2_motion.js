@@ -36,6 +36,7 @@ assert(practiceHtml.includes('data-unit="mummy-guardian"'), "Mummy Guardian pick
 assert(practiceHtml.includes('data-unit="doom-executor"'), "Doom Executor picker is missing.");
 assert(practiceHtml.includes('data-unit="plague-frog"'), "Plague Frog picker is missing.");
 assert(practiceHtml.includes('data-unit="plague-doctor"'), "Plague Doctor picker is missing.");
+assert(practiceHtml.includes('data-unit="goblin-chief"'), "Goblin Chief picker is missing.");
 for (const id of ["attackBtn", "hitBtn", "deathBtn", "resetBtn", "battlefieldBtn"]) {
   assert(practiceHtml.includes(`id="${id}"`), `Motion test control is missing: ${id}`);
 }
@@ -58,6 +59,8 @@ assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/mummy-
 assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/doom-executor/"'), "Doom Executor frame root is missing.");
 assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/plague-frog/"'), "Plague Frog frame root is missing.");
 assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/plague-doctor/"'), "Plague Doctor frame root is missing.");
+assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/goblin-chief/"'), "Goblin Chief frame root is missing.");
+assert(practiceSource.includes('"goblin-chief": { name: "고블린족장", root: "art/v2-style/animation-test-frames/goblin-chief/", counts: { attack: 5, hit: 4, death: 5 } }'), "Goblin Chief frame counts are incorrect.");
 assert(practiceSource.includes('"plague-doctor": { name: "역병술사", root: "art/v2-style/animation-test-frames/plague-doctor/", counts: { attack: 5, hit: 4, death: 5 } }'), "Plague Doctor frame counts are incorrect.");
 assert(practiceSource.includes('"plague-frog": { name: "역병 개구리", root: "art/v2-style/animation-test-frames/plague-frog/", counts: { attack: 5, hit: 4, death: 5 } }'), "Plague Frog frame counts are incorrect.");
 assert(practiceSource.includes('"doom-executor": { name: "석상 가고일", root: "art/v2-style/animation-test-frames/doom-executor/", counts: { attack: 5, hit: 4, death: 5 } }'), "Doom Executor frame counts are incorrect.");
@@ -145,6 +148,15 @@ for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 5 })) {
   }
 }
 assert(!fs.existsSync(path.join(root, "art/v2-style/animation-test-frames/plague-doctor/death-06.png")), "Plague Doctor final source death frame must not be used.");
+for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 5 })) {
+  for (let index = 1; index <= count; index += 1) {
+    const relative = `art/v2-style/animation-test-frames/goblin-chief/${motion}-${String(index).padStart(2, "0")}.png`;
+    assert(fs.existsSync(path.join(root, relative)), `Goblin Chief frame is missing: ${relative}`);
+  }
+}
+const goblinChiefAttackStart = fs.readFileSync(path.join(root, "art/v2-style/animation-test-frames/goblin-chief/attack-01.png"));
+assert(goblinChiefAttackStart.equals(fs.readFileSync(path.join(root, "art/v2-style/animation-test-frames/goblin-chief/death-01.png"))), "Goblin Chief death frame 1 must use attack source frame 5.");
+assert(!fs.existsSync(path.join(root, "art/v2-style/animation-test-frames/goblin-chief/death-06.png")), "Goblin Chief final source death frame must not be used.");
 assert(!fs.existsSync(path.join(root, "art/v2-style/animation-test-frames/boulder-ogre/death-06.png")), "Boulder Ogre death frame 6 must not be used.");
 assert(practiceSource.includes('(index === 1 || index === 2) ? 1.1'), "Death Knight attack frames 2 and 3 must be enlarged to 1.1x.");
 assert(practiceSource.includes('index === 1 ? 1.3'), "Boulder Ogre attack frame 2 must remain enlarged to 1.3x.");
@@ -217,6 +229,7 @@ assert(serviceWorker.includes("animation-test-frames/mummy-guardian/${motion}-")
 assert(serviceWorker.includes("animation-test-frames/doom-executor/${motion}-"), "Doom Executor frame cache generator is missing.");
 assert(serviceWorker.includes("animation-test-frames/plague-frog/${motion}-"), "Plague Frog frame cache generator is missing.");
 assert(serviceWorker.includes("animation-test-frames/plague-doctor/${motion}-"), "Plague Doctor frame cache generator is missing.");
+assert(serviceWorker.includes("animation-test-frames/goblin-chief/${motion}-"), "Goblin Chief frame cache generator is missing.");
 
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/death-knight-animation-sheet.jpg")), "New raw Death Knight sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/skeleton-spear-animation-sheet.jpg")), "New raw Skeleton Spearman sheet is missing.");
@@ -236,11 +249,12 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/mu
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/doom-executor-animation-sheet.jpg")), "New raw Doom Executor sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/plague-frog-animation-sheet.jpg")), "New raw Plague Frog sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/plague-doctor-animation-sheet.jpg")), "New raw Plague Doctor sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v98"), "Service worker cache version was not bumped.");
+assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/goblin-chief-animation-sheet.jpg")), "New raw Goblin Chief sheet is missing.");
+assert(serviceWorker.includes("necromancer-expedition-v99"), "Service worker cache version was not bumped.");
 assert(!serviceWorker.includes("animation-sheets/uploaded-raw"), "Deleted legacy animation sheets remain in offline cache.");
 assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
 for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {
   assert(fs.existsSync(path.join(root, match[1].slice(2))), `Offline static asset is missing: ${match[1]}`);
 }
 
-console.log("SUCCESS: Death Knight, Skeleton Spearman, Ancient Treant, Stone Golem, Goblin Rider, Orc Warrior, Boulder Ogre, Goblin Commoner, Ice Lord, Yeti, Ghoul, Minotaur, Skeleton Cavalry, Soul Reaper, Mummy Guardian, Doom Executor, Plague Frog, and Plague Doctor motion test integration checks passed.");
+console.log("SUCCESS: Death Knight, Skeleton Spearman, Ancient Treant, Stone Golem, Goblin Rider, Orc Warrior, Boulder Ogre, Goblin Commoner, Ice Lord, Yeti, Ghoul, Minotaur, Skeleton Cavalry, Soul Reaper, Mummy Guardian, Doom Executor, Plague Frog, Plague Doctor, and Goblin Chief motion test integration checks passed.");
