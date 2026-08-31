@@ -17,15 +17,15 @@ button, a { font: inherit; }
 .team { position: absolute; z-index: auto; top: 22%; bottom: 9%; width: 44%; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: 1fr; gap: 0; }
 .ally-team { left: 1.5%; }
 .enemy-team { right: 1.5%; }
-.unit { --depth-scale: 1; --depth-y: 0%; --unit-layer: 12; position: relative; z-index: var(--unit-layer); min-width: 0; overflow: visible; transition: opacity 220ms ease; }
-.ally-team .unit:nth-child(1) { --depth-scale: 1.14; --depth-y: 11%; --unit-layer: 18; }
-.ally-team .unit:nth-child(2) { --depth-scale: 1.06; --depth-y: 6%; --unit-layer: 16; }
-.ally-team .unit:nth-child(3) { --depth-scale: .98; --depth-y: 0%; --unit-layer: 14; }
-.ally-team .unit:nth-child(4) { --depth-scale: .90; --depth-y: -6%; --unit-layer: 12; }
-.enemy-team .unit:nth-child(1) { --depth-scale: .90; --depth-y: -6%; --unit-layer: 12; }
-.enemy-team .unit:nth-child(2) { --depth-scale: .98; --depth-y: 0%; --unit-layer: 14; }
-.enemy-team .unit:nth-child(3) { --depth-scale: 1.06; --depth-y: 6%; --unit-layer: 16; }
-.enemy-team .unit:nth-child(4) { --depth-scale: 1.14; --depth-y: 11%; --unit-layer: 18; }
+.unit { --depth-scale: 1; --depth-y: 0%; --unit-layer: 12; --action-shift-x: 0%; position: relative; z-index: var(--unit-layer); min-width: 0; overflow: visible; transition: opacity 220ms ease; }
+.ally-team .unit:nth-child(1) { --depth-scale: 1.14; --depth-y: 11%; --unit-layer: 18; --action-shift-x: 128%; }
+.ally-team .unit:nth-child(2) { --depth-scale: 1.06; --depth-y: 6%; --unit-layer: 16; --action-shift-x: 64%; }
+.ally-team .unit:nth-child(3) { --depth-scale: .98; --depth-y: 0%; --unit-layer: 14; --action-shift-x: 0%; }
+.ally-team .unit:nth-child(4) { --depth-scale: .90; --depth-y: -6%; --unit-layer: 12; --action-shift-x: -64%; }
+.enemy-team .unit:nth-child(1) { --depth-scale: .90; --depth-y: -6%; --unit-layer: 12; --action-shift-x: 64%; }
+.enemy-team .unit:nth-child(2) { --depth-scale: .98; --depth-y: 0%; --unit-layer: 14; --action-shift-x: 0%; }
+.enemy-team .unit:nth-child(3) { --depth-scale: 1.06; --depth-y: 6%; --unit-layer: 16; --action-shift-x: -64%; }
+.enemy-team .unit:nth-child(4) { --depth-scale: 1.14; --depth-y: 11%; --unit-layer: 18; --action-shift-x: -128%; }
 .unit-card { position: absolute; z-index: 4; left: 2%; right: 2%; top: 0; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 4px; padding: 3px 5px; border: 1px solid #80715b99; border-radius: 3px; background: #0b0908d9; box-shadow: 0 2px 7px #000a; }
 .enemy-team .unit-card { border-color: #85534f99; }
 .unit-card strong { grid-column: 1 / -1; max-width: 100%; overflow: hidden; color: #f1dfbf; font-size: clamp(7px, .9vw, 10px); text-align: center; text-overflow: ellipsis; white-space: nowrap; }
@@ -42,10 +42,8 @@ button, a { font: inherit; }
 .enemy-team .unit img { transform: scaleX(-1); }
 .unit.is-attacking { z-index: 42; }
 .unit.is-targeted { z-index: 41; }
-.ally-team .unit.is-attacking .sprite-wrap { transform: translate(48%, 12%) scale(1.43); }
-.enemy-team .unit.is-attacking .sprite-wrap { transform: translate(-48%, 12%) scale(1.43); }
-.ally-team .unit.is-targeted .sprite-wrap { transform: translate(34%, 9%) scale(1.32); }
-.enemy-team .unit.is-targeted .sprite-wrap { transform: translate(-34%, 9%) scale(1.32); }
+.unit.is-attacking .sprite-wrap { transform: translate(var(--action-shift-x), 14%) scale(1.43); }
+.unit.is-targeted .sprite-wrap { transform: translate(var(--action-shift-x), 11%) scale(1.32); }
 .unit.is-hit img { animation: hit-red-flash 260ms ease-in-out 2; }
 .unit.is-ready .gauge-bar { box-shadow: 0 0 7px #8deaff; }
 .unit.is-dead { filter: grayscale(.25) brightness(.72); }

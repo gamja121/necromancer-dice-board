@@ -25,6 +25,10 @@ assert(css.includes("--unit-layer: 18"), "Outer units must overlap above inner u
 assert(css.includes(".team { position: absolute; z-index: auto"), "Teams must not trap active units in separate stacking layers.");
 assert(css.includes(".unit.is-attacking { z-index: 42"), "Attacker must render above every resting unit.");
 assert(css.includes(".unit.is-targeted { z-index: 41"), "Hit target must render above every resting unit.");
+assert(css.includes("--action-shift-x: 128%"), "Far allied slots must move to the fixed action position.");
+assert(css.includes("--action-shift-x: -128%"), "Far enemy slots must move to the fixed action position.");
+assert(css.includes("translate(var(--action-shift-x), 14%) scale(1.43)"), "Attackers must use the fixed action position.");
+assert(css.includes("translate(var(--action-shift-x), 11%) scale(1.32)"), "Hit targets must use the fixed action position.");
 assert(css.includes("hit-red-flash"), "Hit feedback must use a red flash.");
 assert(!css.includes("#ffdfae"), "White hit outline must be removed.");
 assert(source.includes("TEAM_DATA.ally.map"), "Four ally states are not created.");
@@ -46,7 +50,7 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v106'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v107'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=4"), "Auto battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=5"), "Auto battle logic is not cached.");
 console.log("SUCCESS: landscape 4v4 speed auto-battle checks passed.");
