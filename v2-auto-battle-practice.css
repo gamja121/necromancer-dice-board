@@ -14,7 +14,7 @@ button, a { font: inherit; }
 .battle-state span { min-width: 170px; color: #d2c2aa; font-size: clamp(8px, 1.15vw, 11px); text-align: center; }
 .battle-controls { display: flex; gap: 5px; }
 .battle-controls button:disabled { opacity: .48; }
-.team { position: absolute; z-index: 8; top: 22%; bottom: 9%; width: 44%; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: 1fr; gap: 0; }
+.team { position: absolute; z-index: auto; top: 22%; bottom: 9%; width: 44%; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: 1fr; gap: 0; }
 .ally-team { left: 1.5%; }
 .enemy-team { right: 1.5%; }
 .unit { --depth-scale: 1; --depth-y: 0%; --unit-layer: 12; position: relative; z-index: var(--unit-layer); min-width: 0; overflow: visible; transition: opacity 220ms ease; }
@@ -40,7 +40,8 @@ button, a { font: inherit; }
 .sprite-wrap { position: absolute; z-index: 2; inset: 13% -28% 0; display: grid; place-items: end center; transform: translateY(var(--depth-y)) scale(var(--depth-scale)); transition: transform 190ms cubic-bezier(.2, .8, .25, 1); }
 .unit img { display: block; width: 116%; height: 96%; object-fit: contain; filter: drop-shadow(0 6px 4px #000e); image-rendering: auto; }
 .enemy-team .unit img { transform: scaleX(-1); }
-.unit.is-attacking, .unit.is-targeted { z-index: 30; }
+.unit.is-attacking { z-index: 42; }
+.unit.is-targeted { z-index: 41; }
 .ally-team .unit.is-attacking .sprite-wrap { transform: translate(48%, 12%) scale(1.43); }
 .enemy-team .unit.is-attacking .sprite-wrap { transform: translate(-48%, 12%) scale(1.43); }
 .ally-team .unit.is-targeted .sprite-wrap { transform: translate(34%, 9%) scale(1.32); }
