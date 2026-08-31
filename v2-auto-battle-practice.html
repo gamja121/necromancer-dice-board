@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0a0807">
   <title>4대4 속도 자동전투 테스트</title>
-  <link rel="stylesheet" href="v2-auto-battle-practice.css?v=5">
+  <link rel="stylesheet" href="v2-auto-battle-practice.css?v=6">
 </head>
 <body>
   <main class="auto-battle-lab">
@@ -13,7 +13,7 @@
       <div class="battle-shade" aria-hidden="true"></div>
       <header class="battle-toolbar">
         <a href="v2-map-practice.html" aria-label="맵 테스트로 돌아가기">맵</a>
-        <div class="battle-state"><strong id="roundState">4 VS 4</strong><span id="battleMessage">전투 시작을 눌러주세요</span></div>
+        <div class="battle-state"><strong id="roundState">4+1 VS 4+1</strong><span id="battleMessage">전투 시작을 눌러주세요</span></div>
         <div class="battle-controls">
           <button id="pauseButton" type="button" disabled>일시정지</button>
           <button id="speedButton" type="button" disabled>속도 ×1</button>
@@ -21,15 +21,15 @@
         </div>
       </header>
 
-      <section id="allyTeam" class="team ally-team" aria-label="아군 4명"></section>
+      <section id="allyTeam" class="team ally-team" aria-label="아군 일반 유닛 4명과 소환물 자리 1칸"></section>
       <div class="versus" aria-hidden="true"><strong>VS</strong><span>속도 자동전투</span></div>
-      <section id="enemyTeam" class="team enemy-team" aria-label="적군 4명"></section>
+      <section id="enemyTeam" class="team enemy-team" aria-label="적군 일반 유닛 4명과 소환물 자리 1칸"></section>
 
       <section id="startOverlay" class="battle-overlay">
         <div class="overlay-panel">
           <span>LANDSCAPE BATTLE TEST</span>
-          <h1>4 대 4 속도 자동전투</h1>
-          <p>속도가 빠른 유닛부터 자동으로 공격하고, 피격과 사망 모션까지 이어집니다.</p>
+          <h1>5칸 대형 자동전투</h1>
+          <p>양쪽 모두 일반 유닛 4명과 중앙 소환물 자리 1칸을 사용합니다.</p>
           <button id="startButton" type="button">전투 시작</button>
         </div>
       </section>
@@ -45,6 +45,6 @@
     </section>
   </main>
   <script src="v2-landscape.js?v=1"></script>
-  <script src="v2-auto-battle-practice.js?v=5"></script>
+  <script src="v2-auto-battle-practice.js?v=6"></script>
 </body>
 </html>

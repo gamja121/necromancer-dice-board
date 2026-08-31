@@ -83,6 +83,7 @@
   function renderTeams() {
     allyTeam.replaceChildren();
     enemyTeam.replaceChildren();
+    enemyTeam.append(makeSummonSlot("적군"));
     for (const unitState of units) {
       const element = document.createElement("article");
       element.className = "unit";
@@ -97,6 +98,15 @@
       (unitState.team === "ally" ? allyTeam : enemyTeam).append(element);
       updateUnit(unitState);
     }
+    allyTeam.append(makeSummonSlot("아군"));
+  }
+
+  function makeSummonSlot(teamName) {
+    const slot = document.createElement("article");
+    slot.className = "summon-slot";
+    slot.setAttribute("aria-label", `${teamName} 소환물 생성 자리`);
+    slot.innerHTML = '<div class="summon-mark"><span>소환 자리</span></div>';
+    return slot;
   }
 
   function updateUnit(unitState) {
@@ -111,7 +121,7 @@
   function updateHud() {
     const allyAlive = aliveUnits("ally").length;
     const enemyAlive = aliveUnits("enemy").length;
-    roundState.textContent = `${allyAlive} VS ${enemyAlive}`;
+    roundState.textContent = `${allyAlive}+1 VS ${enemyAlive}+1`;
   }
 
   function aliveUnits(team) {

@@ -14,18 +14,18 @@ button, a { font: inherit; }
 .battle-state span { min-width: 170px; color: #d2c2aa; font-size: clamp(8px, 1.15vw, 11px); text-align: center; }
 .battle-controls { display: flex; gap: 5px; }
 .battle-controls button:disabled { opacity: .48; }
-.team { position: absolute; z-index: auto; top: 22%; bottom: 9%; width: 44%; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: 1fr; gap: 0; }
-.ally-team { left: 1.5%; }
-.enemy-team { right: 1.5%; }
+.team { position: absolute; z-index: auto; top: 22%; bottom: 9%; width: 48%; display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: 1fr; gap: 0; }
+.ally-team { left: 0; }
+.enemy-team { right: 0; }
 .unit { --depth-scale: 1; --depth-y: 0%; --unit-layer: 12; --action-shift-x: 0%; position: relative; z-index: var(--unit-layer); min-width: 0; overflow: visible; transition: opacity 220ms ease; }
-.ally-team .unit:nth-child(1) { --depth-scale: 1.14; --depth-y: 11%; --unit-layer: 18; --action-shift-x: 128%; }
-.ally-team .unit:nth-child(2) { --depth-scale: 1.06; --depth-y: 6%; --unit-layer: 16; --action-shift-x: 64%; }
-.ally-team .unit:nth-child(3) { --depth-scale: .98; --depth-y: 0%; --unit-layer: 14; --action-shift-x: 0%; }
-.ally-team .unit:nth-child(4) { --depth-scale: .90; --depth-y: -6%; --unit-layer: 12; --action-shift-x: -64%; }
-.enemy-team .unit:nth-child(1) { --depth-scale: .90; --depth-y: -6%; --unit-layer: 12; --action-shift-x: 64%; }
-.enemy-team .unit:nth-child(2) { --depth-scale: .98; --depth-y: 0%; --unit-layer: 14; --action-shift-x: 0%; }
-.enemy-team .unit:nth-child(3) { --depth-scale: 1.06; --depth-y: 6%; --unit-layer: 16; --action-shift-x: -64%; }
-.enemy-team .unit:nth-child(4) { --depth-scale: 1.14; --depth-y: 11%; --unit-layer: 18; --action-shift-x: -128%; }
+.ally-team .unit:nth-child(1) { --depth-scale: 1.14; --depth-y: 11%; --unit-layer: 18; --action-shift-x: 192%; }
+.ally-team .unit:nth-child(2) { --depth-scale: 1.08; --depth-y: 7%; --unit-layer: 17; --action-shift-x: 128%; }
+.ally-team .unit:nth-child(3) { --depth-scale: 1.01; --depth-y: 2%; --unit-layer: 15; --action-shift-x: 64%; }
+.ally-team .unit:nth-child(4) { --depth-scale: .94; --depth-y: -3%; --unit-layer: 13; --action-shift-x: 0%; }
+.enemy-team .unit:nth-child(2) { --depth-scale: .94; --depth-y: -3%; --unit-layer: 13; --action-shift-x: 0%; }
+.enemy-team .unit:nth-child(3) { --depth-scale: 1.01; --depth-y: 2%; --unit-layer: 15; --action-shift-x: -64%; }
+.enemy-team .unit:nth-child(4) { --depth-scale: 1.08; --depth-y: 7%; --unit-layer: 17; --action-shift-x: -128%; }
+.enemy-team .unit:nth-child(5) { --depth-scale: 1.14; --depth-y: 11%; --unit-layer: 18; --action-shift-x: -192%; }
 .unit-card { position: absolute; z-index: 4; left: 2%; right: 2%; top: 0; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 4px; padding: 3px 5px; border: 1px solid #80715b99; border-radius: 3px; background: #0b0908d9; box-shadow: 0 2px 7px #000a; }
 .enemy-team .unit-card { border-color: #85534f99; }
 .unit-card strong { grid-column: 1 / -1; max-width: 100%; overflow: hidden; color: #f1dfbf; font-size: clamp(7px, .9vw, 10px); text-align: center; text-overflow: ellipsis; white-space: nowrap; }
@@ -48,6 +48,13 @@ button, a { font: inherit; }
 .unit.is-ready .gauge-bar { box-shadow: 0 0 7px #8deaff; }
 .unit.is-dead { filter: grayscale(.25) brightness(.72); }
 .unit.is-dead .unit-card, .unit.is-dead .bar { opacity: .45; }
+.summon-slot { position: relative; z-index: 10; align-self: end; height: 55%; pointer-events: none; }
+.summon-mark { position: absolute; left: 50%; bottom: 3%; display: grid; place-items: center; width: 82%; aspect-ratio: 1; transform: translateX(-50%) rotateX(58deg); border: 2px dashed #76d9d0aa; border-radius: 50%; background: radial-gradient(circle, #59d3c42e 0 28%, #153d3a70 30% 48%, transparent 50%); box-shadow: 0 0 13px #55d8ca66, inset 0 0 10px #53e2d255; }
+.enemy-team .summon-mark { border-color: #df6666aa; background: radial-gradient(circle, #e15b5b2e 0 28%, #4c171770 30% 48%, transparent 50%); box-shadow: 0 0 13px #e0474766, inset 0 0 10px #df545455; }
+.summon-mark::before, .summon-mark::after { content: ""; position: absolute; inset: 17%; border: 1px solid currentColor; transform: rotate(45deg); }
+.summon-mark::after { transform: rotate(90deg); }
+.summon-mark span { transform: rotateX(-58deg); color: #a9eee7; font-size: clamp(7px, .85vw, 9px); font-weight: 900; text-shadow: 0 1px 3px #000; }
+.enemy-team .summon-mark span { color: #f1aaaa; }
 .versus { position: absolute; z-index: 7; left: 50%; top: 50%; display: grid; justify-items: center; transform: translate(-50%, -50%); color: #f8d7a5; text-shadow: 0 3px 5px #000; pointer-events: none; }
 .versus strong { font: 900 clamp(22px, 4vw, 46px)/1 Georgia, serif; }
 .versus span { margin-top: 4px; color: #c5ad8a; font-size: clamp(7px, .95vw, 10px); white-space: nowrap; }
