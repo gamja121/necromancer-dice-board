@@ -36,6 +36,12 @@ assert(source.includes("TEAM_DATA.ally.map"), "Four ally states are not created.
 assert(source.includes("TEAM_DATA.enemy.map"), "Four enemy states are not created.");
 assert(source.includes('enemyTeam.append(makeSummonSlot("적군"))'), "Enemy summon cell must be closest to the center.");
 assert(source.includes('allyTeam.append(makeSummonSlot("아군"))'), "Ally summon cell must be closest to the center.");
+assert(!source.includes("summon-mark"), "Reserved summon cells must remain visually empty.");
+assert(css.includes(".summon-slot { position: relative; z-index: 10; visibility: hidden"), "Reserved summon cells must be hidden.");
+assert(source.includes("const damage = Math.min(actor.attack, target.hp)"), "Displayed damage must match actual HP loss.");
+assert(source.includes("showDamage(target, damage)"), "Damage number trigger is missing.");
+assert(source.includes('querySelector(".sprite-wrap").append(number)'), "Damage number must follow the active unit position.");
+assert(css.includes("@keyframes damage-float"), "Floating damage animation is missing.");
 assert(source.includes('roundState.textContent = `${allyAlive}+1 VS ${enemyAlive}+1`'), "Five-slot formation counter is missing.");
 assert((source.match(/unit\("/g) || []).length === 8, "Battle must define exactly eight units.");
 assert(source.includes("turnQueue = units.filter"), "Per-turn action queue is missing.");
@@ -54,7 +60,7 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v108'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v109'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=6"), "Auto battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=7"), "Auto battle logic is not cached.");
 console.log("SUCCESS: landscape 4v4 speed auto-battle checks passed.");

@@ -105,8 +105,16 @@
     const slot = document.createElement("article");
     slot.className = "summon-slot";
     slot.setAttribute("aria-label", `${teamName} 소환물 생성 자리`);
-    slot.innerHTML = '<div class="summon-mark"><span>소환 자리</span></div>';
     return slot;
+  }
+
+  function showDamage(unitState, amount) {
+    const number = document.createElement("span");
+    number.className = "damage-number";
+    number.textContent = `-${amount}`;
+    number.setAttribute("aria-label", `${amount} 피해`);
+    unitState.element.querySelector(".sprite-wrap").append(number);
+    number.addEventListener("animationend", () => number.remove(), { once: true });
   }
 
   function updateUnit(unitState) {
@@ -178,7 +186,9 @@
     await playMotion(actor, "attack", actor.frames.attack, token);
     if (token !== battleToken || !running) return;
 
-    target.hp -= actor.attack;
+    const damage = Math.min(actor.attack, target.hp);
+    target.hp -= damage;
+    showDamage(target, damage);
     target.element.classList.add("is-hit");
     await playMotion(target, "hit", target.frames.hit, token);
     target.element.classList.remove("is-hit");
