@@ -18,7 +18,12 @@ assert(css.includes("rotate(90deg)"), "Battle must rotate itself in portrait mod
 assert(css.includes("grid-template-columns: repeat(4, 1fr)"), "Each team must stand in one horizontal row.");
 assert(css.includes(".enemy-team .unit img { transform: scaleX(-1)"), "Enemy units must face the allied units.");
 assert(css.includes(".unit.is-targeted"), "The hit unit must step forward and enlarge.");
-assert(css.includes("scale(1.38)"), "The attacking unit must enlarge during its action.");
+assert(css.includes("scale(1.43)"), "The attacking unit must enlarge during its action.");
+assert(css.includes("--depth-scale: 1.14"), "Outer units must appear closer to the viewer.");
+assert(css.includes("--depth-scale: .90"), "Inner units must appear farther from the viewer.");
+assert(css.includes("--unit-layer: 18"), "Outer units must overlap above inner units.");
+assert(css.includes("hit-red-flash"), "Hit feedback must use a red flash.");
+assert(!css.includes("#ffdfae"), "White hit outline must be removed.");
 assert(source.includes("TEAM_DATA.ally.map"), "Four ally states are not created.");
 assert(source.includes("TEAM_DATA.enemy.map"), "Four enemy states are not created.");
 assert((source.match(/unit\("/g) || []).length === 8, "Battle must define exactly eight units.");
@@ -38,7 +43,7 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v104'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v105'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=2"), "Auto battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=3"), "Auto battle logic is not cached.");
 console.log("SUCCESS: landscape 4v4 speed auto-battle checks passed.");
