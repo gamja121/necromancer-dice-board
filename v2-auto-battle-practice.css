@@ -14,26 +14,29 @@ button, a { font: inherit; }
 .battle-state span { min-width: 170px; color: #d2c2aa; font-size: clamp(8px, 1.15vw, 11px); text-align: center; }
 .battle-controls { display: flex; gap: 5px; }
 .battle-controls button:disabled { opacity: .48; }
-.team { position: absolute; z-index: 8; top: 14%; bottom: 8%; width: 39%; display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); gap: 1%; }
-.ally-team { left: 3%; }
-.enemy-team { right: 3%; }
+.team { position: absolute; z-index: 8; top: 22%; bottom: 9%; width: 44%; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: 1fr; gap: 0; }
+.ally-team { left: 1.5%; }
+.enemy-team { right: 1.5%; }
 .unit { position: relative; min-width: 0; overflow: visible; transition: filter 180ms ease, opacity 220ms ease; }
-.unit-card { position: absolute; z-index: 4; left: 5%; right: 5%; top: 0; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 5px; padding: 3px 6px; border: 1px solid #80715b99; border-radius: 3px; background: #0b0908d9; box-shadow: 0 2px 7px #000a; }
+.unit-card { position: absolute; z-index: 4; left: 2%; right: 2%; top: 0; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 4px; padding: 3px 5px; border: 1px solid #80715b99; border-radius: 3px; background: #0b0908d9; box-shadow: 0 2px 7px #000a; }
 .enemy-team .unit-card { border-color: #85534f99; }
-.unit-card strong { max-width: 92px; overflow: hidden; color: #f1dfbf; font-size: clamp(8px, 1vw, 11px); text-overflow: ellipsis; white-space: nowrap; }
+.unit-card strong { grid-column: 1 / -1; max-width: 100%; overflow: hidden; color: #f1dfbf; font-size: clamp(7px, .9vw, 10px); text-align: center; text-overflow: ellipsis; white-space: nowrap; }
 .unit-speed { color: #8fd6e8; font-size: clamp(7px, .88vw, 9px); font-weight: 900; }
 .hp-text { color: #ffd49b; font-size: clamp(7px, .88vw, 9px); font-weight: 900; }
 .bar { position: absolute; z-index: 5; left: 7%; right: 7%; height: 4px; overflow: hidden; border-radius: 3px; background: #050404dd; }
-.hp-bar { top: 31px; }
-.gauge-bar { top: 37px; height: 3px; }
+.hp-bar { top: 40px; }
+.gauge-bar { top: 46px; height: 3px; }
 .bar > i { display: block; width: 0; height: 100%; transition: width 90ms linear; }
 .hp-bar > i { width: 100%; background: linear-gradient(90deg, #7c1717, #e44932, #ffb34d); }
 .gauge-bar > i { background: linear-gradient(90deg, #1e658b, #5cd5f0, #e7ffff); }
-.sprite-wrap { position: absolute; z-index: 2; inset: 13% 0 0; display: grid; place-items: end center; transition: transform 150ms ease; }
-.unit img { display: block; width: 88%; height: 88%; object-fit: contain; filter: drop-shadow(0 6px 4px #000e); image-rendering: auto; }
-.ally-team .unit img { transform: scaleX(-1); }
-.unit.is-attacking .sprite-wrap { transform: translateX(13%) scale(1.05); }
-.enemy-team .unit.is-attacking .sprite-wrap { transform: translateX(-13%) scale(1.05); }
+.sprite-wrap { position: absolute; z-index: 2; inset: 13% -15% 0; display: grid; place-items: end center; transition: transform 170ms ease; }
+.unit img { display: block; width: 108%; height: 94%; object-fit: contain; filter: drop-shadow(0 6px 4px #000e); image-rendering: auto; }
+.enemy-team .unit img { transform: scaleX(-1); }
+.unit.is-attacking, .unit.is-targeted { z-index: 22; }
+.ally-team .unit.is-attacking .sprite-wrap { transform: translateX(42%) scale(1.38); }
+.enemy-team .unit.is-attacking .sprite-wrap { transform: translateX(-42%) scale(1.38); }
+.ally-team .unit.is-targeted .sprite-wrap { transform: translateX(30%) scale(1.28); }
+.enemy-team .unit.is-targeted .sprite-wrap { transform: translateX(-30%) scale(1.28); }
 .unit.is-hit { filter: brightness(1.7) saturate(.55) drop-shadow(0 0 7px #ffdfae); }
 .unit.is-ready .gauge-bar { box-shadow: 0 0 7px #8deaff; }
 .unit.is-dead { filter: grayscale(.25) brightness(.72); }
@@ -54,7 +57,7 @@ button, a { font: inherit; }
 }
 @media (max-height: 440px) and (orientation: landscape) {
   .battle-toolbar > a, .battle-controls button { height: 27px; min-width: 48px; }
-  .hp-bar { top: 27px; }
-  .gauge-bar { top: 33px; }
+  .hp-bar { top: 35px; }
+  .gauge-bar { top: 41px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition-duration: 1ms !important; } }

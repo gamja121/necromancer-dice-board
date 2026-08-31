@@ -7,16 +7,16 @@
   const FRAME_ROOT = "art/v2-style/animation-test-frames/";
   const TEAM_DATA = {
     ally: [
-      unit("death-knight", "데스나이트", 12, 3, 72, 5, 4, 6),
-      unit("skeleton-spear", "해골 창병", 8, 2, 88, 5, 4, 5),
-      unit("ghoul", "구울", 9, 2, 100, 5, 4, 6),
-      unit("ancient-treant", "고대 트렌트", 14, 3, 55, 5, 4, 6)
+      unit("death-knight", "데스나이트", 12, 3, 4, 5, 4, 6),
+      unit("skeleton-spear", "해골 창병", 8, 2, 5, 5, 4, 5),
+      unit("ghoul", "구울", 9, 2, 3, 5, 4, 6),
+      unit("ancient-treant", "고대 트렌트", 14, 3, 1, 5, 4, 6)
     ],
     enemy: [
-      unit("goblin-rider", "고블린 라이더", 8, 2, 105, 5, 4, 5),
-      unit("orc-warrior", "오크 전사", 12, 3, 62, 5, 4, 5),
-      unit("boulder-ogre", "오우거", 14, 3, 48, 5, 4, 5),
-      unit("minotaur", "미노타우로스", 11, 3, 76, 6, 4, 6)
+      unit("goblin-rider", "고블린 라이더", 8, 2, 5, 5, 4, 5),
+      unit("orc-warrior", "오크 전사", 12, 3, 3, 5, 4, 5),
+      unit("boulder-ogre", "오우거", 14, 3, 2, 5, 4, 5),
+      unit("minotaur", "미노타우로스", 11, 3, 4, 6, 4, 6)
     ]
   };
 
@@ -38,9 +38,10 @@
   let paused = false;
   let actionBusy = false;
   let speedMultiplier = 1;
-  let lastTick = performance.now();
   let battleToken = 0;
   let actionCount = 0;
+  let turnNumber = 0;
+  let turnQueue = [];
 
   function unit(slug, name, maxHp, attack, speed, attackFrames, hitFrames, deathFrames) {
     return { slug, name, maxHp, attack, speed, frames: { attack: attackFrames, hit: hitFrames, death: deathFrames } };
@@ -56,6 +57,8 @@
     paused = false;
     actionBusy = false;
     actionCount = 0;
+    turnNumber = 0;
+    turnQueue = [];
     speedMultiplier = 1;
     speedButton.textContent = "속도 ×1";
     pauseButton.textContent = "일시정지";
@@ -121,28 +124,34 @@
     resultOverlay.hidden = true;
     running = true;
     paused = false;
-    lastTick = performance.now();
     pauseButton.disabled = false;
     speedButton.disabled = false;
-    message.textContent = "속도 게이지가 차오릅니다";
+    startTurn();
   }
 
-  function battleLoop(now) {
-    const delta = Math.min(120, now - lastTick);
-    lastTick = now;
-    if (running && !paused) {
-      for (const unitState of units) {
-        if (!unitState.alive || unitState.gauge >= 100) continue;
-        unitState.gauge = Math.min(100, unitState.gauge + unitState.speed * delta * speedMultiplier / 1200);
-        updateUnit(unitState);
-      }
-      if (!actionBusy) {
-        const ready = units.filter((unitState) => unitState.alive && unitState.gauge >= 100)
-          .sort((left, right) => right.gauge - left.gauge || right.speed - left.speed);
-        if (ready[0]) performAttack(ready[0], battleToken);
-      }
+  function battleLoop() {
+    if (running && !paused && !actionBusy) {
+      let actor = turnQueue.shift();
+      while (actor && !actor.alive) actor = turnQueue.shift();
+      if (actor) performAttack(actor, battleToken);
+      else startTurn();
     }
     requestAnimationFrame(battleLoop);
+  }
+
+  function startTurn() {
+    if (!running) return;
+    if (!aliveUnits("ally").length || !aliveUnits("enemy").length) return finishBattle();
+    turnNumber += 1;
+    turnQueue = units.filter((unitState) => unitState.alive)
+      .map((unitState) => ({ unitState, tie: Math.random() }))
+      .sort((left, right) => right.unitState.speed - left.unitState.speed || left.tie - right.tie)
+      .map((entry) => entry.unitState);
+    for (const unitState of units) {
+      unitState.gauge = unitState.alive ? 100 : 0;
+      updateUnit(unitState);
+    }
+    message.textContent = `${turnNumber}턴 · 속도 높은 순서로 전원 1회 행동`;
   }
 
   async function performAttack(actor, token) {
@@ -153,8 +162,9 @@
     const target = targets[Math.floor(Math.random() * targets.length)];
     if (!target) return finishBattle();
 
-    message.textContent = `${actor.name} → ${target.name} 공격`;
+    message.textContent = `${turnNumber}턴 · ${actor.name}(속도 ${actor.speed}) → ${target.name}`;
     actor.element.classList.add("is-attacking");
+    target.element.classList.add("is-targeted");
     await playMotion(actor, "attack", actor.frames.attack, token);
     if (token !== battleToken || !running) return;
 
@@ -175,12 +185,13 @@
     }
 
     actor.element.classList.remove("is-attacking");
+    target.element.classList.remove("is-targeted");
     actor.image.src = frame(actor, "attack", 1);
     actionCount += 1;
     updateHud();
     if (!aliveUnits("ally").length || !aliveUnits("enemy").length) return finishBattle();
     actionBusy = false;
-    message.textContent = "다음 행동을 기다리는 중";
+    message.textContent = `${turnNumber}턴 · 남은 행동 ${turnQueue.filter((unitState) => unitState.alive).length}명`;
   }
 
   async function playMotion(unitState, motion, count, token, holdLast) {
@@ -200,7 +211,7 @@
     speedButton.disabled = true;
     const won = aliveUnits("ally").length > 0;
     resultTitle.textContent = won ? "아군 승리" : "적군 승리";
-    resultBody.textContent = `${actionCount}번의 공격 후 전투가 끝났습니다. 속도 수치가 높을수록 행동 기회가 더 자주 왔습니다.`;
+    resultBody.textContent = `${actionCount}번의 공격 후 전투가 끝났습니다. 매 턴 속도가 높은 순서로 생존 유닛 모두가 한 번씩 행동했습니다.`;
     resultOverlay.hidden = false;
     message.textContent = "전투 종료";
   }

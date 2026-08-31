@@ -15,11 +15,17 @@ assert(html.includes('id="allyTeam"'), "Ally team container is missing.");
 assert(html.includes('id="enemyTeam"'), "Enemy team container is missing.");
 assert(html.includes("v2-landscape.js?v=1"), "Battle landscape helper is missing.");
 assert(css.includes("rotate(90deg)"), "Battle must rotate itself in portrait mode.");
-assert(css.includes("grid-template-columns: repeat(2, 1fr)"), "Four-unit formation is missing.");
+assert(css.includes("grid-template-columns: repeat(4, 1fr)"), "Each team must stand in one horizontal row.");
+assert(css.includes(".enemy-team .unit img { transform: scaleX(-1)"), "Enemy units must face the allied units.");
+assert(css.includes(".unit.is-targeted"), "The hit unit must step forward and enlarge.");
+assert(css.includes("scale(1.38)"), "The attacking unit must enlarge during its action.");
 assert(source.includes("TEAM_DATA.ally.map"), "Four ally states are not created.");
 assert(source.includes("TEAM_DATA.enemy.map"), "Four enemy states are not created.");
 assert((source.match(/unit\("/g) || []).length === 8, "Battle must define exactly eight units.");
-assert(source.includes("unitState.speed * delta * speedMultiplier / 1200"), "Speed-driven action gauge is missing.");
+assert(source.includes("turnQueue = units.filter"), "Per-turn action queue is missing.");
+assert(source.includes("right.unitState.speed - left.unitState.speed"), "Units must act in descending speed order.");
+assert(source.includes("let actor = turnQueue.shift()"), "Each queued unit must receive one action per turn.");
+assert(source.includes("unitState.gauge = unitState.alive ? 100 : 0"), "Turn-ready indicator is missing.");
 assert(source.includes("Math.random() * targets.length"), "Automatic target selection is missing.");
 assert(source.includes('playMotion(actor, "attack"'), "Attack motion is missing.");
 assert(source.includes('playMotion(target, "hit"'), "Hit motion is missing.");
@@ -32,7 +38,7 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v103'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v104'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=1"), "Auto battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=2"), "Auto battle logic is not cached.");
 console.log("SUCCESS: landscape 4v4 speed auto-battle checks passed.");
