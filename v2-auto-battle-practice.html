@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0807">
+  <title>4대4 속도 자동전투 테스트</title>
+  <link rel="stylesheet" href="v2-auto-battle-practice.css?v=1">
+</head>
+<body>
+  <main class="auto-battle-lab">
+    <section id="battlefield" class="battlefield" aria-label="4대4 속도 자동전투">
+      <div class="battle-shade" aria-hidden="true"></div>
+      <header class="battle-toolbar">
+        <a href="v2-map-practice.html" aria-label="맵 테스트로 돌아가기">맵</a>
+        <div class="battle-state"><strong id="roundState">4 VS 4</strong><span id="battleMessage">전투 시작을 눌러주세요</span></div>
+        <div class="battle-controls">
+          <button id="pauseButton" type="button" disabled>일시정지</button>
+          <button id="speedButton" type="button" disabled>속도 ×1</button>
+          <button id="restartButton" type="button">다시 시작</button>
+        </div>
+      </header>
+
+      <section id="allyTeam" class="team ally-team" aria-label="아군 4명"></section>
+      <div class="versus" aria-hidden="true"><strong>VS</strong><span>속도 자동전투</span></div>
+      <section id="enemyTeam" class="team enemy-team" aria-label="적군 4명"></section>
+
+      <section id="startOverlay" class="battle-overlay">
+        <div class="overlay-panel">
+          <span>LANDSCAPE BATTLE TEST</span>
+          <h1>4 대 4 속도 자동전투</h1>
+          <p>속도가 빠른 유닛부터 자동으로 공격하고, 피격과 사망 모션까지 이어집니다.</p>
+          <button id="startButton" type="button">전투 시작</button>
+        </div>
+      </section>
+
+      <section id="resultOverlay" class="battle-overlay" hidden>
+        <div class="overlay-panel">
+          <span>BATTLE COMPLETE</span>
+          <h2 id="resultTitle">승리</h2>
+          <p id="resultBody"></p>
+          <button id="resultRestartButton" type="button">다시 전투</button>
+        </div>
+      </section>
+    </section>
+  </main>
+  <script src="v2-landscape.js?v=1"></script>
+  <script src="v2-auto-battle-practice.js?v=1"></script>
+</body>
+</html>

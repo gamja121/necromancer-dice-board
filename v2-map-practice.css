@@ -33,10 +33,8 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .tile-info strong { color: #ffe0a0; }
 .portrait-warning { display: none; }
 @media (orientation: portrait) {
-  .map-lab { display: none; }
-  .portrait-warning { display: grid; place-content: center; gap: 8px; width: 100vw; height: 100dvh; padding: 24px; background: radial-gradient(circle, #34241a, #090605); text-align: center; }
-  .portrait-warning strong { color: #f3d39f; font-size: 22px; }
-  .portrait-warning span { color: #bbaa91; font-size: 13px; }
+  .map-lab { position: fixed; left: 50%; top: 50%; width: 100dvh; height: 100vw; padding: 0; transform: translate(-50%, -50%) rotate(90deg); transform-origin: center; }
+  .map-board { width: 100dvh; height: 55.78dvh; max-height: 100vw; }
 }
 @media (max-height: 420px) and (orientation: landscape) {
   .map-toolbar a, .map-toolbar button { height: 26px; min-width: 34px; padding: 0 7px; }

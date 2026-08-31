@@ -1,0 +1,60 @@
+:root { color-scheme: dark; font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; background: #080604; color: #f7ead0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+body { background: #080604; }
+button, a { font: inherit; }
+.auto-battle-lab { display: grid; place-items: center; width: 100vw; height: 100dvh; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); background: radial-gradient(circle, #33251b, #070504 76%); }
+.battlefield { position: relative; width: min(100vw, 177.78dvh); height: min(100dvh, 56.25vw); overflow: hidden; background: #18120e url("art/v2-style/battle-backgrounds/uploaded-raw/wasteland-chasm-battlefield.jpg") center / cover no-repeat; box-shadow: 0 0 38px #000, inset 0 0 0 2px #b78a5266; isolation: isolate; }
+.battle-shade { position: absolute; z-index: 1; inset: 0; background: linear-gradient(90deg, #07121c70, transparent 36%, transparent 64%, #24090770), linear-gradient(0deg, #030202c9, transparent 45%, #05030366); pointer-events: none; }
+.battle-toolbar { position: absolute; z-index: 30; top: 2.5%; left: 2%; right: 2%; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; }
+.battle-toolbar > a, .battle-controls button { min-width: 56px; height: 32px; padding: 0 9px; border: 1px solid #8b6a48; border-radius: 3px; background: #160f0be8; color: #ead7b7; font-size: clamp(9px, 1.2vw, 12px); font-weight: 900; text-decoration: none; }
+.battle-toolbar > a { display: grid; place-items: center; }
+.battle-state { justify-self: center; display: flex; align-items: center; gap: 10px; padding: 5px 13px; border: 1px solid #886744; border-radius: 3px; background: #100b08e8; box-shadow: 0 4px 12px #0009; }
+.battle-state strong { color: #ffd58f; font-size: clamp(12px, 1.8vw, 18px); }
+.battle-state span { min-width: 170px; color: #d2c2aa; font-size: clamp(8px, 1.15vw, 11px); text-align: center; }
+.battle-controls { display: flex; gap: 5px; }
+.battle-controls button:disabled { opacity: .48; }
+.team { position: absolute; z-index: 8; top: 14%; bottom: 8%; width: 39%; display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); gap: 1%; }
+.ally-team { left: 3%; }
+.enemy-team { right: 3%; }
+.unit { position: relative; min-width: 0; overflow: visible; transition: filter 180ms ease, opacity 220ms ease; }
+.unit-card { position: absolute; z-index: 4; left: 5%; right: 5%; top: 0; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 5px; padding: 3px 6px; border: 1px solid #80715b99; border-radius: 3px; background: #0b0908d9; box-shadow: 0 2px 7px #000a; }
+.enemy-team .unit-card { border-color: #85534f99; }
+.unit-card strong { max-width: 92px; overflow: hidden; color: #f1dfbf; font-size: clamp(8px, 1vw, 11px); text-overflow: ellipsis; white-space: nowrap; }
+.unit-speed { color: #8fd6e8; font-size: clamp(7px, .88vw, 9px); font-weight: 900; }
+.hp-text { color: #ffd49b; font-size: clamp(7px, .88vw, 9px); font-weight: 900; }
+.bar { position: absolute; z-index: 5; left: 7%; right: 7%; height: 4px; overflow: hidden; border-radius: 3px; background: #050404dd; }
+.hp-bar { top: 31px; }
+.gauge-bar { top: 37px; height: 3px; }
+.bar > i { display: block; width: 0; height: 100%; transition: width 90ms linear; }
+.hp-bar > i { width: 100%; background: linear-gradient(90deg, #7c1717, #e44932, #ffb34d); }
+.gauge-bar > i { background: linear-gradient(90deg, #1e658b, #5cd5f0, #e7ffff); }
+.sprite-wrap { position: absolute; z-index: 2; inset: 13% 0 0; display: grid; place-items: end center; transition: transform 150ms ease; }
+.unit img { display: block; width: 88%; height: 88%; object-fit: contain; filter: drop-shadow(0 6px 4px #000e); image-rendering: auto; }
+.ally-team .unit img { transform: scaleX(-1); }
+.unit.is-attacking .sprite-wrap { transform: translateX(13%) scale(1.05); }
+.enemy-team .unit.is-attacking .sprite-wrap { transform: translateX(-13%) scale(1.05); }
+.unit.is-hit { filter: brightness(1.7) saturate(.55) drop-shadow(0 0 7px #ffdfae); }
+.unit.is-ready .gauge-bar { box-shadow: 0 0 7px #8deaff; }
+.unit.is-dead { filter: grayscale(.25) brightness(.72); }
+.unit.is-dead .unit-card, .unit.is-dead .bar { opacity: .45; }
+.versus { position: absolute; z-index: 7; left: 50%; top: 50%; display: grid; justify-items: center; transform: translate(-50%, -50%); color: #f8d7a5; text-shadow: 0 3px 5px #000; pointer-events: none; }
+.versus strong { font: 900 clamp(22px, 4vw, 46px)/1 Georgia, serif; }
+.versus span { margin-top: 4px; color: #c5ad8a; font-size: clamp(7px, .95vw, 10px); white-space: nowrap; }
+.battle-overlay { position: absolute; z-index: 80; inset: 0; display: grid; place-items: center; padding: 16px; background: #040302b8; backdrop-filter: blur(3px); }
+.battle-overlay[hidden] { display: none; }
+.overlay-panel { width: min(460px, 68%); padding: clamp(15px, 3vw, 28px); border: 1px solid #9b754d; background: linear-gradient(#22160fef, #0e0a08f5); box-shadow: 0 15px 38px #000; text-align: center; }
+.overlay-panel span { color: #aa8b64; font-size: clamp(8px, 1.1vw, 11px); font-weight: 900; letter-spacing: .16em; }
+.overlay-panel h1, .overlay-panel h2 { margin: 8px 0; color: #ffe0a5; font: 900 clamp(18px, 3vw, 32px)/1.2 Georgia, "Malgun Gothic", serif; }
+.overlay-panel p { margin: 0 auto 13px; color: #cfbea6; font-size: clamp(9px, 1.2vw, 12px); line-height: 1.55; }
+.overlay-panel button { min-width: 150px; height: 38px; border: 1px solid #d0944f; border-radius: 3px; background: linear-gradient(#79431f, #41200f); color: #fff0c8; font-weight: 900; }
+@media (orientation: portrait) {
+  .auto-battle-lab { position: fixed; left: 50%; top: 50%; width: 100dvh; height: 100vw; padding: 0; transform: translate(-50%, -50%) rotate(90deg); transform-origin: center; }
+  .battlefield { width: 100dvh; height: 56.25dvh; max-height: 100vw; }
+}
+@media (max-height: 440px) and (orientation: landscape) {
+  .battle-toolbar > a, .battle-controls button { height: 27px; min-width: 48px; }
+  .hp-bar { top: 27px; }
+  .gauge-bar { top: 33px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition-duration: 1ms !important; } }
