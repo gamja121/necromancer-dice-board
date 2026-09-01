@@ -71,19 +71,19 @@ button, a { font: inherit; }
 .unit-info-overlay[hidden] { display: none; }
 .unit-info-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #030201c4; backdrop-filter: blur(2px); }
 .unit-info-panel { position: relative; z-index: 1; height: min(90%, 650px); aspect-ratio: 406 / 651; overflow: hidden; border: 0; background: #211c18; box-shadow: 0 18px 42px #000e; }
-.unit-info-frame-art { position: absolute; z-index: 0; top: -9.2%; left: -41.4%; width: auto; height: 110.6%; max-width: none; pointer-events: none; user-select: none; }
+.unit-info-frame-art { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; pointer-events: none; user-select: none; }
 .unit-info-panel > header { position: absolute; z-index: 2; top: .7%; left: 18%; display: grid; place-items: center; width: 64%; height: 5.2%; padding: 0; border: 0; background: transparent; }
 .unit-info-panel > header span { display: none; }
 .unit-info-panel > header h2 { max-width: 100%; margin: 0; overflow: hidden; color: #e9d6b3; font: 900 clamp(9px, 1.35vw, 17px)/1 Georgia, "Malgun Gothic", serif; text-overflow: ellipsis; text-shadow: 0 2px 2px #000; white-space: nowrap; }
 #unitInfoClose { position: absolute; z-index: 4; top: 1.3%; right: 1%; display: grid; place-items: center; width: 6.2%; aspect-ratio: 1; padding: 0; border: 0; background: transparent; color: #e2c99e; font-size: clamp(14px, 2vw, 23px); line-height: 1; text-shadow: 0 2px 2px #000; }
-.unit-info-summary { position: absolute; z-index: 2; top: 7.7%; left: 4.8%; display: grid; grid-template-columns: 32% 1fr; width: 91.8%; height: 28.1%; min-height: 0; padding: 0; gap: 2%; }
+.unit-info-summary { position: absolute; z-index: 2; top: 7.8%; left: 5.2%; display: grid; grid-template-columns: 33% 1fr; width: 89.2%; height: 36.4%; min-height: 0; padding: 0; gap: 1.7%; }
 .unit-info-portrait { min-height: 0; overflow: hidden; border: 0; background: #151515; }
 .unit-info-portrait img { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 4px 3px #000b); }
 .unit-info-stats { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 1fr); gap: 2px; margin: 0; padding: 2.5% 3%; }
 .unit-info-stats > div { display: grid; grid-template-columns: 1fr auto; align-items: center; min-width: 0; padding: 2% 4%; border: 1px solid #171512; border-radius: 2px; background: #282725d9; box-shadow: inset 0 0 5px #0008; }
 .unit-info-stats dt { color: #ab9677; font-size: clamp(6px, .7vw, 9px); font-weight: 900; }
 .unit-info-stats dd { margin: 0; overflow: hidden; color: #f1dfbd; font-size: clamp(7px, .95vw, 12px); font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
-.unit-info-detail { position: absolute; z-index: 2; top: 38%; right: 4.1%; bottom: 3.7%; left: 4.1%; margin: 0; padding: 7% 7%; border: 0; background: transparent; }
+.unit-info-detail { position: absolute; z-index: 2; top: 46.5%; right: 5.2%; bottom: 4.2%; left: 5.2%; margin: 0; padding: 6% 6.5%; border: 0; background: transparent; }
 .unit-info-detail h3 { margin: 0 0 4%; color: #d9bf91; font: 900 clamp(8px, 1vw, 12px)/1 Georgia, "Malgun Gothic", serif; text-align: center; text-shadow: 0 2px 2px #000; }
 .unit-info-detail p { margin: 0; color: #d2c4ae; font-size: clamp(7px, .85vw, 11px); line-height: 1.55; }
 .battle-overlay { position: absolute; z-index: 80; inset: 0; display: grid; place-items: center; padding: 16px; background: #040302b8; backdrop-filter: blur(3px); }
