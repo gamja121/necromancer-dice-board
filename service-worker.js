@@ -1,11 +1,11 @@
-const CACHE_NAME = "necromancer-expedition-v113";
+const CACHE_NAME = "necromancer-expedition-v114";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./v2.html",
   "./v2-animation-practice.html",
   "./v2-animation-practice.css?v=5",
-  "./v2-animation-practice.js?v=35",
+  "./v2-animation-practice.js?v=36",
   "./v2-dice-practice.html",
   "./v2-dice-practice.css?v=1",
   "./v2-dice-practice.js?v=1",

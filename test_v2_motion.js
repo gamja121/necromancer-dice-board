@@ -72,7 +72,7 @@ assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/grave-
 assert(practiceSource.includes('"grave-priest": { name: "묘지 사제", root: "art/v2-style/animation-test-frames/grave-priest/", counts: { attack: 5, hit: 4, death: 6 } }'), "Grave Priest frame counts are incorrect.");
 assert(practiceSource.includes('"forest-fairy": { name: "숲 요정", root: "art/v2-style/animation-test-frames/forest-fairy/", counts: { attack: 5, hit: 4, death: 7 } }'), "Forest Fairy frame counts are incorrect.");
 assert(practiceSource.includes('"mushroom-soldier": { name: "버섯 병사", root: "art/v2-style/animation-test-frames/mushroom-soldier/", counts: { attack: 5, hit: 4, death: 6 } }'), "Mushroom Soldier frame counts are incorrect.");
-assert(practiceSource.includes('"spider-knight": { name: "거미 기사", root: "art/v2-style/animation-test-frames/spider-knight/", counts: { attack: 5, hit: 4, death: 6 } }'), "Spider Knight frame counts are incorrect.");
+assert(practiceSource.includes('"spider-knight": { name: "거미여왕", root: "art/v2-style/animation-test-frames/spider-knight/", counts: { attack: 5, hit: 4, death: 6 } }'), "Spider Queen frame counts are incorrect.");
 assert(practiceSource.includes('"goblin-chief": { name: "고블린족장", root: "art/v2-style/animation-test-frames/goblin-chief/", counts: { attack: 5, hit: 4, death: 5 } }'), "Goblin Chief frame counts are incorrect.");
 assert(practiceSource.includes('"plague-doctor": { name: "역병술사", root: "art/v2-style/animation-test-frames/plague-doctor/", counts: { attack: 5, hit: 4, death: 5 } }'), "Plague Doctor frame counts are incorrect.");
 assert(practiceSource.includes('"plague-frog": { name: "역병 개구리", root: "art/v2-style/animation-test-frames/plague-frog/", counts: { attack: 5, hit: 4, death: 5 } }'), "Plague Frog frame counts are incorrect.");
@@ -308,11 +308,11 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/gr
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/forest-fairy-animation-sheet.jpg")), "New raw Forest Fairy sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/mushroom-soldier-animation-sheet.jpg")), "New raw Mushroom Soldier sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/spider-knight-animation-sheet.jpg")), "New raw Spider Knight sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v113"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v114"), "Service worker cache version was not bumped.");
 assert(!serviceWorker.includes("animation-sheets/uploaded-raw"), "Deleted legacy animation sheets remain in offline cache.");
 assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
 for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {
   assert(fs.existsSync(path.join(root, match[1].slice(2))), `Offline static asset is missing: ${match[1]}`);
 }
 
-console.log("SUCCESS: 23 unit motion test integrations, including Forest Fairy, Mushroom Soldier, and Spider Knight, passed.");
+console.log("SUCCESS: 23 unit motion test integrations, including Forest Fairy, Mushroom Soldier, and Spider Queen, passed.");
