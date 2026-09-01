@@ -27,7 +27,8 @@
     "goblin-chief": { name: "고블린족장", root: "art/v2-style/animation-test-frames/goblin-chief/", counts: { attack: 5, hit: 4, death: 5 } },
     "grave-priest": { name: "묘지 사제", root: "art/v2-style/animation-test-frames/grave-priest/", counts: { attack: 5, hit: 4, death: 6 } },
     "forest-fairy": { name: "숲 요정", root: "art/v2-style/animation-test-frames/forest-fairy/", counts: { attack: 5, hit: 4, death: 7 } },
-    "mushroom-soldier": { name: "버섯 병사", root: "art/v2-style/animation-test-frames/mushroom-soldier/", counts: { attack: 5, hit: 4, death: 6 } }
+    "mushroom-soldier": { name: "버섯 병사", root: "art/v2-style/animation-test-frames/mushroom-soldier/", counts: { attack: 5, hit: 4, death: 6 } },
+    "spider-knight": { name: "거미 기사", root: "art/v2-style/animation-test-frames/spider-knight/", counts: { attack: 5, hit: 4, death: 6 } }
   });
   const FRAME_MS = Object.freeze({ attack: 145, hit: 135, death: 175 });
   const MOTION_LABELS = Object.freeze({ attack: "공격", hit: "피격", death: "사망" });

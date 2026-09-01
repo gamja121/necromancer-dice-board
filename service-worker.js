@@ -1,11 +1,11 @@
-const CACHE_NAME = "necromancer-expedition-v112";
+const CACHE_NAME = "necromancer-expedition-v113";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./v2.html",
   "./v2-animation-practice.html",
   "./v2-animation-practice.css?v=5",
-  "./v2-animation-practice.js?v=34",
+  "./v2-animation-practice.js?v=35",
   "./v2-dice-practice.html",
   "./v2-dice-practice.css?v=1",
   "./v2-dice-practice.js?v=1",
@@ -68,6 +68,7 @@ const APP_SHELL = [
   "./art/v2-style/animation-sheets/green-raw/grave-priest-animation-sheet.jpg",
   "./art/v2-style/animation-sheets/green-raw/forest-fairy-animation-sheet.jpg",
   "./art/v2-style/animation-sheets/green-raw/mushroom-soldier-animation-sheet.jpg",
+  "./art/v2-style/animation-sheets/green-raw/spider-knight-animation-sheet.jpg",
   "./assets/v2-battle-castle.png",
   "./art/v2-style/battle-backgrounds/uploaded-raw/wasteland-chasm-battlefield.jpg",
   "./art/v2-style/battle-backgrounds/uploaded-raw/haunted-forest-ruins-battlefield.jpg",
@@ -207,6 +208,11 @@ Object.entries({ attack: 5, hit: 4, death: 7 }).forEach(([motion, count]) => {
 Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
   for (let index = 1; index <= count; index += 1) {
     APP_SHELL.push(`./art/v2-style/animation-test-frames/mushroom-soldier/${motion}-${String(index).padStart(2, "0")}.png`);
+  }
+});
+Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
+  for (let index = 1; index <= count; index += 1) {
+    APP_SHELL.push(`./art/v2-style/animation-test-frames/spider-knight/${motion}-${String(index).padStart(2, "0")}.png`);
   }
 });
 

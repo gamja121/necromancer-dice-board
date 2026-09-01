@@ -15,6 +15,7 @@ const greenProcessor = fs.readFileSync(path.join(root, "scripts/process-green-an
 const gravePriestProcessor = fs.readFileSync(path.join(root, "scripts/process-grave-priest-sheet.ps1"), "utf8");
 const forestFairyProcessor = fs.readFileSync(path.join(root, "scripts/process-forest-fairy-sheet.ps1"), "utf8");
 const mushroomSoldierProcessor = fs.readFileSync(path.join(root, "scripts/process-mushroom-soldier-sheet.ps1"), "utf8");
+const spiderKnightProcessor = fs.readFileSync(path.join(root, "scripts/process-spider-knight-sheet.ps1"), "utf8");
 
 assert(indexHtml.includes('href="v2-animation-practice.html">모션 테스트</a>'), "Start screen motion test link is missing.");
 assert(battleHtml.includes('href="v2-animation-practice.html" class="secondary-action">모션 테스트</a>'), "V2 motion test link is missing.");
@@ -43,6 +44,7 @@ assert(practiceHtml.includes('data-unit="goblin-chief"'), "Goblin Chief picker i
 assert(practiceHtml.includes('data-unit="grave-priest"'), "Grave Priest picker is missing.");
 assert(practiceHtml.includes('data-unit="forest-fairy"'), "Forest Fairy picker is missing.");
 assert(practiceHtml.includes('data-unit="mushroom-soldier"'), "Mushroom Soldier picker is missing.");
+assert(practiceHtml.includes('data-unit="spider-knight"'), "Spider Knight picker is missing.");
 for (const id of ["attackBtn", "hitBtn", "deathBtn", "resetBtn", "battlefieldBtn"]) {
   assert(practiceHtml.includes(`id="${id}"`), `Motion test control is missing: ${id}`);
 }
@@ -70,6 +72,7 @@ assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/grave-
 assert(practiceSource.includes('"grave-priest": { name: "묘지 사제", root: "art/v2-style/animation-test-frames/grave-priest/", counts: { attack: 5, hit: 4, death: 6 } }'), "Grave Priest frame counts are incorrect.");
 assert(practiceSource.includes('"forest-fairy": { name: "숲 요정", root: "art/v2-style/animation-test-frames/forest-fairy/", counts: { attack: 5, hit: 4, death: 7 } }'), "Forest Fairy frame counts are incorrect.");
 assert(practiceSource.includes('"mushroom-soldier": { name: "버섯 병사", root: "art/v2-style/animation-test-frames/mushroom-soldier/", counts: { attack: 5, hit: 4, death: 6 } }'), "Mushroom Soldier frame counts are incorrect.");
+assert(practiceSource.includes('"spider-knight": { name: "거미 기사", root: "art/v2-style/animation-test-frames/spider-knight/", counts: { attack: 5, hit: 4, death: 6 } }'), "Spider Knight frame counts are incorrect.");
 assert(practiceSource.includes('"goblin-chief": { name: "고블린족장", root: "art/v2-style/animation-test-frames/goblin-chief/", counts: { attack: 5, hit: 4, death: 5 } }'), "Goblin Chief frame counts are incorrect.");
 assert(practiceSource.includes('"plague-doctor": { name: "역병술사", root: "art/v2-style/animation-test-frames/plague-doctor/", counts: { attack: 5, hit: 4, death: 5 } }'), "Plague Doctor frame counts are incorrect.");
 assert(practiceSource.includes('"plague-frog": { name: "역병 개구리", root: "art/v2-style/animation-test-frames/plague-frog/", counts: { attack: 5, hit: 4, death: 5 } }'), "Plague Frog frame counts are incorrect.");
@@ -243,6 +246,7 @@ assert(serviceWorker.includes("animation-test-frames/goblin-chief/${motion}-"), 
 assert(serviceWorker.includes("animation-test-frames/grave-priest/${motion}-"), "Grave Priest frame cache generator is missing.");
 assert(serviceWorker.includes("animation-test-frames/forest-fairy/${motion}-"), "Forest Fairy frame cache generator is missing.");
 assert(serviceWorker.includes("animation-test-frames/mushroom-soldier/${motion}-"), "Mushroom Soldier frame cache generator is missing.");
+assert(serviceWorker.includes("animation-test-frames/spider-knight/${motion}-"), "Spider Knight frame cache generator is missing.");
 
 for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
   for (let index = 1; index <= count; index += 1) {
@@ -272,6 +276,15 @@ assert(mushroomSoldierProcessor.includes("RemoveFinalSparkle"), "Mushroom Soldie
 assert(mushroomSoldierProcessor.includes("RemoveEdgeWhiteGutters"), "Mushroom Soldier white cell gutter cleanup is missing.");
 assert(mushroomSoldierProcessor.includes("DrawImageUnscaled"), "Mushroom Soldier frames must preserve source resolution.");
 
+for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
+  for (let index = 1; index <= count; index += 1) {
+    const relative = `art/v2-style/animation-test-frames/spider-knight/${motion}-${String(index).padStart(2, "0")}.png`;
+    assert(fs.existsSync(path.join(root, relative)), `Spider Knight frame is missing: ${relative}`);
+  }
+}
+assert(spiderKnightProcessor.includes("RemoveFinalSparkle"), "Spider Knight final Gemini cleanup is missing.");
+assert(spiderKnightProcessor.includes("DrawImageUnscaled"), "Spider Knight frames must preserve source resolution.");
+
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/death-knight-animation-sheet.jpg")), "New raw Death Knight sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/skeleton-spear-animation-sheet.jpg")), "New raw Skeleton Spearman sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/ancient-treant-animation-sheet.jpg")), "New raw Ancient Treant sheet is missing.");
@@ -294,11 +307,12 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/go
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/grave-priest-animation-sheet.jpg")), "New raw Grave Priest sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/forest-fairy-animation-sheet.jpg")), "New raw Forest Fairy sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/mushroom-soldier-animation-sheet.jpg")), "New raw Mushroom Soldier sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v112"), "Service worker cache version was not bumped.");
+assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/spider-knight-animation-sheet.jpg")), "New raw Spider Knight sheet is missing.");
+assert(serviceWorker.includes("necromancer-expedition-v113"), "Service worker cache version was not bumped.");
 assert(!serviceWorker.includes("animation-sheets/uploaded-raw"), "Deleted legacy animation sheets remain in offline cache.");
 assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
 for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {
   assert(fs.existsSync(path.join(root, match[1].slice(2))), `Offline static asset is missing: ${match[1]}`);
 }
 
-console.log("SUCCESS: 22 unit motion test integrations, including Grave Priest, Forest Fairy, and Mushroom Soldier, passed.");
+console.log("SUCCESS: 23 unit motion test integrations, including Forest Fairy, Mushroom Soldier, and Spider Knight, passed.");
