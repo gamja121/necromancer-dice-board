@@ -34,7 +34,8 @@
     "abyss-eye": { name: "외눈 괴물", root: "art/v2-style/animation-test-frames/abyss-eye/", counts: { attack: 5, hit: 4, death: 6 } },
     "kraken": { name: "크라켄", root: "art/v2-style/animation-test-frames/kraken/", counts: { attack: 5, hit: 4, death: 6 } },
     "raging-treant": { name: "분노한 고목", root: "art/v2-style/animation-test-frames/raging-treant/", counts: { attack: 5, hit: 4, death: 6 } },
-    "crystal-devourer": { name: "결정 포식화", root: "art/v2-style/animation-test-frames/crystal-devourer/", counts: { attack: 5, hit: 4, death: 7 } }
+    "crystal-devourer": { name: "결정 포식화", root: "art/v2-style/animation-test-frames/crystal-devourer/", counts: { attack: 5, hit: 4, death: 7 } },
+    "grave-worm": { name: "역병 벌레", root: "art/v2-style/animation-test-frames/grave-worm/", counts: { attack: 5, hit: 4, death: 6 } }
   });
   const FRAME_MS = Object.freeze({ attack: 145, hit: 135, death: 175 });
   const MOTION_LABELS = Object.freeze({ attack: "공격", hit: "피격", death: "사망" });

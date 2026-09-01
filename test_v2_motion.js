@@ -21,6 +21,7 @@ const seaWolfProcessor = fs.readFileSync(path.join(root, "scripts/process-sea-wo
 const abyssEyeProcessor = fs.readFileSync(path.join(root, "scripts/process-abyss-eye-sheet.ps1"), "utf8");
 const krakenProcessor = fs.readFileSync(path.join(root, "scripts/process-kraken-sheet.ps1"), "utf8");
 const crystalDevourerProcessor = fs.readFileSync(path.join(root, "scripts/process-crystal-devourer-sheet.ps1"), "utf8");
+const graveWormProcessor = fs.readFileSync(path.join(root, "scripts/process-grave-worm-sheet.ps1"), "utf8");
 
 assert(indexHtml.includes('href="v2-animation-practice.html">모션 테스트</a>'), "Start screen motion test link is missing.");
 assert(battleHtml.includes('href="v2-animation-practice.html" class="secondary-action">모션 테스트</a>'), "V2 motion test link is missing.");
@@ -56,6 +57,7 @@ assert(practiceHtml.includes('data-unit="abyss-eye"'), "Abyss Eye picker is miss
 assert(practiceHtml.includes('data-unit="kraken"'), "Kraken picker is missing.");
 assert(practiceHtml.includes('data-unit="raging-treant"'), "Raging Treant picker is missing.");
 assert(practiceHtml.includes('data-unit="crystal-devourer"'), "Crystal Devourer picker is missing.");
+assert(practiceHtml.includes('data-unit="grave-worm"'), "Grave Worm picker is missing.");
 for (const id of ["attackBtn", "hitBtn", "deathBtn", "resetBtn", "battlefieldBtn"]) {
   assert(practiceHtml.includes(`id="${id}"`), `Motion test control is missing: ${id}`);
 }
@@ -90,6 +92,7 @@ assert(practiceSource.includes('"abyss-eye": { name: "외눈 괴물", root: "art
 assert(practiceSource.includes('"kraken": { name: "크라켄", root: "art/v2-style/animation-test-frames/kraken/", counts: { attack: 5, hit: 4, death: 6 } }'), "Kraken frame counts are incorrect.");
 assert(practiceSource.includes('"raging-treant": { name: "분노한 고목", root: "art/v2-style/animation-test-frames/raging-treant/", counts: { attack: 5, hit: 4, death: 6 } }'), "Raging Treant frame counts are incorrect.");
 assert(practiceSource.includes('"crystal-devourer": { name: "결정 포식화", root: "art/v2-style/animation-test-frames/crystal-devourer/", counts: { attack: 5, hit: 4, death: 7 } }'), "Crystal Devourer frame counts are incorrect.");
+assert(practiceSource.includes('"grave-worm": { name: "역병 벌레", root: "art/v2-style/animation-test-frames/grave-worm/", counts: { attack: 5, hit: 4, death: 6 } }'), "Grave Worm frame counts are incorrect.");
 assert(practiceSource.includes('"goblin-chief": { name: "고블린족장", root: "art/v2-style/animation-test-frames/goblin-chief/", counts: { attack: 5, hit: 4, death: 5 } }'), "Goblin Chief frame counts are incorrect.");
 assert(practiceSource.includes('"plague-doctor": { name: "역병술사", root: "art/v2-style/animation-test-frames/plague-doctor/", counts: { attack: 5, hit: 4, death: 5 } }'), "Plague Doctor frame counts are incorrect.");
 assert(practiceSource.includes('"plague-frog": { name: "역병 개구리", root: "art/v2-style/animation-test-frames/plague-frog/", counts: { attack: 5, hit: 4, death: 5 } }'), "Plague Frog frame counts are incorrect.");
@@ -270,6 +273,7 @@ assert(serviceWorker.includes("animation-test-frames/abyss-eye/${motion}-"), "Ab
 assert(serviceWorker.includes("animation-test-frames/kraken/${motion}-"), "Kraken frame cache generator is missing.");
 assert(serviceWorker.includes("animation-test-frames/raging-treant/${motion}-"), "Raging Treant frame cache generator is missing.");
 assert(serviceWorker.includes("animation-test-frames/crystal-devourer/${motion}-"), "Crystal Devourer frame cache generator is missing.");
+assert(serviceWorker.includes("animation-test-frames/grave-worm/${motion}-"), "Grave Worm frame cache generator is missing.");
 
 for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
   for (let index = 1; index <= count; index += 1) {
@@ -366,6 +370,17 @@ assert(crystalDevourerProcessor.includes('SaveFrame(source, hit[4], outputDirect
 assert(crystalDevourerProcessor.includes("RemoveFinalSparkle"), "Crystal Devourer final Gemini cleanup is missing.");
 assert(crystalDevourerProcessor.includes("DrawImageUnscaled"), "Crystal Devourer frames must preserve source resolution.");
 
+for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
+  for (let index = 1; index <= count; index += 1) {
+    const relative = `art/v2-style/animation-test-frames/grave-worm/${motion}-${String(index).padStart(2, "0")}.png`;
+    assert(fs.existsSync(path.join(root, relative)), `Grave Worm frame is missing: ${relative}`);
+  }
+}
+assert(graveWormProcessor.includes("RemoveDetachedEffects"), "Grave Worm particle cleanup is missing.");
+assert(graveWormProcessor.includes("row == 1 && frameIndex == 2"), "Grave Worm hit 3 particle cleanup is missing.");
+assert(graveWormProcessor.includes("row == 1 && frameIndex == 3"), "Grave Worm hit 4 particle cleanup is missing.");
+assert(graveWormProcessor.includes("DrawImageUnscaled"), "Grave Worm frames must preserve source resolution.");
+
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/death-knight-animation-sheet.jpg")), "New raw Death Knight sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/skeleton-spear-animation-sheet.jpg")), "New raw Skeleton Spearman sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/ancient-treant-animation-sheet.jpg")), "New raw Ancient Treant sheet is missing.");
@@ -395,11 +410,12 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/ab
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/kraken-animation-sheet.jpg")), "New raw Kraken sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/raging-treant-animation-sheet.jpg")), "New raw Raging Treant sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/crystal-devourer-animation-sheet.jpg")), "New raw Crystal Devourer sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v122"), "Service worker cache version was not bumped.");
+assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/grave-worm-animation-sheet.jpg")), "New raw Grave Worm sheet is missing.");
+assert(serviceWorker.includes("necromancer-expedition-v123"), "Service worker cache version was not bumped.");
 assert(!serviceWorker.includes("animation-sheets/uploaded-raw"), "Deleted legacy animation sheets remain in offline cache.");
 assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
 for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {
   assert(fs.existsSync(path.join(root, match[1].slice(2))), `Offline static asset is missing: ${match[1]}`);
 }
 
-console.log("SUCCESS: 29 unit motion test integrations, including Kraken, Raging Treant, and Crystal Devourer, passed.");
+console.log("SUCCESS: 30 unit motion test integrations, including Raging Treant, Crystal Devourer, and Grave Worm, passed.");
