@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0a0807">
   <title>4대4 속도 자동전투 테스트</title>
-  <link rel="stylesheet" href="v2-auto-battle-practice.css?v=7">
+  <link rel="stylesheet" href="v2-auto-battle-practice.css?v=8">
 </head>
 <body>
   <main class="auto-battle-lab">
@@ -24,6 +24,44 @@
       <section id="allyTeam" class="team ally-team" aria-label="아군 일반 유닛 4명과 소환물 자리 1칸"></section>
       <div class="versus" aria-hidden="true"><strong>VS</strong><span>속도 자동전투</span></div>
       <section id="enemyTeam" class="team enemy-team" aria-label="적군 일반 유닛 4명과 소환물 자리 1칸"></section>
+
+      <section id="turnDice" class="turn-dice" aria-live="polite" hidden>
+        <div class="turn-dice-panel">
+          <span id="diceTurnLabel">1턴 준비</span>
+          <button id="turnDiceButton" type="button" aria-label="다음 턴 주사위 굴리기">
+            <span class="turn-dice-shadow" aria-hidden="true"></span>
+            <img id="turnDiceImage" src="art/v2-style/dice-test/frames/roll-01.png" alt="굴리기 전 주사위">
+          </button>
+          <strong id="diceResultLabel">주사위를 눌러주세요</strong>
+          <small>대기 중 유닛을 누르면 정보를 확인할 수 있습니다.</small>
+        </div>
+      </section>
+
+      <section id="unitInfoOverlay" class="unit-info-overlay" hidden>
+        <button id="unitInfoBackdrop" class="unit-info-backdrop" type="button" aria-label="유닛 정보 닫기"></button>
+        <article class="unit-info-panel" role="dialog" aria-modal="true" aria-labelledby="unitInfoName">
+          <header>
+            <span>UNIT STATUS</span>
+            <h2 id="unitInfoName">유닛 정보</h2>
+            <button id="unitInfoClose" type="button" aria-label="유닛 정보 닫기">×</button>
+          </header>
+          <div class="unit-info-summary">
+            <div class="unit-info-portrait"><img id="unitInfoImage" alt="선택한 유닛"></div>
+            <dl class="unit-info-stats">
+              <div><dt>진영</dt><dd id="unitInfoTeam">아군</dd></div>
+              <div><dt>상태</dt><dd id="unitInfoState">생존</dd></div>
+              <div><dt>체력</dt><dd id="unitInfoHp">0 / 0</dd></div>
+              <div><dt>공격력</dt><dd id="unitInfoAttack">0</dd></div>
+              <div><dt>속도</dt><dd id="unitInfoSpeed">0</dd></div>
+              <div><dt>공통 눈금</dt><dd id="unitInfoRoll">-</dd></div>
+            </dl>
+          </div>
+          <section class="unit-info-detail">
+            <h3>기본 전투 정보</h3>
+            <p id="unitInfoDescription">속도 순서에 따라 무작위 적을 자동으로 공격합니다.</p>
+          </section>
+        </article>
+      </section>
 
       <section id="startOverlay" class="battle-overlay">
         <div class="overlay-panel">
@@ -45,6 +83,6 @@
     </section>
   </main>
   <script src="v2-landscape.js?v=1"></script>
-  <script src="v2-auto-battle-practice.js?v=7"></script>
+  <script src="v2-auto-battle-practice.js?v=8"></script>
 </body>
 </html>

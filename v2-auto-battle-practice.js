@@ -5,6 +5,9 @@
     "art/v2-style/battle-backgrounds/uploaded-raw/necropolis-pyramids-battlefield.jpg"
   ];
   const FRAME_ROOT = "art/v2-style/animation-test-frames/";
+  const DICE_FRAME_ROOT = "art/v2-style/dice-test/frames/";
+  const DICE_ROLL_FRAMES = Array.from({ length: 12 }, (_, index) => `${DICE_FRAME_ROOT}roll-${String(index + 1).padStart(2, "0")}.png`);
+  const DICE_RESULT_FRAMES = Array.from({ length: 6 }, (_, index) => `${DICE_FRAME_ROOT}result-${String(index + 1).padStart(2, "0")}.png`);
   const TEAM_DATA = {
     ally: [
       unit("death-knight", "데스나이트", 12, 3, 4, 5, 4, 6),
@@ -32,6 +35,21 @@
   const pauseButton = document.getElementById("pauseButton");
   const speedButton = document.getElementById("speedButton");
   const restartButton = document.getElementById("restartButton");
+  const turnDice = document.getElementById("turnDice");
+  const turnDiceButton = document.getElementById("turnDiceButton");
+  const turnDiceImage = document.getElementById("turnDiceImage");
+  const diceTurnLabel = document.getElementById("diceTurnLabel");
+  const diceResultLabel = document.getElementById("diceResultLabel");
+  const unitInfoOverlay = document.getElementById("unitInfoOverlay");
+  const unitInfoName = document.getElementById("unitInfoName");
+  const unitInfoImage = document.getElementById("unitInfoImage");
+  const unitInfoTeam = document.getElementById("unitInfoTeam");
+  const unitInfoState = document.getElementById("unitInfoState");
+  const unitInfoHp = document.getElementById("unitInfoHp");
+  const unitInfoAttack = document.getElementById("unitInfoAttack");
+  const unitInfoSpeed = document.getElementById("unitInfoSpeed");
+  const unitInfoRoll = document.getElementById("unitInfoRoll");
+  const unitInfoDescription = document.getElementById("unitInfoDescription");
 
   let units = [];
   let running = false;
@@ -42,6 +60,12 @@
   let actionCount = 0;
   let turnNumber = 0;
   let turnQueue = [];
+  let awaitingRoll = false;
+  let diceRolling = false;
+  let lastDiceRoll = null;
+  let diceFrameIndex = 0;
+
+  [...DICE_ROLL_FRAMES, ...DICE_RESULT_FRAMES].forEach((src) => { const image = new Image(); image.src = src; });
 
   function unit(slug, name, maxHp, attack, speed, attackFrames, hitFrames, deathFrames) {
     return { slug, name, maxHp, attack, speed, frames: { attack: attackFrames, hit: hitFrames, death: deathFrames } };
@@ -59,6 +83,10 @@
     actionCount = 0;
     turnNumber = 0;
     turnQueue = [];
+    awaitingRoll = false;
+    diceRolling = false;
+    lastDiceRoll = null;
+    diceFrameIndex = 0;
     speedMultiplier = 1;
     speedButton.textContent = "속도 ×1";
     pauseButton.textContent = "일시정지";
@@ -66,6 +94,12 @@
     speedButton.disabled = true;
     resultOverlay.hidden = true;
     startOverlay.hidden = !showStart;
+    turnDice.hidden = true;
+    turnDiceButton.disabled = false;
+    turnDiceButton.classList.remove("is-rolling");
+    turnDiceImage.src = DICE_ROLL_FRAMES[0];
+    unitInfoOverlay.hidden = true;
+    battlefield.classList.remove("is-between-turns");
     battlefield.style.backgroundImage = `url("${BATTLEFIELDS[Math.floor(Math.random() * BATTLEFIELDS.length)]}")`;
     units = [
       ...TEAM_DATA.ally.map((data, slot) => makeState(data, "ally", slot)),
@@ -88,6 +122,9 @@
       const element = document.createElement("article");
       element.className = "unit";
       element.dataset.unit = unitState.slug;
+      element.tabIndex = 0;
+      element.setAttribute("role", "button");
+      element.setAttribute("aria-label", `${unitState.name} 정보 보기`);
       element.innerHTML = `
         <div class="unit-card"><strong>${unitState.name}</strong><span class="unit-speed">속도 ${unitState.speed}</span><span class="hp-text"></span></div>
         <div class="bar hp-bar"><i></i></div>
@@ -95,6 +132,13 @@
         <div class="sprite-wrap"><img src="${frame(unitState, "attack", 1)}" alt="${unitState.name}"></div>`;
       unitState.element = element;
       unitState.image = element.querySelector("img");
+      element.addEventListener("click", () => openUnitInfo(unitState));
+      element.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openUnitInfo(unitState);
+        }
+      });
       (unitState.team === "ally" ? allyTeam : enemyTeam).append(element);
       updateUnit(unitState);
     }
@@ -142,17 +186,17 @@
     resultOverlay.hidden = true;
     running = true;
     paused = false;
-    pauseButton.disabled = false;
+    pauseButton.disabled = true;
     speedButton.disabled = false;
-    startTurn();
+    beginTurnIntermission(true);
   }
 
   function battleLoop() {
-    if (running && !paused && !actionBusy) {
+    if (running && !paused && !actionBusy && !awaitingRoll) {
       let actor = turnQueue.shift();
       while (actor && !actor.alive) actor = turnQueue.shift();
       if (actor) performAttack(actor, battleToken);
-      else startTurn();
+      else beginTurnIntermission(false);
     }
     requestAnimationFrame(battleLoop);
   }
@@ -160,6 +204,12 @@
   function startTurn() {
     if (!running) return;
     if (!aliveUnits("ally").length || !aliveUnits("enemy").length) return finishBattle();
+    awaitingRoll = false;
+    diceRolling = false;
+    turnDice.hidden = true;
+    battlefield.classList.remove("is-between-turns");
+    closeUnitInfo();
+    pauseButton.disabled = false;
     turnNumber += 1;
     turnQueue = units.filter((unitState) => unitState.alive)
       .map((unitState) => ({ unitState, tie: Math.random() }))
@@ -169,7 +219,76 @@
       unitState.gauge = unitState.alive ? 100 : 0;
       updateUnit(unitState);
     }
-    message.textContent = `${turnNumber}턴 · 속도 높은 순서로 전원 1회 행동`;
+    message.textContent = `${turnNumber}턴 · 주사위 ${lastDiceRoll} · 속도 높은 순서로 전원 1회 행동`;
+  }
+
+  function beginTurnIntermission(initial) {
+    if (!running || awaitingRoll) return;
+    if (!aliveUnits("ally").length || !aliveUnits("enemy").length) return finishBattle();
+    awaitingRoll = true;
+    paused = false;
+    actionBusy = false;
+    pauseButton.disabled = true;
+    pauseButton.textContent = "일시정지";
+    turnDice.hidden = false;
+    turnDiceButton.disabled = false;
+    turnDiceButton.classList.remove("is-rolling");
+    turnDiceImage.src = DICE_ROLL_FRAMES[0];
+    turnDiceImage.alt = "굴리기 전 주사위";
+    diceTurnLabel.textContent = `${turnNumber + 1}턴 준비`;
+    diceResultLabel.textContent = initial ? "주사위를 굴려 전투 시작" : `${turnNumber}턴 종료 · 다음 눈금을 굴려주세요`;
+    battlefield.classList.add("is-between-turns");
+    message.textContent = initial ? "주사위를 굴리면 1턴이 시작됩니다" : `${turnNumber}턴 종료 · 유닛 정보 확인 또는 주사위 굴리기`;
+  }
+
+  async function rollTurnDice() {
+    if (!running || !awaitingRoll || diceRolling) return;
+    closeUnitInfo();
+    diceRolling = true;
+    turnDiceButton.disabled = true;
+    turnDiceButton.classList.add("is-rolling");
+    diceResultLabel.textContent = "주사위 회전 중…";
+    const token = battleToken;
+    const steps = 18 + Math.floor(Math.random() * 5);
+    for (let step = 0; step < steps; step += 1) {
+      if (token !== battleToken || !running || !awaitingRoll) return;
+      diceFrameIndex = (diceFrameIndex + 1) % DICE_ROLL_FRAMES.length;
+      turnDiceImage.src = DICE_ROLL_FRAMES[diceFrameIndex];
+      const progress = step / Math.max(1, steps - 1);
+      await wait(42 + Math.round(progress * progress * 62));
+    }
+    if (token !== battleToken || !running || !awaitingRoll) return;
+    lastDiceRoll = Math.floor(Math.random() * 6) + 1;
+    turnDiceImage.src = DICE_RESULT_FRAMES[lastDiceRoll - 1];
+    turnDiceImage.alt = `주사위 결과 ${lastDiceRoll}`;
+    turnDiceButton.classList.remove("is-rolling");
+    diceResultLabel.textContent = `${lastDiceRoll} · 모든 유닛 공통 낙인 눈금`;
+    message.textContent = `${turnNumber + 1}턴 공통 주사위 결과 ${lastDiceRoll}`;
+    await wait(Math.max(320, 620 / speedMultiplier));
+    if (token !== battleToken || !running || !awaitingRoll) return;
+    turnDiceButton.disabled = false;
+    diceRolling = false;
+    startTurn();
+  }
+
+  function openUnitInfo(unitState) {
+    if (!awaitingRoll || diceRolling) return;
+    unitInfoName.textContent = unitState.name;
+    unitInfoImage.src = frame(unitState, unitState.alive ? "attack" : "death", unitState.alive ? 1 : unitState.frames.death);
+    unitInfoImage.alt = unitState.name;
+    unitInfoTeam.textContent = unitState.team === "ally" ? "아군" : "적군";
+    unitInfoState.textContent = unitState.alive ? "생존" : "사망";
+    unitInfoHp.textContent = `${Math.max(0, unitState.hp)} / ${unitState.maxHp}`;
+    unitInfoAttack.textContent = String(unitState.attack);
+    unitInfoSpeed.textContent = String(unitState.speed);
+    unitInfoRoll.textContent = lastDiceRoll == null ? "굴리기 전" : String(lastDiceRoll);
+    unitInfoDescription.textContent = `속도 ${unitState.speed} 순서에 행동하며 공격력 ${unitState.attack}로 무작위 적 1명을 자동 공격합니다.`;
+    unitInfoOverlay.hidden = false;
+    document.getElementById("unitInfoClose").focus();
+  }
+
+  function closeUnitInfo() {
+    unitInfoOverlay.hidden = true;
   }
 
   async function performAttack(actor, token) {
@@ -227,6 +346,11 @@
   function finishBattle() {
     running = false;
     actionBusy = false;
+    awaitingRoll = false;
+    diceRolling = false;
+    turnDice.hidden = true;
+    battlefield.classList.remove("is-between-turns");
+    closeUnitInfo();
     pauseButton.disabled = true;
     speedButton.disabled = true;
     const won = aliveUnits("ally").length > 0;
@@ -241,6 +365,9 @@
   }
 
   document.getElementById("startButton").addEventListener("click", beginBattle);
+  turnDiceButton.addEventListener("click", rollTurnDice);
+  document.getElementById("unitInfoClose").addEventListener("click", closeUnitInfo);
+  document.getElementById("unitInfoBackdrop").addEventListener("click", closeUnitInfo);
   restartButton.addEventListener("click", () => { resetBattle(false); beginBattle(); });
   document.getElementById("resultRestartButton").addEventListener("click", () => { resetBattle(false); beginBattle(); });
   pauseButton.addEventListener("click", () => {
