@@ -18,6 +18,7 @@ assert(html.includes('id="turnDice"'), "Between-turn dice panel is missing.");
 assert(html.includes('id="turnDiceButton"'), "Between-turn dice control is missing.");
 assert(html.includes('id="unitInfoOverlay"'), "Unit information window is missing.");
 assert(html.includes('id="unitInfoImage"'), "Unit information portrait is missing.");
+assert(html.includes('class="unit-info-frame-art"') && html.includes("art/v2-style/ui/unit-info-window.jpg"), "Uploaded unit information window art is missing.");
 assert(html.includes('id="unitInfoHp"') && html.includes('id="unitInfoAttack"') && html.includes('id="unitInfoSpeed"'), "Basic unit stats are missing.");
 assert(html.includes("v2-landscape.js?v=1"), "Battle landscape helper is missing.");
 assert(css.includes("rotate(90deg)"), "Battle must rotate itself in portrait mode.");
@@ -35,6 +36,7 @@ assert(css.includes(".turn-dice { position: absolute; z-index: 55"), "Turn dice 
 assert(css.includes(".turn-dice { position: absolute; z-index: 55; inset: 0; display: grid; place-items: center; pointer-events: none"), "Turn dice layer must allow unit inspection around its panel.");
 assert(css.includes(".battlefield.is-between-turns .unit { cursor: pointer"), "Units must be visibly inspectable between turns.");
 assert(css.includes(".unit-info-panel"), "Unit information panel styling is missing.");
+assert(css.includes(".unit-info-frame-art") && css.includes("left: -41.4%"), "Unit information window crop is missing.");
 assert(css.includes("--action-shift-x: 192%"), "Far allied slots must move to the fixed action position.");
 assert(css.includes("--action-shift-x: -192%"), "Far enemy slots must move to the fixed action position.");
 assert(css.includes("translate(var(--action-shift-x), 14%) scale(1.43)"), "Attackers must use the fixed action position.");
@@ -66,6 +68,9 @@ assert(source.includes("startTurn();") && source.includes("async function rollTu
 assert(source.includes("if (!awaitingRoll || diceRolling) return"), "Unit information must only open during the between-turn pause.");
 assert(source.includes("function openUnitInfo(unitState)"), "Unit information interaction is missing.");
 assert(source.includes("unitInfoHp.textContent") && source.includes("unitInfoAttack.textContent") && source.includes("unitInfoSpeed.textContent"), "Unit information values are not populated.");
+assert(source.includes("portrait: `assets/${portraitSlug}.jpg`"), "Original unit artwork mapping is missing.");
+assert(source.includes("unitInfoImage.src = unitState.portrait"), "Unit information must use original artwork instead of animation frames.");
+assert(source.includes('"goblin-soldier"') && source.includes('"ogre"'), "Fallback original artwork mappings are missing.");
 assert(source.includes("Math.random() * targets.length"), "Automatic target selection is missing.");
 assert(source.includes('playMotion(actor, "attack"'), "Attack motion is missing.");
 assert(source.includes('playMotion(target, "hit"'), "Hit motion is missing.");
@@ -78,8 +83,9 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v126'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v127'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=8"), "Turn dice and unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=8"), "Turn-based auto battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=9"), "Turn dice and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=9"), "Turn-based auto battle logic is not cached.");
+assert(worker.includes("art/v2-style/ui/unit-info-window.jpg"), "Uploaded unit info frame is not cached.");
 console.log("SUCCESS: landscape 4v4 turn-roll auto-battle and unit info checks passed.");

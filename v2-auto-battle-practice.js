@@ -17,8 +17,8 @@
     ],
     enemy: [
       unit("goblin-rider", "고블린 라이더", 8, 2, 5, 5, 4, 5),
-      unit("orc-warrior", "오크 전사", 12, 3, 3, 5, 4, 5),
-      unit("boulder-ogre", "오우거", 14, 3, 2, 5, 4, 5),
+      unit("orc-warrior", "오크 전사", 12, 3, 3, 5, 4, 5, "goblin-soldier"),
+      unit("boulder-ogre", "오우거", 14, 3, 2, 5, 4, 5, "ogre"),
       unit("minotaur", "미노타우로스", 11, 3, 4, 6, 4, 6)
     ]
   };
@@ -67,8 +67,8 @@
 
   [...DICE_ROLL_FRAMES, ...DICE_RESULT_FRAMES].forEach((src) => { const image = new Image(); image.src = src; });
 
-  function unit(slug, name, maxHp, attack, speed, attackFrames, hitFrames, deathFrames) {
-    return { slug, name, maxHp, attack, speed, frames: { attack: attackFrames, hit: hitFrames, death: deathFrames } };
+  function unit(slug, name, maxHp, attack, speed, attackFrames, hitFrames, deathFrames, portraitSlug = slug) {
+    return { slug, name, maxHp, attack, speed, portrait: `assets/${portraitSlug}.jpg`, frames: { attack: attackFrames, hit: hitFrames, death: deathFrames } };
   }
 
   function frame(unitState, motion, index) {
@@ -274,7 +274,7 @@
   function openUnitInfo(unitState) {
     if (!awaitingRoll || diceRolling) return;
     unitInfoName.textContent = unitState.name;
-    unitInfoImage.src = frame(unitState, unitState.alive ? "attack" : "death", unitState.alive ? 1 : unitState.frames.death);
+    unitInfoImage.src = unitState.portrait;
     unitInfoImage.alt = unitState.name;
     unitInfoTeam.textContent = unitState.team === "ally" ? "아군" : "적군";
     unitInfoState.textContent = unitState.alive ? "생존" : "사망";
