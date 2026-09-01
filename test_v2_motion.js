@@ -13,6 +13,7 @@ const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const battleHtml = fs.readFileSync(path.join(root, "v2.html"), "utf8");
 const greenProcessor = fs.readFileSync(path.join(root, "scripts/process-green-animation-sheet.ps1"), "utf8");
 const gravePriestProcessor = fs.readFileSync(path.join(root, "scripts/process-grave-priest-sheet.ps1"), "utf8");
+const forestFairyProcessor = fs.readFileSync(path.join(root, "scripts/process-forest-fairy-sheet.ps1"), "utf8");
 
 assert(indexHtml.includes('href="v2-animation-practice.html">모션 테스트</a>'), "Start screen motion test link is missing.");
 assert(battleHtml.includes('href="v2-animation-practice.html" class="secondary-action">모션 테스트</a>'), "V2 motion test link is missing.");
@@ -39,6 +40,7 @@ assert(practiceHtml.includes('data-unit="plague-frog"'), "Plague Frog picker is 
 assert(practiceHtml.includes('data-unit="plague-doctor"'), "Plague Doctor picker is missing.");
 assert(practiceHtml.includes('data-unit="goblin-chief"'), "Goblin Chief picker is missing.");
 assert(practiceHtml.includes('data-unit="grave-priest"'), "Grave Priest picker is missing.");
+assert(practiceHtml.includes('data-unit="forest-fairy"'), "Forest Fairy picker is missing.");
 for (const id of ["attackBtn", "hitBtn", "deathBtn", "resetBtn", "battlefieldBtn"]) {
   assert(practiceHtml.includes(`id="${id}"`), `Motion test control is missing: ${id}`);
 }
@@ -64,6 +66,7 @@ assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/plague
 assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/goblin-chief/"'), "Goblin Chief frame root is missing.");
 assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/grave-priest/"'), "Grave Priest frame root is missing.");
 assert(practiceSource.includes('"grave-priest": { name: "묘지 사제", root: "art/v2-style/animation-test-frames/grave-priest/", counts: { attack: 5, hit: 4, death: 6 } }'), "Grave Priest frame counts are incorrect.");
+assert(practiceSource.includes('"forest-fairy": { name: "숲 요정", root: "art/v2-style/animation-test-frames/forest-fairy/", counts: { attack: 5, hit: 4, death: 7 } }'), "Forest Fairy frame counts are incorrect.");
 assert(practiceSource.includes('"goblin-chief": { name: "고블린족장", root: "art/v2-style/animation-test-frames/goblin-chief/", counts: { attack: 5, hit: 4, death: 5 } }'), "Goblin Chief frame counts are incorrect.");
 assert(practiceSource.includes('"plague-doctor": { name: "역병술사", root: "art/v2-style/animation-test-frames/plague-doctor/", counts: { attack: 5, hit: 4, death: 5 } }'), "Plague Doctor frame counts are incorrect.");
 assert(practiceSource.includes('"plague-frog": { name: "역병 개구리", root: "art/v2-style/animation-test-frames/plague-frog/", counts: { attack: 5, hit: 4, death: 5 } }'), "Plague Frog frame counts are incorrect.");
@@ -235,6 +238,7 @@ assert(serviceWorker.includes("animation-test-frames/plague-frog/${motion}-"), "
 assert(serviceWorker.includes("animation-test-frames/plague-doctor/${motion}-"), "Plague Doctor frame cache generator is missing.");
 assert(serviceWorker.includes("animation-test-frames/goblin-chief/${motion}-"), "Goblin Chief frame cache generator is missing.");
 assert(serviceWorker.includes("animation-test-frames/grave-priest/${motion}-"), "Grave Priest frame cache generator is missing.");
+assert(serviceWorker.includes("animation-test-frames/forest-fairy/${motion}-"), "Forest Fairy frame cache generator is missing.");
 
 for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
   for (let index = 1; index <= count; index += 1) {
@@ -244,6 +248,15 @@ for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
 }
 assert(gravePriestProcessor.includes("removeFinalSparkle"), "Grave Priest final Gemini cleanup is missing.");
 assert(gravePriestProcessor.includes("DrawImageUnscaled"), "Grave Priest frames must preserve source resolution.");
+
+for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 7 })) {
+  for (let index = 1; index <= count; index += 1) {
+    const relative = `art/v2-style/animation-test-frames/forest-fairy/${motion}-${String(index).padStart(2, "0")}.png`;
+    assert(fs.existsSync(path.join(root, relative)), `Forest Fairy frame is missing: ${relative}`);
+  }
+}
+assert(forestFairyProcessor.includes("RemoveFinalSparkle"), "Forest Fairy final Gemini cleanup is missing.");
+assert(forestFairyProcessor.includes("DrawImageUnscaled"), "Forest Fairy frames must preserve source resolution.");
 
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/death-knight-animation-sheet.jpg")), "New raw Death Knight sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/skeleton-spear-animation-sheet.jpg")), "New raw Skeleton Spearman sheet is missing.");
@@ -265,11 +278,12 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/pl
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/plague-doctor-animation-sheet.jpg")), "New raw Plague Doctor sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/goblin-chief-animation-sheet.jpg")), "New raw Goblin Chief sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/grave-priest-animation-sheet.jpg")), "New raw Grave Priest sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v110"), "Service worker cache version was not bumped.");
+assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/forest-fairy-animation-sheet.jpg")), "New raw Forest Fairy sheet is missing.");
+assert(serviceWorker.includes("necromancer-expedition-v111"), "Service worker cache version was not bumped.");
 assert(!serviceWorker.includes("animation-sheets/uploaded-raw"), "Deleted legacy animation sheets remain in offline cache.");
 assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
 for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {
   assert(fs.existsSync(path.join(root, match[1].slice(2))), `Offline static asset is missing: ${match[1]}`);
 }
 
-console.log("SUCCESS: 20 unit motion test integrations, including Grave Priest, passed.");
+console.log("SUCCESS: 21 unit motion test integrations, including Grave Priest and Forest Fairy, passed.");
