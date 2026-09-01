@@ -72,7 +72,7 @@ assert(practiceSource.includes('root: "art/v2-style/animation-test-frames/grave-
 assert(practiceSource.includes('"grave-priest": { name: "묘지 사제", root: "art/v2-style/animation-test-frames/grave-priest/", counts: { attack: 5, hit: 4, death: 6 } }'), "Grave Priest frame counts are incorrect.");
 assert(practiceSource.includes('"forest-fairy": { name: "숲 요정", root: "art/v2-style/animation-test-frames/forest-fairy/", counts: { attack: 5, hit: 4, death: 7 } }'), "Forest Fairy frame counts are incorrect.");
 assert(practiceSource.includes('"mushroom-soldier": { name: "버섯 병사", root: "art/v2-style/animation-test-frames/mushroom-soldier/", counts: { attack: 5, hit: 4, death: 6 } }'), "Mushroom Soldier frame counts are incorrect.");
-assert(practiceSource.includes('"spider-knight": { name: "거미여왕", root: "art/v2-style/animation-test-frames/spider-knight/", counts: { attack: 5, hit: 4, death: 6 } }'), "Spider Queen frame counts are incorrect.");
+assert(practiceSource.includes('"spider-knight": { name: "거미여왕", root: "art/v2-style/animation-test-frames/spider-knight/", counts: { attack: 5, hit: 4, death: 5 } }'), "Spider Queen frame counts are incorrect.");
 assert(practiceSource.includes('"goblin-chief": { name: "고블린족장", root: "art/v2-style/animation-test-frames/goblin-chief/", counts: { attack: 5, hit: 4, death: 5 } }'), "Goblin Chief frame counts are incorrect.");
 assert(practiceSource.includes('"plague-doctor": { name: "역병술사", root: "art/v2-style/animation-test-frames/plague-doctor/", counts: { attack: 5, hit: 4, death: 5 } }'), "Plague Doctor frame counts are incorrect.");
 assert(practiceSource.includes('"plague-frog": { name: "역병 개구리", root: "art/v2-style/animation-test-frames/plague-frog/", counts: { attack: 5, hit: 4, death: 5 } }'), "Plague Frog frame counts are incorrect.");
@@ -276,7 +276,7 @@ assert(mushroomSoldierProcessor.includes("RemoveFinalSparkle"), "Mushroom Soldie
 assert(mushroomSoldierProcessor.includes("RemoveEdgeWhiteGutters"), "Mushroom Soldier white cell gutter cleanup is missing.");
 assert(mushroomSoldierProcessor.includes("DrawImageUnscaled"), "Mushroom Soldier frames must preserve source resolution.");
 
-for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
+for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 5 })) {
   for (let index = 1; index <= count; index += 1) {
     const relative = `art/v2-style/animation-test-frames/spider-knight/${motion}-${String(index).padStart(2, "0")}.png`;
     assert(fs.existsSync(path.join(root, relative)), `Spider Knight frame is missing: ${relative}`);
@@ -284,6 +284,7 @@ for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
 }
 assert(spiderKnightProcessor.includes("RemoveFinalSparkle"), "Spider Knight final Gemini cleanup is missing.");
 assert(spiderKnightProcessor.includes("DrawImageUnscaled"), "Spider Knight frames must preserve source resolution.");
+assert(!fs.existsSync(path.join(root, "art/v2-style/animation-test-frames/spider-knight/death-06.png")), "Spider Queen removed death frame remains.");
 
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/death-knight-animation-sheet.jpg")), "New raw Death Knight sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/skeleton-spear-animation-sheet.jpg")), "New raw Skeleton Spearman sheet is missing.");
@@ -308,7 +309,7 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/gr
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/forest-fairy-animation-sheet.jpg")), "New raw Forest Fairy sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/mushroom-soldier-animation-sheet.jpg")), "New raw Mushroom Soldier sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/spider-knight-animation-sheet.jpg")), "New raw Spider Knight sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v114"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v115"), "Service worker cache version was not bumped.");
 assert(!serviceWorker.includes("animation-sheets/uploaded-raw"), "Deleted legacy animation sheets remain in offline cache.");
 assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
 for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {

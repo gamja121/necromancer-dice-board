@@ -116,7 +116,7 @@ public static class SpiderKnightSheetProcessor
             },
             new Rectangle[] {
                 Rectangle.FromLTRB(132, 401, 308, 576), Rectangle.FromLTRB(312, 401, 498, 576),
-                Rectangle.FromLTRB(506, 401, 697, 576), Rectangle.FromLTRB(705, 401, 893, 576),
+                Rectangle.FromLTRB(705, 401, 893, 576),
                 Rectangle.FromLTRB(902, 401, 1094, 576), Rectangle.FromLTRB(1102, 401, 1280, 576)
             }
         };
@@ -125,7 +125,7 @@ public static class SpiderKnightSheetProcessor
         {
             for (int row = 0; row < cells.Length; row++)
             for (int frameIndex = 0; frameIndex < cells[row].Length; frameIndex++)
-            using (var extracted = Extract(source, cells[row][frameIndex], row == 2 && frameIndex == 5))
+            using (var extracted = Extract(source, cells[row][frameIndex], row == 2 && frameIndex == cells[row].Length - 1))
             using (var normalized = PlaceOnCanvas(extracted))
             {
                 string outputPath = System.IO.Path.Combine(outputDirectory, names[row] + "-" + (frameIndex + 1).ToString("00") + ".png");
