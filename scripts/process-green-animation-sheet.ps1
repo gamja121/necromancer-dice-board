@@ -518,6 +518,29 @@ public static class GreenAnimationProcessor
             };
         }
 
+        if (String.Equals(unitName, "raging-treant", StringComparison.OrdinalIgnoreCase))
+        {
+            // Each cell is deliberately kept inside the green gutter. The third attack
+            // pose has a long arm, so it receives a wider cell without borrowing pixels
+            // from either neighbouring pose.
+            return new Rectangle[][] {
+                new Rectangle[] {
+                    Rectangle.FromLTRB(108, 2, 326, 194), Rectangle.FromLTRB(332, 2, 552, 194),
+                    Rectangle.FromLTRB(558, 2, 850, 194), Rectangle.FromLTRB(858, 2, 1070, 194),
+                    Rectangle.FromLTRB(1074, 2, 1278, 194)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(108, 198, 326, 391), Rectangle.FromLTRB(332, 198, 548, 391),
+                    Rectangle.FromLTRB(552, 198, 770, 391), Rectangle.FromLTRB(774, 198, 1000, 391)
+                },
+                new Rectangle[] {
+                    Rectangle.FromLTRB(108, 394, 306, 574), Rectangle.FromLTRB(310, 394, 506, 574),
+                    Rectangle.FromLTRB(510, 394, 698, 574), Rectangle.FromLTRB(700, 394, 894, 574),
+                    Rectangle.FromLTRB(896, 394, 1092, 574), Rectangle.FromLTRB(1096, 394, 1278, 574)
+                }
+            };
+        }
+
         if (String.Equals(unitName, "skeleton-spear", StringComparison.OrdinalIgnoreCase))
         {
             return new Rectangle[][] {
@@ -647,11 +670,13 @@ public static class GreenAnimationProcessor
                         || String.Equals(unitName, "plague-frog", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "plague-doctor", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "goblin-chief", StringComparison.OrdinalIgnoreCase)
-                        || String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase))
+                        || String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase)
+                        || String.Equals(unitName, "raging-treant", StringComparison.OrdinalIgnoreCase))
                     {
                         int canvasWidth = String.Equals(unitName, "skeleton-cavalry", StringComparison.OrdinalIgnoreCase)
                             || String.Equals(unitName, "soul-reaper", StringComparison.OrdinalIgnoreCase)
                             ? 320
+                            : String.Equals(unitName, "raging-treant", StringComparison.OrdinalIgnoreCase) ? 300
                             : String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase) ? 300 : 250;
                         int canvasHeight = String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase) ? 270 : 250;
                         using (var normalized = PlaceOnCanvas(output, canvasWidth, canvasHeight))
