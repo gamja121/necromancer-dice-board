@@ -19,6 +19,7 @@ const spiderKnightProcessor = fs.readFileSync(path.join(root, "scripts/process-s
 const skeletonArcherProcessor = fs.readFileSync(path.join(root, "scripts/process-skeleton-archer-sheet.ps1"), "utf8");
 const seaWolfProcessor = fs.readFileSync(path.join(root, "scripts/process-sea-wolf-sheet.ps1"), "utf8");
 const abyssEyeProcessor = fs.readFileSync(path.join(root, "scripts/process-abyss-eye-sheet.ps1"), "utf8");
+const krakenProcessor = fs.readFileSync(path.join(root, "scripts/process-kraken-sheet.ps1"), "utf8");
 
 assert(indexHtml.includes('href="v2-animation-practice.html">모션 테스트</a>'), "Start screen motion test link is missing.");
 assert(battleHtml.includes('href="v2-animation-practice.html" class="secondary-action">모션 테스트</a>'), "V2 motion test link is missing.");
@@ -51,6 +52,7 @@ assert(practiceHtml.includes('data-unit="spider-knight"'), "Spider Knight picker
 assert(practiceHtml.includes('data-unit="skeleton-archer"'), "Skeleton Archer picker is missing.");
 assert(practiceHtml.includes('data-unit="sea-wolf"'), "Sea Wolf picker is missing.");
 assert(practiceHtml.includes('data-unit="abyss-eye"'), "Abyss Eye picker is missing.");
+assert(practiceHtml.includes('data-unit="kraken"'), "Kraken picker is missing.");
 for (const id of ["attackBtn", "hitBtn", "deathBtn", "resetBtn", "battlefieldBtn"]) {
   assert(practiceHtml.includes(`id="${id}"`), `Motion test control is missing: ${id}`);
 }
@@ -82,6 +84,7 @@ assert(practiceSource.includes('"spider-knight": { name: "거미여왕", root: "
 assert(practiceSource.includes('"skeleton-archer": { name: "해골 궁수", root: "art/v2-style/animation-test-frames/skeleton-archer/", counts: { attack: 5, hit: 4, death: 6 } }'), "Skeleton Archer frame counts are incorrect.");
 assert(practiceSource.includes('"sea-wolf": { name: "바다 늑대", root: "art/v2-style/animation-test-frames/sea-wolf/", counts: { attack: 5, hit: 4, death: 6 } }'), "Sea Wolf frame counts are incorrect.");
 assert(practiceSource.includes('"abyss-eye": { name: "외눈 괴물", root: "art/v2-style/animation-test-frames/abyss-eye/", counts: { attack: 5, hit: 4, death: 6 } }'), "Abyss Eye frame counts are incorrect.");
+assert(practiceSource.includes('"kraken": { name: "크라켄", root: "art/v2-style/animation-test-frames/kraken/", counts: { attack: 5, hit: 4, death: 6 } }'), "Kraken frame counts are incorrect.");
 assert(practiceSource.includes('"goblin-chief": { name: "고블린족장", root: "art/v2-style/animation-test-frames/goblin-chief/", counts: { attack: 5, hit: 4, death: 5 } }'), "Goblin Chief frame counts are incorrect.");
 assert(practiceSource.includes('"plague-doctor": { name: "역병술사", root: "art/v2-style/animation-test-frames/plague-doctor/", counts: { attack: 5, hit: 4, death: 5 } }'), "Plague Doctor frame counts are incorrect.");
 assert(practiceSource.includes('"plague-frog": { name: "역병 개구리", root: "art/v2-style/animation-test-frames/plague-frog/", counts: { attack: 5, hit: 4, death: 5 } }'), "Plague Frog frame counts are incorrect.");
@@ -259,6 +262,7 @@ assert(serviceWorker.includes("animation-test-frames/spider-knight/${motion}-"),
 assert(serviceWorker.includes("animation-test-frames/skeleton-archer/${motion}-"), "Skeleton Archer frame cache generator is missing.");
 assert(serviceWorker.includes("animation-test-frames/sea-wolf/${motion}-"), "Sea Wolf frame cache generator is missing.");
 assert(serviceWorker.includes("animation-test-frames/abyss-eye/${motion}-"), "Abyss Eye frame cache generator is missing.");
+assert(serviceWorker.includes("animation-test-frames/kraken/${motion}-"), "Kraken frame cache generator is missing.");
 
 for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
   for (let index = 1; index <= count; index += 1) {
@@ -325,6 +329,15 @@ for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
 assert(abyssEyeProcessor.includes("RemoveFinalSparkle"), "Abyss Eye final Gemini cleanup is missing.");
 assert(abyssEyeProcessor.includes("DrawImageUnscaled"), "Abyss Eye frames must preserve source resolution.");
 
+for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
+  for (let index = 1; index <= count; index += 1) {
+    const relative = `art/v2-style/animation-test-frames/kraken/${motion}-${String(index).padStart(2, "0")}.png`;
+    assert(fs.existsSync(path.join(root, relative)), `Kraken frame is missing: ${relative}`);
+  }
+}
+assert(krakenProcessor.includes("RemoveFinalSparkle"), "Kraken final Gemini cleanup is missing.");
+assert(krakenProcessor.includes("DrawImageUnscaled"), "Kraken frames must preserve source resolution.");
+
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/death-knight-animation-sheet.jpg")), "New raw Death Knight sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/skeleton-spear-animation-sheet.jpg")), "New raw Skeleton Spearman sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/ancient-treant-animation-sheet.jpg")), "New raw Ancient Treant sheet is missing.");
@@ -351,11 +364,12 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/sp
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/skeleton-archer-animation-sheet.jpg")), "New raw Skeleton Archer sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/sea-wolf-animation-sheet.jpg")), "New raw Sea Wolf sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/abyss-eye-animation-sheet.jpg")), "New raw Abyss Eye sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v118"), "Service worker cache version was not bumped.");
+assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/kraken-animation-sheet.jpg")), "New raw Kraken sheet is missing.");
+assert(serviceWorker.includes("necromancer-expedition-v119"), "Service worker cache version was not bumped.");
 assert(!serviceWorker.includes("animation-sheets/uploaded-raw"), "Deleted legacy animation sheets remain in offline cache.");
 assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
 for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {
   assert(fs.existsSync(path.join(root, match[1].slice(2))), `Offline static asset is missing: ${match[1]}`);
 }
 
-console.log("SUCCESS: 26 unit motion test integrations, including Skeleton Archer, Sea Wolf, and Abyss Eye, passed.");
+console.log("SUCCESS: 27 unit motion test integrations, including Sea Wolf, Abyss Eye, and Kraken, passed.");

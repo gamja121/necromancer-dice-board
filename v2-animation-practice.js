@@ -31,7 +31,8 @@
     "spider-knight": { name: "거미여왕", root: "art/v2-style/animation-test-frames/spider-knight/", counts: { attack: 5, hit: 4, death: 5 } },
     "skeleton-archer": { name: "해골 궁수", root: "art/v2-style/animation-test-frames/skeleton-archer/", counts: { attack: 5, hit: 4, death: 6 } },
     "sea-wolf": { name: "바다 늑대", root: "art/v2-style/animation-test-frames/sea-wolf/", counts: { attack: 5, hit: 4, death: 6 } },
-    "abyss-eye": { name: "외눈 괴물", root: "art/v2-style/animation-test-frames/abyss-eye/", counts: { attack: 5, hit: 4, death: 6 } }
+    "abyss-eye": { name: "외눈 괴물", root: "art/v2-style/animation-test-frames/abyss-eye/", counts: { attack: 5, hit: 4, death: 6 } },
+    "kraken": { name: "크라켄", root: "art/v2-style/animation-test-frames/kraken/", counts: { attack: 5, hit: 4, death: 6 } }
   });
   const FRAME_MS = Object.freeze({ attack: 145, hit: 135, death: 175 });
   const MOTION_LABELS = Object.freeze({ attack: "공격", hit: "피격", death: "사망" });
