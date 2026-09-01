@@ -91,7 +91,38 @@ public static class KrakenSheetProcessor
         }
     }
 
-    private static Bitmap Extract(Bitmap source, Rectangle cell, bool removeFinalSparkle)
+    private static void RemoveAttackNeighborArtifact(Bitmap bitmap, int attackFrameIndex)
+    {
+        if (attackFrameIndex != 2) return;
+        var visited = new bool[bitmap.Width, bitmap.Height];
+        for (int y = 0; y < bitmap.Height; y++)
+        for (int x = 0; x < bitmap.Width; x++)
+        {
+            if (visited[x, y] || bitmap.GetPixel(x, y).A <= 8) continue;
+            var component = new List<Point>();
+            var queue = new Queue<Point>();
+            bool touchesRightEdge = false;
+            queue.Enqueue(new Point(x, y));
+            visited[x, y] = true;
+            while (queue.Count > 0)
+            {
+                Point point = queue.Dequeue();
+                component.Add(point);
+                if (point.X >= bitmap.Width - 12) touchesRightEdge = true;
+                for (int ny = Math.Max(0, point.Y - 1); ny <= Math.Min(bitmap.Height - 1, point.Y + 1); ny++)
+                for (int nx = Math.Max(0, point.X - 1); nx <= Math.Min(bitmap.Width - 1, point.X + 1); nx++)
+                {
+                    if (visited[nx, ny]) continue;
+                    visited[nx, ny] = true;
+                    if (bitmap.GetPixel(nx, ny).A > 8) queue.Enqueue(new Point(nx, ny));
+                }
+            }
+            if (touchesRightEdge && component.Count < 1500)
+                foreach (Point point in component) bitmap.SetPixel(point.X, point.Y, Color.Transparent);
+        }
+    }
+
+    private static Bitmap Extract(Bitmap source, Rectangle cell, bool removeFinalSparkle, int attackFrameIndex)
     {
         using (var keyed = new Bitmap(cell.Width, cell.Height, PixelFormat.Format32bppArgb))
         {
@@ -100,6 +131,7 @@ public static class KrakenSheetProcessor
                 keyed.SetPixel(x, y, RemoveMagenta(source.GetPixel(cell.X + x, cell.Y + y)));
 
             RemoveEdgeWhiteGutters(keyed);
+            RemoveAttackNeighborArtifact(keyed, attackFrameIndex);
             if (removeFinalSparkle) RemoveFinalSparkle(keyed, cell);
 
             int left = cell.Width, top = cell.Height, right = -1, bottom = -1;
@@ -155,7 +187,7 @@ public static class KrakenSheetProcessor
         {
             for (int row = 0; row < cells.Length; row++)
             for (int frameIndex = 0; frameIndex < cells[row].Length; frameIndex++)
-            using (var extracted = Extract(source, cells[row][frameIndex], row == 2 && frameIndex == 5))
+            using (var extracted = Extract(source, cells[row][frameIndex], row == 2 && frameIndex == 5, row == 0 ? frameIndex : -1))
             using (var normalized = PlaceOnCanvas(extracted))
             {
                 string outputPath = System.IO.Path.Combine(outputDirectory, names[row] + "-" + (frameIndex + 1).ToString("00") + ".png");

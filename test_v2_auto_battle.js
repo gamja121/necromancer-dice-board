@@ -60,7 +60,7 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v119'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v120'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
 assert(worker.includes("v2-auto-battle-practice.js?v=7"), "Auto battle logic is not cached.");
 console.log("SUCCESS: landscape 4v4 speed auto-battle checks passed.");

@@ -336,6 +336,7 @@ for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
   }
 }
 assert(krakenProcessor.includes("RemoveFinalSparkle"), "Kraken final Gemini cleanup is missing.");
+assert(krakenProcessor.includes("RemoveAttackNeighborArtifact"), "Kraken adjacent attack-frame cleanup is missing.");
 assert(krakenProcessor.includes("DrawImageUnscaled"), "Kraken frames must preserve source resolution.");
 
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/death-knight-animation-sheet.jpg")), "New raw Death Knight sheet is missing.");
@@ -365,7 +366,7 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/sk
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/sea-wolf-animation-sheet.jpg")), "New raw Sea Wolf sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/abyss-eye-animation-sheet.jpg")), "New raw Abyss Eye sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/kraken-animation-sheet.jpg")), "New raw Kraken sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v119"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v120"), "Service worker cache version was not bumped.");
 assert(!serviceWorker.includes("animation-sheets/uploaded-raw"), "Deleted legacy animation sheets remain in offline cache.");
 assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
 for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {
