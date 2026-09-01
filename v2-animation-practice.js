@@ -29,7 +29,8 @@
     "forest-fairy": { name: "숲 요정", root: "art/v2-style/animation-test-frames/forest-fairy/", counts: { attack: 5, hit: 4, death: 7 } },
     "mushroom-soldier": { name: "버섯 병사", root: "art/v2-style/animation-test-frames/mushroom-soldier/", counts: { attack: 5, hit: 4, death: 6 } },
     "spider-knight": { name: "거미여왕", root: "art/v2-style/animation-test-frames/spider-knight/", counts: { attack: 5, hit: 4, death: 5 } },
-    "skeleton-archer": { name: "해골 궁수", root: "art/v2-style/animation-test-frames/skeleton-archer/", counts: { attack: 5, hit: 4, death: 6 } }
+    "skeleton-archer": { name: "해골 궁수", root: "art/v2-style/animation-test-frames/skeleton-archer/", counts: { attack: 5, hit: 4, death: 6 } },
+    "sea-wolf": { name: "바다 늑대", root: "art/v2-style/animation-test-frames/sea-wolf/", counts: { attack: 5, hit: 4, death: 6 } }
   });
   const FRAME_MS = Object.freeze({ attack: 145, hit: 135, death: 175 });
   const MOTION_LABELS = Object.freeze({ attack: "공격", hit: "피격", death: "사망" });
