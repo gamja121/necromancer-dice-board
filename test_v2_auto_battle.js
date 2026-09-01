@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const vm = require("vm");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -20,6 +21,15 @@ assert(html.includes('id="unitInfoOverlay"'), "Unit information window is missin
 assert(html.includes('id="unitInfoImage"'), "Unit information portrait is missing.");
 assert(html.includes('class="unit-info-frame-art"') && html.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit information window art is missing.");
 assert(html.includes('id="unitInfoHp"') && html.includes('id="unitInfoAttack"') && html.includes('id="unitInfoSpeed"'), "Basic unit stats are missing.");
+const basicPanel = html.match(/<section class="unit-info-basic"[\s\S]*?<\/section>/)?.[0] || "";
+const statsPanel = html.match(/<section class="unit-info-stats"[\s\S]*?<\/section>/)?.[0] || "";
+assert(basicPanel.includes('id="unitInfoTeam"') && basicPanel.includes('id="unitInfoState"'), "Top-right panel must contain team and state.");
+assert(!basicPanel.includes('id="unitInfoHp"'), "Stats must not be placed in the basic panel.");
+for (const id of ["unitInfoHp", "unitInfoAttack", "unitInfoSpeed"]) assert(statsPanel.includes(`id="${id}"`), `${id} must be in the lower-right stats panel.`);
+assert(!html.includes('id="unitInfoRoll"') && !source.includes("unitInfoRoll"), "Common roll must not be in the unit info window.");
+assert(html.includes('id="unitInfoBrands"') && html.includes("낙인 미지정"), "Brand area must remain explicitly unassigned.");
+assert(!html.includes("기본 전투 정보") && !source.includes("unitInfoDescription"), "Old combat description must be removed.");
+assert(css.includes(".unit-info-fields") && css.includes("grid-template-rows: 42% minmax(0, 1fr)"), "Right-hand fields must respect the two frame panels.");
 assert(html.includes("v2-landscape.js?v=1"), "Battle landscape helper is missing.");
 assert(css.includes("rotate(90deg)"), "Battle must rotate itself in portrait mode.");
 assert(css.includes("grid-template-columns: repeat(5, 1fr)"), "Each team must have four unit cells and one summon cell.");
@@ -83,9 +93,31 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v128'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v129'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=10"), "Turn dice and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=10"), "Turn-based auto battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=11"), "Turn dice and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=11"), "Turn-based auto battle logic is not cached.");
 assert(worker.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit info frame is not cached.");
-console.log("SUCCESS: landscape 4v4 turn-roll auto-battle and unit info checks passed.");
+// Exercise the real information-window functions without a rendering engine.
+const infoContext = { awaitingRoll: true, diceRolling: false, document: { getElementById: () => ({ focus() {} }) } };
+for (const name of ["unitInfoName", "unitInfoImage", "unitInfoTeam", "unitInfoState", "unitInfoHp", "unitInfoAttack", "unitInfoSpeed", "unitInfoOverlay"]) infoContext[name] = { textContent: "", hidden: true };
+vm.createContext(infoContext);
+vm.runInContext(source.slice(source.indexOf("  function openUnitInfo("), source.indexOf("  async function performAttack(")), infoContext);
+for (const [team, alive, hp, name, attack, speed] of [["ally", true, 7, "구울", 2, 3], ["enemy", false, -1, "오우거", 3, 2], ["ally", true, 9, "구울", 2, 3]]) {
+  infoContext.selected = { team, alive, hp, name, attack, speed, maxHp: 14, portrait: "assets/ghoul.jpg" };
+  vm.runInContext("openUnitInfo(selected)", infoContext);
+  assert(infoContext.unitInfoName.textContent === name, "Switching units must refresh the title.");
+  assert(infoContext.unitInfoTeam.textContent === (team === "ally" ? "아군" : "적군"), "Team label must refresh.");
+  assert(infoContext.unitInfoState.textContent === (alive ? "생존" : "사망"), "Life state must refresh.");
+  assert(infoContext.unitInfoHp.textContent === `${Math.max(0, hp)} / 14`, "Current and max HP must refresh.");
+  assert(infoContext.unitInfoAttack.textContent === String(attack) && infoContext.unitInfoSpeed.textContent === String(speed), "Combat stats must refresh.");
+  assert(infoContext.unitInfoImage.src === infoContext.selected.portrait, "Dead units must retain original artwork.");
+  vm.runInContext("closeUnitInfo()", infoContext);
+  assert(infoContext.unitInfoOverlay.hidden, "Close must hide the panel.");
+}
+for (const [awaitingRoll, diceRolling] of [[false, false], [true, true]]) {
+  Object.assign(infoContext, { awaitingRoll, diceRolling });
+  vm.runInContext("openUnitInfo(selected)", infoContext);
+  assert(infoContext.unitInfoOverlay.hidden, "Info must not open while fighting or rolling.");
+}
+console.log("SUCCESS: turn-roll battle, separated info panels, and unit-info runtime checks passed.");

@@ -48,8 +48,6 @@
   const unitInfoHp = document.getElementById("unitInfoHp");
   const unitInfoAttack = document.getElementById("unitInfoAttack");
   const unitInfoSpeed = document.getElementById("unitInfoSpeed");
-  const unitInfoRoll = document.getElementById("unitInfoRoll");
-  const unitInfoDescription = document.getElementById("unitInfoDescription");
 
   let units = [];
   let running = false;
@@ -281,8 +279,6 @@
     unitInfoHp.textContent = `${Math.max(0, unitState.hp)} / ${unitState.maxHp}`;
     unitInfoAttack.textContent = String(unitState.attack);
     unitInfoSpeed.textContent = String(unitState.speed);
-    unitInfoRoll.textContent = lastDiceRoll == null ? "굴리기 전" : String(lastDiceRoll);
-    unitInfoDescription.textContent = `속도 ${unitState.speed} 순서에 행동하며 공격력 ${unitState.attack}로 무작위 적 1명을 자동 공격합니다.`;
     unitInfoOverlay.hidden = false;
     document.getElementById("unitInfoClose").focus();
   }
