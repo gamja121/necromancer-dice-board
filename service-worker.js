@@ -1,11 +1,11 @@
-const CACHE_NAME = "necromancer-expedition-v135";
+const CACHE_NAME = "necromancer-expedition-v136";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./v2.html",
   "./v2-animation-practice.html",
   "./v2-animation-practice.css?v=5",
-  "./v2-animation-practice.js?v=49",
+  "./v2-animation-practice.js?v=50",
   "./v2-dice-practice.html",
   "./v2-dice-practice.css?v=1",
   "./v2-dice-practice.js?v=1",
@@ -292,6 +292,7 @@ Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
 
 Object.entries({ attack: 5, hit: 5, death: 6 }).forEach(([motion, count]) => {
   for (let index = 1; index <= count; index += 1) {
+    if (motion === "death" && index === 4) continue;
     APP_SHELL.push(`./art/v2-style/animation-test-frames/flesh-golem/${motion}-${String(index).padStart(2, "0")}.png`);
   }
 });

@@ -39,13 +39,15 @@ async function run() {
   await picker.handlers.click();
   assert.equal(element('#unitName').textContent, labels[unit]);
   const root = `art/v2-style/animation-test-frames/${unit}/`;
-  const counts = { attack: 5, hit: unit === 'flesh-golem' ? 5 : 4, death: 6 };
+  const counts = { attack: 5, hit: unit === 'flesh-golem' ? 5 : 4, death: unit === 'flesh-golem' ? 5 : 6 };
   for (const [motion, count] of Object.entries(counts)) {
     displayed.length = 0;
     const playing = element(`#${motion}Btn`).handlers.click();
     assert.equal(element('#attackBtn').disabled, true, 'Controls should lock while playing');
     await playing;
-    const expected = Array.from({ length: count }, (_, i) => `${root}${motion}-${String(i + 1).padStart(2, '0')}.png`);
+    const numbers = unit === 'flesh-golem' && motion === 'death'
+      ? [1, 2, 3, 5, 6] : Array.from({ length: count }, (_, i) => i + 1);
+    const expected = numbers.map((number) => `${root}${motion}-${String(number).padStart(2, '0')}.png`);
     if (motion !== 'death') expected.push(`${root}attack-01.png`);
     assert.deepEqual(displayed, expected, `${motion}: wrong playback sequence`);
     assert.equal(element('#attackBtn').disabled, false);

@@ -40,7 +40,7 @@
     "mimic": { name: "미믹", root: "art/v2-style/animation-test-frames/mimic/", counts: { attack: 5, hit: 4, death: 6 } },
     "cerberus": { name: "케르베로스", root: "art/v2-style/animation-test-frames/cerberus/", counts: { attack: 5, hit: 4, death: 6 } },
     "spiderling": { name: "새끼거미", root: "art/v2-style/animation-test-frames/spiderling/", counts: { attack: 5, hit: 4, death: 6 } },
-    "flesh-golem": { name: "누더기 포식자", root: "art/v2-style/animation-test-frames/flesh-golem/", counts: { attack: 5, hit: 5, death: 6 } }
+    "flesh-golem": { name: "누더기 포식자", root: "art/v2-style/animation-test-frames/flesh-golem/", counts: { attack: 5, hit: 5, death: 5 }, deathFrames: [1, 2, 3, 5, 6] }
   });
   const FRAME_MS = Object.freeze({ attack: 145, hit: 135, death: 175 });
   const MOTION_LABELS = Object.freeze({ attack: "공격", hit: "피격", death: "사망" });
@@ -53,7 +53,11 @@
     reset: document.querySelector("#resetBtn"), battlefield: document.querySelector("#battlefieldBtn"),
     unitName: document.querySelector("#unitName"), unitButtons: [...document.querySelectorAll(".unit-button")]
   };
-  function pathFor(motion, index) { return `${UNITS[state.unit].root}${motion}-${String(index + 1).padStart(2, "0")}.png`; }
+  function pathFor(motion, index) {
+    const unit = UNITS[state.unit];
+    const frameNumber = motion === "death" && unit.deathFrames ? unit.deathFrames[index] : index + 1;
+    return `${unit.root}${motion}-${String(frameNumber).padStart(2, "0")}.png`;
+  }
   function buildFrames() {
     Object.entries(UNITS[state.unit].counts).forEach(([motion, count]) => {
       frameSets[motion] = Array.from({ length: count }, (_, index) => pathFor(motion, index));
