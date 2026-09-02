@@ -17,7 +17,7 @@ function element(key) {
   return elements.get(key);
 }
 const unit = process.argv[2] || 'cerberus';
-const labels = { cerberus: '케르베로스', spiderling: '새끼거미' };
+const labels = { cerberus: '케르베로스', spiderling: '새끼거미', 'flesh-golem': '누더기 포식자' };
 assert(labels[unit], 'Unknown test unit');
 const picker = element(unit);
 picker.dataset.unit = unit;
@@ -39,7 +39,8 @@ async function run() {
   await picker.handlers.click();
   assert.equal(element('#unitName').textContent, labels[unit]);
   const root = `art/v2-style/animation-test-frames/${unit}/`;
-  for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
+  const counts = { attack: 5, hit: unit === 'flesh-golem' ? 5 : 4, death: 6 };
+  for (const [motion, count] of Object.entries(counts)) {
     displayed.length = 0;
     const playing = element(`#${motion}Btn`).handlers.click();
     assert.equal(element('#attackBtn').disabled, true, 'Controls should lock while playing');
@@ -53,6 +54,6 @@ async function run() {
   element('#resetBtn').handlers.click();
   assert.equal(element('#unitSprite').src, `${root}attack-01.png`);
   assert.deepEqual(errors, []);
-  console.log(`SUCCESS: ${unit} selection, frame loading, 5/4/6 playback, control locking, death hold, and reset passed.`);
+  console.log(`SUCCESS: ${unit} selection, frame loading, ${Object.values(counts).join('/')} playback, control locking, death hold, and reset passed.`);
 }
 run().catch((error) => { console.error(error); process.exitCode = 1; });

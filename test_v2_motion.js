@@ -443,7 +443,7 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/cr
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/grave-worm-animation-sheet.jpg")), "New raw Grave Worm sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/siren-animation-sheet.jpg")), "New raw Siren sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/mimic-animation-sheet.jpg")), "New raw Mimic sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v134"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v135"), "Service worker cache version was not bumped.");
 assert(!serviceWorker.includes("animation-sheets/uploaded-raw"), "Deleted legacy animation sheets remain in offline cache.");
 assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
 for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {
@@ -474,4 +474,15 @@ for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
     assert(png[25] === 6, `Expected RGBA transparency: ${relative}`);
   }
 }
-console.log("SUCCESS: 34 unit motion test integrations, including Spiderling without hit 5, passed.");
+assert(practiceHtml.includes('data-unit="flesh-golem"'), "Flesh Golem picker is missing.");
+assert(practiceSource.includes('"flesh-golem": { name: "누더기 포식자", root: "art/v2-style/animation-test-frames/flesh-golem/", counts: { attack: 5, hit: 5, death: 6 } }'), "Flesh Golem must use all five hit frames.");
+assert(serviceWorker.includes("animation-test-frames/flesh-golem/${motion}-"), "Flesh Golem cache generator is missing.");
+for (const [motion, count] of Object.entries({ attack: 5, hit: 5, death: 6 })) {
+  for (let index = 1; index <= count; index += 1) {
+    const relative = `art/v2-style/animation-test-frames/flesh-golem/${motion}-${String(index).padStart(2, "0")}.png`;
+    const png = fs.readFileSync(path.join(root, relative));
+    assert(png.readUInt32BE(16) === 260 && png.readUInt32BE(20) === 250, `Wrong canvas: ${relative}`);
+    assert(png[25] === 6, `Expected RGBA transparency: ${relative}`);
+  }
+}
+console.log("SUCCESS: 35 unit motion test integrations, including Flesh Golem, passed.");
