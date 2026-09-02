@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0a0807">
   <title>4대4 속도 자동전투 테스트</title>
-  <link rel="stylesheet" href="v2-auto-battle-practice.css?v=12">
+  <link rel="stylesheet" href="v2-auto-battle-practice.css?v=13">
 </head>
 <body>
   <main class="auto-battle-lab">
@@ -22,19 +22,12 @@
       </header>
 
       <section id="allyTeam" class="team ally-team" aria-label="아군 일반 유닛 4명과 소환물 자리 1칸"></section>
-      <div class="versus" aria-hidden="true"><strong>VS</strong><span>속도 자동전투</span></div>
       <section id="enemyTeam" class="team enemy-team" aria-label="적군 일반 유닛 4명과 소환물 자리 1칸"></section>
 
       <section id="turnDice" class="turn-dice" aria-live="polite" hidden>
-        <div class="turn-dice-panel">
-          <span id="diceTurnLabel">1턴 준비</span>
-          <button id="turnDiceButton" type="button" aria-label="다음 턴 주사위 굴리기">
-            <span class="turn-dice-shadow" aria-hidden="true"></span>
-            <img id="turnDiceImage" src="art/v2-style/dice-test/frames/roll-01.png" alt="굴리기 전 주사위">
-          </button>
-          <strong id="diceResultLabel">주사위를 눌러주세요</strong>
-          <small>대기 중 유닛을 누르면 정보를 확인할 수 있습니다.</small>
-        </div>
+        <button id="turnDiceButton" type="button" aria-label="다음 턴 주사위 굴리기">
+          <img id="turnDiceImage" src="art/v2-style/dice-test/frames/roll-01.png" alt="굴리기 전 주사위">
+        </button>
       </section>
 
       <section id="unitInfoOverlay" class="unit-info-overlay" hidden>
@@ -56,8 +49,8 @@
               <section class="unit-info-basic" aria-labelledby="unitInfoBasicTitle">
                 <h3 id="unitInfoBasicTitle">기본 정보</h3>
                 <dl class="unit-info-values">
-                  <div><dt>진영</dt><dd id="unitInfoTeam">아군</dd></div>
-                  <div><dt>상태</dt><dd id="unitInfoState">생존</dd></div>
+                  <div><dt>등급</dt><dd id="unitInfoGrade">-</dd></div>
+                  <div><dt>군단</dt><dd id="unitInfoLegion">-</dd></div>
                 </dl>
               </section>
               <section class="unit-info-stats" aria-labelledby="unitInfoStatsTitle">
@@ -99,6 +92,7 @@
     </section>
   </main>
   <script src="v2-landscape.js?v=1"></script>
-  <script src="v2-auto-battle-practice.js?v=12"></script>
+  <script src="unit-data.js?v=45"></script>
+  <script src="v2-auto-battle-practice.js?v=13"></script>
 </body>
 </html>

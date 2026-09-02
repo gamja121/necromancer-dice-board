@@ -5,6 +5,13 @@
     "art/v2-style/battle-backgrounds/uploaded-raw/necropolis-pyramids-battlefield.jpg"
   ];
   const FRAME_ROOT = "art/v2-style/animation-test-frames/";
+  const UNIT_TYPE_KEYS = {
+    "death-knight": "knight", "skeleton-spear": "spear", "ghoul": "ghoul",
+    "ancient-treant": "ancientTreant", "goblin-rider": "goblinRider",
+    "orc-warrior": "troll", "boulder-ogre": "ogre", "minotaur": "minotaur"
+  };
+  const GRADE_LABELS = { normal: "일반", advanced: "희귀", hero: "영웅", special: "소환물" };
+  const LEGION_LABELS = { skeleton: "언데드", corpse: "시체", beast: "야수", plague: "역병", ice: "얼음", summon: "소환", demon: "악마", insect: "곤충", plant: "식물", element: "원소" };
   // Visible alpha bounds in the existing 192px cutouts; bitmap files stay untouched.
   const PORTRAIT_BOUNDS = {
     "death-knight": [56, 90, 83, 90],
@@ -49,14 +56,12 @@
   const turnDice = document.getElementById("turnDice");
   const turnDiceButton = document.getElementById("turnDiceButton");
   const turnDiceImage = document.getElementById("turnDiceImage");
-  const diceTurnLabel = document.getElementById("diceTurnLabel");
-  const diceResultLabel = document.getElementById("diceResultLabel");
   const unitInfoOverlay = document.getElementById("unitInfoOverlay");
   const unitInfoName = document.getElementById("unitInfoName");
   const unitInfoImage = document.getElementById("unitInfoImage");
   const unitInfoPortrait = document.getElementById("unitInfoPortrait");
-  const unitInfoTeam = document.getElementById("unitInfoTeam");
-  const unitInfoState = document.getElementById("unitInfoState");
+  const unitInfoGrade = document.getElementById("unitInfoGrade");
+  const unitInfoLegion = document.getElementById("unitInfoLegion");
   const unitInfoHp = document.getElementById("unitInfoHp");
   const unitInfoAttack = document.getElementById("unitInfoAttack");
   const unitInfoSpeed = document.getElementById("unitInfoSpeed");
@@ -78,7 +83,10 @@
   [...DICE_ROLL_FRAMES, ...DICE_RESULT_FRAMES].forEach((src) => { const image = new Image(); image.src = src; });
 
   function unit(slug, name, maxHp, attack, speed, attackFrames, hitFrames, deathFrames, portraitSlug = slug) {
-    return { slug, name, maxHp, attack, speed, portrait: `art/v2-style/processed/192/${portraitSlug}.png`, portraitBounds: PORTRAIT_BOUNDS[portraitSlug] || [0, 0, 192, 192], frames: { attack: attackFrames, hit: hitFrames, death: deathFrames } };
+    const definition = typeof UNIT_TYPES !== "undefined" ? UNIT_TYPES[UNIT_TYPE_KEYS[slug]] : null;
+    const grade = definition?.grade;
+    const legions = definition?.legion == null ? [] : [].concat(definition.legion);
+    return { slug, name, maxHp, attack, speed, grade, legions, portrait: `art/v2-style/processed/192/${portraitSlug}.png`, portraitBounds: PORTRAIT_BOUNDS[portraitSlug] || [0, 0, 192, 192], frames: { attack: attackFrames, hit: hitFrames, death: deathFrames } };
   }
 
   function frame(unitState, motion, index) {
@@ -245,8 +253,7 @@
     turnDiceButton.classList.remove("is-rolling");
     turnDiceImage.src = DICE_ROLL_FRAMES[0];
     turnDiceImage.alt = "굴리기 전 주사위";
-    diceTurnLabel.textContent = `${turnNumber + 1}턴 준비`;
-    diceResultLabel.textContent = initial ? "주사위를 굴려 전투 시작" : `${turnNumber}턴 종료 · 다음 눈금을 굴려주세요`;
+    turnDiceButton.setAttribute("aria-label", `${turnNumber + 1}턴 주사위 굴리기`);
     battlefield.classList.add("is-between-turns");
     message.textContent = initial ? "주사위를 굴리면 1턴이 시작됩니다" : `${turnNumber}턴 종료 · 유닛 정보 확인 또는 주사위 굴리기`;
   }
@@ -257,7 +264,7 @@
     diceRolling = true;
     turnDiceButton.disabled = true;
     turnDiceButton.classList.add("is-rolling");
-    diceResultLabel.textContent = "주사위 회전 중…";
+    turnDiceButton.setAttribute("aria-label", "주사위 굴리는 중");
     const token = battleToken;
     const steps = 18 + Math.floor(Math.random() * 5);
     for (let step = 0; step < steps; step += 1) {
@@ -272,7 +279,7 @@
     turnDiceImage.src = DICE_RESULT_FRAMES[lastDiceRoll - 1];
     turnDiceImage.alt = `주사위 결과 ${lastDiceRoll}`;
     turnDiceButton.classList.remove("is-rolling");
-    diceResultLabel.textContent = `${lastDiceRoll} · 모든 유닛 공통 낙인 눈금`;
+    turnDiceButton.setAttribute("aria-label", `주사위 결과 ${lastDiceRoll}`);
     message.textContent = `${turnNumber + 1}턴 공통 주사위 결과 ${lastDiceRoll}`;
     await wait(Math.max(320, 620 / speedMultiplier));
     if (token !== battleToken || !running || !awaitingRoll) return;
@@ -289,8 +296,8 @@
     const padding = Math.max(width, height) * 0.06;
     unitInfoPortrait.setAttribute("viewBox", `${x - padding} ${y - padding} ${width + padding * 2} ${height + padding * 2}`);
     unitInfoPortrait.setAttribute("aria-label", unitState.name);
-    unitInfoTeam.textContent = unitState.team === "ally" ? "아군" : "적군";
-    unitInfoState.textContent = unitState.alive ? "생존" : "사망";
+    unitInfoGrade.textContent = GRADE_LABELS[unitState.grade] || "미지정";
+    unitInfoLegion.textContent = unitState.legions.map((key) => LEGION_LABELS[key] || key).join(" · ") || "미지정";
     unitInfoHp.textContent = `${Math.max(0, unitState.hp)} / ${unitState.maxHp}`;
     unitInfoAttack.textContent = String(unitState.attack);
     unitInfoSpeed.textContent = String(unitState.speed);

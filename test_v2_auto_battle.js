@@ -23,7 +23,12 @@ assert(html.includes('class="unit-info-frame-art"') && html.includes("art/v2-sty
 assert(html.includes('id="unitInfoHp"') && html.includes('id="unitInfoAttack"') && html.includes('id="unitInfoSpeed"'), "Basic unit stats are missing.");
 const basicPanel = html.match(/<section class="unit-info-basic"[\s\S]*?<\/section>/)?.[0] || "";
 const statsPanel = html.match(/<section class="unit-info-stats"[\s\S]*?<\/section>/)?.[0] || "";
-assert(basicPanel.includes('id="unitInfoTeam"') && basicPanel.includes('id="unitInfoState"'), "Top-right panel must contain team and state.");
+assert(basicPanel.includes('id="unitInfoGrade"') && basicPanel.includes('id="unitInfoLegion"'), "Top-right panel must contain grade and legion only.");
+assert(!html.includes('id="unitInfoTeam"') && !html.includes('id="unitInfoState"'), "Team and life-state rows must be removed.");
+const dicePanel = html.match(/<section id="turnDice"[\s\S]*?<\/section>/)?.[0] || "";
+assert(!dicePanel.includes("turn-dice-panel") && !dicePanel.includes("<span") && !dicePanel.includes("<strong") && !dicePanel.includes("<small"), "Only the dice button should remain in the center.");
+assert(!html.includes('class="versus"') && !source.includes("diceResultLabel") && !source.includes("diceTurnLabel"), "Center labels and obsolete references must be removed.");
+assert(html.indexOf('src="unit-data.js?v=45"') < html.indexOf('src="v2-auto-battle-practice.js'), "Shared unit metadata must load before the battle page.");
 assert(!basicPanel.includes('id="unitInfoHp"'), "Stats must not be placed in the basic panel.");
 for (const id of ["unitInfoHp", "unitInfoAttack", "unitInfoSpeed"]) assert(statsPanel.includes(`id="${id}"`), `${id} must be in the lower-right stats panel.`);
 assert(!html.includes('id="unitInfoRoll"') && !source.includes("unitInfoRoll"), "Common roll must not be in the unit info window.");
@@ -98,22 +103,30 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v130'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v131'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=12"), "Turn dice and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=12"), "Turn-based auto battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=13"), "Turn dice and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=13"), "Turn-based auto battle logic is not cached.");
 assert(worker.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit info frame is not cached.");
 // Exercise the real information-window functions without a rendering engine.
 const infoContext = { awaitingRoll: true, diceRolling: false, document: { getElementById: () => ({ focus() {} }) } };
-for (const name of ["unitInfoName", "unitInfoImage", "unitInfoPortrait", "unitInfoTeam", "unitInfoState", "unitInfoHp", "unitInfoAttack", "unitInfoSpeed", "unitInfoOverlay"]) infoContext[name] = { textContent: "", hidden: true, attrs: {}, setAttribute(key, value) { this.attrs[key] = value; } };
+for (const name of ["unitInfoName", "unitInfoImage", "unitInfoPortrait", "unitInfoGrade", "unitInfoLegion", "unitInfoHp", "unitInfoAttack", "unitInfoSpeed", "unitInfoOverlay"]) infoContext[name] = { textContent: "", hidden: true, attrs: {}, setAttribute(key, value) { this.attrs[key] = value; } };
 vm.createContext(infoContext);
+infoContext.UNIT_TYPES = require("./unit-data.js").UNIT_TYPES;
+vm.runInContext(source.slice(source.indexOf("  const UNIT_TYPE_KEYS"), source.indexOf("  const TEAM_DATA")), infoContext);
+vm.runInContext(source.slice(source.indexOf("  function unit("), source.indexOf("  function frame(")), infoContext);
+for (const [slug, grade, legions] of [["death-knight", "advanced", ["skeleton"]], ["skeleton-spear", "normal", ["skeleton"]], ["ghoul", "normal", ["corpse"]], ["ancient-treant", "advanced", ["plant", "element"]], ["goblin-rider", "normal", ["beast"]], ["orc-warrior", "advanced", ["beast"]], ["boulder-ogre", "advanced", ["beast"]], ["minotaur", "advanced", ["beast"]]]) {
+  const data = vm.runInContext(`unit(${JSON.stringify(slug)}, "test", 12, 3, 2, 5, 4, 6)`, infoContext);
+  assert(data.grade === grade && JSON.stringify(data.legions) === JSON.stringify(legions), `Incorrect registry mapping for ${slug}`);
+  assert(data.maxHp === 12 && data.attack === 3 && data.speed === 2, "Importing metadata must not change battle stats.");
+}
 vm.runInContext(source.slice(source.indexOf("  function openUnitInfo("), source.indexOf("  async function performAttack(")), infoContext);
 for (const [team, alive, hp, name, attack, speed] of [["ally", true, 7, "구울", 2, 3], ["enemy", false, -1, "오우거", 3, 2], ["ally", true, 9, "구울", 2, 3]]) {
-  infoContext.selected = { team, alive, hp, name, attack, speed, maxHp: 14, portrait: "art/v2-style/processed/192/ghoul.png", portraitBounds: [31, 12, 129, 172] };
+  infoContext.selected = { team, alive, hp, name, attack, speed, grade: alive ? "normal" : "advanced", legions: alive ? ["corpse"] : ["plant", "element"], maxHp: 14, portrait: "art/v2-style/processed/192/ghoul.png", portraitBounds: [31, 12, 129, 172] };
   vm.runInContext("openUnitInfo(selected)", infoContext);
   assert(infoContext.unitInfoName.textContent === name, "Switching units must refresh the title.");
-  assert(infoContext.unitInfoTeam.textContent === (team === "ally" ? "아군" : "적군"), "Team label must refresh.");
-  assert(infoContext.unitInfoState.textContent === (alive ? "생존" : "사망"), "Life state must refresh.");
+  assert(infoContext.unitInfoGrade.textContent === (alive ? "일반" : "희귀"), "Grade label must refresh and advanced must display as rare.");
+  assert(infoContext.unitInfoLegion.textContent === (alive ? "시체" : "식물 · 원소"), "Single and dual legions must refresh.");
   assert(infoContext.unitInfoHp.textContent === `${Math.max(0, hp)} / 14`, "Current and max HP must refresh.");
   assert(infoContext.unitInfoAttack.textContent === String(attack) && infoContext.unitInfoSpeed.textContent === String(speed), "Combat stats must refresh.");
   assert(infoContext.unitInfoImage.attrs.href === infoContext.selected.portrait, "Dead units must retain original cutouts.");
@@ -123,9 +136,31 @@ for (const [team, alive, hp, name, attack, speed] of [["ally", true, 7, "구울"
   vm.runInContext("closeUnitInfo()", infoContext);
   assert(infoContext.unitInfoOverlay.hidden, "Close must hide the panel.");
 }
+infoContext.selected.grade = "hero";
+vm.runInContext("openUnitInfo(selected)", infoContext);
+assert(infoContext.unitInfoGrade.textContent === "영웅", "Hero grade label must remain supported.");
+vm.runInContext("closeUnitInfo()", infoContext);
 for (const [awaitingRoll, diceRolling] of [[false, false], [true, true]]) {
   Object.assign(infoContext, { awaitingRoll, diceRolling });
   vm.runInContext("openUnitInfo(selected)", infoContext);
   assert(infoContext.unitInfoOverlay.hidden, "Info must not open while fighting or rolling.");
 }
-console.log("SUCCESS: turn-roll battle, separated info panels, and unit-info runtime checks passed.");
+// Execute the actual intermission/roller without any of the deleted label nodes.
+let turnStarts = 0;
+for (const name of ["turnDice", "turnDiceButton", "turnDiceImage", "pauseButton", "battlefield", "message"]) {
+  infoContext[name] = { hidden: true, disabled: false, attrs: {}, classList: { add() {}, remove() {} }, setAttribute(key, value) { this.attrs[key] = value; } };
+}
+Object.assign(infoContext, {
+  running: true, awaitingRoll: false, diceRolling: false, paused: false, actionBusy: false,
+  turnNumber: 1, battleToken: 1, diceFrameIndex: 0, speedMultiplier: 1, lastDiceRoll: null,
+  aliveUnits: () => [{}], wait: async () => {}, finishBattle: () => { throw new Error("Unexpected finish"); },
+  startTurn: () => { turnStarts += 1; infoContext.awaitingRoll = false; infoContext.turnDice.hidden = true; }
+});
+vm.runInContext(source.slice(source.indexOf("  function beginTurnIntermission("), source.indexOf("  function openUnitInfo(")), infoContext);
+vm.runInContext("beginTurnIntermission(false)", infoContext);
+assert(infoContext.awaitingRoll && !infoContext.turnDice.hidden && turnStarts === 0, "End of turn must wait for a dice click.");
+vm.runInContext("rollTurnDice()", infoContext).then(() => {
+  assert(turnStarts === 1 && infoContext.turnDice.hidden, "Rolling must start the next turn once and hide the dice.");
+  assert(infoContext.lastDiceRoll >= 1 && infoContext.lastDiceRoll <= 6, "Roll must still yield 1–6 without label nodes.");
+  console.log("SUCCESS: dice-only turn flow, registry metadata, transparent portraits, and unit info passed.");
+}).catch((error) => { console.error(error); process.exitCode = 1; });
