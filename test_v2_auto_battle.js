@@ -78,8 +78,13 @@ assert(source.includes("startTurn();") && source.includes("async function rollTu
 assert(source.includes("if (!awaitingRoll || diceRolling) return"), "Unit information must only open during the between-turn pause.");
 assert(source.includes("function openUnitInfo(unitState)"), "Unit information interaction is missing.");
 assert(source.includes("unitInfoHp.textContent") && source.includes("unitInfoAttack.textContent") && source.includes("unitInfoSpeed.textContent"), "Unit information values are not populated.");
-assert(source.includes("portrait: `assets/${portraitSlug}.jpg`"), "Original unit artwork mapping is missing.");
-assert(source.includes("unitInfoImage.src = unitState.portrait"), "Unit information must use original artwork instead of animation frames.");
+assert(source.includes("portrait: `art/v2-style/processed/192/${portraitSlug}.png`"), "Existing transparent cutouts must be used.");
+assert(source.includes('unitInfoImage.setAttribute("href", unitState.portrait)'), "Unit information must use original cutouts instead of animation frames.");
+assert(html.includes('preserveAspectRatio="xMidYMid meet"'), "Portraits must be centered, undistorted, and fully contained.");
+for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant", "goblin-rider", "goblin-soldier", "ogre", "minotaur"]) {
+  assert(fs.existsSync(path.join(root, `art/v2-style/processed/192/${slug}.png`)), `Missing cutout ${slug}`);
+  assert(worker.includes(`art/v2-style/processed/192/${slug}.png`), `Missing cached cutout ${slug}`);
+}
 assert(source.includes('"goblin-soldier"') && source.includes('"ogre"'), "Fallback original artwork mappings are missing.");
 assert(source.includes("Math.random() * targets.length"), "Automatic target selection is missing.");
 assert(source.includes('playMotion(actor, "attack"'), "Attack motion is missing.");
@@ -93,25 +98,28 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v129'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v130'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=11"), "Turn dice and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=11"), "Turn-based auto battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=12"), "Turn dice and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=12"), "Turn-based auto battle logic is not cached.");
 assert(worker.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit info frame is not cached.");
 // Exercise the real information-window functions without a rendering engine.
 const infoContext = { awaitingRoll: true, diceRolling: false, document: { getElementById: () => ({ focus() {} }) } };
-for (const name of ["unitInfoName", "unitInfoImage", "unitInfoTeam", "unitInfoState", "unitInfoHp", "unitInfoAttack", "unitInfoSpeed", "unitInfoOverlay"]) infoContext[name] = { textContent: "", hidden: true };
+for (const name of ["unitInfoName", "unitInfoImage", "unitInfoPortrait", "unitInfoTeam", "unitInfoState", "unitInfoHp", "unitInfoAttack", "unitInfoSpeed", "unitInfoOverlay"]) infoContext[name] = { textContent: "", hidden: true, attrs: {}, setAttribute(key, value) { this.attrs[key] = value; } };
 vm.createContext(infoContext);
 vm.runInContext(source.slice(source.indexOf("  function openUnitInfo("), source.indexOf("  async function performAttack(")), infoContext);
 for (const [team, alive, hp, name, attack, speed] of [["ally", true, 7, "구울", 2, 3], ["enemy", false, -1, "오우거", 3, 2], ["ally", true, 9, "구울", 2, 3]]) {
-  infoContext.selected = { team, alive, hp, name, attack, speed, maxHp: 14, portrait: "assets/ghoul.jpg" };
+  infoContext.selected = { team, alive, hp, name, attack, speed, maxHp: 14, portrait: "art/v2-style/processed/192/ghoul.png", portraitBounds: [31, 12, 129, 172] };
   vm.runInContext("openUnitInfo(selected)", infoContext);
   assert(infoContext.unitInfoName.textContent === name, "Switching units must refresh the title.");
   assert(infoContext.unitInfoTeam.textContent === (team === "ally" ? "아군" : "적군"), "Team label must refresh.");
   assert(infoContext.unitInfoState.textContent === (alive ? "생존" : "사망"), "Life state must refresh.");
   assert(infoContext.unitInfoHp.textContent === `${Math.max(0, hp)} / 14`, "Current and max HP must refresh.");
   assert(infoContext.unitInfoAttack.textContent === String(attack) && infoContext.unitInfoSpeed.textContent === String(speed), "Combat stats must refresh.");
-  assert(infoContext.unitInfoImage.src === infoContext.selected.portrait, "Dead units must retain original artwork.");
+  assert(infoContext.unitInfoImage.attrs.href === infoContext.selected.portrait, "Dead units must retain original cutouts.");
+  const [left, top, width, height] = infoContext.unitInfoPortrait.attrs.viewBox.split(" ").map(Number);
+  assert(left < 31 && top < 12 && left + width > 160 && top + height > 184, "Visible artwork must fit with margin on all sides.");
+  assert(infoContext.unitInfoPortrait.attrs["aria-label"] === name, "Portrait accessibility label must follow the selected unit.");
   vm.runInContext("closeUnitInfo()", infoContext);
   assert(infoContext.unitInfoOverlay.hidden, "Close must hide the panel.");
 }

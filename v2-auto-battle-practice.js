@@ -5,6 +5,17 @@
     "art/v2-style/battle-backgrounds/uploaded-raw/necropolis-pyramids-battlefield.jpg"
   ];
   const FRAME_ROOT = "art/v2-style/animation-test-frames/";
+  // Visible alpha bounds in the existing 192px cutouts; bitmap files stay untouched.
+  const PORTRAIT_BOUNDS = {
+    "death-knight": [56, 90, 83, 90],
+    "skeleton-spear": [20, 12, 152, 171],
+    "ghoul": [31, 12, 129, 172],
+    "ancient-treant": [14, 12, 163, 170],
+    "goblin-rider": [6, 105, 180, 79],
+    "goblin-soldier": [29, 12, 133, 170],
+    "ogre": [27, 27, 138, 155],
+    "minotaur": [7, 75, 178, 108]
+  };
   const DICE_FRAME_ROOT = "art/v2-style/dice-test/frames/";
   const DICE_ROLL_FRAMES = Array.from({ length: 12 }, (_, index) => `${DICE_FRAME_ROOT}roll-${String(index + 1).padStart(2, "0")}.png`);
   const DICE_RESULT_FRAMES = Array.from({ length: 6 }, (_, index) => `${DICE_FRAME_ROOT}result-${String(index + 1).padStart(2, "0")}.png`);
@@ -43,6 +54,7 @@
   const unitInfoOverlay = document.getElementById("unitInfoOverlay");
   const unitInfoName = document.getElementById("unitInfoName");
   const unitInfoImage = document.getElementById("unitInfoImage");
+  const unitInfoPortrait = document.getElementById("unitInfoPortrait");
   const unitInfoTeam = document.getElementById("unitInfoTeam");
   const unitInfoState = document.getElementById("unitInfoState");
   const unitInfoHp = document.getElementById("unitInfoHp");
@@ -66,7 +78,7 @@
   [...DICE_ROLL_FRAMES, ...DICE_RESULT_FRAMES].forEach((src) => { const image = new Image(); image.src = src; });
 
   function unit(slug, name, maxHp, attack, speed, attackFrames, hitFrames, deathFrames, portraitSlug = slug) {
-    return { slug, name, maxHp, attack, speed, portrait: `assets/${portraitSlug}.jpg`, frames: { attack: attackFrames, hit: hitFrames, death: deathFrames } };
+    return { slug, name, maxHp, attack, speed, portrait: `art/v2-style/processed/192/${portraitSlug}.png`, portraitBounds: PORTRAIT_BOUNDS[portraitSlug] || [0, 0, 192, 192], frames: { attack: attackFrames, hit: hitFrames, death: deathFrames } };
   }
 
   function frame(unitState, motion, index) {
@@ -272,8 +284,11 @@
   function openUnitInfo(unitState) {
     if (!awaitingRoll || diceRolling) return;
     unitInfoName.textContent = unitState.name;
-    unitInfoImage.src = unitState.portrait;
-    unitInfoImage.alt = unitState.name;
+    unitInfoImage.setAttribute("href", unitState.portrait);
+    const [x, y, width, height] = unitState.portraitBounds;
+    const padding = Math.max(width, height) * 0.06;
+    unitInfoPortrait.setAttribute("viewBox", `${x - padding} ${y - padding} ${width + padding * 2} ${height + padding * 2}`);
+    unitInfoPortrait.setAttribute("aria-label", unitState.name);
     unitInfoTeam.textContent = unitState.team === "ally" ? "아군" : "적군";
     unitInfoState.textContent = unitState.alive ? "생존" : "사망";
     unitInfoHp.textContent = `${Math.max(0, unitState.hp)} / ${unitState.maxHp}`;
