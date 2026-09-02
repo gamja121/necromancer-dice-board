@@ -443,11 +443,23 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/cr
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/grave-worm-animation-sheet.jpg")), "New raw Grave Worm sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/siren-animation-sheet.jpg")), "New raw Siren sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/mimic-animation-sheet.jpg")), "New raw Mimic sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v132"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v133"), "Service worker cache version was not bumped.");
 assert(!serviceWorker.includes("animation-sheets/uploaded-raw"), "Deleted legacy animation sheets remain in offline cache.");
 assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
 for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {
   assert(fs.existsSync(path.join(root, match[1].slice(2))), `Offline static asset is missing: ${match[1]}`);
 }
 
-console.log("SUCCESS: 32 unit motion test integrations, including Grave Worm, Siren, and Mimic, passed.");
+assert(practiceHtml.includes('data-unit="cerberus"'), "Cerberus picker is missing.");
+assert(practiceSource.includes('"cerberus": { name: "케르베로스", root: "art/v2-style/animation-test-frames/cerberus/", counts: { attack: 5, hit: 4, death: 6 } }'), "Cerberus frame counts are incorrect.");
+assert(serviceWorker.includes("animation-test-frames/cerberus/${motion}-"), "Cerberus cache generator is missing.");
+for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
+  for (let index = 1; index <= count; index += 1) {
+    const relative = `art/v2-style/animation-test-frames/cerberus/${motion}-${String(index).padStart(2, "0")}.png`;
+    const png = fs.readFileSync(path.join(root, relative));
+    assert(png.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])), `Invalid PNG: ${relative}`);
+    assert(png.readUInt32BE(16) === 260 && png.readUInt32BE(20) === 250, `Wrong canvas: ${relative}`);
+    assert(png[25] === 6, `Expected RGBA transparency: ${relative}`);
+  }
+}
+console.log("SUCCESS: 33 unit motion test integrations, including Cerberus, passed.");
