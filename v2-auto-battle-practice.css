@@ -44,6 +44,7 @@ button, a { font: inherit; }
 .unit.is-hit img { animation: hit-red-flash 260ms ease-in-out 2; }
 .unit.is-dead { filter: grayscale(.25) brightness(.72); }
 .unit.is-dead .bar { opacity: .45; }
+.damage-number { position: absolute; z-index: 70; left: 50%; top: 19%; color: #ff3b2f; font: 900 clamp(18px, 2.8vw, 32px)/1 Georgia, serif; letter-spacing: -.04em; text-shadow: 0 2px 2px #240000, 0 0 5px #ff2b1f; pointer-events: none; animation: damage-float 720ms cubic-bezier(.15, .72, .25, 1) forwards; }
 .summon-slot { position: relative; z-index: 10; visibility: hidden; pointer-events: none; }
 .turn-dice { position: absolute; z-index: 55; inset: 0; display: grid; place-items: center; pointer-events: none; }
 .turn-dice[hidden] { display: none; }
@@ -107,6 +108,12 @@ button, a { font: inherit; }
 @keyframes brand-reveal {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
+}
+@keyframes damage-float {
+  0% { opacity: 0; transform: translate(-50%, 12px) scale(.72); }
+  22% { opacity: 1; transform: translate(-50%, -3px) scale(1.18); }
+  72% { opacity: 1; transform: translate(-50%, -26px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -43px) scale(.9); }
 }
 .unit-info-brands h4 { margin: 0 0 8px; color: #f2d299; font-size: clamp(10px, 1.25vw, 15px); }
 .unit-info-brands p { margin: 0 0 9px; font-size: clamp(8px, .95vw, 12px); }

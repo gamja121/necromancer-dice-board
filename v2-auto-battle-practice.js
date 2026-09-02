@@ -170,6 +170,16 @@
     return slot;
   }
 
+  function showDamage(unitState, amount) {
+    if (!Number.isFinite(amount) || amount <= 0 || !unitState.element) return;
+    const number = document.createElement("span");
+    number.className = "damage-number";
+    number.textContent = `-${amount}`;
+    number.setAttribute("aria-label", `${amount} 피해`);
+    unitState.element.querySelector(".sprite-wrap").append(number);
+    number.addEventListener("animationend", () => number.remove(), { once: true });
+  }
+
   function updateUnit(unitState) {
     if (!unitState.element) return;
     const bar = unitState.element.querySelector(".hp-bar");
@@ -376,6 +386,7 @@
       : outcome.immune ? `${target.name} 수호 · 피해 무시`
       : `${actor.name} → ${target.name} · 피해 ${outcome.damage}${outcome.recovered ? ` · 흡혈 +${outcome.recovered}` : ""}`;
     if (outcome.damage > 0) {
+      showDamage(target, outcome.damage);
       target.element.classList.add("is-hit");
       await playMotion(target, "hit", target.frames.hit, token);
     } else await wait(250 / speedMultiplier);

@@ -72,6 +72,31 @@ assert.equal(b.brandMode, "normal", "Prior-turn blessing must reset");
 
 // Run the actual turn/action integration, including early deaths and cancellation.
 const source = fs.readFileSync(__dirname + "/v2-auto-battle-practice.js", "utf8");
+const appendedNumbers = [];
+const popupContext = {
+  document: { createElement(tag) {
+    assert.equal(tag, "span");
+    return { attrs: {}, events: {},
+      setAttribute(key, value) { this.attrs[key] = value; },
+      addEventListener(event, callback, options) { this.events[event] = callback; assert.equal(options.once, true); },
+      remove() { this.removed = true; }
+    };
+  } },
+  victim: { element: { querySelector(selector) {
+    assert.equal(selector, ".sprite-wrap", "Number must follow the forward-moving victim");
+    return { append: number => appendedNumbers.push(number) };
+  } } }
+};
+vm.createContext(popupContext);
+vm.runInContext(source.slice(source.indexOf("  function showDamage("), source.indexOf("  function updateUnit(")), popupContext);
+vm.runInContext("showDamage(victim, 6)", popupContext);
+assert.equal(appendedNumbers[0].className, "damage-number");
+assert.equal(appendedNumbers[0].textContent, "-6");
+assert.equal(appendedNumbers[0].attrs["aria-label"], "6 피해");
+appendedNumbers[0].events.animationend();
+assert.equal(appendedNumbers[0].removed, true);
+vm.runInContext("showDamage(victim, 0); showDamage(victim, -1); showDamage(victim, NaN)", popupContext);
+assert.equal(appendedNumbers.length, 1, "Only positive actual damage should spawn a number");
 const page = fs.readFileSync(__dirname + "/v2-auto-battle-practice.html", "utf8");
 assert(page.indexOf('src="v2-battle-brands.js') < page.indexOf('src="v2-auto-battle-practice.js'), "Brand engine must load before battle initialization");
 const hp = { attrs: {}, setAttribute(key, value) { this.attrs[key] = value; } };
@@ -128,6 +153,7 @@ for (const [slug, brand] of Object.entries(brands.samples)) {
 }
 async function integration() {
   const animations = [];
+  const damagePopups = [];
   let finishes = 0;
   const context = {
     V2BattleBrands: brands, running: true, battleToken: 1, actionBusy: false,
@@ -136,6 +162,7 @@ async function integration() {
     turnQueue: [], awaitingRoll: true, diceRolling: false,
     battlefield: { classList: { remove() {} } }, turnDice: {}, pauseButton: {}, message: {},
     closeUnitInfo() {}, updateUnit() {}, updateHud() {},
+    showDamage: (target, amount) => damagePopups.push({ team: target.team, amount }),
     frame: (u, motion, n) => motion + n, wait: async () => {},
     playMotion: async (u, motion) => { animations.push([u.team, motion]); },
     finishBattle: () => { finishes++; context.running = false; },
@@ -158,6 +185,15 @@ async function integration() {
   await vm.runInContext("performAttack(units[0], battleToken)", context);
   assert.equal(context.units[0].hp, 3);
   assert.equal(context.units[1].alive, false);
+  assert.deepEqual(damagePopups, [{ team: "enemy", amount: 2 }], "Popup must display actual HP loss, not overkill attack power");
+  Object.assign(context, { running: true, units: [unit("critical"), unit("guard", "enemy")] });
+  brands.startRound(context.units, 1);
+  await vm.runInContext("performAttack(units[0], battleToken)", context);
+  assert.equal(damagePopups.length, 1, "Miss must not display damage");
+  Object.assign(context, { running: true, units: [unit("vampire"), unit("guard", "enemy")] });
+  brands.startRound(context.units, 2);
+  await vm.runInContext("performAttack(units[0], battleToken)", context);
+  assert.equal(damagePopups.length, 1, "Invulnerability must not display damage");
   Object.assign(context, { running: true, actionBusy: false, units: [unit("critical"), unit("guard", "enemy")], lastDiceRoll: 3, turnQueue: [] });
   await vm.runInContext("startTurn()", context);
   assert.equal(context.actionBusy, false);

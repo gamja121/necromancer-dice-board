@@ -64,7 +64,9 @@ assert(source.includes('enemyTeam.append(makeSummonSlot("적군"))'), "Enemy sum
 assert(source.includes('allyTeam.append(makeSummonSlot("아군"))'), "Ally summon cell must be closest to the center.");
 assert(!source.includes("summon-mark"), "Reserved summon cells must remain visually empty.");
 assert(css.includes(".summon-slot { position: relative; z-index: 10; visibility: hidden"), "Reserved summon cells must be hidden.");
-assert(!source.includes("showDamage") && !source.includes('class="unit-card"') && !source.includes('class="bar gauge-bar"'), "Only HP bars should remain above units.");
+assert(!source.includes('class="unit-card"') && !source.includes('class="bar gauge-bar"'), "Name/speed cards and gauges must stay hidden.");
+assert(source.includes("showDamage(target, outcome.damage)"), "Damage popup must use the actual damage after brands.");
+assert(css.includes("@keyframes damage-float") && css.includes(".brand-indicator.is-blessing"), "Damage animation and brand badges must both remain.");
 assert(source.includes("V2BattleBrands.attack(actor, target)"), "Assigned brands must affect attacks.");
 assert(source.includes("V2BattleBrands.startRound(units, lastDiceRoll)"), "Brands must use the shared turn roll.");
 assert(source.includes('roundState.textContent = `${allyAlive}+1 VS ${enemyAlive}+1`'), "Five-slot formation counter is missing.");
@@ -102,10 +104,10 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v138'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v139'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=15"), "Turn dice and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=16") && worker.includes("v2-battle-brands.js?v=1"), "Turn-based auto battle and brands are not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=16"), "Turn dice and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=17") && worker.includes("v2-battle-brands.js?v=1"), "Turn-based auto battle and brands are not cached.");
 assert(worker.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit info frame is not cached.");
 // Exercise the real information-window functions without a rendering engine.
 const infoContext = { awaitingRoll: true, diceRolling: false, lastDiceRoll: null, V2BattleBrands: require("./v2-battle-brands.js"), document: { getElementById: () => ({ focus() {} }) } };
