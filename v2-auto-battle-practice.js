@@ -65,6 +65,7 @@
   const unitInfoHp = document.getElementById("unitInfoHp");
   const unitInfoAttack = document.getElementById("unitInfoAttack");
   const unitInfoSpeed = document.getElementById("unitInfoSpeed");
+  const unitInfoBrands = document.getElementById("unitInfoBrands");
 
   let units = [];
   let running = false;
@@ -129,7 +130,7 @@
   }
 
   function makeState(data, team, slot) {
-    return { ...data, team, slot, hp: data.maxHp, gauge: 0, alive: true, element: null, image: null };
+    return { ...data, team, slot, hp: data.maxHp, gauge: 0, alive: true, brand: V2BattleBrands.samples[data.slug], brandMode: "normal", poison: 0, element: null, image: null };
   }
 
   function renderTeams() {
@@ -144,9 +145,7 @@
       element.setAttribute("role", "button");
       element.setAttribute("aria-label", `${unitState.name} 정보 보기`);
       element.innerHTML = `
-        <div class="unit-card"><strong>${unitState.name}</strong><span class="unit-speed">속도 ${unitState.speed}</span><span class="hp-text"></span></div>
-        <div class="bar hp-bar"><i></i></div>
-        <div class="bar gauge-bar"><i></i></div>
+        <div class="bar hp-bar" role="progressbar" aria-label="${unitState.name} 체력" aria-valuemin="0"><i></i></div>
         <div class="sprite-wrap"><img src="${frame(unitState, "attack", 1)}" alt="${unitState.name}"></div>`;
       unitState.element = element;
       unitState.image = element.querySelector("img");
@@ -170,20 +169,12 @@
     return slot;
   }
 
-  function showDamage(unitState, amount) {
-    const number = document.createElement("span");
-    number.className = "damage-number";
-    number.textContent = `-${amount}`;
-    number.setAttribute("aria-label", `${amount} 피해`);
-    unitState.element.querySelector(".sprite-wrap").append(number);
-    number.addEventListener("animationend", () => number.remove(), { once: true });
-  }
-
   function updateUnit(unitState) {
     if (!unitState.element) return;
-    unitState.element.querySelector(".hp-text").textContent = `${Math.max(0, unitState.hp)}/${unitState.maxHp}`;
+    const bar = unitState.element.querySelector(".hp-bar");
+    bar.setAttribute("aria-valuenow", String(Math.max(0, unitState.hp)));
+    bar.setAttribute("aria-valuemax", String(unitState.maxHp));
     unitState.element.querySelector(".hp-bar i").style.width = `${Math.max(0, unitState.hp / unitState.maxHp * 100)}%`;
-    unitState.element.querySelector(".gauge-bar i").style.width = `${Math.min(100, unitState.gauge)}%`;
     unitState.element.classList.toggle("is-ready", unitState.alive && unitState.gauge >= 100);
     unitState.element.classList.toggle("is-dead", !unitState.alive);
   }
@@ -219,7 +210,7 @@
     requestAnimationFrame(battleLoop);
   }
 
-  function startTurn() {
+  async function startTurn() {
     if (!running) return;
     if (!aliveUnits("ally").length || !aliveUnits("enemy").length) return finishBattle();
     awaitingRoll = false;
@@ -229,6 +220,14 @@
     closeUnitInfo();
     pauseButton.disabled = false;
     turnNumber += 1;
+    actionBusy = true;
+    const token = battleToken;
+    const fallen = V2BattleBrands.startRound(units, lastDiceRoll);
+    units.forEach(updateUnit);
+    await Promise.all(fallen.map(unitState => playMotion(unitState, "death", unitState.frames.death, token, true)));
+    if (token !== battleToken || !running) return;
+    updateHud();
+    if (!aliveUnits("ally").length || !aliveUnits("enemy").length) return finishBattle();
     turnQueue = units.filter((unitState) => unitState.alive)
       .map((unitState) => ({ unitState, tie: Math.random() }))
       .sort((left, right) => right.unitState.speed - left.unitState.speed || left.tie - right.tie)
@@ -238,6 +237,7 @@
       updateUnit(unitState);
     }
     message.textContent = `${turnNumber}턴 · 주사위 ${lastDiceRoll} · 속도 높은 순서로 전원 1회 행동`;
+    actionBusy = false;
   }
 
   function beginTurnIntermission(initial) {
@@ -301,6 +301,19 @@
     unitInfoHp.textContent = `${Math.max(0, unitState.hp)} / ${unitState.maxHp}`;
     unitInfoAttack.textContent = String(unitState.attack);
     unitInfoSpeed.textContent = String(unitState.speed);
+    const brand = V2BattleBrands.definitions[unitState.brand];
+    if (brand) {
+      const stateText = lastDiceRoll == null ? "주사위를 굴리면 효과가 결정됩니다."
+        : `지난 턴 눈금 ${lastDiceRoll} · ${{ blessing: "축복", curse: "저주", normal: "일반" }[unitState.brandMode] || "일반"}`;
+      unitInfoBrands.innerHTML = `<h4>${brand.name}</h4>
+        <p class="brand-example">예시 배정 · 축복 + 저주 1세트</p>
+        <p class="brand-blessing">축복 [${brand.bless.join(", ")}]<br>${brand.blessing}</p>
+        <p class="brand-curse">저주 [${brand.curse.join(", ")}]<br>${brand.penalty}</p>
+        <p>일반 [${brand.normal}]: 통상 진행</p>
+        <p class="brand-note">공통 주사위로 시작하는 턴에 적용 · 다음 굴림 때 갱신</p>
+        <p class="brand-note">${stateText}${unitState.poison ? " · 중독: 다음 행동 시 피해 1" : ""}</p>
+        ${unitState.brand === "summon" ? '<p class="brand-note">소환물이 없으면 효과 없음 · 소환 생성 기능은 아직 없음</p>' : ""}`;
+    } else unitInfoBrands.textContent = "낙인 미지정";
     unitInfoOverlay.hidden = false;
     document.getElementById("unitInfoClose").focus();
   }
@@ -313,6 +326,17 @@
     actionBusy = true;
     actor.gauge = 0;
     updateUnit(actor);
+    if (V2BattleBrands.beforeAction(actor)) {
+      updateUnit(actor);
+      if (!actor.alive) {
+        await playMotion(actor, "death", actor.frames.death, token, true);
+        if (token !== battleToken || !running) return;
+        updateHud();
+        if (!aliveUnits("ally").length || !aliveUnits("enemy").length) return finishBattle();
+        actionBusy = false;
+        return;
+      }
+    }
     const targets = aliveUnits(actor.team === "ally" ? "enemy" : "ally");
     const target = targets[Math.floor(Math.random() * targets.length)];
     if (!target) return finishBattle();
@@ -323,11 +347,17 @@
     await playMotion(actor, "attack", actor.frames.attack, token);
     if (token !== battleToken || !running) return;
 
-    const damage = Math.min(actor.attack, target.hp);
-    target.hp -= damage;
-    showDamage(target, damage);
-    target.element.classList.add("is-hit");
-    await playMotion(target, "hit", target.frames.hit, token);
+    const outcome = V2BattleBrands.attack(actor, target);
+    updateUnit(actor);
+    updateUnit(target);
+    message.textContent = outcome.miss ? `${actor.name} 공격 빗나감`
+      : outcome.immune ? `${target.name} 수호 · 피해 무시`
+      : `${actor.name} → ${target.name} · 피해 ${outcome.damage}${outcome.recovered ? ` · 흡혈 +${outcome.recovered}` : ""}`;
+    if (outcome.damage > 0) {
+      target.element.classList.add("is-hit");
+      await playMotion(target, "hit", target.frames.hit, token);
+    } else await wait(250 / speedMultiplier);
+    if (token !== battleToken || !running) return;
     target.element.classList.remove("is-hit");
     updateUnit(target);
 
@@ -336,6 +366,7 @@
       target.alive = false;
       message.textContent = `${target.name} 쓰러짐`;
       await playMotion(target, "death", target.frames.death, token, true);
+      if (token !== battleToken || !running) return;
       updateUnit(target);
     } else {
       target.image.src = frame(target, "attack", 1);
@@ -372,7 +403,7 @@
     pauseButton.disabled = true;
     speedButton.disabled = true;
     const won = aliveUnits("ally").length > 0;
-    resultTitle.textContent = won ? "아군 승리" : "적군 승리";
+    resultTitle.textContent = won ? "아군 승리" : aliveUnits("enemy").length ? "적군 승리" : "무승부";
     resultBody.textContent = `${actionCount}번의 공격 후 전투가 끝났습니다. 매 턴 속도가 높은 순서로 생존 유닛 모두가 한 번씩 행동했습니다.`;
     resultOverlay.hidden = false;
     message.textContent = "전투 종료";

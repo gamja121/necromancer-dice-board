@@ -26,17 +26,10 @@ button, a { font: inherit; }
 .enemy-team .unit:nth-child(3) { --depth-scale: 1.01; --depth-y: 2%; --unit-layer: 15; --action-shift-x: -64%; }
 .enemy-team .unit:nth-child(4) { --depth-scale: 1.08; --depth-y: 7%; --unit-layer: 17; --action-shift-x: -128%; }
 .enemy-team .unit:nth-child(5) { --depth-scale: 1.14; --depth-y: 11%; --unit-layer: 18; --action-shift-x: -192%; }
-.unit-card { position: absolute; z-index: 4; left: 2%; right: 2%; top: 0; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 4px; padding: 3px 5px; border: 1px solid #80715b99; border-radius: 3px; background: #0b0908d9; box-shadow: 0 2px 7px #000a; }
-.enemy-team .unit-card { border-color: #85534f99; }
-.unit-card strong { grid-column: 1 / -1; max-width: 100%; overflow: hidden; color: #f1dfbf; font-size: clamp(7px, .9vw, 10px); text-align: center; text-overflow: ellipsis; white-space: nowrap; }
-.unit-speed { color: #8fd6e8; font-size: clamp(7px, .88vw, 9px); font-weight: 900; }
-.hp-text { color: #ffd49b; font-size: clamp(7px, .88vw, 9px); font-weight: 900; }
 .bar { position: absolute; z-index: 5; left: 7%; right: 7%; height: 4px; overflow: hidden; border-radius: 3px; background: #050404dd; }
-.hp-bar { top: 40px; }
-.gauge-bar { top: 46px; height: 3px; }
+.hp-bar { top: 12%; height: 5px; }
 .bar > i { display: block; width: 0; height: 100%; transition: width 90ms linear; }
 .hp-bar > i { width: 100%; background: linear-gradient(90deg, #7c1717, #e44932, #ffb34d); }
-.gauge-bar > i { background: linear-gradient(90deg, #1e658b, #5cd5f0, #e7ffff); }
 .sprite-wrap { position: absolute; z-index: 2; inset: 13% -28% 0; display: grid; place-items: end center; transform: translateY(var(--depth-y)) scale(var(--depth-scale)); transition: transform 190ms cubic-bezier(.2, .8, .25, 1); }
 .unit img { display: block; width: 116%; height: 96%; object-fit: contain; filter: drop-shadow(0 6px 4px #000e); image-rendering: auto; }
 .enemy-team .unit img { transform: scaleX(-1); }
@@ -45,11 +38,9 @@ button, a { font: inherit; }
 .unit.is-attacking .sprite-wrap { transform: translate(var(--action-shift-x), 14%) scale(1.43); }
 .unit.is-targeted .sprite-wrap { transform: translate(var(--action-shift-x), 11%) scale(1.32); }
 .unit.is-hit img { animation: hit-red-flash 260ms ease-in-out 2; }
-.unit.is-ready .gauge-bar { box-shadow: 0 0 7px #8deaff; }
 .unit.is-dead { filter: grayscale(.25) brightness(.72); }
-.unit.is-dead .unit-card, .unit.is-dead .bar { opacity: .45; }
+.unit.is-dead .bar { opacity: .45; }
 .summon-slot { position: relative; z-index: 10; visibility: hidden; pointer-events: none; }
-.damage-number { position: absolute; z-index: 70; left: 50%; top: 19%; transform: translateX(-50%); color: #ff3b2f; font: 1000 clamp(18px, 2.8vw, 32px)/1 Georgia, serif; letter-spacing: -.04em; text-shadow: 0 2px 2px #240000, 0 0 5px #ff2b1f, 2px 0 #fff1d0; pointer-events: none; animation: damage-float 720ms cubic-bezier(.15, .72, .25, 1) forwards; }
 .turn-dice { position: absolute; z-index: 55; inset: 0; display: grid; place-items: center; pointer-events: none; }
 .turn-dice[hidden] { display: none; }
 #turnDiceButton { position: relative; display: grid; place-items: center; width: clamp(82px, 10.5vw, 124px); height: clamp(72px, 9vw, 106px); padding: 0; border: 0; background: transparent; cursor: pointer; pointer-events: auto; }
@@ -97,21 +88,20 @@ button, a { font: inherit; }
 }
 @media (max-height: 440px) and (orientation: landscape) {
   .battle-toolbar > a, .battle-controls button { height: 27px; min-width: 48px; }
-  .hp-bar { top: 35px; }
-  .gauge-bar { top: 41px; }
+  .hp-bar { top: 12%; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition-duration: 1ms !important; } }
 @keyframes hit-red-flash {
   0%, 100% { filter: drop-shadow(0 6px 4px #000e); }
   45% { filter: brightness(.85) sepia(1) saturate(9) hue-rotate(322deg) drop-shadow(0 0 11px #ef1d16); }
 }
-@keyframes damage-float {
-  0% { opacity: 0; transform: translate(-50%, 12px) scale(.72); }
-  22% { opacity: 1; transform: translate(-50%, -3px) scale(1.18); }
-  72% { opacity: 1; transform: translate(-50%, -26px) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -43px) scale(.9); }
-}
+
 @keyframes battle-dice-hop {
   from { transform: translateY(5px) rotate(-3deg) scale(.96); }
   to { transform: translateY(-8px) rotate(3deg) scale(1.04); }
 }
+.unit-info-brands h4 { margin: 0 0 8px; color: #f2d299; font-size: clamp(10px, 1.25vw, 15px); }
+.unit-info-brands p { margin: 0 0 9px; font-size: clamp(8px, .95vw, 12px); }
+.unit-info-brands .brand-blessing { color: #a8d6ac; }
+.unit-info-brands .brand-curse { color: #e7a098; }
+.unit-info-brands .brand-example, .unit-info-brands .brand-note { color: #b6a58d; font-size: clamp(7px, .85vw, 11px); }

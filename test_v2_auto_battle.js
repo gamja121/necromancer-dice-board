@@ -32,7 +32,7 @@ assert(html.indexOf('src="unit-data.js?v=45"') < html.indexOf('src="v2-auto-batt
 assert(!basicPanel.includes('id="unitInfoHp"'), "Stats must not be placed in the basic panel.");
 for (const id of ["unitInfoHp", "unitInfoAttack", "unitInfoSpeed"]) assert(statsPanel.includes(`id="${id}"`), `${id} must be in the lower-right stats panel.`);
 assert(!html.includes('id="unitInfoRoll"') && !source.includes("unitInfoRoll"), "Common roll must not be in the unit info window.");
-assert(html.includes('id="unitInfoBrands"') && html.includes("낙인 미지정"), "Brand area must remain explicitly unassigned.");
+assert(html.includes('id="unitInfoBrands"') && html.includes("예시 낙인"), "Brand area must show the assigned example.");
 assert(!html.includes("기본 전투 정보") && !source.includes("unitInfoDescription"), "Old combat description must be removed.");
 assert(css.includes(".unit-info-fields") && css.includes("grid-template-rows: 42% minmax(0, 1fr)"), "Right-hand fields must respect the two frame panels.");
 assert(html.includes("v2-landscape.js?v=1"), "Battle landscape helper is missing.");
@@ -64,10 +64,9 @@ assert(source.includes('enemyTeam.append(makeSummonSlot("적군"))'), "Enemy sum
 assert(source.includes('allyTeam.append(makeSummonSlot("아군"))'), "Ally summon cell must be closest to the center.");
 assert(!source.includes("summon-mark"), "Reserved summon cells must remain visually empty.");
 assert(css.includes(".summon-slot { position: relative; z-index: 10; visibility: hidden"), "Reserved summon cells must be hidden.");
-assert(source.includes("const damage = Math.min(actor.attack, target.hp)"), "Displayed damage must match actual HP loss.");
-assert(source.includes("showDamage(target, damage)"), "Damage number trigger is missing.");
-assert(source.includes('querySelector(".sprite-wrap").append(number)'), "Damage number must follow the active unit position.");
-assert(css.includes("@keyframes damage-float"), "Floating damage animation is missing.");
+assert(!source.includes("showDamage") && !source.includes('class="unit-card"') && !source.includes('class="bar gauge-bar"'), "Only HP bars should remain above units.");
+assert(source.includes("V2BattleBrands.attack(actor, target)"), "Assigned brands must affect attacks.");
+assert(source.includes("V2BattleBrands.startRound(units, lastDiceRoll)"), "Brands must use the shared turn roll.");
 assert(source.includes('roundState.textContent = `${allyAlive}+1 VS ${enemyAlive}+1`'), "Five-slot formation counter is missing.");
 assert((source.match(/unit\("/g) || []).length === 8, "Battle must define exactly eight units.");
 assert(source.includes("turnQueue = units.filter"), "Per-turn action queue is missing.");
@@ -103,14 +102,14 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v136'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v137'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=13"), "Turn dice and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=14"), "Turn-based auto battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=14"), "Turn dice and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=15") && worker.includes("v2-battle-brands.js?v=1"), "Turn-based auto battle and brands are not cached.");
 assert(worker.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit info frame is not cached.");
 // Exercise the real information-window functions without a rendering engine.
-const infoContext = { awaitingRoll: true, diceRolling: false, document: { getElementById: () => ({ focus() {} }) } };
-for (const name of ["unitInfoName", "unitInfoImage", "unitInfoPortrait", "unitInfoGrade", "unitInfoLegion", "unitInfoHp", "unitInfoAttack", "unitInfoSpeed", "unitInfoOverlay"]) infoContext[name] = { textContent: "", hidden: true, attrs: {}, setAttribute(key, value) { this.attrs[key] = value; } };
+const infoContext = { awaitingRoll: true, diceRolling: false, lastDiceRoll: null, V2BattleBrands: require("./v2-battle-brands.js"), document: { getElementById: () => ({ focus() {} }) } };
+for (const name of ["unitInfoName", "unitInfoImage", "unitInfoPortrait", "unitInfoGrade", "unitInfoLegion", "unitInfoHp", "unitInfoAttack", "unitInfoSpeed", "unitInfoBrands", "unitInfoOverlay"]) infoContext[name] = { textContent: "", hidden: true, attrs: {}, setAttribute(key, value) { this.attrs[key] = value; } };
 vm.createContext(infoContext);
 infoContext.UNIT_TYPES = require("./unit-data.js").UNIT_TYPES;
 vm.runInContext(source.slice(source.indexOf("  const UNIT_TYPE_KEYS"), source.indexOf("  const TEAM_DATA")), infoContext);
@@ -137,6 +136,12 @@ for (const [team, alive, hp, name, attack, speed] of [["ally", true, 7, "구울"
   assert(infoContext.unitInfoOverlay.hidden, "Close must hide the panel.");
 }
 // Verify the actual team entry: animation slug and portrait slug intentionally differ.
+for (const brand of Object.keys(infoContext.V2BattleBrands.definitions)) {
+  Object.assign(infoContext.selected, { brand, brandMode: "blessing" });
+  vm.runInContext("openUnitInfo(selected)", infoContext);
+  const definition = infoContext.V2BattleBrands.definitions[brand];
+  assert(infoContext.unitInfoBrands.innerHTML.includes(definition.name) && infoContext.unitInfoBrands.innerHTML.includes(definition.blessing) && infoContext.unitInfoBrands.innerHTML.includes(definition.penalty), "Brand description must refresh for every selection.");
+}
 vm.runInContext(source.slice(source.indexOf("  const TEAM_DATA"), source.indexOf("  const battlefield")), infoContext);
 const deathKnight = vm.runInContext("TEAM_DATA.ally[0]", infoContext);
 assert(deathKnight.slug === "death-knight" && deathKnight.name === "데스 나이트", "Death Knight identity must remain tied to its actual animation.");
