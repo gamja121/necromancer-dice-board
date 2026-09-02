@@ -443,7 +443,7 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/cr
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/grave-worm-animation-sheet.jpg")), "New raw Grave Worm sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/siren-animation-sheet.jpg")), "New raw Siren sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/mimic-animation-sheet.jpg")), "New raw Mimic sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v133"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v134"), "Service worker cache version was not bumped.");
 assert(!serviceWorker.includes("animation-sheets/uploaded-raw"), "Deleted legacy animation sheets remain in offline cache.");
 assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
 for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {
@@ -462,4 +462,16 @@ for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
     assert(png[25] === 6, `Expected RGBA transparency: ${relative}`);
   }
 }
-console.log("SUCCESS: 33 unit motion test integrations, including Cerberus, passed.");
+assert(practiceHtml.includes('data-unit="spiderling"'), "Spiderling picker is missing.");
+assert(practiceSource.includes('"spiderling": { name: "새끼거미", root: "art/v2-style/animation-test-frames/spiderling/", counts: { attack: 5, hit: 4, death: 6 } }'), "Spiderling must exclude hit 5.");
+assert(serviceWorker.includes("animation-test-frames/spiderling/${motion}-"), "Spiderling cache generator is missing.");
+assert(!fs.existsSync(path.join(root, "art/v2-style/animation-test-frames/spiderling/hit-05.png")), "Excluded hit 5 must not be exported.");
+for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
+  for (let index = 1; index <= count; index += 1) {
+    const relative = `art/v2-style/animation-test-frames/spiderling/${motion}-${String(index).padStart(2, "0")}.png`;
+    const png = fs.readFileSync(path.join(root, relative));
+    assert(png.readUInt32BE(16) === 260 && png.readUInt32BE(20) === 250, `Wrong canvas: ${relative}`);
+    assert(png[25] === 6, `Expected RGBA transparency: ${relative}`);
+  }
+}
+console.log("SUCCESS: 34 unit motion test integrations, including Spiderling without hit 5, passed.");

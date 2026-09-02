@@ -16,8 +16,11 @@ function element(key) {
   });
   return elements.get(key);
 }
-const picker = element('cerberus');
-picker.dataset.unit = 'cerberus';
+const unit = process.argv[2] || 'cerberus';
+const labels = { cerberus: '케르베로스', spiderling: '새끼거미' };
+assert(labels[unit], 'Unknown test unit');
+const picker = element(unit);
+picker.dataset.unit = unit;
 const errors = [];
 const context = {
   document: { querySelector: element, querySelectorAll: () => [picker] },
@@ -34,8 +37,8 @@ async function run() {
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, 'v2-animation-practice.js'), 'utf8'), context);
   await new Promise(setImmediate);
   await picker.handlers.click();
-  assert.equal(element('#unitName').textContent, '케르베로스');
-  const root = 'art/v2-style/animation-test-frames/cerberus/';
+  assert.equal(element('#unitName').textContent, labels[unit]);
+  const root = `art/v2-style/animation-test-frames/${unit}/`;
   for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
     displayed.length = 0;
     const playing = element(`#${motion}Btn`).handlers.click();
@@ -50,6 +53,6 @@ async function run() {
   element('#resetBtn').handlers.click();
   assert.equal(element('#unitSprite').src, `${root}attack-01.png`);
   assert.deepEqual(errors, []);
-  console.log('SUCCESS: Cerberus selection, frame loading, 5/4/6 playback, control locking, death hold, and reset passed.');
+  console.log(`SUCCESS: ${unit} selection, frame loading, 5/4/6 playback, control locking, death hold, and reset passed.`);
 }
 run().catch((error) => { console.error(error); process.exitCode = 1; });
