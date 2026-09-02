@@ -6,7 +6,7 @@
   ];
   const FRAME_ROOT = "art/v2-style/animation-test-frames/";
   const UNIT_TYPE_KEYS = {
-    "death-knight": "knight", "skeleton-spear": "spear", "ghoul": "ghoul",
+    "death-knight": "demonDeathKnight", "skeleton-spear": "spear", "ghoul": "ghoul",
     "ancient-treant": "ancientTreant", "goblin-rider": "goblinRider",
     "orc-warrior": "troll", "boulder-ogre": "ogre", "minotaur": "minotaur"
   };
@@ -14,7 +14,7 @@
   const LEGION_LABELS = { skeleton: "언데드", corpse: "시체", beast: "야수", plague: "역병", ice: "얼음", summon: "소환", demon: "악마", insect: "곤충", plant: "식물", element: "원소" };
   // Visible alpha bounds in the existing 192px cutouts; bitmap files stay untouched.
   const PORTRAIT_BOUNDS = {
-    "death-knight": [56, 90, 83, 90],
+    "demon-death-knight": [36, 18, 135, 164],
     "skeleton-spear": [20, 12, 152, 171],
     "ghoul": [31, 12, 129, 172],
     "ancient-treant": [14, 12, 163, 170],
@@ -28,7 +28,7 @@
   const DICE_RESULT_FRAMES = Array.from({ length: 6 }, (_, index) => `${DICE_FRAME_ROOT}result-${String(index + 1).padStart(2, "0")}.png`);
   const TEAM_DATA = {
     ally: [
-      unit("death-knight", "데스나이트", 12, 3, 4, 5, 4, 6),
+      unit("death-knight", "데스 나이트", 12, 3, 4, 5, 4, 6, "demon-death-knight"),
       unit("skeleton-spear", "해골 창병", 8, 2, 5, 5, 4, 5),
       unit("ghoul", "구울", 9, 2, 3, 5, 4, 6),
       unit("ancient-treant", "고대 트렌트", 14, 3, 1, 5, 4, 6)

@@ -86,7 +86,7 @@ assert(source.includes("unitInfoHp.textContent") && source.includes("unitInfoAtt
 assert(source.includes("portrait: `art/v2-style/processed/192/${portraitSlug}.png`"), "Existing transparent cutouts must be used.");
 assert(source.includes('unitInfoImage.setAttribute("href", unitState.portrait)'), "Unit information must use original cutouts instead of animation frames.");
 assert(html.includes('preserveAspectRatio="xMidYMid meet"'), "Portraits must be centered, undistorted, and fully contained.");
-for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant", "goblin-rider", "goblin-soldier", "ogre", "minotaur"]) {
+for (const slug of ["demon-death-knight", "skeleton-spear", "ghoul", "ancient-treant", "goblin-rider", "goblin-soldier", "ogre", "minotaur"]) {
   assert(fs.existsSync(path.join(root, `art/v2-style/processed/192/${slug}.png`)), `Missing cutout ${slug}`);
   assert(worker.includes(`art/v2-style/processed/192/${slug}.png`), `Missing cached cutout ${slug}`);
 }
@@ -103,10 +103,10 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v131'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v132'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
 assert(worker.includes("v2-auto-battle-practice.css?v=13"), "Turn dice and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=13"), "Turn-based auto battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=14"), "Turn-based auto battle logic is not cached.");
 assert(worker.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit info frame is not cached.");
 // Exercise the real information-window functions without a rendering engine.
 const infoContext = { awaitingRoll: true, diceRolling: false, document: { getElementById: () => ({ focus() {} }) } };
@@ -115,7 +115,7 @@ vm.createContext(infoContext);
 infoContext.UNIT_TYPES = require("./unit-data.js").UNIT_TYPES;
 vm.runInContext(source.slice(source.indexOf("  const UNIT_TYPE_KEYS"), source.indexOf("  const TEAM_DATA")), infoContext);
 vm.runInContext(source.slice(source.indexOf("  function unit("), source.indexOf("  function frame(")), infoContext);
-for (const [slug, grade, legions] of [["death-knight", "advanced", ["skeleton"]], ["skeleton-spear", "normal", ["skeleton"]], ["ghoul", "normal", ["corpse"]], ["ancient-treant", "advanced", ["plant", "element"]], ["goblin-rider", "normal", ["beast"]], ["orc-warrior", "advanced", ["beast"]], ["boulder-ogre", "advanced", ["beast"]], ["minotaur", "advanced", ["beast"]]]) {
+for (const [slug, grade, legions] of [["death-knight", "hero", ["demon"]], ["skeleton-spear", "normal", ["skeleton"]], ["ghoul", "normal", ["corpse"]], ["ancient-treant", "advanced", ["plant", "element"]], ["goblin-rider", "normal", ["beast"]], ["orc-warrior", "advanced", ["beast"]], ["boulder-ogre", "advanced", ["beast"]], ["minotaur", "advanced", ["beast"]]]) {
   const data = vm.runInContext(`unit(${JSON.stringify(slug)}, "test", 12, 3, 2, 5, 4, 6)`, infoContext);
   assert(data.grade === grade && JSON.stringify(data.legions) === JSON.stringify(legions), `Incorrect registry mapping for ${slug}`);
   assert(data.maxHp === 12 && data.attack === 3 && data.speed === 2, "Importing metadata must not change battle stats.");
@@ -136,9 +136,20 @@ for (const [team, alive, hp, name, attack, speed] of [["ally", true, 7, "구울"
   vm.runInContext("closeUnitInfo()", infoContext);
   assert(infoContext.unitInfoOverlay.hidden, "Close must hide the panel.");
 }
-infoContext.selected.grade = "hero";
+// Verify the actual team entry: animation slug and portrait slug intentionally differ.
+vm.runInContext(source.slice(source.indexOf("  const TEAM_DATA"), source.indexOf("  const battlefield")), infoContext);
+const deathKnight = vm.runInContext("TEAM_DATA.ally[0]", infoContext);
+assert(deathKnight.slug === "death-knight" && deathKnight.name === "데스 나이트", "Death Knight identity must remain tied to its actual animation.");
+assert(deathKnight.portrait === "art/v2-style/processed/192/demon-death-knight.png", "Death Knight must not use skeleton cavalry artwork.");
+assert(JSON.stringify(deathKnight.portraitBounds) === "[36,18,135,164]", "Portrait fit must use the demon artwork bounds.");
+assert(deathKnight.maxHp === 12 && deathKnight.attack === 3 && deathKnight.speed === 4, "Identity correction must preserve battle stats.");
+assert(JSON.stringify(deathKnight.frames) === '{"attack":5,"hit":4,"death":6}', "Identity correction must preserve battle motions.");
+infoContext.selected = { ...deathKnight, hp: 12, alive: true, team: "ally" };
 vm.runInContext("openUnitInfo(selected)", infoContext);
 assert(infoContext.unitInfoGrade.textContent === "영웅", "Hero grade label must remain supported.");
+assert(infoContext.unitInfoLegion.textContent === "악마", "Death Knight must display demon legion.");
+assert(infoContext.unitInfoImage.attrs.href === deathKnight.portrait, "Info window must use the actual Death Knight portrait.");
+assert(infoContext.UNIT_TYPES.knight.grade === "advanced" && infoContext.UNIT_TYPES.knight.legion === "skeleton", "Skeleton cavalry registry entry must remain untouched.");
 vm.runInContext("closeUnitInfo()", infoContext);
 for (const [awaitingRoll, diceRolling] of [[false, false], [true, true]]) {
   Object.assign(infoContext, { awaitingRoll, diceRolling });
