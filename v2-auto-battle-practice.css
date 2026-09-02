@@ -28,6 +28,10 @@ button, a { font: inherit; }
 .enemy-team .unit:nth-child(5) { --depth-scale: 1.14; --depth-y: 11%; --unit-layer: 18; --action-shift-x: -192%; }
 .bar { position: absolute; z-index: 5; left: 7%; right: 7%; height: 4px; overflow: hidden; border-radius: 3px; background: #050404dd; }
 .hp-bar { top: 12%; height: 5px; }
+.brand-indicator { position: absolute; z-index: 6; left: 0; bottom: calc(88% + 6px); width: 100%; overflow: hidden; font-size: clamp(8px, .95vw, 12px); font-weight: 900; line-height: 1.35; text-align: center; text-overflow: ellipsis; white-space: nowrap; pointer-events: none; text-shadow: 0 1px 3px #000, 0 0 5px #000; animation: brand-reveal 240ms ease-out; }
+.brand-indicator[hidden] { display: none; }
+.brand-indicator.is-blessing { color: #8ee69a; }
+.brand-indicator.is-curse { color: #ff827a; }
 .bar > i { display: block; width: 0; height: 100%; transition: width 90ms linear; }
 .hp-bar > i { width: 100%; background: linear-gradient(90deg, #7c1717, #e44932, #ffb34d); }
 .sprite-wrap { position: absolute; z-index: 2; inset: 13% -28% 0; display: grid; place-items: end center; transform: translateY(var(--depth-y)) scale(var(--depth-scale)); transition: transform 190ms cubic-bezier(.2, .8, .25, 1); }
@@ -48,8 +52,8 @@ button, a { font: inherit; }
 #turnDiceButton.is-rolling img { animation: battle-dice-hop 210ms ease-in-out infinite alternate; }
 #turnDiceButton:disabled { cursor: wait; }
 .battlefield.is-between-turns .unit { cursor: pointer; }
-.battlefield.is-between-turns .unit:hover .unit-card,
-.battlefield.is-between-turns .unit:focus-visible .unit-card { border-color: #e6b768; box-shadow: 0 0 10px #e2a84999; }
+.battlefield.is-between-turns .unit:hover .hp-bar,
+.battlefield.is-between-turns .unit:focus-visible .hp-bar { box-shadow: 0 0 10px #e2a84999; }
 .unit-info-overlay { position: absolute; z-index: 90; inset: 0; display: grid; place-items: center start; padding: 3.5% 5%; }
 .unit-info-overlay[hidden] { display: none; }
 .unit-info-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #030201c4; backdrop-filter: blur(2px); }
@@ -99,6 +103,10 @@ button, a { font: inherit; }
 @keyframes battle-dice-hop {
   from { transform: translateY(5px) rotate(-3deg) scale(.96); }
   to { transform: translateY(-8px) rotate(3deg) scale(1.04); }
+}
+@keyframes brand-reveal {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .unit-info-brands h4 { margin: 0 0 8px; color: #f2d299; font-size: clamp(10px, 1.25vw, 15px); }
 .unit-info-brands p { margin: 0 0 9px; font-size: clamp(8px, .95vw, 12px); }

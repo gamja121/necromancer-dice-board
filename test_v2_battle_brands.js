@@ -76,12 +76,13 @@ const page = fs.readFileSync(__dirname + "/v2-auto-battle-practice.html", "utf8"
 assert(page.indexOf('src="v2-battle-brands.js') < page.indexOf('src="v2-auto-battle-practice.js'), "Brand engine must load before battle initialization");
 const hp = { attrs: {}, setAttribute(key, value) { this.attrs[key] = value; } };
 const fill = { style: {} };
+const badge = { hidden: true, textContent: "", className: "" };
 const domContext = {
   V2BattleBrands: brands,
   selected: { ...unit("critical"), maxHp: 12, hp: 6, element: {
     querySelector(selector) {
-      assert([".hp-bar", ".hp-bar i"].includes(selector), "Removed labels must not be accessed");
-      return selector === ".hp-bar" ? hp : fill;
+      assert([".hp-bar", ".hp-bar i", ".brand-indicator"].includes(selector), "Removed labels must not be accessed");
+      return selector === ".hp-bar" ? hp : selector === ".brand-indicator" ? badge : fill;
     }, classList: { toggle() {} }
   } }
 };
@@ -92,6 +93,34 @@ vm.runInContext("updateUnit(selected)", domContext);
 assert.equal(fill.style.width, "50%");
 assert.equal(hp.attrs["aria-valuenow"], "6");
 assert.equal(hp.attrs["aria-valuemax"], "12");
+assert.equal(badge.hidden, true, "Initial badge must stay hidden");
+domContext.units = [domContext.selected];
+for (const [brand, expectedModes] of Object.entries(matrix)) {
+  domContext.selected.brand = brand;
+  for (let roll = 1; roll <= 6; roll++) {
+    vm.runInContext(`showRolledBrands(${roll})`, domContext);
+    const expected = expectedModes[roll - 1];
+    assert.equal(badge.hidden, expected === "normal", `${brand}/${roll}: visibility`);
+    if (expected !== "normal") {
+      assert.equal(badge.className, `brand-indicator is-${expected}`);
+      assert(badge.textContent.includes(expected === "blessing" ? "축복" : "저주"));
+      assert(badge.textContent.includes(brands.definitions[brand].name.replace("의 낙인", "")));
+    } else assert.equal(badge.textContent, "");
+  }
+}
+assert.equal(domContext.selected.hp, 6, "Result preview must not apply combat effects twice");
+vm.runInContext("showRolledBrands(null)", domContext);
+assert.equal(badge.hidden, true, "New roll must clear old badge");
+domContext.selected.brand = "critical";
+vm.runInContext("showRolledBrands(5)", domContext);
+assert.equal(badge.hidden, false);
+domContext.selected.alive = false;
+vm.runInContext("updateUnit(selected)", domContext);
+assert.equal(badge.hidden, true, "Dead units must not display an active badge");
+const badgeCss = fs.readFileSync(__dirname + "/v2-auto-battle-practice.css", "utf8");
+assert(badgeCss.includes(".brand-indicator.is-blessing { color: #8ee69a; }"));
+assert(badgeCss.includes(".brand-indicator.is-curse { color: #ff827a; }"));
+assert(badgeCss.includes("bottom: calc(88% + 6px)"), "Badge must sit above the 12%-top HP bar");
 for (const [slug, brand] of Object.entries(brands.samples)) {
   const state = vm.runInContext(`makeState({ slug: "${slug}", maxHp: 10 }, "ally", 0)`, domContext);
   assert.equal(state.brand, brand);

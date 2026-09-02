@@ -85,11 +85,11 @@ assert(source.includes("unitInfoHp.textContent") && source.includes("unitInfoAtt
 assert(source.includes("portrait: `art/v2-style/processed/192/${portraitSlug}.png`"), "Existing transparent cutouts must be used.");
 assert(source.includes('unitInfoImage.setAttribute("href", unitState.portrait)'), "Unit information must use original cutouts instead of animation frames.");
 assert(html.includes('preserveAspectRatio="xMidYMid meet"'), "Portraits must be centered, undistorted, and fully contained.");
-for (const slug of ["demon-death-knight", "skeleton-spear", "ghoul", "ancient-treant", "goblin-rider", "goblin-soldier", "ogre", "minotaur"]) {
+for (const slug of ["demon-death-knight", "skeleton-spear", "ghoul", "ancient-treant", "goblin-rider", "troll", "ogre", "minotaur"]) {
   assert(fs.existsSync(path.join(root, `art/v2-style/processed/192/${slug}.png`)), `Missing cutout ${slug}`);
   assert(worker.includes(`art/v2-style/processed/192/${slug}.png`), `Missing cached cutout ${slug}`);
 }
-assert(source.includes('"goblin-soldier"') && source.includes('"ogre"'), "Fallback original artwork mappings are missing.");
+assert(source.includes('"troll"') && source.includes('"ogre"') && !source.includes('"goblin-soldier"'), "Orc must use its own original artwork.");
 assert(source.includes("Math.random() * targets.length"), "Automatic target selection is missing.");
 assert(source.includes('playMotion(actor, "attack"'), "Attack motion is missing.");
 assert(source.includes('playMotion(target, "hit"'), "Hit motion is missing.");
@@ -102,10 +102,10 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v137'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v138'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=14"), "Turn dice and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=15") && worker.includes("v2-battle-brands.js?v=1"), "Turn-based auto battle and brands are not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=15"), "Turn dice and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=16") && worker.includes("v2-battle-brands.js?v=1"), "Turn-based auto battle and brands are not cached.");
 assert(worker.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit info frame is not cached.");
 // Exercise the real information-window functions without a rendering engine.
 const infoContext = { awaitingRoll: true, diceRolling: false, lastDiceRoll: null, V2BattleBrands: require("./v2-battle-brands.js"), document: { getElementById: () => ({ focus() {} }) } };
@@ -156,6 +156,16 @@ assert(infoContext.unitInfoLegion.textContent === "악마", "Death Knight must d
 assert(infoContext.unitInfoImage.attrs.href === deathKnight.portrait, "Info window must use the actual Death Knight portrait.");
 assert(infoContext.UNIT_TYPES.knight.grade === "advanced" && infoContext.UNIT_TYPES.knight.legion === "skeleton", "Skeleton cavalry registry entry must remain untouched.");
 vm.runInContext("closeUnitInfo()", infoContext);
+const orc = vm.runInContext("TEAM_DATA.enemy[1]", infoContext);
+assert(orc.portrait === "art/v2-style/processed/192/troll.png", "Orc info must not use the goblin soldier.");
+assert(JSON.stringify(orc.portraitBounds) === "[36,30,136,154]", "Orc portrait must fit its own artwork.");
+assert(orc.maxHp === 12 && orc.attack === 3 && orc.speed === 3, "Portrait fix must not change combat stats.");
+assert(orc.slug === "orc-warrior" && JSON.stringify(orc.frames) === '{"attack":5,"hit":4,"death":5}', "Portrait fix must preserve Orc animations.");
+infoContext.selected = { ...orc, hp: 12, alive: true, team: "enemy", brand: "healing" };
+vm.runInContext("openUnitInfo(selected)", infoContext);
+assert(infoContext.unitInfoImage.attrs.href === orc.portrait && infoContext.unitInfoName.textContent === "오크 전사", "Actual Orc info window must display the corrected portrait.");
+assert(infoContext.unitInfoGrade.textContent === "희귀" && infoContext.unitInfoLegion.textContent === "야수", "Orc registry metadata must remain unchanged.");
+vm.runInContext("closeUnitInfo()", infoContext);
 for (const [awaitingRoll, diceRolling] of [[false, false], [true, true]]) {
   Object.assign(infoContext, { awaitingRoll, diceRolling });
   vm.runInContext("openUnitInfo(selected)", infoContext);
@@ -163,6 +173,7 @@ for (const [awaitingRoll, diceRolling] of [[false, false], [true, true]]) {
 }
 // Execute the actual intermission/roller without any of the deleted label nodes.
 let turnStarts = 0;
+const brandRolls = [];
 for (const name of ["turnDice", "turnDiceButton", "turnDiceImage", "pauseButton", "battlefield", "message"]) {
   infoContext[name] = { hidden: true, disabled: false, attrs: {}, classList: { add() {}, remove() {} }, setAttribute(key, value) { this.attrs[key] = value; } };
 }
@@ -170,6 +181,7 @@ Object.assign(infoContext, {
   running: true, awaitingRoll: false, diceRolling: false, paused: false, actionBusy: false,
   turnNumber: 1, battleToken: 1, diceFrameIndex: 0, speedMultiplier: 1, lastDiceRoll: null,
   aliveUnits: () => [{}], wait: async () => {}, finishBattle: () => { throw new Error("Unexpected finish"); },
+  showRolledBrands: roll => { assert(turnStarts === 0, "Brand display must update before the next turn begins."); brandRolls.push(roll); },
   startTurn: () => { turnStarts += 1; infoContext.awaitingRoll = false; infoContext.turnDice.hidden = true; }
 });
 vm.runInContext(source.slice(source.indexOf("  function beginTurnIntermission("), source.indexOf("  function openUnitInfo(")), infoContext);
@@ -178,5 +190,6 @@ assert(infoContext.awaitingRoll && !infoContext.turnDice.hidden && turnStarts ==
 vm.runInContext("rollTurnDice()", infoContext).then(() => {
   assert(turnStarts === 1 && infoContext.turnDice.hidden, "Rolling must start the next turn once and hide the dice.");
   assert(infoContext.lastDiceRoll >= 1 && infoContext.lastDiceRoll <= 6, "Roll must still yield 1–6 without label nodes.");
+  assert(brandRolls.length === 2 && brandRolls[0] === null && brandRolls[1] === infoContext.lastDiceRoll, "Rolling must clear old badges then show the actual result.");
   console.log("SUCCESS: dice-only turn flow, registry metadata, transparent portraits, and unit info passed.");
 }).catch((error) => { console.error(error); process.exitCode = 1; });

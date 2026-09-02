@@ -19,7 +19,7 @@
     "ghoul": [31, 12, 129, 172],
     "ancient-treant": [14, 12, 163, 170],
     "goblin-rider": [6, 105, 180, 79],
-    "goblin-soldier": [29, 12, 133, 170],
+    "troll": [36, 30, 136, 154],
     "ogre": [27, 27, 138, 155],
     "minotaur": [7, 75, 178, 108]
   };
@@ -35,7 +35,7 @@
     ],
     enemy: [
       unit("goblin-rider", "고블린 라이더", 8, 2, 5, 5, 4, 5),
-      unit("orc-warrior", "오크 전사", 12, 3, 3, 5, 4, 5, "goblin-soldier"),
+      unit("orc-warrior", "오크 전사", 12, 3, 3, 5, 4, 5, "troll"),
       unit("boulder-ogre", "오우거", 14, 3, 2, 5, 4, 5, "ogre"),
       unit("minotaur", "미노타우로스", 11, 3, 4, 6, 4, 6)
     ]
@@ -130,7 +130,7 @@
   }
 
   function makeState(data, team, slot) {
-    return { ...data, team, slot, hp: data.maxHp, gauge: 0, alive: true, brand: V2BattleBrands.samples[data.slug], brandMode: "normal", poison: 0, element: null, image: null };
+    return { ...data, team, slot, hp: data.maxHp, gauge: 0, alive: true, brand: V2BattleBrands.samples[data.slug], brandMode: "normal", brandDisplayMode: "normal", poison: 0, element: null, image: null };
   }
 
   function renderTeams() {
@@ -145,6 +145,7 @@
       element.setAttribute("role", "button");
       element.setAttribute("aria-label", `${unitState.name} 정보 보기`);
       element.innerHTML = `
+        <span class="brand-indicator" aria-live="polite" hidden></span>
         <div class="bar hp-bar" role="progressbar" aria-label="${unitState.name} 체력" aria-valuemin="0"><i></i></div>
         <div class="sprite-wrap"><img src="${frame(unitState, "attack", 1)}" alt="${unitState.name}"></div>`;
       unitState.element = element;
@@ -177,6 +178,25 @@
     unitState.element.querySelector(".hp-bar i").style.width = `${Math.max(0, unitState.hp / unitState.maxHp * 100)}%`;
     unitState.element.classList.toggle("is-ready", unitState.alive && unitState.gauge >= 100);
     unitState.element.classList.toggle("is-dead", !unitState.alive);
+    updateBrandIndicator(unitState);
+  }
+
+  function updateBrandIndicator(unitState) {
+    if (!unitState.element) return;
+    const label = unitState.element.querySelector(".brand-indicator");
+    const brand = V2BattleBrands.definitions[unitState.brand];
+    const mode = unitState.brandDisplayMode;
+    const visible = unitState.alive && brand && (mode === "blessing" || mode === "curse");
+    label.hidden = !visible;
+    label.className = visible ? `brand-indicator is-${mode}` : "brand-indicator";
+    label.textContent = visible ? `${brand.name.replace("의 낙인", "")} ${mode === "blessing" ? "축복" : "저주"}` : "";
+  }
+
+  function showRolledBrands(roll) {
+    for (const unitState of units) {
+      unitState.brandDisplayMode = V2BattleBrands.mode(unitState.brand, roll);
+      updateBrandIndicator(unitState);
+    }
   }
 
   function updateHud() {
@@ -262,6 +282,7 @@
     if (!running || !awaitingRoll || diceRolling) return;
     closeUnitInfo();
     diceRolling = true;
+    showRolledBrands(null);
     turnDiceButton.disabled = true;
     turnDiceButton.classList.add("is-rolling");
     turnDiceButton.setAttribute("aria-label", "주사위 굴리는 중");
@@ -276,6 +297,7 @@
     }
     if (token !== battleToken || !running || !awaitingRoll) return;
     lastDiceRoll = Math.floor(Math.random() * 6) + 1;
+    showRolledBrands(lastDiceRoll);
     turnDiceImage.src = DICE_RESULT_FRAMES[lastDiceRoll - 1];
     turnDiceImage.alt = `주사위 결과 ${lastDiceRoll}`;
     turnDiceButton.classList.remove("is-rolling");
