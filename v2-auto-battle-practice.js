@@ -12,6 +12,11 @@
   };
   const GRADE_LABELS = { normal: "일반", advanced: "희귀", hero: "영웅", special: "소환물" };
   const LEGION_LABELS = { skeleton: "언데드", corpse: "시체", beast: "야수", plague: "역병", ice: "얼음", summon: "소환", demon: "악마", insect: "곤충", plant: "식물", element: "원소" };
+  // Viewports into the unmodified uploaded icon sheet: top row, then bottom row.
+  const BRAND_ICON_VIEWS = Object.freeze({
+    critical: [216, 48, 228, 228], vampire: [526, 48, 234, 228], guard: [841, 48, 228, 228],
+    poison: [216, 310, 228, 228], summon: [526, 310, 234, 228], healing: [843, 310, 228, 228]
+  });
   // Visible alpha bounds in the existing 192px cutouts; bitmap files stay untouched.
   const PORTRAIT_BOUNDS = {
     "demon-death-knight": [36, 18, 135, 164],
@@ -337,7 +342,10 @@
     if (brand) {
       const stateText = lastDiceRoll == null ? "주사위를 굴리면 효과가 결정됩니다."
         : `지난 턴 눈금 ${lastDiceRoll} · ${{ blessing: "축복", curse: "저주", normal: "일반" }[unitState.brandMode] || "일반"}`;
-      unitInfoBrands.innerHTML = `<h4>${brand.name}</h4>
+      unitInfoBrands.innerHTML = `<div class="brand-heading">
+        <svg class="brand-icon" viewBox="${BRAND_ICON_VIEWS[unitState.brand].join(" ")}" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
+          <image href="art/v2-style/ui/brand-icons-sheet.jpg" width="1280" height="575" />
+        </svg><h4>${brand.name}</h4></div>
         <p class="brand-example">예시 배정 · 축복 + 저주 1세트</p>
         <p class="brand-blessing">축복 [${brand.bless.join(", ")}]<br>${brand.blessing}</p>
         <p class="brand-curse">저주 [${brand.curse.join(", ")}]<br>${brand.penalty}</p>

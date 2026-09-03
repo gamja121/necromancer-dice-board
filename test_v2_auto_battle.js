@@ -104,10 +104,10 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v139'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v140'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=16"), "Turn dice and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=17") && worker.includes("v2-battle-brands.js?v=1"), "Turn-based auto battle and brands are not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=17"), "Turn dice and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=18") && worker.includes("v2-battle-brands.js?v=1"), "Turn-based auto battle and brands are not cached.");
 assert(worker.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit info frame is not cached.");
 // Exercise the real information-window functions without a rendering engine.
 const infoContext = { awaitingRoll: true, diceRolling: false, lastDiceRoll: null, V2BattleBrands: require("./v2-battle-brands.js"), document: { getElementById: () => ({ focus() {} }) } };
@@ -138,11 +138,20 @@ for (const [team, alive, hp, name, attack, speed] of [["ally", true, 7, "구울"
   assert(infoContext.unitInfoOverlay.hidden, "Close must hide the panel.");
 }
 // Verify the actual team entry: animation slug and portrait slug intentionally differ.
+const expectedBrandViews = {
+  critical: "216 48 228 228", vampire: "526 48 234 228", guard: "841 48 228 228",
+  poison: "216 310 228 228", summon: "526 310 234 228", healing: "843 310 228 228"
+};
+assert(fs.existsSync(path.join(root, "art/v2-style/ui/brand-icons-sheet.jpg")), "Uploaded brand icon sheet must be stored in the project.");
+assert(worker.includes("./art/v2-style/ui/brand-icons-sheet.jpg"), "Brand icons must work offline.");
 for (const brand of Object.keys(infoContext.V2BattleBrands.definitions)) {
   Object.assign(infoContext.selected, { brand, brandMode: "blessing" });
   vm.runInContext("openUnitInfo(selected)", infoContext);
   const definition = infoContext.V2BattleBrands.definitions[brand];
   assert(infoContext.unitInfoBrands.innerHTML.includes(definition.name) && infoContext.unitInfoBrands.innerHTML.includes(definition.blessing) && infoContext.unitInfoBrands.innerHTML.includes(definition.penalty), "Brand description must refresh for every selection.");
+  assert(infoContext.unitInfoBrands.innerHTML.includes(`viewBox="${expectedBrandViews[brand]}"`), `Incorrect icon mapping: ${brand}`);
+  assert(infoContext.unitInfoBrands.innerHTML.includes('href="art/v2-style/ui/brand-icons-sheet.jpg"'), "Use uploaded artwork, not placeholders.");
+  assert(infoContext.unitInfoBrands.innerHTML.indexOf('class="brand-icon"') < infoContext.unitInfoBrands.innerHTML.indexOf("<h4>"), "Icon must precede its description heading.");
 }
 vm.runInContext(source.slice(source.indexOf("  const TEAM_DATA"), source.indexOf("  const battlefield")), infoContext);
 const deathKnight = vm.runInContext("TEAM_DATA.ally[0]", infoContext);

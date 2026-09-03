@@ -116,6 +116,9 @@ button, a { font: inherit; }
   100% { opacity: 0; transform: translate(-50%, -43px) scale(.9); }
 }
 .unit-info-brands h4 { margin: 0 0 8px; color: #f2d299; font-size: clamp(10px, 1.25vw, 15px); }
+.brand-heading { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.brand-icon { display: block; flex: 0 0 auto; width: clamp(32px, 4.5vw, 50px); height: clamp(32px, 4.5vw, 50px); overflow: hidden; border-radius: 12%; background: #191513; }
+.unit-info-brands .brand-heading h4 { margin: 0; min-width: 0; }
 .unit-info-brands p { margin: 0 0 9px; font-size: clamp(8px, .95vw, 12px); }
 .unit-info-brands .brand-blessing { color: #a8d6ac; }
 .unit-info-brands .brand-curse { color: #e7a098; }
