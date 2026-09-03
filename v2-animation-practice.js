@@ -6,6 +6,7 @@
     { name: "사령 피라미드", image: "art/v2-style/battle-backgrounds/uploaded-raw/necropolis-pyramids-battlefield.jpg" }
   ];
   const UNITS = Object.freeze({
+    "hell-mantis": { name: "지옥 사마귀", runtimeSheet: true, counts: { attack: 5, hit: 4, death: 6 } },
     "death-knight": { name: "데스나이트", root: "art/v2-style/animation-test-frames/death-knight/", counts: { attack: 5, hit: 4, death: 6 } },
     "skeleton-spear": { name: "해골 창병", root: "art/v2-style/animation-test-frames/skeleton-spear/", counts: { attack: 5, hit: 4, death: 5 } },
     "ancient-treant": { name: "고대 트렌트", root: "art/v2-style/animation-test-frames/ancient-treant/", counts: { attack: 5, hit: 4, death: 6 } },
@@ -89,9 +90,15 @@
     el.stage.dataset.battlefield = field.name;
   }
   async function prepare() {
-    buildFrames();
+    const unit = state.unit, token = state.token;
+    if (UNITS[unit].runtimeSheet) {
+      const prepared = await V2MantisFrames.prepare();
+      if (token !== state.token || unit !== state.unit) return;
+      Object.assign(frameSets, prepared);
+    } else buildFrames();
     const urls = [...frameSets.attack, ...frameSets.hit, ...frameSets.death];
     await Promise.all(urls.map(loadImage));
+    if (token !== state.token || unit !== state.unit) return;
     setIdle();
     setButtons(false);
     el.status.textContent = `버튼을 누르면 ${UNITS[state.unit].name} 모션이 재생됩니다.`;
@@ -111,7 +118,7 @@
     }
   }
   async function playMotion(motion) {
-    if (state.busy) return;
+    if (state.busy || el.attack.disabled) return;
     const token = ++state.token;
     const label = MOTION_LABELS[motion];
     const frames = frameSets[motion];
@@ -152,6 +159,12 @@
   el.battlefield.addEventListener("click", () => selectBattlefield(true));
   el.unitButtons.forEach((button) => button.addEventListener("click", () => selectUnit(button.dataset.unit)));
   selectBattlefield();
+  const requestedUnit = new URLSearchParams(window.location.search).get("unit");
+  if (UNITS[requestedUnit]) {
+    state.unit = requestedUnit;
+    el.unitName.textContent = UNITS[requestedUnit].name;
+    el.unitButtons.forEach(button => button.classList.toggle("is-active", button.dataset.unit === requestedUnit));
+  }
   prepare().catch((error) => {
     console.error(error);
     el.status.textContent = "유닛 프레임을 불러오지 못했습니다.";
