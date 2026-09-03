@@ -85,6 +85,7 @@
   let diceRolling = false;
   let lastDiceRoll = null;
   let diceFrameIndex = 0;
+  let introRunning = false;
 
   [...DICE_ROLL_FRAMES, ...DICE_RESULT_FRAMES].forEach((src) => { const image = new Image(); image.src = src; });
 
@@ -102,6 +103,7 @@
   function resetBattle(showStart) {
     battleToken += 1;
     running = false;
+    introRunning = false;
     paused = false;
     actionBusy = false;
     actionCount = 0;
@@ -144,9 +146,10 @@
     enemyTeam.append(makeSummonSlot("적군"));
     for (const unitState of units) {
       const element = document.createElement("article");
-      element.className = "unit";
+      element.className = unitState.team === "ally" ? "unit is-pending" : "unit";
       element.dataset.unit = unitState.slug;
-      element.tabIndex = 0;
+      element.tabIndex = unitState.team === "ally" ? -1 : 0;
+      if (unitState.team === "ally") element.setAttribute("aria-hidden", "true");
       element.setAttribute("role", "button");
       element.setAttribute("aria-label", `${unitState.name} 정보 보기`);
       element.innerHTML = `
@@ -224,13 +227,52 @@
     return units.filter((unitState) => unitState.team === team && unitState.alive);
   }
 
-  function beginBattle() {
+  function revealUnit(unitState) {
+    unitState.element.classList.remove("is-pending");
+    unitState.element.classList.add("is-arriving");
+    unitState.element.removeAttribute("aria-hidden");
+    unitState.element.tabIndex = 0;
+  }
+
+  async function beginBattle() {
+    if (running || introRunning) return;
+    introRunning = true;
+    actionBusy = true;
+    const token = battleToken;
+    const isCurrent = () => token === battleToken && introRunning;
     if (window.V2Landscape) window.V2Landscape.request();
     startOverlay.hidden = true;
     resultOverlay.hidden = true;
-    running = true;
     paused = false;
     pauseButton.disabled = true;
+    speedButton.disabled = true;
+    turnDice.hidden = true;
+    message.textContent = "아군을 소환합니다";
+    let summonFrames = null;
+    try { summonFrames = await V2SummonEffect.prepare(); }
+    catch (error) { console.warn("소환 효과 로딩 실패 · 등장 연출만 진행합니다.", error); }
+    if (!isCurrent()) return;
+    const allies = units.filter(unitState => unitState.team === "ally").sort((a, b) => a.slot - b.slot);
+    for (const unitState of allies) {
+      if (!isCurrent()) return;
+      message.textContent = `${unitState.name} 소환`;
+      if (summonFrames) {
+        try { await V2SummonEffect.play(unitState, summonFrames, { isCurrent, reveal: revealUnit, wait }); }
+        catch (error) {
+          if (!isCurrent()) return;
+          console.warn("소환 효과 재생 실패", error);
+          revealUnit(unitState);
+          await wait(360);
+        }
+      } else { revealUnit(unitState); await wait(360); }
+      if (!isCurrent()) return;
+      unitState.element.classList.remove("is-arriving");
+      await wait(80);
+    }
+    if (!isCurrent()) return;
+    introRunning = false;
+    actionBusy = false;
+    running = true;
     speedButton.disabled = false;
     beginTurnIntermission(true);
   }
