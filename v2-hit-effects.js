@@ -14,7 +14,10 @@
     magic: Object.freeze({ name: "마법 공격", sheet: "art/v2-style/ui/magic-hit-sheet.jpg",
       centers: Object.freeze([80, 240, 400, 560, 720, 880, 1040, 1200]), width: 160, height: 160, top: 0, size: 160 }),
     poison: Object.freeze({ name: "독가스 공격", sheet: "art/v2-style/ui/poison-gas-hit-sheet.jpg",
-      centers: Object.freeze([80, 240, 400, 560, 720, 880, 1040, 1200]), width: 160, height: 180, top: 200, size: 180 })
+      centers: Object.freeze([80, 240, 400, 560, 720, 880, 1040, 1200]), width: 160, height: 180, top: 200, size: 180 }),
+    wind: Object.freeze({ name: "바람공격", sheet: "art/v2-style/ui/wind-hit-sheet.jpg",
+      centers: Object.freeze([80, 240, 400, 560, 720, 880, 1040, 1200]), width: 160, height: 180, top: 0, size: 180,
+      background: Object.freeze([43, 210, 6]) })
   });
   function keyPoison(data) {
     // Match only the bright backdrop, not the green pigment of the gas.
@@ -59,7 +62,7 @@
         (effect.size - effect.width) / 2, 0, effect.width, effect.height);
       const pixels = ctx.getImageData(0, 0, effect.size, effect.size);
       if (id === "poison") keyPoison(pixels.data);
-      else keyGreen(pixels.data, id === "claw" || id === "slash", effect.background);
+      else keyGreen(pixels.data, id === "claw" || id === "slash" || id === "wind", effect.background);
       ctx.putImageData(pixels, 0, 0);
       return canvas.toDataURL("image/png");
     });

@@ -31,6 +31,19 @@ api.buildFrames({naturalWidth:1280,naturalHeight:575},{createElement(){return {
 assert.equal(clawCrops.length,8);
 clawCrops.forEach((crop,i)=>assert.deepEqual(crop,[i*160,0,160,256,48,0,160,256],'Only top-row frames, at original scale'));
 async function main() {
+  const windCrops=[];
+  assert(fs.existsSync(api.EFFECTS.wind.sheet));
+  api.buildFrames({naturalWidth:1280,naturalHeight:575},{createElement(){return {
+    getContext(){return {drawImage(image,...args){windCrops.push(args);},getImageData(){return {data:new Uint8ClampedArray(180*180*4)};},putImageData(){}};},
+    toDataURL(){assert.equal(this.width,180);assert.equal(this.height,180);return 'wind';}
+  };}},'wind');
+  assert.equal(windCrops.length,8);
+  windCrops.forEach((crop,i)=>assert.deepEqual(crop,[i*160,0,160,180,10,0,160,180],'Wind uses first row only'));
+  const windPixels=new Uint8ClampedArray([43,210,6,255,230,240,245,255,80,210,65,255]);
+  api.keyGreen(windPixels,true,api.EFFECTS.wind.background);
+  assert.equal(windPixels[3],0);
+  assert.deepEqual([...windPixels.slice(4,8)],[230,240,245,255]);
+  assert(windPixels[11]>0,'Fading wind remains visible');
   const poisonCrops=[];
   assert(fs.existsSync(api.EFFECTS.poison.sheet));
   api.buildFrames({naturalWidth:1280,naturalHeight:575},{createElement(){return {
@@ -118,6 +131,11 @@ async function main() {
   assert.deepEqual(shown,effects.map(x=>'poison-'+x));
   assert.equal(get('#motionStatus').textContent,'독가스 공격 테스트 완료');
   assert.equal(get('#poisonEffectBtn').disabled,false);
+  shown.length=0;
+  await get('#windEffectBtn').handlers.click();
+  assert.deepEqual(shown,effects.map(x=>'wind-'+x));
+  assert.equal(get('#motionStatus').textContent,'바람공격 테스트 완료');
+  assert.equal(get('#windEffectBtn').disabled,false);
   assert(get('#hitEffectSprite').hidden);
   console.log('PASS: impact crop centers, transparency, hit synchronization, double-click guard, failure/retry and reset.');
 }
