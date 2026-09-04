@@ -12,8 +12,17 @@
       centers: Object.freeze([80, 240, 400, 560, 720, 880, 1040, 1200]), width: 160, height: 287, size: 288,
       tops: Object.freeze([288, 288, 288, 288, 288, 288, 288, 0]), background: Object.freeze([43, 213, 8]) }),
     magic: Object.freeze({ name: "마법 공격", sheet: "art/v2-style/ui/magic-hit-sheet.jpg",
-      centers: Object.freeze([80, 240, 400, 560, 720, 880, 1040, 1200]), width: 160, height: 160, top: 0, size: 160 })
+      centers: Object.freeze([80, 240, 400, 560, 720, 880, 1040, 1200]), width: 160, height: 160, top: 0, size: 160 }),
+    poison: Object.freeze({ name: "독가스 공격", sheet: "art/v2-style/ui/poison-gas-hit-sheet.jpg",
+      centers: Object.freeze([80, 240, 400, 560, 720, 880, 1040, 1200]), width: 160, height: 180, top: 200, size: 180 })
   });
+  function keyPoison(data) {
+    // Match only the bright backdrop, not the green pigment of the gas.
+    for (let i = 0; i < data.length; i += 4) {
+      const distance = Math.hypot(data[i] - 33, data[i + 1] - 217, data[i + 2] - 7);
+      data[i + 3] = Math.round(data[i + 3] * Math.max(0, Math.min(1, (distance - 18) / 55)));
+    }
+  }
   function keyGreen(data, preserveFades = false, background = [0, 210, 0]) {
     for (let i = 0; i < data.length; i += 4) {
       const r = data[i], g = data[i + 1], b = data[i + 2];
@@ -49,7 +58,8 @@
       ctx.drawImage(image, x - effect.width / 2, effect.tops ? effect.tops[index] : effect.top, effect.width, effect.height,
         (effect.size - effect.width) / 2, 0, effect.width, effect.height);
       const pixels = ctx.getImageData(0, 0, effect.size, effect.size);
-      keyGreen(pixels.data, id === "claw" || id === "slash", effect.background);
+      if (id === "poison") keyPoison(pixels.data);
+      else keyGreen(pixels.data, id === "claw" || id === "slash", effect.background);
       ctx.putImageData(pixels, 0, 0);
       return canvas.toDataURL("image/png");
     });
@@ -66,7 +76,7 @@
     }).catch(error => { pending.delete(id); throw error; }));
     return pending.get(id);
   }
-  const api = { SHEET, NAME, CENTERS, EFFECTS, keyGreen, buildFrames, prepare };
+  const api = { SHEET, NAME, CENTERS, EFFECTS, keyGreen, keyPoison, buildFrames, prepare };
   root.V2HitEffects = api;
   if (typeof module !== "undefined") module.exports = api;
 })(globalThis);

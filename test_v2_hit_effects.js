@@ -31,6 +31,18 @@ api.buildFrames({naturalWidth:1280,naturalHeight:575},{createElement(){return {
 assert.equal(clawCrops.length,8);
 clawCrops.forEach((crop,i)=>assert.deepEqual(crop,[i*160,0,160,256,48,0,160,256],'Only top-row frames, at original scale'));
 async function main() {
+  const poisonCrops=[];
+  assert(fs.existsSync(api.EFFECTS.poison.sheet));
+  api.buildFrames({naturalWidth:1280,naturalHeight:575},{createElement(){return {
+    getContext(){return {drawImage(image,...args){poisonCrops.push(args);},getImageData(){return {data:new Uint8ClampedArray(180*180*4)};},putImageData(){}};},
+    toDataURL(){assert.equal(this.width,180);assert.equal(this.height,180);return 'poison';}
+  };}},'poison');
+  assert.equal(poisonCrops.length,8);
+  poisonCrops.forEach((crop,i)=>assert.deepEqual(crop,[i*160,200,160,180,10,0,160,180],'Poison uses middle row only'));
+  const gas=new Uint8ClampedArray([33,217,7,255,32,216,6,255,40,110,45,255,180,225,70,255]);
+  api.keyPoison(gas);
+  assert.equal(gas[3],0);assert.equal(gas[7],0);
+  assert.deepEqual([...gas.slice(8)],[40,110,45,255,180,225,70,255]);
   const magicCrops=[];
   assert(fs.existsSync(api.EFFECTS.magic.sheet));
   api.buildFrames({naturalWidth:1280,naturalHeight:575},{createElement(){return {
@@ -101,6 +113,11 @@ async function main() {
   assert.deepEqual(shown,effects.map(x=>'magic-'+x));
   assert.equal(get('#motionStatus').textContent,'마법 공격 테스트 완료');
   assert.equal(get('#magicEffectBtn').disabled,false);
+  shown.length=0;
+  await get('#poisonEffectBtn').handlers.click();
+  assert.deepEqual(shown,effects.map(x=>'poison-'+x));
+  assert.equal(get('#motionStatus').textContent,'독가스 공격 테스트 완료');
+  assert.equal(get('#poisonEffectBtn').disabled,false);
   assert(get('#hitEffectSprite').hidden);
   console.log('PASS: impact crop centers, transparency, hit synchronization, double-click guard, failure/retry and reset.');
 }
