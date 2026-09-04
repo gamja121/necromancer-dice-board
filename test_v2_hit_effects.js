@@ -107,7 +107,12 @@ async function main() {
     }
     return elements.get(id);
   };
-  let fail = false, calls = 0;
+  let fail = false, calls = 0, scrolls = 0;
+  get('#motionStage').scrollIntoView = options => { assert.equal(options.behavior,'instant'); assert.equal(options.block,'start'); scrolls++; };
+  const html=fs.readFileSync('v2-animation-practice.html','utf8');
+  assert(html.includes('id="effectSelect"'));
+  assert(!html.includes('id="clawEffectBtn"'),'Old long button list is removed');
+  for(const id of Object.keys(api.EFFECTS)) assert(html.includes(`value="${id}"`));
   vm.runInNewContext(fs.readFileSync('v2-animation-practice.js','utf8'),{
     console:{error(){}},URLSearchParams,window:{location:{search:''}},
     document:{querySelector:get,querySelectorAll:()=>[]},
@@ -120,6 +125,7 @@ async function main() {
   unitFrames.length=0;
   const playing=click(); await click(); await playing;
   assert.equal(calls,1,'Double click is ignored');
+  assert.equal(scrolls,1,'Scroll to stage before effect playback, once per accepted click');
   assert.deepEqual(shown,effects);
   assert.equal(unitFrames.filter(x=>x.includes('/hit-')).length,4);
   assert(get('#hitEffectSprite').hidden);
@@ -133,38 +139,45 @@ async function main() {
   assert(get('#motionStatus').textContent.includes('돌아왔습니다'));
   shown.length=0; await click(); assert.deepEqual(shown,effects);
   shown.length=0;
-  await get('#clawEffectBtn').handlers.click();
+  get('#effectSelect').value='claw';
+  await click();
   assert.deepEqual(shown,effects.map(x=>'claw-'+x));
   assert.equal(get('#motionStatus').textContent,'손톱공격 테스트 완료');
   shown.length=0;
-  await get('#slashEffectBtn').handlers.click();
+  get('#effectSelect').value='slash';
+  await click();
   assert.deepEqual(shown,effects.map(x=>'slash-'+x));
   assert.equal(get('#motionStatus').textContent,'베기 테스트 완료');
   shown.length=0;
-  await get('#magicEffectBtn').handlers.click();
+  get('#effectSelect').value='magic';
+  await click();
   assert.deepEqual(shown,effects.map(x=>'magic-'+x));
   assert.equal(get('#motionStatus').textContent,'마법 공격 테스트 완료');
-  assert.equal(get('#magicEffectBtn').disabled,false);
+  assert.equal(get('#effectSelect').disabled,false);
   shown.length=0;
-  await get('#poisonEffectBtn').handlers.click();
+  get('#effectSelect').value='poison';
+  await click();
   assert.deepEqual(shown,effects.map(x=>'poison-'+x));
   assert.equal(get('#motionStatus').textContent,'독가스 공격 테스트 완료');
-  assert.equal(get('#poisonEffectBtn').disabled,false);
+  assert.equal(get('#effectSelect').disabled,false);
   shown.length=0;
-  await get('#windEffectBtn').handlers.click();
+  get('#effectSelect').value='wind';
+  await click();
   assert.deepEqual(shown,effects.map(x=>'wind-'+x));
   assert.equal(get('#motionStatus').textContent,'바람공격 테스트 완료');
-  assert.equal(get('#windEffectBtn').disabled,false);
+  assert.equal(get('#effectSelect').disabled,false);
   shown.length=0;
-  await get('#musicEffectBtn').handlers.click();
+  get('#effectSelect').value='music';
+  await click();
   assert.deepEqual(shown,effects.map(x=>'music-'+x));
   assert.equal(get('#motionStatus').textContent,'음표공격 테스트 완료');
-  assert.equal(get('#musicEffectBtn').disabled,false);
+  assert.equal(get('#effectSelect').disabled,false);
   shown.length=0;
-  await get('#biteEffectBtn').handlers.click();
+  get('#effectSelect').value='bite';
+  await click();
   assert.deepEqual(shown,effects.slice(0,6).map(x=>'bite-'+x));
   assert.equal(get('#motionStatus').textContent,'깨무는 공격 테스트 완료');
-  assert.equal(get('#biteEffectBtn').disabled,false);
+  assert.equal(get('#effectSelect').disabled,false);
   assert(get('#hitEffectSprite').hidden);
   console.log('PASS: impact crop centers, transparency, hit synchronization, double-click guard, failure/retry and reset.');
 }

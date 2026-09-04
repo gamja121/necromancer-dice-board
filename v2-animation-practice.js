@@ -61,13 +61,7 @@
     attack: document.querySelector("#attackBtn"), hit: document.querySelector("#hitBtn"), death: document.querySelector("#deathBtn"),
     reset: document.querySelector("#resetBtn"), battlefield: document.querySelector("#battlefieldBtn"),
     effect: document.querySelector("#hitEffectBtn"), effectSprite: document.querySelector("#hitEffectSprite"),
-    claw: document.querySelector("#clawEffectBtn"),
-    slash: document.querySelector("#slashEffectBtn"),
-    magic: document.querySelector("#magicEffectBtn"),
-    poison: document.querySelector("#poisonEffectBtn"),
-    wind: document.querySelector("#windEffectBtn"),
-    music: document.querySelector("#musicEffectBtn"),
-    bite: document.querySelector("#biteEffectBtn"),
+    effectSelect: document.querySelector("#effectSelect"),
     unitName: document.querySelector("#unitName"), unitButtons: [...document.querySelectorAll(".unit-button")]
   };
   function pathFor(motion, index) {
@@ -89,7 +83,8 @@
       image.src = url;
     });
   }
-  function setButtons(disabled) { [el.attack, el.hit, el.death, el.reset, el.effect, el.claw, el.slash, el.magic, el.poison, el.wind, el.music, el.bite].forEach((button) => { button.disabled = disabled; }); }
+  function setButtons(disabled) { [el.attack, el.hit, el.death, el.reset, el.effect, el.effectSelect].forEach((button) => { button.disabled = disabled; }); }
+  function showStage() { el.stage.scrollIntoView?.({ behavior: "instant", block: "start" }); }
   function setIdle() {
     el.sprite.src = frameSets.idle;
     el.sprite.className = "";
@@ -123,6 +118,7 @@
   }
   async function selectUnit(unit) {
     if (!UNITS[unit] || state.busy || unit === state.unit) return;
+    showStage();
     state.token += 1;
     state.unit = unit;
     setButtons(true);
@@ -137,6 +133,7 @@
   }
   async function playMotion(motion) {
     if (state.busy || el.attack.disabled) return;
+    showStage();
     const token = ++state.token;
     const label = motion === "attack" && UNITS[state.unit].attackLabel ? UNITS[state.unit].attackLabel : MOTION_LABELS[motion];
     const frames = frameSets[motion];
@@ -165,6 +162,7 @@
   }
   async function playHitEffect(id = "physical") {
     if (state.busy || el.effect.disabled) return;
+    showStage();
     const token = ++state.token;
     const label = V2HitEffects.EFFECTS[id].name;
     state.busy = true;
@@ -222,14 +220,7 @@
   }
   el.attack.addEventListener("click", () => playMotion("attack"));
   el.hit.addEventListener("click", () => playMotion("hit"));
-  el.effect.addEventListener("click", () => playHitEffect("physical"));
-  el.claw.addEventListener("click", () => playHitEffect("claw"));
-  el.slash.addEventListener("click", () => playHitEffect("slash"));
-  el.magic.addEventListener("click", () => playHitEffect("magic"));
-  el.poison.addEventListener("click", () => playHitEffect("poison"));
-  el.wind.addEventListener("click", () => playHitEffect("wind"));
-  el.music.addEventListener("click", () => playHitEffect("music"));
-  el.bite.addEventListener("click", () => playHitEffect("bite"));
+  el.effect.addEventListener("click", () => playHitEffect(el.effectSelect.value || "physical"));
   el.death.addEventListener("click", () => playMotion("death"));
   el.reset.addEventListener("click", reset);
   el.battlefield.addEventListener("click", () => selectBattlefield(true));

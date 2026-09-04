@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#17120f">
   <title>유닛 모션 테스트</title>
-  <link rel="stylesheet" href="v2-animation-practice.css?v=6">
+  <link rel="stylesheet" href="v2-animation-practice.css?v=7">
 </head>
 <body>
   <main class="motion-app">
@@ -77,14 +77,19 @@
       <button id="attackBtn" type="button" disabled><span>⚔</span>공격 모션</button>
       <button id="hitBtn" type="button" disabled><span>✦</span>피격 모션</button>
       <button id="deathBtn" type="button" disabled><span>☠</span>사망 모션</button>
-      <button id="hitEffectBtn" class="hit-effect-button" type="button" disabled>✦ 기본 물리 타격 · 피격 효과 테스트</button>
-      <button id="clawEffectBtn" class="hit-effect-button" type="button" disabled>✦ 손톱공격 · 피격 효과 테스트</button>
-      <button id="slashEffectBtn" class="hit-effect-button" type="button" disabled>✦ 베기 · 피격 효과 테스트</button>
-      <button id="magicEffectBtn" class="hit-effect-button" type="button" disabled>✦ 마법 공격 · 피격 효과 테스트</button>
-      <button id="poisonEffectBtn" class="hit-effect-button" type="button" disabled>✦ 독가스 공격 · 피격 효과 테스트</button>
-      <button id="windEffectBtn" class="hit-effect-button" type="button" disabled>✦ 바람공격 · 피격 효과 테스트</button>
-      <button id="musicEffectBtn" class="hit-effect-button" type="button" disabled>✦ 음표공격 · 피격 효과 테스트</button>
-      <button id="biteEffectBtn" class="hit-effect-button" type="button" disabled>✦ 깨무는 공격 · 피격 효과 테스트</button>
+      <div class="effect-controls">
+        <select id="effectSelect" aria-label="피격 효과 선택" disabled>
+          <option value="physical">기본 물리 타격</option>
+          <option value="claw">손톱공격</option>
+          <option value="slash">베기</option>
+          <option value="magic">마법 공격</option>
+          <option value="poison">독가스 공격</option>
+          <option value="wind">바람공격</option>
+          <option value="music">음표공격</option>
+          <option value="bite">깨무는 공격</option>
+        </select>
+        <button id="hitEffectBtn" type="button" disabled>✦ 효과 재생</button>
+      </div>
     </section>
     <section class="lab-footer">
       <button id="resetBtn" type="button" disabled>처음 자세</button>
@@ -102,6 +107,6 @@
   <script src="v2-princess-frames.js?v=1"></script>
   <script src="v2-goblin-frames.js?v=1"></script>
   <script src="v2-hit-effects.js?v=8"></script>
-  <script src="v2-animation-practice.js?v=67"></script>
+  <script src="v2-animation-practice.js?v=68"></script>
 </body>
 </html>
