@@ -3,14 +3,15 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { execFileSync } = require("node:child_process");
 const hydra = process.argv.includes("--hydra");
+const seed = process.argv.includes("--seed");
 const harpy = process.argv.includes("--harpy");
 const sourceHeight = hydra ? 576 : 698;
 const scorpion = process.argv.includes("--scorpion");
 const hound = process.argv.includes("--hound");
-const slug = harpy ? "abyss-harpy" : hydra ? "hydra" : hound ? "bone-hound" : scorpion ? "scorpion-knight" : "hell-mantis";
-const label = harpy ? "심연 하피" : hydra ? "히드라" : hound ? "뼈 사냥개" : scorpion ? "전갈 기사" : "지옥 사마귀";
+const slug = seed ? "guardian-seed" : harpy ? "abyss-harpy" : hydra ? "hydra" : hound ? "bone-hound" : scorpion ? "scorpion-knight" : "hell-mantis";
+const label = seed ? "수호 씨앗" : harpy ? "심연 하피" : hydra ? "히드라" : hound ? "뼈 사냥개" : scorpion ? "전갈 기사" : "지옥 사마귀";
 const canvasWidth = scorpion ? 340 : 280;
-const api = require(harpy ? "./v2-harpy-frames.js" : hydra ? "./v2-hydra-frames.js" : hound ? "./v2-hound-frames.js" : scorpion ? "./v2-scorpion-frames.js" : "./v2-mantis-frames.js");
+const api = require(seed ? "./v2-seed-frames.js" : harpy ? "./v2-harpy-frames.js" : hydra ? "./v2-hydra-frames.js" : hound ? "./v2-hound-frames.js" : scorpion ? "./v2-scorpion-frames.js" : "./v2-mantis-frames.js");
 function decode(relative) {
 const sheet = path.join(__dirname, relative);
 // Decode the actual JPEG read-only, then run the browser crop/key/flip code.
@@ -49,9 +50,9 @@ const document = { createElement() {
   return canvas;
 } };
 const result = api.buildFrames({ naturalWidth: 1280, naturalHeight: sourceHeight }, document, { naturalWidth: 1280, naturalHeight: sourceHeight, second: true });
-assert.equal(result.attack.length, harpy ? 4 : 5); assert.equal(result.hit.length, scorpion ? 3 : 4); assert.equal(result.death.length, scorpion || harpy ? 5 : 6);
+assert.equal(result.attack.length, harpy ? 4 : 5); assert.equal(result.hit.length, scorpion || seed ? 3 : 4); assert.equal(result.death.length, seed ? 4 : scorpion || harpy ? 5 : 6);
 assert.equal(result.idle, result.attack[0]);
-assert.deepEqual(frames.flatMap((f,i) => f.flip ? [i] : []), scorpion || hound || hydra || harpy ? [] : [4], "Only mantis attack frame 5 is mirrored");
+assert.deepEqual(frames.flatMap((f,i) => f.flip ? [i] : []), scorpion || hound || hydra || harpy || seed ? [] : [4], "Only mantis attack frame 5 is mirrored");
 if (hydra) {
   assert.deepEqual(result.death, ["frame-10","frame-11","frame-12","frame-13","frame-14","frame-15"]);
   assert.deepEqual(frames.map(f => f.sheet), [...Array(13).fill(1),2,2], "Only final two death frames come from image 2");
@@ -96,6 +97,7 @@ async function testPlayer() {
     V2HoundFrames: { prepare: async () => result },
     V2HydraFrames: { prepare: async () => result },
     V2HarpyFrames: { prepare: async () => result },
+    V2SeedFrames: { prepare: async () => result },
     Image: class { set src(value) { queueMicrotask(() => this.onload()); } },
     setTimeout: fn => queueMicrotask(fn)
   };
@@ -103,9 +105,11 @@ async function testPlayer() {
   await new Promise(setImmediate);
   assert.equal(elements.get("#unitName").textContent, label);
   assert.equal(elements.get("#attackBtn").disabled, false);
+  if (seed) { assert(elements.get("#motionStatus").textContent.includes("공격하지 않는 소환물")); assert(elements.get("#attackBtn").textContent.includes("개화")); }
   for (const motion of ["attack", "hit", "death"]) {
     shown.length = 0;
     await elements.get("#" + motion + "Btn").handlers.click();
+    if (seed && motion === "attack") assert.equal(elements.get("#motionStatus").textContent, "개화 모션 완료");
     const expected = motion === "death" ? result[motion] : [...result[motion], result.idle];
     assert.deepEqual(shown, expected, "Actual player frame order: " + motion);
     assert.equal(elements.get("#attackBtn").disabled, false);

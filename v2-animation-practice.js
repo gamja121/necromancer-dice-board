@@ -6,6 +6,7 @@
     { name: "사령 피라미드", image: "art/v2-style/battle-backgrounds/uploaded-raw/necropolis-pyramids-battlefield.jpg" }
   ];
   const UNITS = Object.freeze({
+    "guardian-seed": { name: "수호 씨앗", runtimeSheet: true, isSummon: true, canAttack: false, attackLabel: "개화", counts: { attack: 5, hit: 3, death: 4 } },
     "abyss-harpy": { name: "심연 하피", runtimeSheet: true, counts: { attack: 4, hit: 4, death: 5 } },
     "hydra": { name: "히드라", runtimeSheet: true, counts: { attack: 5, hit: 4, death: 6 } },
     "bone-hound": { name: "뼈 사냥개", runtimeSheet: true, counts: { attack: 5, hit: 4, death: 6 } },
@@ -96,7 +97,7 @@
   async function prepare() {
     const unit = state.unit, token = state.token;
     if (UNITS[unit].runtimeSheet) {
-      const prepared = unit === "abyss-harpy" ? await V2HarpyFrames.prepare() : unit === "hydra" ? await V2HydraFrames.prepare() : unit === "bone-hound" ? await V2HoundFrames.prepare()
+      const prepared = unit === "guardian-seed" ? await V2SeedFrames.prepare() : unit === "abyss-harpy" ? await V2HarpyFrames.prepare() : unit === "hydra" ? await V2HydraFrames.prepare() : unit === "bone-hound" ? await V2HoundFrames.prepare()
         : unit === "scorpion-knight" ? await V2ScorpionFrames.prepare() : await V2MantisFrames.prepare();
       if (token !== state.token || unit !== state.unit) return;
       Object.assign(frameSets, prepared);
@@ -106,7 +107,8 @@
     if (token !== state.token || unit !== state.unit) return;
     setIdle();
     setButtons(false);
-    el.status.textContent = `버튼을 누르면 ${UNITS[state.unit].name} 모션이 재생됩니다.`;
+    el.attack.textContent = UNITS[unit].attackLabel ? "공격 모션 · 개화 테스트" : "⚔ 공격 모션";
+    el.status.textContent = UNITS[unit].isSummon ? "공격하지 않는 소환물 · 공격 버튼은 개화 연출 테스트입니다." : `버튼을 누르면 ${UNITS[state.unit].name} 모션이 재생됩니다.`;
   }
   async function selectUnit(unit) {
     if (!UNITS[unit] || state.busy || unit === state.unit) return;
@@ -125,7 +127,7 @@
   async function playMotion(motion) {
     if (state.busy || el.attack.disabled) return;
     const token = ++state.token;
-    const label = MOTION_LABELS[motion];
+    const label = motion === "attack" && UNITS[state.unit].attackLabel ? UNITS[state.unit].attackLabel : MOTION_LABELS[motion];
     const frames = frameSets[motion];
     state.busy = true;
     setButtons(true);
