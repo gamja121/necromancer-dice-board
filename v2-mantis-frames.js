@@ -19,10 +19,11 @@
       data[i + 3] = Math.round(data[i + 3] * alpha);
     }
   }
-  function buildFrames(image, document) {
+  function buildFrames(image, document, options = {}) {
     if (image.naturalWidth !== 1280 || image.naturalHeight !== 698) throw new Error("Unexpected mantis sheet dimensions");
     const result = {};
-    for (const [motion, row] of Object.entries(ROWS)) {
+    const canvasWidth = options.canvasWidth || 280;
+    for (const [motion, row] of Object.entries(options.rows || ROWS)) {
       result[motion] = row.edges.slice(0, -1).map((x, index) => {
         const width = row.edges[index + 1] - x, height = row.bottom - row.top;
         const cut = document.createElement("canvas");
@@ -31,6 +32,9 @@
         ctx.drawImage(image, x, row.top, width, height, 0, 0, width, height);
         const pixels = ctx.getImageData(0, 0, width, height);
         keyMagenta(pixels.data);
+        if (options.mask) for (let y = 0; y < height; y++) for (let px = 0; px < width; px++) {
+          if (options.mask(motion, index, x + px, row.top + y)) pixels.data[(y * width + px) * 4 + 3] = 0;
+        }
         ctx.putImageData(pixels, 0, 0);
         let left = width, top = height, right = -1, bottom = -1;
         for (let y = 0; y < height; y++) for (let px = 0; px < width; px++) {
@@ -42,10 +46,10 @@
         if (left === 0 || right === width - 1 || top === 0 || bottom === height - 1) throw new Error("Mantis frame touches crop edge: " + motion + (index + 1) + " " + JSON.stringify({left, top, right, bottom, width, height}));
         const fw = right - left + 1, fh = bottom - top + 1;
         const frame = document.createElement("canvas");
-        frame.width = 280; frame.height = 260;
+        frame.width = canvasWidth; frame.height = 260;
         const fc = frame.getContext("2d");
-        if (mirrored(motion, index)) { fc.translate(280, 0); fc.scale(-1, 1); }
-        fc.drawImage(cut, left, top, fw, fh, Math.floor((280 - fw) / 2), 250 - fh, fw, fh);
+        if ((options.mirrored || mirrored)(motion, index)) { fc.translate(canvasWidth, 0); fc.scale(-1, 1); }
+        fc.drawImage(cut, left, top, fw, fh, Math.floor((canvasWidth - fw) / 2), 250 - fh, fw, fh);
         return frame.toDataURL("image/png");
       });
     }

@@ -6,6 +6,7 @@
     { name: "사령 피라미드", image: "art/v2-style/battle-backgrounds/uploaded-raw/necropolis-pyramids-battlefield.jpg" }
   ];
   const UNITS = Object.freeze({
+    "scorpion-knight": { name: "전갈 기사", runtimeSheet: true, counts: { attack: 5, hit: 3, death: 5 } },
     "hell-mantis": { name: "지옥 사마귀", runtimeSheet: true, counts: { attack: 5, hit: 4, death: 6 } },
     "death-knight": { name: "데스나이트", root: "art/v2-style/animation-test-frames/death-knight/", counts: { attack: 5, hit: 4, death: 6 } },
     "skeleton-spear": { name: "해골 창병", root: "art/v2-style/animation-test-frames/skeleton-spear/", counts: { attack: 5, hit: 4, death: 5 } },
@@ -92,7 +93,7 @@
   async function prepare() {
     const unit = state.unit, token = state.token;
     if (UNITS[unit].runtimeSheet) {
-      const prepared = await V2MantisFrames.prepare();
+      const prepared = unit === "scorpion-knight" ? await V2ScorpionFrames.prepare() : await V2MantisFrames.prepare();
       if (token !== state.token || unit !== state.unit) return;
       Object.assign(frameSets, prepared);
     } else buildFrames();
