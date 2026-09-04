@@ -6,6 +6,7 @@
     { name: "사령 피라미드", image: "art/v2-style/battle-backgrounds/uploaded-raw/necropolis-pyramids-battlefield.jpg" }
   ];
   const UNITS = Object.freeze({
+    "ice-princess": { name: "얼음 공주", runtimeSheet: true, counts: { attack: 6, hit: 4, death: 5 } },
     "bone-golem": { name: "핏빛 해골", runtimeSheet: true, counts: { attack: 5, hit: 4, death: 5 } },
     "guardian-seed": { name: "수호 씨앗", runtimeSheet: true, isSummon: true, canAttack: false, attackLabel: "개화", counts: { attack: 5, hit: 3, death: 4 } },
     "abyss-harpy": { name: "심연 하피", runtimeSheet: true, counts: { attack: 4, hit: 4, death: 5 } },
@@ -98,7 +99,7 @@
   async function prepare() {
     const unit = state.unit, token = state.token;
     if (UNITS[unit].runtimeSheet) {
-      const prepared = unit === "bone-golem" ? await V2BloodFrames.prepare() : unit === "guardian-seed" ? await V2SeedFrames.prepare() : unit === "abyss-harpy" ? await V2HarpyFrames.prepare() : unit === "hydra" ? await V2HydraFrames.prepare() : unit === "bone-hound" ? await V2HoundFrames.prepare()
+      const prepared = unit === "ice-princess" ? await V2PrincessFrames.prepare() : unit === "bone-golem" ? await V2BloodFrames.prepare() : unit === "guardian-seed" ? await V2SeedFrames.prepare() : unit === "abyss-harpy" ? await V2HarpyFrames.prepare() : unit === "hydra" ? await V2HydraFrames.prepare() : unit === "bone-hound" ? await V2HoundFrames.prepare()
         : unit === "scorpion-knight" ? await V2ScorpionFrames.prepare() : await V2MantisFrames.prepare();
       if (token !== state.token || unit !== state.unit) return;
       Object.assign(frameSets, prepared);

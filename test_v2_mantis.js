@@ -2,18 +2,19 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const { execFileSync } = require("node:child_process");
+const princess = process.argv.includes("--princess");
 const blood = process.argv.includes("--blood");
 const canvasHeight = blood ? 300 : 260;
 const hydra = process.argv.includes("--hydra");
 const seed = process.argv.includes("--seed");
 const harpy = process.argv.includes("--harpy");
-const sourceHeight = blood ? 1280 : hydra ? 576 : 698;
+const sourceHeight = blood ? 1280 : hydra || princess ? 576 : 698;
 const scorpion = process.argv.includes("--scorpion");
 const hound = process.argv.includes("--hound");
-const slug = blood ? "bone-golem" : seed ? "guardian-seed" : harpy ? "abyss-harpy" : hydra ? "hydra" : hound ? "bone-hound" : scorpion ? "scorpion-knight" : "hell-mantis";
-const label = blood ? "핏빛 해골" : seed ? "수호 씨앗" : harpy ? "심연 하피" : hydra ? "히드라" : hound ? "뼈 사냥개" : scorpion ? "전갈 기사" : "지옥 사마귀";
+const slug = princess ? "ice-princess" : blood ? "bone-golem" : seed ? "guardian-seed" : harpy ? "abyss-harpy" : hydra ? "hydra" : hound ? "bone-hound" : scorpion ? "scorpion-knight" : "hell-mantis";
+const label = princess ? "얼음 공주" : blood ? "핏빛 해골" : seed ? "수호 씨앗" : harpy ? "심연 하피" : hydra ? "히드라" : hound ? "뼈 사냥개" : scorpion ? "전갈 기사" : "지옥 사마귀";
 const canvasWidth = blood ? 320 : scorpion ? 340 : 280;
-const api = require(blood ? "./v2-blood-frames.js" : seed ? "./v2-seed-frames.js" : harpy ? "./v2-harpy-frames.js" : hydra ? "./v2-hydra-frames.js" : hound ? "./v2-hound-frames.js" : scorpion ? "./v2-scorpion-frames.js" : "./v2-mantis-frames.js");
+const api = require(princess ? "./v2-princess-frames.js" : blood ? "./v2-blood-frames.js" : seed ? "./v2-seed-frames.js" : harpy ? "./v2-harpy-frames.js" : hydra ? "./v2-hydra-frames.js" : hound ? "./v2-hound-frames.js" : scorpion ? "./v2-scorpion-frames.js" : "./v2-mantis-frames.js");
 function decode(relative) {
 const sheet = path.join(__dirname, relative);
 // Decode the actual JPEG read-only, then run the browser crop/key/flip code.
@@ -52,18 +53,19 @@ const document = { createElement() {
   return canvas;
 } };
 const result = api.buildFrames({ naturalWidth: 1280, naturalHeight: sourceHeight }, document, { naturalWidth: 1280, naturalHeight: sourceHeight, second: true });
-assert.equal(result.attack.length, harpy ? 4 : 5); assert.equal(result.hit.length, scorpion || seed ? 3 : 4); assert.equal(result.death.length, seed ? 4 : scorpion || harpy || blood ? 5 : 6);
+assert.equal(result.attack.length, princess ? 6 : harpy ? 4 : 5); assert.equal(result.hit.length, scorpion || seed ? 3 : 4); assert.equal(result.death.length, seed ? 4 : scorpion || harpy || blood || princess ? 5 : 6);
 assert.equal(result.idle, result.attack[0]);
-assert.deepEqual(frames.flatMap((f,i) => f.flip ? [i] : []), scorpion || hound || hydra || harpy || seed || blood ? [] : [4], "Only mantis attack frame 5 is mirrored");
+assert.deepEqual(frames.flatMap((f,i) => f.flip ? [i] : []), scorpion || hound || hydra || harpy || seed || blood || princess ? [] : [4], "Only mantis attack frame 5 is mirrored");
 if (hydra) {
   assert.deepEqual(result.death, ["frame-10","frame-11","frame-12","frame-13","frame-14","frame-15"]);
   assert.deepEqual(frames.map(f => f.sheet), [...Array(13).fill(1),2,2], "Only final two death frames come from image 2");
 }
+if (princess) { assert.deepEqual(api.DEATH_ORDER,[1,2,3,6,5]); assert.deepEqual(result.death,["frame-11","frame-12","frame-13","frame-16","frame-15"]); }
 const pixels = new Uint8ClampedArray([255,0,255,255, 50,70,45,255]);
 if (harpy) {
   const pink = new Uint8ClampedArray([244,48,246,255]); api.keyMagenta(pink); assert.equal(pink[3],0);
 }
-if (blood) {
+if (blood || princess) {
   const green = new Uint8ClampedArray([0,230,0,255,100,40,30,255]); api.keyGreen(green); assert.equal(green[3],0); assert.deepEqual(Array.from(green.slice(4)),[100,40,30,255]);
   assert.equal(api.ROWS.hit.edges.length,5);
 } else {
@@ -106,6 +108,7 @@ async function testPlayer() {
     V2HarpyFrames: { prepare: async () => result },
     V2SeedFrames: { prepare: async () => result },
     V2BloodFrames: { prepare: async () => result },
+    V2PrincessFrames: { prepare: async () => result },
     Image: class { set src(value) { queueMicrotask(() => this.onload()); } },
     setTimeout: fn => queueMicrotask(fn)
   };
