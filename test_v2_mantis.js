@@ -3,13 +3,14 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { execFileSync } = require("node:child_process");
 const hydra = process.argv.includes("--hydra");
+const harpy = process.argv.includes("--harpy");
 const sourceHeight = hydra ? 576 : 698;
 const scorpion = process.argv.includes("--scorpion");
 const hound = process.argv.includes("--hound");
-const slug = hydra ? "hydra" : hound ? "bone-hound" : scorpion ? "scorpion-knight" : "hell-mantis";
-const label = hydra ? "히드라" : hound ? "뼈 사냥개" : scorpion ? "전갈 기사" : "지옥 사마귀";
+const slug = harpy ? "abyss-harpy" : hydra ? "hydra" : hound ? "bone-hound" : scorpion ? "scorpion-knight" : "hell-mantis";
+const label = harpy ? "심연 하피" : hydra ? "히드라" : hound ? "뼈 사냥개" : scorpion ? "전갈 기사" : "지옥 사마귀";
 const canvasWidth = scorpion ? 340 : 280;
-const api = require(hydra ? "./v2-hydra-frames.js" : hound ? "./v2-hound-frames.js" : scorpion ? "./v2-scorpion-frames.js" : "./v2-mantis-frames.js");
+const api = require(harpy ? "./v2-harpy-frames.js" : hydra ? "./v2-hydra-frames.js" : hound ? "./v2-hound-frames.js" : scorpion ? "./v2-scorpion-frames.js" : "./v2-mantis-frames.js");
 function decode(relative) {
 const sheet = path.join(__dirname, relative);
 // Decode the actual JPEG read-only, then run the browser crop/key/flip code.
@@ -48,14 +49,17 @@ const document = { createElement() {
   return canvas;
 } };
 const result = api.buildFrames({ naturalWidth: 1280, naturalHeight: sourceHeight }, document, { naturalWidth: 1280, naturalHeight: sourceHeight, second: true });
-assert.equal(result.attack.length, 5); assert.equal(result.hit.length, scorpion ? 3 : 4); assert.equal(result.death.length, scorpion ? 5 : 6);
+assert.equal(result.attack.length, harpy ? 4 : 5); assert.equal(result.hit.length, scorpion ? 3 : 4); assert.equal(result.death.length, scorpion || harpy ? 5 : 6);
 assert.equal(result.idle, result.attack[0]);
-assert.deepEqual(frames.flatMap((f,i) => f.flip ? [i] : []), scorpion || hound || hydra ? [] : [4], "Only mantis attack frame 5 is mirrored");
+assert.deepEqual(frames.flatMap((f,i) => f.flip ? [i] : []), scorpion || hound || hydra || harpy ? [] : [4], "Only mantis attack frame 5 is mirrored");
 if (hydra) {
   assert.deepEqual(result.death, ["frame-10","frame-11","frame-12","frame-13","frame-14","frame-15"]);
   assert.deepEqual(frames.map(f => f.sheet), [...Array(13).fill(1),2,2], "Only final two death frames come from image 2");
 }
 const pixels = new Uint8ClampedArray([255,0,255,255, 50,70,45,255]);
+if (harpy) {
+  const pink = new Uint8ClampedArray([244,48,246,255]); api.keyMagenta(pink); assert.equal(pink[3],0);
+}
 api.keyMagenta(pixels);
 assert.equal(pixels[3], 0); assert.deepEqual(Array.from(pixels.slice(4)), [50,70,45,255]);
 const html = fs.readFileSync(path.join(__dirname,"v2-animation-practice.html"),"utf8");
@@ -91,6 +95,7 @@ async function testPlayer() {
     V2ScorpionFrames: { prepare: async () => result },
     V2HoundFrames: { prepare: async () => result },
     V2HydraFrames: { prepare: async () => result },
+    V2HarpyFrames: { prepare: async () => result },
     Image: class { set src(value) { queueMicrotask(() => this.onload()); } },
     setTimeout: fn => queueMicrotask(fn)
   };

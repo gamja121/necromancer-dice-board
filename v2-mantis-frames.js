@@ -31,7 +31,7 @@
         const ctx = cut.getContext("2d");
         ctx.drawImage(image, x, row.top, width, height, 0, 0, width, height);
         const pixels = ctx.getImageData(0, 0, width, height);
-        keyMagenta(pixels.data);
+        (options.key || keyMagenta)(pixels.data);
         if (options.mask) for (let y = 0; y < height; y++) for (let px = 0; px < width; px++) {
           if (options.mask(motion, index, x + px, row.top + y)) pixels.data[(y * width + px) * 4 + 3] = 0;
         }
