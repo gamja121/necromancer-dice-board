@@ -31,6 +31,17 @@ api.buildFrames({naturalWidth:1280,naturalHeight:575},{createElement(){return {
 assert.equal(clawCrops.length,8);
 clawCrops.forEach((crop,i)=>assert.deepEqual(crop,[i*160,0,160,256,48,0,160,256],'Only top-row frames, at original scale'));
 async function main() {
+  const slashCrops=[];
+  assert(fs.existsSync(api.EFFECTS.slash.sheet));
+  api.buildFrames({naturalWidth:1280,naturalHeight:575},{createElement(){return {
+    getContext(){return {drawImage(image,...args){slashCrops.push(args);},getImageData(){return {data:new Uint8ClampedArray(288*288*4)};},putImageData(){}};},
+    toDataURL(){assert.equal(this.width,288);return 'slash';}
+  };}},'slash');
+  assert.equal(slashCrops.length,8);
+  slashCrops.forEach((crop,i)=>assert.deepEqual(crop,[i*160,i===7?0:288,160,287,64,0,160,287]));
+  const green=new Uint8ClampedArray([43,213,8,255,45,212,8,255,90,213,20,255]);
+  api.keyGreen(green,true,api.EFFECTS.slash.background);
+  assert.equal(green[3],0);assert.equal(green[7],0);assert(green[11]>0);
   const elements = new Map(), shown = [], unitFrames = [];
   const get = id => {
     if (!elements.has(id)) {
@@ -46,7 +57,7 @@ async function main() {
     document:{querySelector:get,querySelectorAll:()=>[]},
     Image:class {set src(v){queueMicrotask(()=>this.onload());}},
     setTimeout:fn=>queueMicrotask(fn),
-    V2HitEffects:{EFFECTS:api.EFFECTS,async prepare(id){calls++; if(fail) throw Error('test'); return id === 'claw' ? effects.map(x=>'claw-'+x) : effects;}}
+    V2HitEffects:{EFFECTS:api.EFFECTS,async prepare(id){calls++; if(fail) throw Error('test'); return id !== 'physical' ? effects.map(x=>id+'-'+x) : effects;}}
   });
   await new Promise(setImmediate);
   const click=()=>get('#hitEffectBtn').handlers.click();
@@ -69,6 +80,10 @@ async function main() {
   await get('#clawEffectBtn').handlers.click();
   assert.deepEqual(shown,effects.map(x=>'claw-'+x));
   assert.equal(get('#motionStatus').textContent,'손톱공격 테스트 완료');
+  shown.length=0;
+  await get('#slashEffectBtn').handlers.click();
+  assert.deepEqual(shown,effects.map(x=>'slash-'+x));
+  assert.equal(get('#motionStatus').textContent,'베기 테스트 완료');
   assert(get('#hitEffectSprite').hidden);
   console.log('PASS: impact crop centers, transparency, hit synchronization, double-click guard, failure/retry and reset.');
 }
