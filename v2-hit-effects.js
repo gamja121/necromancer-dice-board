@@ -24,8 +24,22 @@
       widths: Object.freeze([160, 160, 160, 176, 144, 160, 160, 160]), background: Object.freeze([24, 203, 13]) }),
     bite: Object.freeze({ name: "깨무는 공격", sheet: "art/v2-style/ui/bite-hit-sheet.jpg",
       centers: Object.freeze([110, 290, 490, 690, 870, 1050]), width: 200, height: 200, top: 0, size: 220,
-      starts: Object.freeze([10, 190, 390, 590, 790, 970]), widths: Object.freeze([180, 200, 200, 200, 180, 160]) })
+      starts: Object.freeze([10, 190, 390, 590, 790, 970]), widths: Object.freeze([180, 200, 200, 200, 180, 160]) }),
+    toxicLiquid: Object.freeze({ name: "독극물 용액 공격", sheet: "art/v2-style/ui/toxic-liquid-hit-sheet.jpg",
+      // Source frames 1,2,3,4,5,7,8. Frame 6 is deliberately omitted.
+      centers: Object.freeze([80, 240, 400, 570, 740, 1080, 1220]), width: 160, height: 380, top: 0, size: 380,
+      starts: Object.freeze([0, 160, 320, 480, 650, 1000, 1160]), widths: Object.freeze([160, 160, 160, 170, 180, 160, 120]) })
   });
+  function keyMagenta(data) {
+    for (let i = 0; i < data.length; i += 4) {
+      const excess = Math.min(data[i], data[i + 2]) - data[i + 1];
+      if (excess > 20) {
+        data[i + 3] = Math.round(data[i + 3] * (1 - Math.min(1, (excess - 20) / 90)));
+        data[i] = Math.min(data[i], data[i + 1] + 20);
+        data[i + 2] = Math.min(data[i + 2], data[i + 1] + 20);
+      }
+    }
+  }
   function keyPoison(data) {
     // Match only the bright backdrop, not the green pigment of the gas.
     for (let i = 0; i < data.length; i += 4) {
@@ -71,6 +85,7 @@
         effect.size / 2 + start - x, 0, width, effect.height);
       const pixels = ctx.getImageData(0, 0, effect.size, effect.size);
       if (id === "poison") keyPoison(pixels.data);
+      else if (id === "toxicLiquid") keyMagenta(pixels.data);
       else keyGreen(pixels.data, id === "claw" || id === "slash" || id === "wind" || id === "music", effect.background);
       ctx.putImageData(pixels, 0, 0);
       return canvas.toDataURL("image/png");
@@ -88,7 +103,7 @@
     }).catch(error => { pending.delete(id); throw error; }));
     return pending.get(id);
   }
-  const api = { SHEET, NAME, CENTERS, EFFECTS, keyGreen, keyPoison, buildFrames, prepare };
+  const api = { SHEET, NAME, CENTERS, EFFECTS, keyGreen, keyPoison, keyMagenta, buildFrames, prepare };
   root.V2HitEffects = api;
   if (typeof module !== "undefined") module.exports = api;
 })(globalThis);

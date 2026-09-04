@@ -31,6 +31,16 @@ api.buildFrames({naturalWidth:1280,naturalHeight:575},{createElement(){return {
 assert.equal(clawCrops.length,8);
 clawCrops.forEach((crop,i)=>assert.deepEqual(crop,[i*160,0,160,256,48,0,160,256],'Only top-row frames, at original scale'));
 async function main() {
+  const liquidCrops=[];
+  assert(fs.existsSync(api.EFFECTS.toxicLiquid.sheet));
+  api.buildFrames({naturalWidth:1280,naturalHeight:1031},{createElement(){return {
+    getContext(){return {drawImage(image,...args){liquidCrops.push(args);},getImageData(){return {data:new Uint8ClampedArray(380*380*4)};},putImageData(){}};},
+    toDataURL(){assert.equal(this.width,380);assert.equal(this.height,380);return 'liquid';}
+  };}},'toxicLiquid');
+  assert.equal(liquidCrops.length,7);
+  liquidCrops.forEach((crop,i)=>{const start=[0,160,320,480,650,1000,1160][i],width=[160,160,160,170,180,160,120][i],center=[80,240,400,570,740,1080,1220][i];assert.deepEqual(crop,[start,0,width,380,190+start-center,0,width,380]);});
+  const liquidPixels=new Uint8ClampedArray([255,0,255,255,25,120,15,255]);
+  api.keyMagenta(liquidPixels);assert.equal(liquidPixels[3],0);assert.deepEqual([...liquidPixels.slice(4)],[25,120,15,255]);
   const biteCrops=[];
   assert(fs.existsSync(api.EFFECTS.bite.sheet));
   api.buildFrames({naturalWidth:1280,naturalHeight:575},{createElement(){return {
@@ -118,7 +128,7 @@ async function main() {
     document:{querySelector:get,querySelectorAll:()=>[]},
     Image:class {set src(v){queueMicrotask(()=>this.onload());}},
     setTimeout:fn=>queueMicrotask(fn),
-    V2HitEffects:{EFFECTS:api.EFFECTS,async prepare(id){calls++; if(fail) throw Error('test'); return id === 'bite' ? effects.slice(0,6).map(x=>'bite-'+x) : id !== 'physical' ? effects.map(x=>id+'-'+x) : effects;}}
+    V2HitEffects:{EFFECTS:api.EFFECTS,async prepare(id){calls++; if(fail) throw Error('test'); return id === 'toxicLiquid' ? effects.slice(0,7).map(x=>'toxicLiquid-'+x) : id === 'bite' ? effects.slice(0,6).map(x=>'bite-'+x) : id !== 'physical' ? effects.map(x=>id+'-'+x) : effects;}}
   });
   await new Promise(setImmediate);
   const click=()=>get('#hitEffectBtn').handlers.click();
@@ -177,6 +187,11 @@ async function main() {
   await click();
   assert.deepEqual(shown,effects.slice(0,6).map(x=>'bite-'+x));
   assert.equal(get('#motionStatus').textContent,'깨무는 공격 테스트 완료');
+  shown.length=0;
+  get('#effectSelect').value='toxicLiquid';
+  await click();
+  assert.deepEqual(shown,effects.slice(0,7).map(x=>'toxicLiquid-'+x));
+  assert.equal(get('#motionStatus').textContent,'독극물 용액 공격 테스트 완료');
   assert.equal(get('#effectSelect').disabled,false);
   assert(get('#hitEffectSprite').hidden);
   console.log('PASS: impact crop centers, transparency, hit synchronization, double-click guard, failure/retry and reset.');
