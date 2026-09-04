@@ -31,6 +31,14 @@ api.buildFrames({naturalWidth:1280,naturalHeight:575},{createElement(){return {
 assert.equal(clawCrops.length,8);
 clawCrops.forEach((crop,i)=>assert.deepEqual(crop,[i*160,0,160,256,48,0,160,256],'Only top-row frames, at original scale'));
 async function main() {
+  const biteCrops=[];
+  assert(fs.existsSync(api.EFFECTS.bite.sheet));
+  api.buildFrames({naturalWidth:1280,naturalHeight:575},{createElement(){return {
+    getContext(){return {drawImage(image,...args){biteCrops.push(args);},getImageData(){return {data:new Uint8ClampedArray(220*220*4)};},putImageData(){}};},
+    toDataURL(){assert.equal(this.width,220);assert.equal(this.height,220);return 'bite';}
+  };}},'bite');
+  assert.equal(biteCrops.length,6);
+  biteCrops.forEach((crop,i)=>{const start=[10,190,390,590,790,970][i],w=[180,200,200,200,180,160][i],center=[110,290,490,690,870,1050][i];assert.deepEqual(crop,[start,0,w,200,110+start-center,0,w,200]);});
   const musicCrops=[];
   assert(fs.existsSync(api.EFFECTS.music.sheet));
   api.buildFrames({naturalWidth:1280,naturalHeight:575},{createElement(){return {
@@ -105,7 +113,7 @@ async function main() {
     document:{querySelector:get,querySelectorAll:()=>[]},
     Image:class {set src(v){queueMicrotask(()=>this.onload());}},
     setTimeout:fn=>queueMicrotask(fn),
-    V2HitEffects:{EFFECTS:api.EFFECTS,async prepare(id){calls++; if(fail) throw Error('test'); return id !== 'physical' ? effects.map(x=>id+'-'+x) : effects;}}
+    V2HitEffects:{EFFECTS:api.EFFECTS,async prepare(id){calls++; if(fail) throw Error('test'); return id === 'bite' ? effects.slice(0,6).map(x=>'bite-'+x) : id !== 'physical' ? effects.map(x=>id+'-'+x) : effects;}}
   });
   await new Promise(setImmediate);
   const click=()=>get('#hitEffectBtn').handlers.click();
@@ -152,6 +160,11 @@ async function main() {
   assert.deepEqual(shown,effects.map(x=>'music-'+x));
   assert.equal(get('#motionStatus').textContent,'음표공격 테스트 완료');
   assert.equal(get('#musicEffectBtn').disabled,false);
+  shown.length=0;
+  await get('#biteEffectBtn').handlers.click();
+  assert.deepEqual(shown,effects.slice(0,6).map(x=>'bite-'+x));
+  assert.equal(get('#motionStatus').textContent,'깨무는 공격 테스트 완료');
+  assert.equal(get('#biteEffectBtn').disabled,false);
   assert(get('#hitEffectSprite').hidden);
   console.log('PASS: impact crop centers, transparency, hit synchronization, double-click guard, failure/retry and reset.');
 }

@@ -21,7 +21,10 @@
     music: Object.freeze({ name: "음표공격", sheet: "art/v2-style/ui/music-hit-sheet.jpg",
       centers: Object.freeze([80, 240, 400, 560, 720, 880, 1040, 1200]), width: 160, height: 200, top: 150, size: 200,
       starts: Object.freeze([0, 160, 320, 480, 656, 800, 960, 1120]),
-      widths: Object.freeze([160, 160, 160, 176, 144, 160, 160, 160]), background: Object.freeze([24, 203, 13]) })
+      widths: Object.freeze([160, 160, 160, 176, 144, 160, 160, 160]), background: Object.freeze([24, 203, 13]) }),
+    bite: Object.freeze({ name: "깨무는 공격", sheet: "art/v2-style/ui/bite-hit-sheet.jpg",
+      centers: Object.freeze([110, 290, 490, 690, 870, 1050]), width: 200, height: 200, top: 0, size: 220,
+      starts: Object.freeze([10, 190, 390, 590, 790, 970]), widths: Object.freeze([180, 200, 200, 200, 180, 160]) })
   });
   function keyPoison(data) {
     // Match only the bright backdrop, not the green pigment of the gas.
