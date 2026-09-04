@@ -27,6 +27,9 @@ h1 { margin: 2px 0 0; font-size: clamp(24px, 6vw, 34px); }
 .sprite-box { position: absolute; inset: 34px 2% 0; display: grid; place-items: end center; }
 .sprite-box img { position: relative; z-index: 2; display: block; width: 100%; height: 100%; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 10px 7px #000d); }
 .sprite-box img.motion-hit { animation: unit-hit 300ms ease-out; }
+.sprite-box img.hit-effect-sprite { position: absolute; z-index: 4; left: 50%; top: 52%; width: min(48%, 180px); height: auto; aspect-ratio: 1; transform: translate(-50%, -50%); filter: none; pointer-events: none; }
+.sprite-box img.hit-effect-sprite[hidden] { display: none; }
+.motion-controls .hit-effect-button { grid-column: 1 / -1; min-height: 48px; color: #ffdc83; }
 .sprite-box img.motion-death { filter: drop-shadow(0 10px 7px #000d) saturate(.86); }
 .unit-shadow { position: absolute; z-index: 1; left: 20%; right: 20%; bottom: 1%; height: 6%; border-radius: 50%; background: #000a; filter: blur(7px); }
 .motion-status { position: absolute; z-index: 6; left: 50%; bottom: 12px; transform: translateX(-50%); width: max-content; max-width: calc(100% - 20px); margin: 0; padding: 7px 11px; border: 1px solid #8e6847; background: #100b0be8; color: #f5dfb1; font-size: 12px; font-weight: 800; text-align: center; }
