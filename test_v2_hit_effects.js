@@ -31,6 +31,18 @@ api.buildFrames({naturalWidth:1280,naturalHeight:575},{createElement(){return {
 assert.equal(clawCrops.length,8);
 clawCrops.forEach((crop,i)=>assert.deepEqual(crop,[i*160,0,160,256,48,0,160,256],'Only top-row frames, at original scale'));
 async function main() {
+  const magicCrops=[];
+  assert(fs.existsSync(api.EFFECTS.magic.sheet));
+  api.buildFrames({naturalWidth:1280,naturalHeight:575},{createElement(){return {
+    getContext(){return {drawImage(image,...args){magicCrops.push(args);},getImageData(){return {data:new Uint8ClampedArray(160*160*4)};},putImageData(){}};},
+    toDataURL(){assert.equal(this.width,160);assert.equal(this.height,160);return 'magic';}
+  };}},'magic');
+  assert.equal(magicCrops.length,8);
+  magicCrops.forEach((crop,i)=>assert.deepEqual(crop,[i*160,0,160,160,0,0,160,160],'Magic uses first row only'));
+  const purple=new Uint8ClampedArray([40,12,70,255,10,5,20,255,0,210,0,255]);
+  api.keyGreen(purple);
+  assert.deepEqual([...purple.slice(0,8)],[40,12,70,255,10,5,20,255]);
+  assert.equal(purple[11],0);
   const slashCrops=[];
   assert(fs.existsSync(api.EFFECTS.slash.sheet));
   api.buildFrames({naturalWidth:1280,naturalHeight:575},{createElement(){return {
@@ -84,6 +96,11 @@ async function main() {
   await get('#slashEffectBtn').handlers.click();
   assert.deepEqual(shown,effects.map(x=>'slash-'+x));
   assert.equal(get('#motionStatus').textContent,'베기 테스트 완료');
+  shown.length=0;
+  await get('#magicEffectBtn').handlers.click();
+  assert.deepEqual(shown,effects.map(x=>'magic-'+x));
+  assert.equal(get('#motionStatus').textContent,'마법 공격 테스트 완료');
+  assert.equal(get('#magicEffectBtn').disabled,false);
   assert(get('#hitEffectSprite').hidden);
   console.log('PASS: impact crop centers, transparency, hit synchronization, double-click guard, failure/retry and reset.');
 }

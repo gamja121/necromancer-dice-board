@@ -63,6 +63,7 @@
     effect: document.querySelector("#hitEffectBtn"), effectSprite: document.querySelector("#hitEffectSprite"),
     claw: document.querySelector("#clawEffectBtn"),
     slash: document.querySelector("#slashEffectBtn"),
+    magic: document.querySelector("#magicEffectBtn"),
     unitName: document.querySelector("#unitName"), unitButtons: [...document.querySelectorAll(".unit-button")]
   };
   function pathFor(motion, index) {
@@ -84,7 +85,7 @@
       image.src = url;
     });
   }
-  function setButtons(disabled) { [el.attack, el.hit, el.death, el.reset, el.effect, el.claw, el.slash].forEach((button) => { button.disabled = disabled; }); }
+  function setButtons(disabled) { [el.attack, el.hit, el.death, el.reset, el.effect, el.claw, el.slash, el.magic].forEach((button) => { button.disabled = disabled; }); }
   function setIdle() {
     el.sprite.src = frameSets.idle;
     el.sprite.className = "";
@@ -220,6 +221,7 @@
   el.effect.addEventListener("click", () => playHitEffect("physical"));
   el.claw.addEventListener("click", () => playHitEffect("claw"));
   el.slash.addEventListener("click", () => playHitEffect("slash"));
+  el.magic.addEventListener("click", () => playHitEffect("magic"));
   el.death.addEventListener("click", () => playMotion("death"));
   el.reset.addEventListener("click", reset);
   el.battlefield.addEventListener("click", () => selectBattlefield(true));

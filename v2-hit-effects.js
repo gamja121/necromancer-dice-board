@@ -10,7 +10,9 @@
       centers: Object.freeze([80, 240, 400, 560, 720, 880, 1040, 1200]), width: 160, height: 256, top: 0, size: 256 }),
     slash: Object.freeze({ name: "베기", sheet: "art/v2-style/ui/slash-hit-sheet.jpg",
       centers: Object.freeze([80, 240, 400, 560, 720, 880, 1040, 1200]), width: 160, height: 287, size: 288,
-      tops: Object.freeze([288, 288, 288, 288, 288, 288, 288, 0]), background: Object.freeze([43, 213, 8]) })
+      tops: Object.freeze([288, 288, 288, 288, 288, 288, 288, 0]), background: Object.freeze([43, 213, 8]) }),
+    magic: Object.freeze({ name: "마법 공격", sheet: "art/v2-style/ui/magic-hit-sheet.jpg",
+      centers: Object.freeze([80, 240, 400, 560, 720, 880, 1040, 1200]), width: 160, height: 160, top: 0, size: 160 })
   });
   function keyGreen(data, preserveFades = false, background = [0, 210, 0]) {
     for (let i = 0; i < data.length; i += 4) {
