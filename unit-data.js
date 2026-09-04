@@ -320,7 +320,7 @@ var UNIT_TYPES = {
     image: "assets/bone-golem.jpg",
   },
   forestFairy: {
-    label: "숲의 요정",
+    label: "픽시",
     legion: ["plant", "element"],
     grade: "advanced",
     hp: 3,

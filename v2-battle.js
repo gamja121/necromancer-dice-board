@@ -26,7 +26,7 @@
   "minotaur", "iceLord", "spiderQueen", "goblinChief", "doomExecutor", "ancientTreant",
   "abyssEye", "skeletonSummoner", "seaWolf", "goblinSoldier",
     "scorpionKnight", "hellMantis", "demonDeathKnight", "hydra", "stoneGolem", "kraken", "crystalDevourer",
-    "icePrincess", "siren"
+    "icePrincess", "siren", "forestFairy"
   ];
   const LEGIONS = {
     skeleton: { name: "언데드", need: 3, color: "#a66cff" },
@@ -549,6 +549,10 @@
 
   async function attack(attacker, target, isCounter = false) {
     if (!attacker.alive || !target?.alive || state.ended) return;
+    const effectBattleId = state.battleId;
+    const hitFrames = window.V2CombatEffects ? await window.V2CombatEffects.prepare(attacker.type) : null;
+    if (effectBattleId !== state.battleId || state.ended) return;
+    let hitEffect = null;
     el("turnState").textContent = `${def(attacker.type).label} ${isCounter ? "반격" : "공격"}`;
     const dice = effectiveDice(attacker);
     setDuelPose(attacker, target, true);
@@ -579,7 +583,10 @@
     const impact = () => {
       if (impacted || !target.alive) return;
       impacted = true;
-      slashAt(target, legionColor);
+      if (damage > 0 && hitFrames) {
+        hitEffect = window.V2CombatEffects.play(document.getElementById("fighter-" + target.id), hitFrames,
+          {guard: () => effectBattleId === state.battleId && !state.ended, wait: ms => delay(ms, effectBattleId)});
+      } else if (damage > 0) slashAt(target, legionColor);
       scene.classList.add("is-shaking");
       setTimeout(() => scene.classList.remove("is-shaking"), 230);
       target.hp -= damage;
@@ -608,6 +615,7 @@
     if (!impacted) impact();
     if (targetMotion) await targetMotion;
     else await delay(310);
+    if (hitEffect) await hitEffect;
     if (ultimate) scene.classList.remove("is-ultimate");
 
     if (target.hp <= 0) { await killUnit(target); return; }

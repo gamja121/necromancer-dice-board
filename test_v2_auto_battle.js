@@ -28,7 +28,7 @@ assert(!html.includes('id="unitInfoTeam"') && !html.includes('id="unitInfoState"
 const dicePanel = html.match(/<section id="turnDice"[\s\S]*?<\/section>/)?.[0] || "";
 assert(!dicePanel.includes("turn-dice-panel") && !dicePanel.includes("<span") && !dicePanel.includes("<strong") && !dicePanel.includes("<small"), "Only the dice button should remain in the center.");
 assert(!html.includes('class="versus"') && !source.includes("diceResultLabel") && !source.includes("diceTurnLabel"), "Center labels and obsolete references must be removed.");
-assert(html.indexOf('src="unit-data.js?v=45"') < html.indexOf('src="v2-auto-battle-practice.js'), "Shared unit metadata must load before the battle page.");
+assert(html.indexOf('src="unit-data.js?v=46"') < html.indexOf('src="v2-auto-battle-practice.js'), "Shared unit metadata must load before the battle page.");
 assert(!basicPanel.includes('id="unitInfoHp"'), "Stats must not be placed in the basic panel.");
 for (const id of ["unitInfoHp", "unitInfoAttack", "unitInfoSpeed"]) assert(statsPanel.includes(`id="${id}"`), `${id} must be in the lower-right stats panel.`);
 assert(!html.includes('id="unitInfoRoll"') && !source.includes("unitInfoRoll"), "Common roll must not be in the unit info window.");
@@ -70,7 +70,7 @@ assert(css.includes("@keyframes damage-float") && css.includes(".brand-indicator
 assert(source.includes("V2BattleBrands.attack(actor, target)"), "Assigned brands must affect attacks.");
 assert(source.includes("V2BattleBrands.startRound(units, lastDiceRoll)"), "Brands must use the shared turn roll.");
 assert(source.includes('roundState.textContent = `${allyAlive}+1 VS ${enemyAlive}+1`'), "Five-slot formation counter is missing.");
-assert((source.match(/unit\("/g) || []).length === 8, "Battle must define exactly eight units.");
+assert((source.slice(source.indexOf("  const TEAM_DATA"), source.indexOf("  const battlefield")).match(/unit\("/g) || []).length === 8, "Default battle must define exactly eight units.");
 assert(source.includes("turnQueue = units.filter"), "Per-turn action queue is missing.");
 assert(source.includes("right.unitState.speed - left.unitState.speed"), "Units must act in descending speed order.");
 assert(source.includes("let actor = turnQueue.shift()"), "Each queued unit must receive one action per turn.");
@@ -104,10 +104,10 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v160'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v161'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
 assert(worker.includes("v2-auto-battle-practice.css?v=18"), "Turn dice and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=19") && worker.includes("v2-battle-brands.js?v=1"), "Turn-based auto battle and brands are not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=20") && worker.includes("v2-battle-brands.js?v=1"), "Turn-based auto battle and brands are not cached.");
 assert(worker.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit info frame is not cached.");
 // Exercise the real information-window functions without a rendering engine.
 const infoContext = { awaitingRoll: true, diceRolling: false, lastDiceRoll: null, V2BattleBrands: require("./v2-battle-brands.js"), document: { getElementById: () => ({ focus() {} }) } };

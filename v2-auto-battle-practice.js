@@ -6,6 +6,7 @@
   ];
   const FRAME_ROOT = "art/v2-style/animation-test-frames/";
   const UNIT_TYPE_KEYS = {
+    "forest-fairy": "forestFairy", "siren": "siren",
     "death-knight": "demonDeathKnight", "skeleton-spear": "spear", "ghoul": "ghoul",
     "ancient-treant": "ancientTreant", "goblin-rider": "goblinRider",
     "orc-warrior": "troll", "boulder-ogre": "ogre", "minotaur": "minotaur"
@@ -47,6 +48,12 @@
   };
 
   const battlefield = document.getElementById("battlefield");
+  // Optional demonstration lineup; the normal 4v4 lineup stays unchanged.
+  if (typeof location !== "undefined" && new URLSearchParams(location.search).get("effects") === "pixie-siren") {
+    TEAM_DATA.ally.splice(0, 2,
+      unit("forest-fairy", "픽시", 8, 2, 5, 5, 4, 7),
+      unit("siren", "세이렌", 9, 2, 4, 5, 4, 7));
+  }
   const allyTeam = document.getElementById("allyTeam");
   const enemyTeam = document.getElementById("enemyTeam");
   const message = document.getElementById("battleMessage");
@@ -426,6 +433,8 @@
     message.textContent = `${turnNumber}턴 · ${actor.name}(속도 ${actor.speed}) → ${target.name}`;
     actor.element.classList.add("is-attacking");
     target.element.classList.add("is-targeted");
+    const hitFrames = typeof V2CombatEffects !== "undefined" ? await V2CombatEffects.prepare(actor.slug) : null;
+    if (token !== battleToken || !running) return;
     await playMotion(actor, "attack", actor.frames.attack, token);
     if (token !== battleToken || !running) return;
 
@@ -438,7 +447,11 @@
     if (outcome.damage > 0) {
       showDamage(target, outcome.damage);
       target.element.classList.add("is-hit");
-      await playMotion(target, "hit", target.frames.hit, token);
+      await Promise.all([
+        playMotion(target, "hit", target.frames.hit, token),
+        typeof V2CombatEffects !== "undefined" ? V2CombatEffects.play(target.element.querySelector(".sprite-wrap"), hitFrames,
+          {guard: () => token === battleToken && running, wait, speed: speedMultiplier}) : Promise.resolve()
+      ]);
     } else await wait(250 / speedMultiplier);
     if (token !== battleToken || !running) return;
     target.element.classList.remove("is-hit");
