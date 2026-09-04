@@ -2,28 +2,35 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const { execFileSync } = require("node:child_process");
+const hydra = process.argv.includes("--hydra");
+const sourceHeight = hydra ? 576 : 698;
 const scorpion = process.argv.includes("--scorpion");
 const hound = process.argv.includes("--hound");
-const slug = hound ? "bone-hound" : scorpion ? "scorpion-knight" : "hell-mantis";
-const label = hound ? "뼈 사냥개" : scorpion ? "전갈 기사" : "지옥 사마귀";
+const slug = hydra ? "hydra" : hound ? "bone-hound" : scorpion ? "scorpion-knight" : "hell-mantis";
+const label = hydra ? "히드라" : hound ? "뼈 사냥개" : scorpion ? "전갈 기사" : "지옥 사마귀";
 const canvasWidth = scorpion ? 340 : 280;
-const api = require(hound ? "./v2-hound-frames.js" : scorpion ? "./v2-scorpion-frames.js" : "./v2-mantis-frames.js");
-const sheet = path.join(__dirname, api.SHEET);
+const api = require(hydra ? "./v2-hydra-frames.js" : hound ? "./v2-hound-frames.js" : scorpion ? "./v2-scorpion-frames.js" : "./v2-mantis-frames.js");
+function decode(relative) {
+const sheet = path.join(__dirname, relative);
 // Decode the actual JPEG read-only, then run the browser crop/key/flip code.
-const command = `Add-Type -AssemblyName System.Drawing; $b = [System.Drawing.Bitmap]::new('${sheet.replace(/'/g, "''")}'); try { if ($b.Width -ne 1280 -or $b.Height -ne 698) { throw 'Wrong sheet dimensions' }; $r = [System.Drawing.Rectangle]::new(0,0,1280,698); $d = $b.LockBits($r,[System.Drawing.Imaging.ImageLockMode]::ReadOnly,[System.Drawing.Imaging.PixelFormat]::Format32bppArgb); try { $p = [byte[]]::new(1280*698*4); [System.Runtime.InteropServices.Marshal]::Copy($d.Scan0,$p,0,$p.Length); [Convert]::ToBase64String($p) } finally { $b.UnlockBits($d) } } finally { $b.Dispose() }`;
+const command = `Add-Type -AssemblyName System.Drawing; $b = [System.Drawing.Bitmap]::new('${sheet.replace(/'/g, "''")}'); try { if ($b.Width -ne 1280 -or $b.Height -ne ${sourceHeight}) { throw 'Wrong sheet dimensions' }; $r = [System.Drawing.Rectangle]::new(0,0,1280,${sourceHeight}); $d = $b.LockBits($r,[System.Drawing.Imaging.ImageLockMode]::ReadOnly,[System.Drawing.Imaging.PixelFormat]::Format32bppArgb); try { $p = [byte[]]::new(1280*${sourceHeight}*4); [System.Runtime.InteropServices.Marshal]::Copy($d.Scan0,$p,0,$p.Length); [Convert]::ToBase64String($p) } finally { $b.UnlockBits($d) } } finally { $b.Dispose() }`;
 const bgra = Buffer.from(execFileSync("powershell.exe", ["-NoProfile", "-Command", command], { maxBuffer: 8 * 1024 * 1024 }).toString().trim(), "base64");
-assert.equal(bgra.length, 1280 * 698 * 4);
+assert.equal(bgra.length, 1280 * sourceHeight * 4);
+return bgra;
+}
+const bgra = decode(api.SHEET);
+const secondData = hydra ? decode(api.SECOND_SHEET) : null;
 const frames = [];
 const document = { createElement() {
-  let region, flip = false, drawn;
+  let region, flip = false, drawn, input = bgra;
   const canvas = { width: 0, height: 0, getContext() { return {
-    drawImage(source, ...args) { if (source.naturalWidth) region = args.slice(0, 4); else drawn = args; },
+    drawImage(source, ...args) { if (source.naturalWidth) { region = args.slice(0, 4); input = source.second ? secondData : bgra; canvas.sheetId = source.second ? 2 : 1; } else { drawn = args; canvas.sheetId = source.sheetId; } },
     getImageData() {
       const [sx, sy, w, h] = region;
       const data = new Uint8ClampedArray(w * h * 4);
       for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
         const p = ((sy + y) * 1280 + sx + x) * 4, q = (y * w + x) * 4;
-        data[q] = bgra[p + 2]; data[q + 1] = bgra[p + 1]; data[q + 2] = bgra[p]; data[q + 3] = 255;
+        data[q] = input[p + 2]; data[q + 1] = input[p + 1]; data[q + 2] = input[p]; data[q + 3] = 255;
       }
       return { data };
     },
@@ -35,15 +42,19 @@ const document = { createElement() {
     const [sx, sy, sw, sh, dx, dy, dw, dh] = drawn;
     assert(sw > 40 && sh > 40);
     assert(dx >= 8 && dy >= 8 && dx + dw <= canvasWidth - 8 && dy + dh === 250, "Safe edges and a shared foot baseline");
-    frames.push({ flip, width: sw, height: sh });
+    frames.push({ flip, width: sw, height: sh, sheet: canvas.sheetId });
     return "frame-" + frames.length;
   } };
   return canvas;
 } };
-const result = api.buildFrames({ naturalWidth: 1280, naturalHeight: 698 }, document);
+const result = api.buildFrames({ naturalWidth: 1280, naturalHeight: sourceHeight }, document, { naturalWidth: 1280, naturalHeight: sourceHeight, second: true });
 assert.equal(result.attack.length, 5); assert.equal(result.hit.length, scorpion ? 3 : 4); assert.equal(result.death.length, scorpion ? 5 : 6);
 assert.equal(result.idle, result.attack[0]);
-assert.deepEqual(frames.flatMap((f,i) => f.flip ? [i] : []), scorpion || hound ? [] : [4], "Only mantis attack frame 5 is mirrored");
+assert.deepEqual(frames.flatMap((f,i) => f.flip ? [i] : []), scorpion || hound || hydra ? [] : [4], "Only mantis attack frame 5 is mirrored");
+if (hydra) {
+  assert.deepEqual(result.death, ["frame-10","frame-11","frame-12","frame-13","frame-14","frame-15"]);
+  assert.deepEqual(frames.map(f => f.sheet), [...Array(13).fill(1),2,2], "Only final two death frames come from image 2");
+}
 const pixels = new Uint8ClampedArray([255,0,255,255, 50,70,45,255]);
 api.keyMagenta(pixels);
 assert.equal(pixels[3], 0); assert.deepEqual(Array.from(pixels.slice(4)), [50,70,45,255]);
@@ -79,6 +90,7 @@ async function testPlayer() {
     V2MantisFrames: { prepare: async () => result },
     V2ScorpionFrames: { prepare: async () => result },
     V2HoundFrames: { prepare: async () => result },
+    V2HydraFrames: { prepare: async () => result },
     Image: class { set src(value) { queueMicrotask(() => this.onload()); } },
     setTimeout: fn => queueMicrotask(fn)
   };

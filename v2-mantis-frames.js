@@ -20,7 +20,7 @@
     }
   }
   function buildFrames(image, document, options = {}) {
-    if (image.naturalWidth !== 1280 || image.naturalHeight !== 698) throw new Error("Unexpected mantis sheet dimensions");
+    if (image.naturalWidth !== 1280 || image.naturalHeight !== (options.sourceHeight || 698)) throw new Error("Unexpected sheet dimensions");
     const result = {};
     const canvasWidth = options.canvasWidth || 280;
     for (const [motion, row] of Object.entries(options.rows || ROWS)) {
@@ -43,7 +43,8 @@
           top = Math.min(top, y); bottom = Math.max(bottom, y);
         }
         if (right < left) throw new Error("Empty mantis frame");
-        if (left === 0 || right === width - 1 || top === 0 || bottom === height - 1) throw new Error("Mantis frame touches crop edge: " + motion + (index + 1) + " " + JSON.stringify({left, top, right, bottom, width, height}));
+        const sourceEdge = options.allowSourceEdge;
+        if ((left === 0 && !(sourceEdge && x === 0)) || (right === width - 1 && !(sourceEdge && x + width === image.naturalWidth)) || (top === 0 && !(sourceEdge && row.top === 0)) || (bottom === height - 1 && !(sourceEdge && row.bottom === image.naturalHeight))) throw new Error("Frame touches crop edge: " + motion + (index + 1) + " " + JSON.stringify({left, top, right, bottom, width, height}));
         const fw = right - left + 1, fh = bottom - top + 1;
         const frame = document.createElement("canvas");
         frame.width = canvasWidth; frame.height = 260;
@@ -53,7 +54,7 @@
         return frame.toDataURL("image/png");
       });
     }
-    result.idle = result.attack[0];
+    result.idle = result.attack?.[0];
     return result;
   }
   let cached;
