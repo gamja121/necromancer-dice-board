@@ -2,19 +2,20 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const { execFileSync } = require("node:child_process");
+const goblin = process.argv.includes("--goblin");
 const princess = process.argv.includes("--princess");
 const blood = process.argv.includes("--blood");
 const canvasHeight = blood ? 300 : 260;
 const hydra = process.argv.includes("--hydra");
 const seed = process.argv.includes("--seed");
 const harpy = process.argv.includes("--harpy");
-const sourceHeight = blood ? 1280 : hydra || princess ? 576 : 698;
+const sourceHeight = goblin ? 575 : blood ? 1280 : hydra || princess ? 576 : 698;
 const scorpion = process.argv.includes("--scorpion");
 const hound = process.argv.includes("--hound");
-const slug = princess ? "ice-princess" : blood ? "bone-golem" : seed ? "guardian-seed" : harpy ? "abyss-harpy" : hydra ? "hydra" : hound ? "bone-hound" : scorpion ? "scorpion-knight" : "hell-mantis";
-const label = princess ? "얼음 공주" : blood ? "핏빛 해골" : seed ? "수호 씨앗" : harpy ? "심연 하피" : hydra ? "히드라" : hound ? "뼈 사냥개" : scorpion ? "전갈 기사" : "지옥 사마귀";
+const slug = goblin ? "goblin-soldier" : princess ? "ice-princess" : blood ? "bone-golem" : seed ? "guardian-seed" : harpy ? "abyss-harpy" : hydra ? "hydra" : hound ? "bone-hound" : scorpion ? "scorpion-knight" : "hell-mantis";
+const label = goblin ? "고블린 병사" : princess ? "얼음 공주" : blood ? "핏빛 해골" : seed ? "수호 씨앗" : harpy ? "심연 하피" : hydra ? "히드라" : hound ? "뼈 사냥개" : scorpion ? "전갈 기사" : "지옥 사마귀";
 const canvasWidth = blood ? 320 : scorpion ? 340 : 280;
-const api = require(princess ? "./v2-princess-frames.js" : blood ? "./v2-blood-frames.js" : seed ? "./v2-seed-frames.js" : harpy ? "./v2-harpy-frames.js" : hydra ? "./v2-hydra-frames.js" : hound ? "./v2-hound-frames.js" : scorpion ? "./v2-scorpion-frames.js" : "./v2-mantis-frames.js");
+const api = require(goblin ? "./v2-goblin-frames.js" : princess ? "./v2-princess-frames.js" : blood ? "./v2-blood-frames.js" : seed ? "./v2-seed-frames.js" : harpy ? "./v2-harpy-frames.js" : hydra ? "./v2-hydra-frames.js" : hound ? "./v2-hound-frames.js" : scorpion ? "./v2-scorpion-frames.js" : "./v2-mantis-frames.js");
 function decode(relative) {
 const sheet = path.join(__dirname, relative);
 // Decode the actual JPEG read-only, then run the browser crop/key/flip code.
@@ -24,12 +25,13 @@ assert.equal(bgra.length, 1280 * sourceHeight * 4);
 return bgra;
 }
 const bgra = decode(api.SHEET);
-const secondData = hydra ? decode(api.SECOND_SHEET) : null;
+const secondData = hydra || goblin ? decode(api.SECOND_SHEET) : null;
+const thirdData = goblin ? decode(api.THIRD_SHEET) : null;
 const frames = [];
 const document = { createElement() {
   let region, flip = false, drawn, input = bgra;
   const canvas = { width: 0, height: 0, getContext() { return {
-    drawImage(source, ...args) { if (source.naturalWidth) { region = args.slice(0, 4); input = source.second ? secondData : bgra; canvas.sheetId = source.second ? 2 : 1; } else { drawn = args; canvas.sheetId = source.sheetId; } },
+    drawImage(source, ...args) { if (source.naturalWidth) { region = args.slice(0, 4); input = source.third ? thirdData : source.second ? secondData : bgra; canvas.sheetId = source.third ? 3 : source.second ? 2 : 1; } else { drawn = args; canvas.sheetId = source.sheetId; } },
     getImageData() {
       const [sx, sy, w, h] = region;
       const data = new Uint8ClampedArray(w * h * 4);
@@ -52,10 +54,16 @@ const document = { createElement() {
   } };
   return canvas;
 } };
-const result = api.buildFrames({ naturalWidth: 1280, naturalHeight: sourceHeight }, document, { naturalWidth: 1280, naturalHeight: sourceHeight, second: true });
-assert.equal(result.attack.length, princess ? 6 : harpy ? 4 : 5); assert.equal(result.hit.length, scorpion || seed ? 3 : 4); assert.equal(result.death.length, seed ? 4 : scorpion || harpy || blood || princess ? 5 : 6);
+const result = api.buildFrames({ naturalWidth: 1280, naturalHeight: sourceHeight }, document, { naturalWidth: 1280, naturalHeight: sourceHeight, second: true }, { naturalWidth:1280, naturalHeight:sourceHeight, third:true });
+assert.equal(result.attack.length, princess || goblin ? 6 : harpy ? 4 : 5); assert.equal(result.hit.length, scorpion || seed ? 3 : 4); assert.equal(result.death.length, seed ? 4 : scorpion || harpy || blood || princess || goblin ? 5 : 6);
 assert.equal(result.idle, result.attack[0]);
-assert.deepEqual(frames.flatMap((f,i) => f.flip ? [i] : []), scorpion || hound || hydra || harpy || seed || blood || princess ? [] : [4], "Only mantis attack frame 5 is mirrored");
+assert.deepEqual(frames.flatMap((f,i) => f.flip ? [i] : []), scorpion || hound || hydra || harpy || seed || blood || princess || goblin ? [] : [4], "Only mantis attack frame 5 is mirrored");
+if (goblin) {
+  assert.deepEqual(result.attack,["frame-5","frame-2","frame-3","frame-4","frame-2","frame-5"]);
+  assert.deepEqual(result.hit,["frame-8","frame-9","frame-10","frame-11"]);
+  assert.deepEqual(result.death,["frame-5","frame-6","frame-7","frame-12","frame-13"]);
+  assert.deepEqual(frames.map(f=>f.sheet),[...Array(7).fill(1),...Array(5).fill(2),3]);
+}
 if (hydra) {
   assert.deepEqual(result.death, ["frame-10","frame-11","frame-12","frame-13","frame-14","frame-15"]);
   assert.deepEqual(frames.map(f => f.sheet), [...Array(13).fill(1),2,2], "Only final two death frames come from image 2");
@@ -109,6 +117,7 @@ async function testPlayer() {
     V2SeedFrames: { prepare: async () => result },
     V2BloodFrames: { prepare: async () => result },
     V2PrincessFrames: { prepare: async () => result },
+    V2GoblinFrames: { prepare: async () => result },
     Image: class { set src(value) { queueMicrotask(() => this.onload()); } },
     setTimeout: fn => queueMicrotask(fn)
   };
