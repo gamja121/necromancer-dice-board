@@ -61,6 +61,7 @@
     attack: document.querySelector("#attackBtn"), hit: document.querySelector("#hitBtn"), death: document.querySelector("#deathBtn"),
     reset: document.querySelector("#resetBtn"), battlefield: document.querySelector("#battlefieldBtn"),
     effect: document.querySelector("#hitEffectBtn"), effectSprite: document.querySelector("#hitEffectSprite"),
+    claw: document.querySelector("#clawEffectBtn"),
     unitName: document.querySelector("#unitName"), unitButtons: [...document.querySelectorAll(".unit-button")]
   };
   function pathFor(motion, index) {
@@ -82,7 +83,7 @@
       image.src = url;
     });
   }
-  function setButtons(disabled) { [el.attack, el.hit, el.death, el.reset, el.effect].forEach((button) => { button.disabled = disabled; }); }
+  function setButtons(disabled) { [el.attack, el.hit, el.death, el.reset, el.effect, el.claw].forEach((button) => { button.disabled = disabled; }); }
   function setIdle() {
     el.sprite.src = frameSets.idle;
     el.sprite.className = "";
@@ -156,14 +157,15 @@
     if (motion !== "death") setIdle();
     el.status.textContent = `${label} 모션 완료`;
   }
-  async function playHitEffect() {
+  async function playHitEffect(id = "physical") {
     if (state.busy || el.effect.disabled) return;
     const token = ++state.token;
+    const label = V2HitEffects.EFFECTS[id].name;
     state.busy = true;
     setButtons(true);
-    el.status.textContent = "기본 물리 타격 효과를 불러오는 중";
+    el.status.textContent = `${label} 효과를 불러오는 중`;
     try {
-      const effects = await V2HitEffects.prepare();
+      const effects = await V2HitEffects.prepare(id);
       await Promise.all(effects.map(loadImage));
       if (token !== state.token) return;
       const duration = Math.max(frameSets.hit.length * FRAME_MS.hit, effects.length * 65);
@@ -173,7 +175,7 @@
       ])].sort((a, b) => a - b);
       el.sprite.className = "motion-hit";
       el.sprite.style.transform = "";
-      el.status.textContent = "기본 물리 타격 · 피격 효과 테스트";
+      el.status.textContent = `${label} · 피격 효과 테스트`;
       for (let step = 0; step < timeline.length - 1; step++) {
         const elapsed = timeline[step];
         if (token !== state.token) return;
@@ -186,12 +188,12 @@
           el.effectSprite.hidden = index >= effects.length;
           if (index < effects.length) {
             el.effectSprite.src = effects[index];
-            el.counter.textContent = `기본 물리 타격 ${index + 1} / ${effects.length}`;
+            el.counter.textContent = `${label} ${index + 1} / ${effects.length}`;
           }
         }
         await new Promise(resolve => setTimeout(resolve, timeline[step + 1] - elapsed));
       }
-      if (token === state.token) el.status.textContent = "기본 물리 타격 테스트 완료";
+      if (token === state.token) el.status.textContent = `${label} 테스트 완료`;
     } catch (error) {
       console.error(error);
       if (token === state.token) el.status.textContent = "타격 효과를 불러오지 못했습니다. 다시 눌러주세요.";
@@ -214,7 +216,8 @@
   }
   el.attack.addEventListener("click", () => playMotion("attack"));
   el.hit.addEventListener("click", () => playMotion("hit"));
-  el.effect.addEventListener("click", playHitEffect);
+  el.effect.addEventListener("click", () => playHitEffect("physical"));
+  el.claw.addEventListener("click", () => playHitEffect("claw"));
   el.death.addEventListener("click", () => playMotion("death"));
   el.reset.addEventListener("click", reset);
   el.battlefield.addEventListener("click", () => selectBattlefield(true));

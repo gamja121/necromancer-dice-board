@@ -7,6 +7,10 @@ const pixels = new Uint8ClampedArray([0,210,0,255,255,240,80,255,255,255,240,255
 api.keyGreen(pixels);
 assert.equal(pixels[3],0);
 assert.deepEqual([...pixels.slice(4)],[255,240,80,255,255,255,240,255]);
+const faint = new Uint8ClampedArray([0,210,0,255,50,210,20,255]);
+api.keyGreen(faint,true);
+assert.equal(faint[3],0);
+assert.equal(faint[7],50,'Faint claw trails survive green removal');
 const crops = [];
 const effects = api.buildFrames({naturalWidth:1280,naturalHeight:575}, {createElement() {
   return {getContext() { return {
@@ -16,6 +20,16 @@ const effects = api.buildFrames({naturalWidth:1280,naturalHeight:575}, {createEl
 }});
 assert.equal(effects.length,8);
 crops.forEach((crop,i)=>assert.deepEqual(crop,[api.CENTERS[i]-64,1,128,128,0,0,128,128]));
+const clawCrops = [];
+assert(fs.existsSync(api.EFFECTS.claw.sheet));
+api.buildFrames({naturalWidth:1280,naturalHeight:575},{createElement(){return {
+  getContext(){return {
+    drawImage(image,...args){clawCrops.push(args);},
+    getImageData(){return {data:new Uint8ClampedArray(256*256*4)};},putImageData(){}
+  };},toDataURL(){assert.equal(this.width,256);assert.equal(this.height,256);return 'claw';}
+};}},'claw');
+assert.equal(clawCrops.length,8);
+clawCrops.forEach((crop,i)=>assert.deepEqual(crop,[i*160,0,160,256,48,0,160,256],'Only top-row frames, at original scale'));
 async function main() {
   const elements = new Map(), shown = [], unitFrames = [];
   const get = id => {
@@ -32,7 +46,7 @@ async function main() {
     document:{querySelector:get,querySelectorAll:()=>[]},
     Image:class {set src(v){queueMicrotask(()=>this.onload());}},
     setTimeout:fn=>queueMicrotask(fn),
-    V2HitEffects:{async prepare(){calls++; if(fail) throw Error('test'); return effects;}}
+    V2HitEffects:{EFFECTS:api.EFFECTS,async prepare(id){calls++; if(fail) throw Error('test'); return id === 'claw' ? effects.map(x=>'claw-'+x) : effects;}}
   });
   await new Promise(setImmediate);
   const click=()=>get('#hitEffectBtn').handlers.click();
@@ -51,6 +65,11 @@ async function main() {
   assert(get('#hitEffectSprite').hidden);
   assert(get('#motionStatus').textContent.includes('돌아왔습니다'));
   shown.length=0; await click(); assert.deepEqual(shown,effects);
+  shown.length=0;
+  await get('#clawEffectBtn').handlers.click();
+  assert.deepEqual(shown,effects.map(x=>'claw-'+x));
+  assert.equal(get('#motionStatus').textContent,'손톱공격 테스트 완료');
+  assert(get('#hitEffectSprite').hidden);
   console.log('PASS: impact crop centers, transparency, hit synchronization, double-click guard, failure/retry and reset.');
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
