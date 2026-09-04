@@ -1,11 +1,13 @@
-const CACHE_NAME = "necromancer-expedition-v147";
+const CACHE_NAME = "necromancer-expedition-v148";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./v2.html",
   "./v2-animation-practice.html",
   "./v2-animation-practice.css?v=5",
-  "./v2-animation-practice.js?v=56",
+  "./v2-animation-practice.js?v=57",
+  "./v2-blood-frames.js?v=1",
+  "./art/v2-style/animation-sheets/green-raw/bone-golem-animation-sheet.jpg",
   "./v2-seed-frames.js?v=1",
   "./art/v2-style/animation-sheets/green-raw/guardian-seed-animation-sheet.jpg",
   "./v2-harpy-frames.js?v=1",
@@ -15,7 +17,7 @@ const APP_SHELL = [
   "./art/v2-style/animation-sheets/green-raw/hydra-2.jpg",
   "./v2-hound-frames.js?v=1",
   "./art/v2-style/animation-sheets/green-raw/bone-hound-animation-sheet.jpg",
-  "./v2-mantis-frames.js?v=4",
+  "./v2-mantis-frames.js?v=5",
   "./v2-scorpion-frames.js?v=1",
   "./art/v2-style/animation-sheets/green-raw/scorpion-knight-animation-sheet.jpg",
   "./art/v2-style/animation-sheets/green-raw/hell-mantis-animation-sheet.jpg",

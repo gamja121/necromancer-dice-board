@@ -23,8 +23,10 @@
     if (image.naturalWidth !== 1280 || image.naturalHeight !== (options.sourceHeight || 698)) throw new Error("Unexpected sheet dimensions");
     const result = {};
     const canvasWidth = options.canvasWidth || 280;
+    const canvasHeight = options.canvasHeight || 260;
     for (const [motion, row] of Object.entries(options.rows || ROWS)) {
-      result[motion] = row.edges.slice(0, -1).map((x, index) => {
+      result[motion] = row.edges.slice(0, -1).map((cellX, index) => {
+        const x = row.starts?.[index] ?? cellX;
         const width = row.edges[index + 1] - x, height = row.bottom - row.top;
         const cut = document.createElement("canvas");
         cut.width = width; cut.height = height;
@@ -47,10 +49,10 @@
         if ((left === 0 && !(sourceEdge && x === 0)) || (right === width - 1 && !(sourceEdge && x + width === image.naturalWidth)) || (top === 0 && !(sourceEdge && row.top === 0)) || (bottom === height - 1 && !(sourceEdge && row.bottom === image.naturalHeight))) throw new Error("Frame touches crop edge: " + motion + (index + 1) + " " + JSON.stringify({left, top, right, bottom, width, height}));
         const fw = right - left + 1, fh = bottom - top + 1;
         const frame = document.createElement("canvas");
-        frame.width = canvasWidth; frame.height = 260;
+        frame.width = canvasWidth; frame.height = canvasHeight;
         const fc = frame.getContext("2d");
         if ((options.mirrored || mirrored)(motion, index)) { fc.translate(canvasWidth, 0); fc.scale(-1, 1); }
-        fc.drawImage(cut, left, top, fw, fh, Math.floor((canvasWidth - fw) / 2), 250 - fh, fw, fh);
+        fc.drawImage(cut, left, top, fw, fh, Math.floor((canvasWidth - fw) / 2), canvasHeight - 10 - fh, fw, fh);
         return frame.toDataURL("image/png");
       });
     }
