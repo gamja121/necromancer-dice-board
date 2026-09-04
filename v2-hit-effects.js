@@ -17,7 +17,11 @@
       centers: Object.freeze([80, 240, 400, 560, 720, 880, 1040, 1200]), width: 160, height: 180, top: 200, size: 180 }),
     wind: Object.freeze({ name: "바람공격", sheet: "art/v2-style/ui/wind-hit-sheet.jpg",
       centers: Object.freeze([80, 240, 400, 560, 720, 880, 1040, 1200]), width: 160, height: 180, top: 0, size: 180,
-      background: Object.freeze([43, 210, 6]) })
+      background: Object.freeze([43, 210, 6]) }),
+    music: Object.freeze({ name: "음표공격", sheet: "art/v2-style/ui/music-hit-sheet.jpg",
+      centers: Object.freeze([80, 240, 400, 560, 720, 880, 1040, 1200]), width: 160, height: 200, top: 150, size: 200,
+      starts: Object.freeze([0, 160, 320, 480, 656, 800, 960, 1120]),
+      widths: Object.freeze([160, 160, 160, 176, 144, 160, 160, 160]), background: Object.freeze([24, 203, 13]) })
   });
   function keyPoison(data) {
     // Match only the bright backdrop, not the green pigment of the gas.
@@ -58,11 +62,13 @@
       const canvas = doc.createElement("canvas");
       canvas.width = canvas.height = effect.size;
       const ctx = canvas.getContext("2d");
-      ctx.drawImage(image, x - effect.width / 2, effect.tops ? effect.tops[index] : effect.top, effect.width, effect.height,
-        (effect.size - effect.width) / 2, 0, effect.width, effect.height);
+      const start = effect.starts ? effect.starts[index] : x - effect.width / 2;
+      const width = effect.widths ? effect.widths[index] : effect.width;
+      ctx.drawImage(image, start, effect.tops ? effect.tops[index] : effect.top, width, effect.height,
+        effect.size / 2 + start - x, 0, width, effect.height);
       const pixels = ctx.getImageData(0, 0, effect.size, effect.size);
       if (id === "poison") keyPoison(pixels.data);
-      else keyGreen(pixels.data, id === "claw" || id === "slash" || id === "wind", effect.background);
+      else keyGreen(pixels.data, id === "claw" || id === "slash" || id === "wind" || id === "music", effect.background);
       ctx.putImageData(pixels, 0, 0);
       return canvas.toDataURL("image/png");
     });

@@ -31,6 +31,17 @@ api.buildFrames({naturalWidth:1280,naturalHeight:575},{createElement(){return {
 assert.equal(clawCrops.length,8);
 clawCrops.forEach((crop,i)=>assert.deepEqual(crop,[i*160,0,160,256,48,0,160,256],'Only top-row frames, at original scale'));
 async function main() {
+  const musicCrops=[];
+  assert(fs.existsSync(api.EFFECTS.music.sheet));
+  api.buildFrames({naturalWidth:1280,naturalHeight:575},{createElement(){return {
+    getContext(){return {drawImage(image,...args){musicCrops.push(args);},getImageData(){return {data:new Uint8ClampedArray(200*200*4)};},putImageData(){}};},
+    toDataURL(){assert.equal(this.width,200);assert.equal(this.height,200);return 'music';}
+  };}},'music');
+  assert.equal(musicCrops.length,8);
+  musicCrops.forEach((crop,i)=>{const start=[0,160,320,480,656,800,960,1120][i],w=[160,160,160,176,144,160,160,160][i];assert.deepEqual(crop,[start,150,w,200,20+start-i*160,0,w,200]);});
+  const notes=new Uint8ClampedArray([24,203,13,255,245,220,70,255,65,203,60,255]);
+  api.keyGreen(notes,true,api.EFFECTS.music.background);
+  assert.equal(notes[3],0);assert.equal(notes[7],255);assert(notes[11]>0);
   const windCrops=[];
   assert(fs.existsSync(api.EFFECTS.wind.sheet));
   api.buildFrames({naturalWidth:1280,naturalHeight:575},{createElement(){return {
@@ -136,6 +147,11 @@ async function main() {
   assert.deepEqual(shown,effects.map(x=>'wind-'+x));
   assert.equal(get('#motionStatus').textContent,'바람공격 테스트 완료');
   assert.equal(get('#windEffectBtn').disabled,false);
+  shown.length=0;
+  await get('#musicEffectBtn').handlers.click();
+  assert.deepEqual(shown,effects.map(x=>'music-'+x));
+  assert.equal(get('#motionStatus').textContent,'음표공격 테스트 완료');
+  assert.equal(get('#musicEffectBtn').disabled,false);
   assert(get('#hitEffectSprite').hidden);
   console.log('PASS: impact crop centers, transparency, hit synchronization, double-click guard, failure/retry and reset.');
 }
