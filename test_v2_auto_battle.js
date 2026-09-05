@@ -75,7 +75,9 @@ assert(html.includes('id="unitRoster"') && html.includes('id="selectedLineup"') 
 assert(source.includes("const ROSTER_SPECS") && source.includes("selectedAllySlugs.length !== 4"), "The ally roster must require exactly four selections.");
 assert(source.includes("selectedAllyTeam.map") && source.includes("startSelectedBattle"), "The selected ally lineup must be used to create the battle.");
 assert(source.includes("selectedAllySlugs.push(slug)") && source.includes("selectedAllySlugs.splice(selectedIndex, 1)"), "Roster choices must support selecting and removing units.");
-assert(css.includes(".unit-roster") && css.includes("overflow: auto") && css.includes("grid-template-columns: repeat(9"), "The mobile-safe roster must use a compact scrollable grid.");
+assert(css.includes(".unit-roster") && css.includes("overflow-y: auto") && css.includes("touch-action: pan-y") && css.includes("grid-template-columns: repeat(9"), "The roster must be a touch-scrollable grid.");
+assert(html.indexOf('id="startButton"') < html.indexOf('id="unitRoster"'), "The start button must stay above the scrollable roster on mobile.");
+assert(css.includes(".lineup-panel > #startButton") && css.includes("grid-template-columns: repeat(8"), "Portrait-phone lineup controls must stay visible and compact.");
 assert(source.includes("turnQueue = units.filter"), "Per-turn action queue is missing.");
 assert(source.includes("right.unitState.speed - left.unitState.speed"), "Units must act in descending speed order.");
 assert(source.includes("let actor = turnQueue.shift()"), "Each queued unit must receive one action per turn.");
@@ -109,9 +111,9 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v169'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v170'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=20"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=21"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
 assert(worker.includes("v2-auto-battle-practice.js?v=21") && worker.includes("v2-battle-brands.js?v=1"), "Turn-based auto battle, lineup picker and brands are not cached.");
 assert(worker.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit info frame is not cached.");
 // Exercise the real information-window functions without a rendering engine.

@@ -95,23 +95,33 @@ button, a { font: inherit; }
 .overlay-panel h1, .overlay-panel h2 { margin: 8px 0; color: #ffe0a5; font: 900 clamp(18px, 3vw, 32px)/1.2 Georgia, "Malgun Gothic", serif; }
 .overlay-panel p { margin: 0 auto 13px; color: #cfbea6; font-size: clamp(9px, 1.2vw, 12px); line-height: 1.55; }
 .overlay-panel button { min-width: 150px; height: 38px; border: 1px solid #d0944f; border-radius: 3px; background: linear-gradient(#79431f, #41200f); color: #fff0c8; font-weight: 900; }
-.lineup-panel { display: grid; grid-template-rows: auto auto auto minmax(0, 1fr) auto; width: min(960px, 94%); height: min(88%, 620px); padding: clamp(10px, 1.8vw, 20px); }
+.lineup-panel { display: grid; grid-template-rows: auto auto auto auto minmax(0, 1fr); width: min(960px, 94%); height: min(88%, 620px); min-height: 0; overflow: hidden; padding: clamp(10px, 1.8vw, 20px); }
 .lineup-panel h1 { margin: 3px 0; font-size: clamp(15px, 2.2vw, 25px); }
 .lineup-panel > p { margin-bottom: 7px; }
 .selected-lineup { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; min-height: 31px; margin-bottom: 7px; }
 .selected-slot { display: flex; align-items: center; justify-content: center; min-width: 0; height: 30px; padding: 0 5px; overflow: hidden; border: 1px solid #8e704d; background: #100b08d9; color: #f2d8a8; font-size: clamp(8px, 1vw, 11px); font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
 .selected-slot.is-empty { border-style: dashed; color: #806f5a; }
-.unit-roster { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); align-content: start; gap: 5px; min-height: 0; padding: 5px; overflow: auto; border: 1px solid #624b35; background: #080604b8; scrollbar-color: #815c37 #130d09; }
+.unit-roster { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); align-content: start; gap: 5px; min-height: 0; padding: 5px; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; border: 1px solid #624b35; background: #080604b8; scrollbar-color: #815c37 #130d09; }
 .unit-roster button { position: relative; display: grid; grid-template-rows: minmax(0, 1fr) auto; place-items: center; min-width: 0; width: 100%; height: clamp(67px, 9.2vw, 96px); padding: 3px 2px; border-color: #574634; background: linear-gradient(#261c15, #100c09); color: #cbb99e; font-size: clamp(7px, .78vw, 10px); line-height: 1.15; }
 .unit-roster button img { display: block; width: 100%; height: 100%; min-height: 0; object-fit: contain; filter: drop-shadow(0 2px 2px #000); }
 .unit-roster button b { position: absolute; top: 2px; left: 3px; display: none; width: 18px; height: 18px; place-items: center; border-radius: 50%; background: #d69338; color: #140b04; font-size: 10px; }
 .unit-roster button.is-selected { border-color: #ffc66c; box-shadow: inset 0 0 0 1px #ffc66c, 0 0 8px #d68b3566; color: #ffe4b3; }
 .unit-roster button.is-selected b { display: grid; }
-.lineup-panel > #startButton { justify-self: center; margin-top: 8px; }
+.lineup-panel > #startButton { z-index: 2; justify-self: center; margin: 0 0 8px; flex: 0 0 auto; }
 .lineup-panel > #startButton:disabled { cursor: not-allowed; opacity: .45; }
 @media (orientation: portrait) {
   .auto-battle-lab { position: fixed; left: 50%; top: 50%; width: 100dvh; height: 100vw; padding: 0; transform: translate(-50%, -50%) rotate(90deg); transform-origin: center; }
   .battlefield { width: 100dvh; height: 56.25dvh; max-height: 100vw; }
+  .battle-overlay { padding: 5px; }
+  .lineup-panel { width: 97%; height: 96%; padding: 6px 8px; }
+  .lineup-panel > span { display: none; }
+  .lineup-panel h1 { margin: 0 0 2px; font-size: 15px; }
+  .lineup-panel > p { margin-bottom: 4px; font-size: 8px; line-height: 1.2; }
+  .selected-lineup { gap: 3px; min-height: 24px; margin-bottom: 4px; }
+  .selected-slot { height: 24px; font-size: 8px; }
+  .lineup-panel > #startButton { width: min(250px, 64%); height: 30px; margin-bottom: 5px; font-size: 10px; }
+  .unit-roster { grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px; padding: 3px; }
+  .unit-roster button { height: 59px; font-size: 7px; }
 }
 @media (max-height: 440px) and (orientation: landscape) {
   .battle-toolbar > a, .battle-controls button { height: 27px; min-width: 48px; }
