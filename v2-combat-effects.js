@@ -10,7 +10,13 @@
     plagueFrog: "poison", "plague-frog": "poison", "poison-toad": "poison",
     poisonMushroom: "poison", "mushroom-soldier": "poison", "mushroom-monster": "poison",
     plague: "poison", "plague-doctor": "poison",
-    worm: "toxicLiquid", "grave-worm": "toxicLiquid"
+    worm: "toxicLiquid", "grave-worm": "toxicLiquid",
+    boneHound: "bite", "bone-hound": "bite", "undead-hound": "bite",
+    hydra: "bite",
+    spiderling: "bite", "giant-spider": "bite",
+    golem: "bite", "flesh-golem": "bite", "obese-zombie": "bite",
+    cerberus: "bite",
+    crystalDevourer: "bite", "crystal-devourer": "bite", "carnivorous-flower": "bite"
   });
   async function prepare(type) {
     const id = ATTACK_EFFECTS[type];
