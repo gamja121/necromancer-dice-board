@@ -28,7 +28,11 @@
     mimic: "slash",
     hellMantis: "slash", "hell-mantis": "slash", "mantis-monster": "slash",
     scorpionKnight: "slash", "scorpion-knight": "slash", "scorpion-warrior": "slash",
-    goblinSoldier: "slash", "goblin-soldier": "slash"
+    goblinSoldier: "slash", "goblin-soldier": "slash",
+    goblinChief: "magic", "goblin-chief": "magic", "goblin-shaman": "magic",
+    skeletonSummoner: "magic", "grave-priest": "magic", "hooded-necromancer": "magic",
+    spiderQueen: "magic", "spider-knight": "magic", "spider-queen": "magic",
+    icePrincess: "magic", "ice-princess": "magic"
   });
   async function prepare(type) {
     const id = ATTACK_EFFECTS[type];
