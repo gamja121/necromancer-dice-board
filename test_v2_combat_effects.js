@@ -5,7 +5,9 @@ async function main(){
   assert.equal(api.ATTACK_EFFECTS.forestFairy,'wind');
   assert.equal(api.ATTACK_EFFECTS['forest-fairy'],'wind');
   assert.equal(api.ATTACK_EFFECTS.siren,'music');
-  assert.equal(await api.prepare('ghoul'),null);
+  for(const type of ['ghoul','ragingTreant','raging-treant','abyssHarpy','abyss-harpy','boneGolem','bone-golem','seaWolf','sea-wolf'])
+    assert.equal(api.ATTACK_EFFECTS[type],'claw',type+' must use claw impact');
+  assert.equal(await api.prepare('mimic'),null);
   let loaded;
   global.V2HitEffects={prepare:async id=>{loaded=id;return ['a','b','c'];}};
   global.Image=class{set src(v){queueMicrotask(()=>this.onload());}};
@@ -30,13 +32,13 @@ async function main(){
   for(const slug of ['forest-fairy','siren']) for(const [motion,count] of [['attack',5],['hit',4],['death',7]]) for(let i=1;i<=count;i++) assert(fs.existsSync(`art/v2-style/animation-test-frames/${slug}/${motion}-${String(i).padStart(2,'0')}.png`));
   console.log('PASS: attacker mappings, target playback, cancellation/cleanup, damage gates and demo frame assets.');
   const vm=require('node:vm');
-  for(const slug of ['forest-fairy','siren']) for(const damage of [0,2]) {
+  for(const [slug,effect] of [['forest-fairy','wind'],['siren','music'],['ghoul','claw'],['raging-treant','claw'],['abyss-harpy','claw'],['bone-golem','claw'],['sea-wolf','claw']]) for(const damage of [0,2]) {
     const host={},events=[];
     const unit=slug=>({slug,name:slug,team:'ally',alive:true,hp:10,frames:{attack:5,hit:4,death:7},image:{},element:{classList:{add(){},remove(){}},querySelector(){return host;}}});
     const actor=unit(slug),target=unit('ghoul');target.team='enemy';
     const ctx={actor,Math,battleToken:1,running:true,turnNumber:1,actionCount:0,turnQueue:[],speedMultiplier:1,message:{},
       V2BattleBrands:{beforeAction:()=>false,attack:()=>({damage,miss:damage===0})},
-      V2CombatEffects:{prepare:async type=>{assert.equal(type,slug);return ['a'];},play:async (node,frames)=>{assert.equal(node,host);events.push('effect');}},
+      V2CombatEffects:{prepare:async type=>{assert.equal(type,slug);assert.equal(api.ATTACK_EFFECTS[type],effect);return ['a'];},play:async (node,frames)=>{assert.equal(node,host);events.push('effect');}},
       updateUnit(){},updateHud(){},showDamage(){events.push('damage');},aliveUnits:team=>[team==='enemy'?target:actor],
       playMotion:async (unit,motion)=>events.push(motion),wait:async()=>{},frame:()=>'',finishBattle(){throw Error('unexpected finish');}};
     vm.createContext(ctx);
@@ -44,6 +46,6 @@ async function main(){
     await vm.runInContext('performAttack(actor,1)',ctx);
     assert.deepEqual(events,damage ? ['attack','damage','hit','effect'] : ['attack']);
   }
-  console.log('PASS: actual automatic attack routes Pixie/Siren effects to defender and skips misses.');
+  console.log('PASS: actual automatic attack routes mapped wind/music/claw effects to defender and skips misses.');
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});

@@ -1,6 +1,13 @@
 (function(root) {
   "use strict";
-  const ATTACK_EFFECTS = Object.freeze({ forestFairy: "wind", "forest-fairy": "wind", siren: "music" });
+  const ATTACK_EFFECTS = Object.freeze({
+    forestFairy: "wind", "forest-fairy": "wind", siren: "music",
+    ghoul: "claw",
+    ragingTreant: "claw", "raging-treant": "claw",
+    abyssHarpy: "claw", "abyss-harpy": "claw",
+    boneGolem: "claw", "bone-golem": "claw",
+    seaWolf: "claw", "sea-wolf": "claw"
+  });
   async function prepare(type) {
     const id = ATTACK_EFFECTS[type];
     if (!id) return null;
