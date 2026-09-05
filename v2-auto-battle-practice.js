@@ -6,10 +6,19 @@
   ];
   const FRAME_ROOT = "art/v2-style/animation-test-frames/";
   const UNIT_TYPE_KEYS = {
-    "forest-fairy": "forestFairy", "siren": "siren",
-    "death-knight": "demonDeathKnight", "skeleton-spear": "spear", "ghoul": "ghoul",
-    "ancient-treant": "ancientTreant", "goblin-rider": "goblinRider",
-    "orc-warrior": "troll", "boulder-ogre": "ogre", "minotaur": "minotaur"
+    "skeleton-spear": "spear", "skeleton-archer": "archer", "skeleton-cavalry": "knight",
+    "grave-worm": "worm", "flesh-golem": "golem", ghoul: "ghoul", "boulder-ogre": "ogre",
+    "plague-doctor": "plague", "plague-frog": "plagueFrog", hydra: "hydra", minotaur: "minotaur",
+    yeti: "yeti", "ice-lord": "iceLord", "sea-wolf": "seaWolf", "spider-knight": "spiderQueen",
+    spiderling: "spiderling", "goblin-chief": "goblinChief", "goblin-commoner": "goblinCommoner",
+    "goblin-soldier": "goblinSoldier", "grave-priest": "skeletonSummoner", "doom-executor": "doomExecutor",
+    "abyss-eye": "abyssEye", "death-knight": "demonDeathKnight", "hell-mantis": "hellMantis",
+    "scorpion-knight": "scorpionKnight", "ancient-treant": "ancientTreant", "stone-golem": "stoneGolem",
+    kraken: "kraken", "crystal-devourer": "crystalDevourer", "raging-treant": "ragingTreant",
+    cerberus: "cerberus", "mushroom-soldier": "poisonMushroom", "goblin-rider": "goblinRider",
+    "abyss-harpy": "abyssHarpy", "orc-warrior": "troll", "bone-golem": "boneGolem",
+    "forest-fairy": "forestFairy", "mummy-guardian": "mummyGuardian", "soul-reaper": "soulReaper",
+    "bone-hound": "boneHound", mimic: "mimic", "ice-princess": "icePrincess", siren: "siren"
   };
   const GRADE_LABELS = { normal: "일반", advanced: "희귀", hero: "영웅", special: "소환물" };
   const LEGION_LABELS = { skeleton: "언데드", corpse: "시체", beast: "야수", plague: "역병", ice: "얼음", summon: "소환", demon: "악마", insect: "곤충", plant: "식물", element: "원소" };
@@ -47,6 +56,48 @@
     ]
   };
 
+  const ROSTER_SPECS = Object.freeze([
+    ["death-knight", "demonDeathKnight", 5, 4, 6, "demon-death-knight"],
+    ["skeleton-spear", "spear", 5, 4, 5], ["skeleton-archer", "archer", 5, 4, 6],
+    ["skeleton-cavalry", "knight", 5, 4, 6, "death-knight", "해골 기사"],
+    ["grave-worm", "worm", 5, 4, 6], ["flesh-golem", "golem", 5, 5, 5], ["ghoul", "ghoul", 5, 4, 6],
+    ["boulder-ogre", "ogre", 5, 4, 5, "ogre"], ["plague-doctor", "plague", 5, 4, 5],
+    ["plague-frog", "plagueFrog", 5, 4, 5], ["hydra", "hydra", 5, 4, 6],
+    ["minotaur", "minotaur", 6, 4, 6], ["yeti", "yeti", 6, 4, 7], ["ice-lord", "iceLord", 5, 4, 6],
+    ["sea-wolf", "seaWolf", 5, 4, 6], ["spider-knight", "spiderQueen", 5, 4, 5, "spider-queen"],
+    ["spiderling", "spiderling", 5, 4, 6], ["goblin-chief", "goblinChief", 5, 4, 5],
+    ["goblin-commoner", "goblinCommoner", 5, 4, 6], ["goblin-soldier", "goblinSoldier", 6, 4, 5],
+    ["grave-priest", "skeletonSummoner", 5, 4, 6, "skeleton-summoner", "묘지 사제"],
+    ["doom-executor", "doomExecutor", 5, 4, 5], ["abyss-eye", "abyssEye", 5, 4, 6],
+    ["hell-mantis", "hellMantis", 5, 4, 6], ["scorpion-knight", "scorpionKnight", 5, 3, 5],
+    ["ancient-treant", "ancientTreant", 5, 4, 6], ["stone-golem", "stoneGolem", 5, 4, 5],
+    ["kraken", "kraken", 5, 4, 6], ["crystal-devourer", "crystalDevourer", 5, 4, 7],
+    ["raging-treant", "ragingTreant", 5, 4, 6], ["cerberus", "cerberus", 5, 4, 6, "cerberus", "케르베로스"],
+    ["mushroom-soldier", "poisonMushroom", 5, 4, 6, "poison-mushroom", "버섯 병사"],
+    ["goblin-rider", "goblinRider", 5, 4, 5], ["abyss-harpy", "abyssHarpy", 4, 4, 5],
+    ["orc-warrior", "troll", 5, 4, 5, "troll"], ["bone-golem", "boneGolem", 5, 4, 5],
+    ["forest-fairy", "forestFairy", 5, 4, 7], ["mummy-guardian", "mummyGuardian", 5, 4, 5],
+    ["soul-reaper", "soulReaper", 6, 4, 6], ["bone-hound", "boneHound", 5, 4, 6],
+    ["mimic", "mimic", 5, 4, 6], ["ice-princess", "icePrincess", 6, 4, 5], ["siren", "siren", 5, 4, 7]
+  ]);
+  const RUNTIME_PREPARERS = Object.freeze({
+    "goblin-soldier": () => V2GoblinFrames.prepare(), "ice-princess": () => V2PrincessFrames.prepare(),
+    "bone-golem": () => V2BloodFrames.prepare(), "abyss-harpy": () => V2HarpyFrames.prepare(),
+    hydra: () => V2HydraFrames.prepare(), "bone-hound": () => V2HoundFrames.prepare(),
+    "scorpion-knight": () => V2ScorpionFrames.prepare(), "hell-mantis": () => V2MantisFrames.prepare()
+  });
+  const DEFAULT_ALLY_BY_SLUG = new Map(TEAM_DATA.ally.map(entry => [entry.slug, entry]));
+  const ROSTER = ROSTER_SPECS.map(([slug, type, attackFrames, hitFrames, deathFrames, portraitSlug = slug, name]) => {
+    if (DEFAULT_ALLY_BY_SLUG.has(slug)) return { ...DEFAULT_ALLY_BY_SLUG.get(slug) };
+    const definition = UNIT_TYPES[type];
+    const gradePower = definition.grade === "hero" ? 3 : definition.grade === "advanced" ? 3 : definition.grade === "special" ? 1 : 2;
+    const speed = Math.max(1, 6 - Math.min(5, definition.hp));
+    const result = unit(slug, name || definition.label, definition.hp * 2 + 4, gradePower, speed, attackFrames, hitFrames, deathFrames, portraitSlug);
+    if (slug === "flesh-golem") result.frameNumbers = { death: [1, 2, 3, 5, 6] };
+    return result;
+  });
+  const ROSTER_BY_SLUG = new Map(ROSTER.map(entry => [entry.slug, entry]));
+
   const battlefield = document.getElementById("battlefield");
   // Optional demonstration lineup; the normal 4v4 lineup stays unchanged.
   if (typeof location !== "undefined" && new URLSearchParams(location.search).get("effects") === "pixie-siren") {
@@ -59,6 +110,10 @@
   const message = document.getElementById("battleMessage");
   const roundState = document.getElementById("roundState");
   const startOverlay = document.getElementById("startOverlay");
+  const startButton = document.getElementById("startButton");
+  const lineupStatus = document.getElementById("lineupStatus");
+  const selectedLineup = document.getElementById("selectedLineup");
+  const unitRoster = document.getElementById("unitRoster");
   const resultOverlay = document.getElementById("resultOverlay");
   const resultTitle = document.getElementById("resultTitle");
   const resultBody = document.getElementById("resultBody");
@@ -93,6 +148,8 @@
   let lastDiceRoll = null;
   let diceFrameIndex = 0;
   let introRunning = false;
+  let selectedAllySlugs = TEAM_DATA.ally.map(entry => entry.slug);
+  let selectedAllyTeam = TEAM_DATA.ally.map(entry => ({ ...entry }));
 
   [...DICE_ROLL_FRAMES, ...DICE_RESULT_FRAMES].forEach((src) => { const image = new Image(); image.src = src; });
 
@@ -104,7 +161,19 @@
   }
 
   function frame(unitState, motion, index) {
-    return `${FRAME_ROOT}${unitState.slug}/${motion}-${String(index).padStart(2, "0")}.png`;
+    const prepared = unitState.motionFrames?.[motion];
+    if (prepared) return prepared[Math.min(index - 1, prepared.length - 1)];
+    const frameNumber = unitState.frameNumbers?.[motion]?.[index - 1] || index;
+    return `${FRAME_ROOT}${unitState.slug}/${motion}-${String(frameNumber).padStart(2, "0")}.png`;
+  }
+
+  async function prepareSelectedMotion(entry) {
+    const prepare = RUNTIME_PREPARERS[entry.slug];
+    if (!prepare || entry.motionFrames) return entry;
+    const motionFrames = await prepare();
+    entry.motionFrames = motionFrames;
+    entry.frames = { attack: motionFrames.attack.length, hit: motionFrames.hit.length, death: motionFrames.death.length };
+    return entry;
   }
 
   function resetBattle(showStart) {
@@ -127,6 +196,7 @@
     speedButton.disabled = true;
     resultOverlay.hidden = true;
     startOverlay.hidden = !showStart;
+    if (showStart) renderRosterSelection();
     turnDice.hidden = true;
     turnDiceButton.disabled = false;
     turnDiceButton.classList.remove("is-rolling");
@@ -135,7 +205,7 @@
     battlefield.classList.remove("is-between-turns");
     battlefield.style.backgroundImage = `url("${BATTLEFIELDS[Math.floor(Math.random() * BATTLEFIELDS.length)]}")`;
     units = [
-      ...TEAM_DATA.ally.map((data, slot) => makeState(data, "ally", slot)),
+      ...selectedAllyTeam.map((data, slot) => makeState(data, "ally", slot)),
       ...TEAM_DATA.enemy.map((data, slot) => makeState(data, "enemy", slot))
     ];
     renderTeams();
@@ -144,7 +214,9 @@
   }
 
   function makeState(data, team, slot) {
-    return { ...data, team, slot, hp: data.maxHp, gauge: 0, alive: true, brand: V2BattleBrands.samples[data.slug], brandMode: "normal", brandDisplayMode: "normal", poison: 0, element: null, image: null };
+    const brandIds = Object.keys(V2BattleBrands.definitions);
+    const fallbackBrand = brandIds[(slot + (team === "enemy" ? 4 : 0)) % brandIds.length];
+    return { ...data, team, slot, hp: data.maxHp, gauge: 0, alive: true, brand: V2BattleBrands.samples[data.slug] || fallbackBrand, brandMode: "normal", brandDisplayMode: "normal", poison: 0, element: null, image: null };
   }
 
   function renderTeams() {
@@ -239,6 +311,68 @@
     unitState.element.classList.add("is-arriving");
     unitState.element.removeAttribute("aria-hidden");
     unitState.element.tabIndex = 0;
+  }
+
+  function renderRosterSelection(notice = "") {
+    selectedLineup.replaceChildren();
+    for (let index = 0; index < 4; index += 1) {
+      const slot = document.createElement("div");
+      const selected = ROSTER_BY_SLUG.get(selectedAllySlugs[index]);
+      slot.className = selected ? "selected-slot" : "selected-slot is-empty";
+      slot.textContent = selected ? `${index + 1}. ${selected.name}` : `${index + 1}. 빈 자리`;
+      selectedLineup.append(slot);
+    }
+    unitRoster.replaceChildren();
+    for (const entry of ROSTER) {
+      const selectedIndex = selectedAllySlugs.indexOf(entry.slug);
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.unit = entry.slug;
+      button.classList.toggle("is-selected", selectedIndex >= 0);
+      button.setAttribute("aria-pressed", String(selectedIndex >= 0));
+      button.setAttribute("aria-label", `${entry.name}${selectedIndex >= 0 ? `, ${selectedIndex + 1}번째 선택됨` : " 선택"}`);
+      const order = document.createElement("b");
+      order.textContent = selectedIndex >= 0 ? String(selectedIndex + 1) : "";
+      const image = document.createElement("img");
+      image.src = entry.portrait;
+      image.alt = "";
+      const name = document.createElement("span");
+      name.textContent = entry.name;
+      button.append(order, image, name);
+      button.addEventListener("click", () => toggleRosterUnit(entry.slug));
+      unitRoster.append(button);
+    }
+    const count = selectedAllySlugs.length;
+    lineupStatus.textContent = notice || `선택한 순서대로 왼쪽부터 소환됩니다. ${count} / 4`;
+    startButton.disabled = count !== 4;
+  }
+
+  function toggleRosterUnit(slug) {
+    const selectedIndex = selectedAllySlugs.indexOf(slug);
+    if (selectedIndex >= 0) selectedAllySlugs.splice(selectedIndex, 1);
+    else if (selectedAllySlugs.length < 4) selectedAllySlugs.push(slug);
+    else return renderRosterSelection("4명까지 선택할 수 있습니다. 먼저 한 명을 해제하세요.");
+    renderRosterSelection();
+  }
+
+  async function startSelectedBattle() {
+    if (selectedAllySlugs.length !== 4 || introRunning || running) return;
+    startButton.disabled = true;
+    startButton.textContent = "유닛 모션 불러오는 중…";
+    lineupStatus.textContent = "선택한 유닛을 전장에 준비하고 있습니다.";
+    try {
+      selectedAllyTeam = selectedAllySlugs.map(slug => ({ ...ROSTER_BY_SLUG.get(slug) }));
+      await Promise.all(selectedAllyTeam.map(prepareSelectedMotion));
+      resetBattle(false);
+      await beginBattle();
+    } catch (error) {
+      console.error(error);
+      startOverlay.hidden = false;
+      renderRosterSelection("유닛 모션을 불러오지 못했습니다. 다시 시도해 주세요.");
+    } finally {
+      startButton.textContent = "이 편성으로 전투 시작";
+      startButton.disabled = selectedAllySlugs.length !== 4;
+    }
   }
 
   async function beginBattle() {
@@ -509,11 +643,11 @@
     return new Promise((resolve) => setTimeout(resolve, milliseconds));
   }
 
-  document.getElementById("startButton").addEventListener("click", beginBattle);
+  startButton.addEventListener("click", startSelectedBattle);
   turnDiceButton.addEventListener("click", rollTurnDice);
   document.getElementById("unitInfoClose").addEventListener("click", closeUnitInfo);
   document.getElementById("unitInfoBackdrop").addEventListener("click", closeUnitInfo);
-  restartButton.addEventListener("click", () => { resetBattle(false); beginBattle(); });
+  restartButton.addEventListener("click", () => resetBattle(true));
   document.getElementById("resultRestartButton").addEventListener("click", () => { resetBattle(false); beginBattle(); });
   pauseButton.addEventListener("click", () => {
     paused = !paused;

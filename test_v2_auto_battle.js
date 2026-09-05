@@ -70,7 +70,12 @@ assert(css.includes("@keyframes damage-float") && css.includes(".brand-indicator
 assert(source.includes("V2BattleBrands.attack(actor, target)"), "Assigned brands must affect attacks.");
 assert(source.includes("V2BattleBrands.startRound(units, lastDiceRoll)"), "Brands must use the shared turn roll.");
 assert(source.includes('roundState.textContent = `${allyAlive}+1 VS ${enemyAlive}+1`'), "Five-slot formation counter is missing.");
-assert((source.slice(source.indexOf("  const TEAM_DATA"), source.indexOf("  const battlefield")).match(/unit\("/g) || []).length === 8, "Default battle must define exactly eight units.");
+assert((source.match(/unit\("/g) || []).length >= 8, "Default battle must define eight initial units.");
+assert(html.includes('id="unitRoster"') && html.includes('id="selectedLineup"') && html.includes('id="lineupStatus"'), "Pre-battle ally selection UI is missing.");
+assert(source.includes("const ROSTER_SPECS") && source.includes("selectedAllySlugs.length !== 4"), "The ally roster must require exactly four selections.");
+assert(source.includes("selectedAllyTeam.map") && source.includes("startSelectedBattle"), "The selected ally lineup must be used to create the battle.");
+assert(source.includes("selectedAllySlugs.push(slug)") && source.includes("selectedAllySlugs.splice(selectedIndex, 1)"), "Roster choices must support selecting and removing units.");
+assert(css.includes(".unit-roster") && css.includes("overflow: auto") && css.includes("grid-template-columns: repeat(9"), "The mobile-safe roster must use a compact scrollable grid.");
 assert(source.includes("turnQueue = units.filter"), "Per-turn action queue is missing.");
 assert(source.includes("right.unitState.speed - left.unitState.speed"), "Units must act in descending speed order.");
 assert(source.includes("let actor = turnQueue.shift()"), "Each queued unit must receive one action per turn.");
@@ -91,7 +96,7 @@ for (const slug of ["demon-death-knight", "skeleton-spear", "ghoul", "ancient-tr
   assert(fs.existsSync(path.join(root, `art/v2-style/processed/192/${slug}.png`)), `Missing cutout ${slug}`);
   assert(worker.includes(`art/v2-style/processed/192/${slug}.png`), `Missing cached cutout ${slug}`);
 }
-assert(source.includes('"troll"') && source.includes('"ogre"') && !source.includes('"goblin-soldier"'), "Orc must use its own original artwork.");
+assert(source.includes('unit("orc-warrior", "오크 전사", 12, 3, 3, 5, 4, 5, "troll")'), "Orc must use its own original artwork.");
 assert(source.includes("Math.random() * targets.length"), "Automatic target selection is missing.");
 assert(source.includes('playMotion(actor, "attack"'), "Attack motion is missing.");
 assert(source.includes('playMotion(target, "hit"'), "Hit motion is missing.");
@@ -104,10 +109,10 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v168'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v169'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=19"), "Turn dice and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=20") && worker.includes("v2-battle-brands.js?v=1"), "Turn-based auto battle and brands are not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=20"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=21") && worker.includes("v2-battle-brands.js?v=1"), "Turn-based auto battle, lineup picker and brands are not cached.");
 assert(worker.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit info frame is not cached.");
 // Exercise the real information-window functions without a rendering engine.
 const infoContext = { awaitingRoll: true, diceRolling: false, lastDiceRoll: null, V2BattleBrands: require("./v2-battle-brands.js"), document: { getElementById: () => ({ focus() {} }) } };
@@ -154,6 +159,19 @@ for (const brand of Object.keys(infoContext.V2BattleBrands.definitions)) {
   assert(infoContext.unitInfoBrands.innerHTML.indexOf('class="brand-icon"') < infoContext.unitInfoBrands.innerHTML.indexOf("<h4>"), "Icon must precede its description heading.");
 }
 vm.runInContext(source.slice(source.indexOf("  const TEAM_DATA"), source.indexOf("  const battlefield")), infoContext);
+assert(vm.runInContext("ROSTER.length", infoContext) === 43, "Every attack-capable unit must appear in the ally picker.");
+assert(vm.runInContext("new Set(ROSTER.map(unit => unit.slug)).size", infoContext) === 43, "The ally picker must not contain duplicate units.");
+assert(!vm.runInContext("ROSTER.some(unit => unit.slug === 'guardian-seed')", infoContext), "The non-attacking Guardian Seed must stay out of the battle picker.");
+const selectableRoster = vm.runInContext("ROSTER.map(unit => ({ slug: unit.slug, portrait: unit.portrait, frames: unit.frames, frameNumbers: unit.frameNumbers }))", infoContext);
+const runtimeRoster = new Set(["goblin-soldier", "ice-princess", "bone-golem", "abyss-harpy", "hydra", "bone-hound", "scorpion-knight", "hell-mantis"]);
+for (const entry of selectableRoster) {
+  assert(fs.existsSync(path.join(root, entry.portrait)), `Picker portrait is missing: ${entry.slug}`);
+  if (runtimeRoster.has(entry.slug)) continue;
+  for (const motion of ["attack", "hit", "death"]) for (let index = 0; index < entry.frames[motion]; index += 1) {
+    const frameNumber = entry.frameNumbers?.[motion]?.[index] || index + 1;
+    assert(fs.existsSync(path.join(root, `art/v2-style/animation-test-frames/${entry.slug}/${motion}-${String(frameNumber).padStart(2, "0")}.png`)), `Picker motion is missing: ${entry.slug}/${motion}/${frameNumber}`);
+  }
+}
 const deathKnight = vm.runInContext("TEAM_DATA.ally[0]", infoContext);
 assert(deathKnight.slug === "death-knight" && deathKnight.name === "데스 나이트", "Death Knight identity must remain tied to its actual animation.");
 assert(deathKnight.portrait === "art/v2-style/processed/192/demon-death-knight.png", "Death Knight must not use skeleton cavalry artwork.");

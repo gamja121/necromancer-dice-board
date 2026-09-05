@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0a0807">
   <title>4대4 속도 자동전투 테스트</title>
-  <link rel="stylesheet" href="v2-auto-battle-practice.css?v=19">
+  <link rel="stylesheet" href="v2-auto-battle-practice.css?v=20">
 </head>
 <body>
   <main class="auto-battle-lab">
@@ -17,7 +17,7 @@
         <div class="battle-controls">
           <button id="pauseButton" type="button" disabled>일시정지</button>
           <button id="speedButton" type="button" disabled>속도 ×1</button>
-          <button id="restartButton" type="button">다시 시작</button>
+          <button id="restartButton" type="button">편성 변경</button>
         </div>
       </header>
 
@@ -73,11 +73,13 @@
       </section>
 
       <section id="startOverlay" class="battle-overlay">
-        <div class="overlay-panel">
+        <div class="overlay-panel lineup-panel">
           <span>LANDSCAPE BATTLE TEST</span>
-          <h1>5칸 대형 자동전투</h1>
-          <p>양쪽 모두 일반 유닛 4명과 중앙 소환물 자리 1칸을 사용합니다.</p>
-          <button id="startButton" type="button">전투 시작</button>
+          <h1>아군 4명을 선택하세요</h1>
+          <p id="lineupStatus" aria-live="polite">선택한 순서대로 왼쪽부터 소환됩니다. 4 / 4</p>
+          <div id="selectedLineup" class="selected-lineup" aria-label="선택한 아군"></div>
+          <div id="unitRoster" class="unit-roster" aria-label="선택 가능한 유닛"></div>
+          <button id="startButton" type="button">이 편성으로 전투 시작</button>
         </div>
       </section>
 
@@ -93,10 +95,18 @@
   </main>
   <script src="v2-landscape.js?v=1"></script>
   <script src="unit-data.js?v=46"></script>
+  <script src="v2-mantis-frames.js?v=5"></script>
+  <script src="v2-scorpion-frames.js?v=1"></script>
+  <script src="v2-hound-frames.js?v=1"></script>
+  <script src="v2-hydra-frames.js?v=1"></script>
+  <script src="v2-harpy-frames.js?v=1"></script>
+  <script src="v2-blood-frames.js?v=1"></script>
+  <script src="v2-princess-frames.js?v=1"></script>
+  <script src="v2-goblin-frames.js?v=1"></script>
   <script src="v2-battle-brands.js?v=1"></script>
   <script src="v2-summon-effect.js?v=2"></script>
   <script src="v2-hit-effects.js?v=9"></script>
   <script src="v2-combat-effects.js?v=7"></script>
-  <script src="v2-auto-battle-practice.js?v=20"></script>
+  <script src="v2-auto-battle-practice.js?v=21"></script>
 </body>
 </html>
