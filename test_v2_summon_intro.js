@@ -8,12 +8,15 @@ const html = fs.readFileSync(__dirname + "/v2-auto-battle-practice.html", "utf8"
 const css = fs.readFileSync(__dirname + "/v2-auto-battle-practice.css", "utf8");
 const worker = fs.readFileSync(__dirname + "/service-worker.js", "utf8");
 assert(fs.existsSync(__dirname + "/" + effect.SHEET));
-assert(worker.includes(effect.SHEET) && worker.includes("v2-summon-effect.js?v=1"));
+assert(worker.includes(effect.SHEET) && worker.includes("v2-summon-effect.js?v=2"));
 assert(html.indexOf('src="v2-summon-effect.js') < html.indexOf('src="v2-auto-battle-practice.js'));
 assert(css.includes("rotateX(55deg)") && css.includes("rotateZ(-8deg)"));
-assert(css.includes("translate(-50%, 50%) perspective(500px)"), "Circle center stays at the unit's feet");
+assert(css.includes("bottom: 16%") && css.includes("translate(-50%, 50%) perspective(500px)"), "Circle center is raised to the unit's feet");
 assert(css.includes(".sprite-wrap > img { position: relative; z-index: 2; }"));
 assert(css.includes(".summon-effect { position: absolute; z-index: 1;"));
+assert(css.includes(".unit.is-pending.is-summoning .sprite-wrap > img") && css.includes("filter: brightness(0)"), "A black silhouette must precede materialization");
+assert(css.includes("@keyframes summon-unit-materialize") && css.includes("filter: brightness(1)"), "Silhouette must resolve into full color");
+assert(effectSource.includes('classList.add("is-summoning")') && effectSource.includes('classList.remove("is-summoning")'));
 assert(css.includes(".unit.is-pending .sprite-wrap > img") && css.includes(".unit.is-pending > .bar"));
 assert(source.includes('unitState.team === "ally" ? "unit is-pending" : "unit"'));
 assert(source.slice(source.indexOf("  function resetBattle("), source.indexOf("  function makeState(")).includes("introRunning = false;"));
@@ -110,7 +113,8 @@ async function run() {
   } } };
   vm.createContext(effectContext);
   vm.runInContext(effectSource, effectContext);
-  const victim = { element: { querySelector: selector => {
+  const summoningClasses = new Set();
+  const victim = { element: { classList: { add:name=>summoningClasses.add(name), remove:name=>summoningClasses.delete(name) }, querySelector: selector => {
     assert.equal(selector, ".sprite-wrap");
     return { append() {} };
   } } };
@@ -120,6 +124,7 @@ async function run() {
   assert.deepEqual(drawn, frames);
   assert.deepEqual(timeline, [4], "Unit appears as the fourth effect frame begins");
   assert.equal(removed, 1);
+  assert(!summoningClasses.has("is-summoning"), "Summoning state is cleaned after playback");
   let current = true;
   await effectContext.V2SummonEffect.play(victim, frames, {
     isCurrent: () => current, reveal: () => { throw new Error("Stale reveal"); },

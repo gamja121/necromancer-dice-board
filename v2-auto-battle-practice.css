@@ -38,10 +38,12 @@ button, a { font: inherit; }
 .unit img { display: block; width: 116%; height: 96%; object-fit: contain; filter: drop-shadow(0 6px 4px #000e); image-rendering: auto; }
 .sprite-wrap > img { position: relative; z-index: 2; }
 .unit.is-pending { pointer-events: none; }
-.unit.is-pending .sprite-wrap > img, .unit.is-pending > .bar, .unit.is-pending > .brand-indicator { visibility: hidden; opacity: 0; }
-.summon-effect { position: absolute; z-index: 1; left: 50%; bottom: 4%; width: 100%; height: auto; pointer-events: none; opacity: 1; transform: translate(-50%, 50%) perspective(500px) rotateX(55deg) rotateZ(-8deg); transform-origin: center center; filter: drop-shadow(0 0 8px #a347c988); transition: opacity 180ms ease-out; }
+.unit.is-pending .sprite-wrap > img { visibility: hidden; opacity: 0; }
+.unit.is-pending > .bar, .unit.is-pending > .brand-indicator { visibility: hidden; opacity: 0; }
+.unit.is-pending.is-summoning .sprite-wrap > img { visibility: visible; opacity: .92; filter: brightness(0) drop-shadow(0 6px 5px #000); }
+.summon-effect { position: absolute; z-index: 1; left: 50%; bottom: 16%; width: 100%; height: auto; pointer-events: none; opacity: 1; transform: translate(-50%, 50%) perspective(500px) rotateX(55deg) rotateZ(-8deg); transform-origin: center center; filter: drop-shadow(0 0 8px #a347c988); transition: opacity 180ms ease-out; }
 .summon-effect.is-fading { opacity: 0; }
-.unit.is-arriving .sprite-wrap > img { animation: summon-unit-rise 360ms ease-out both; }
+.unit.is-arriving .sprite-wrap > img { z-index: 2; animation: summon-unit-materialize 420ms ease-out both; }
 .enemy-team .unit img { transform: scaleX(-1); }
 .unit.is-attacking { z-index: 42; }
 .unit.is-targeted { z-index: 41; }
@@ -115,9 +117,10 @@ button, a { font: inherit; }
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
-@keyframes summon-unit-rise {
-  from { opacity: 0; transform: translateY(12px) scale(.9); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+@keyframes summon-unit-materialize {
+  0% { opacity: .92; filter: brightness(0) drop-shadow(0 6px 5px #000); transform: translateY(8px) scale(.94); }
+  45% { opacity: 1; filter: brightness(.18) drop-shadow(0 6px 5px #000); }
+  100% { opacity: 1; filter: brightness(1) drop-shadow(0 6px 4px #000e); transform: translateY(0) scale(1); }
 }
 @media (prefers-reduced-motion: reduce) {
   .unit.is-arriving .sprite-wrap > img { animation: none; }

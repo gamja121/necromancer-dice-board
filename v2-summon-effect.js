@@ -46,6 +46,7 @@
   }
   async function play(unit, frames, options) {
     if (!options.isCurrent()) return;
+    unit.element.classList.add("is-summoning");
     const canvas = root.document.createElement("canvas");
     canvas.width = 320; canvas.height = 288;
     canvas.className = "summon-effect";
@@ -63,7 +64,10 @@
       if (!options.isCurrent()) return;
       canvas.classList.add("is-fading");
       await options.wait(180);
-    } finally { canvas.remove(); }
+    } finally {
+      canvas.remove();
+      unit.element.classList.remove("is-summoning");
+    }
   }
   const api = { SHEET, CELLS, removeGreen, buildFrames, prepare, play };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

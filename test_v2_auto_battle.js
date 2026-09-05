@@ -104,9 +104,9 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v161'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v162'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=18"), "Turn dice and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=19"), "Turn dice and illustrated unit info styling is not cached.");
 assert(worker.includes("v2-auto-battle-practice.js?v=20") && worker.includes("v2-battle-brands.js?v=1"), "Turn-based auto battle and brands are not cached.");
 assert(worker.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit info frame is not cached.");
 // Exercise the real information-window functions without a rendering engine.
