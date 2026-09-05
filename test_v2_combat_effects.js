@@ -17,7 +17,9 @@ async function main(){
     assert.equal(api.ATTACK_EFFECTS[type],'slash',type+' must use slash impact');
   for(const type of ['goblinChief','goblin-chief','goblin-shaman','skeletonSummoner','grave-priest','hooded-necromancer','spiderQueen','spider-knight','spider-queen','icePrincess','ice-princess'])
     assert.equal(api.ATTACK_EFFECTS[type],'magic',type+' must use magic impact');
-  assert.equal(await api.prepare('mummyGuardian'),null);
+  for(const type of ['archer','skeleton-archer','ogre','boulder-ogre','yeti','goblinCommoner','goblin-commoner','abyssEye','abyss-eye','ancientTreant','ancient-treant','stoneGolem','stone-golem','kraken','troll','orc-warrior','mummyGuardian','mummy-guardian'])
+    assert.equal(api.ATTACK_EFFECTS[type],'physical',type+' must use basic physical impact');
+  assert.equal(await api.prepare('guardianSeed'),null);
   let loaded;
   global.V2HitEffects={prepare:async id=>{loaded=id;return ['a','b','c'];}};
   global.Image=class{set src(v){queueMicrotask(()=>this.onload());}};
@@ -42,7 +44,7 @@ async function main(){
   for(const slug of ['forest-fairy','siren']) for(const [motion,count] of [['attack',5],['hit',4],['death',7]]) for(let i=1;i<=count;i++) assert(fs.existsSync(`art/v2-style/animation-test-frames/${slug}/${motion}-${String(i).padStart(2,'0')}.png`));
   console.log('PASS: attacker mappings, target playback, cancellation/cleanup, damage gates and demo frame assets.');
   const vm=require('node:vm');
-  for(const [slug,effect] of [['forest-fairy','wind'],['siren','music'],['ghoul','claw'],['raging-treant','claw'],['abyss-harpy','claw'],['bone-golem','claw'],['sea-wolf','claw'],['plague-frog','poison'],['mushroom-soldier','poison'],['plague-doctor','poison'],['grave-worm','toxicLiquid'],['bone-hound','bite'],['hydra','bite'],['spiderling','bite'],['flesh-golem','bite'],['cerberus','bite'],['crystal-devourer','bite'],['death-knight','slash'],['skeleton-spear','slash'],['goblin-rider','slash'],['ice-lord','slash'],['minotaur','slash'],['skeleton-cavalry','slash'],['soul-reaper','slash'],['doom-executor','slash'],['mimic','slash'],['hell-mantis','slash'],['scorpion-knight','slash'],['goblin-soldier','slash'],['goblin-chief','magic'],['grave-priest','magic'],['spider-knight','magic'],['ice-princess','magic']]) for(const damage of [0,2]) {
+  for(const [slug,effect] of [['forest-fairy','wind'],['siren','music'],['ghoul','claw'],['raging-treant','claw'],['abyss-harpy','claw'],['bone-golem','claw'],['sea-wolf','claw'],['plague-frog','poison'],['mushroom-soldier','poison'],['plague-doctor','poison'],['grave-worm','toxicLiquid'],['bone-hound','bite'],['hydra','bite'],['spiderling','bite'],['flesh-golem','bite'],['cerberus','bite'],['crystal-devourer','bite'],['death-knight','slash'],['skeleton-spear','slash'],['goblin-rider','slash'],['ice-lord','slash'],['minotaur','slash'],['skeleton-cavalry','slash'],['soul-reaper','slash'],['doom-executor','slash'],['mimic','slash'],['hell-mantis','slash'],['scorpion-knight','slash'],['goblin-soldier','slash'],['goblin-chief','magic'],['grave-priest','magic'],['spider-knight','magic'],['ice-princess','magic'],['skeleton-archer','physical'],['boulder-ogre','physical'],['yeti','physical'],['goblin-commoner','physical'],['abyss-eye','physical'],['ancient-treant','physical'],['stone-golem','physical'],['kraken','physical'],['orc-warrior','physical'],['mummy-guardian','physical']]) for(const damage of [0,2]) {
     const host={},events=[];
     const unit=slug=>({slug,name:slug,team:'ally',alive:true,hp:10,frames:{attack:5,hit:4,death:7},image:{},element:{classList:{add(){},remove(){}},querySelector(){return host;}}});
     const actor=unit(slug),target=unit('ghoul');target.team='enemy';
@@ -56,6 +58,6 @@ async function main(){
     await vm.runInContext('performAttack(actor,1)',ctx);
     assert.deepEqual(events,damage ? ['attack','damage','hit','effect'] : ['attack']);
   }
-  console.log('PASS: actual automatic attack routes mapped wind/music/claw effects to defender and skips misses.');
+  console.log('PASS: actual automatic attack routes all mapped effects to defender and skips misses.');
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});

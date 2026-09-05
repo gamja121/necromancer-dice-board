@@ -32,7 +32,17 @@
     goblinChief: "magic", "goblin-chief": "magic", "goblin-shaman": "magic",
     skeletonSummoner: "magic", "grave-priest": "magic", "hooded-necromancer": "magic",
     spiderQueen: "magic", "spider-knight": "magic", "spider-queen": "magic",
-    icePrincess: "magic", "ice-princess": "magic"
+    icePrincess: "magic", "ice-princess": "magic",
+    archer: "physical", "skeleton-archer": "physical",
+    ogre: "physical", "boulder-ogre": "physical",
+    yeti: "physical",
+    goblinCommoner: "physical", "goblin-commoner": "physical",
+    abyssEye: "physical", "abyss-eye": "physical",
+    ancientTreant: "physical", "ancient-treant": "physical",
+    stoneGolem: "physical", "stone-golem": "physical",
+    kraken: "physical",
+    troll: "physical", "orc-warrior": "physical",
+    mummyGuardian: "physical", "mummy-guardian": "physical"
   });
   async function prepare(type) {
     const id = ATTACK_EFFECTS[type];
