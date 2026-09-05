@@ -70,7 +70,7 @@ Add-Type -TypeDefinition $sourceCode -ReferencedAssemblies System.Drawing
 New-Item -ItemType Directory -Force -Path $OutputDirectory | Out-Null
 $source = (Resolve-Path -LiteralPath $SourceDirectory).Path
 $output = (Resolve-Path -LiteralPath $OutputDirectory).Path
-$names = @('basic','graveyard','altar','unknown','forest','rest','monster','gem','event','warp')
+$names = @('basic','graveyard','altar','unknown','forest','rest','monster','gem','event','warp','home','village','fortune-teller-camp','boss')
 foreach ($name in $names) {
     [MapTileProcessor]::Process(
         (Join-Path $source ($name + '.jpg')),
@@ -81,4 +81,4 @@ $heroOutputDirectory = Split-Path -Parent $HeroOutputPath
 New-Item -ItemType Directory -Force -Path $heroOutputDirectory | Out-Null
 $heroOutput = Join-Path (Resolve-Path -LiteralPath $heroOutputDirectory).Path (Split-Path -Leaf $HeroOutputPath)
 [MapTileProcessor]::Process($heroSource, $heroOutput)
-Write-Output "Processed 10 transparent map tiles and 1 hero token without resizing."
+Write-Output "Processed 14 transparent map tiles and 1 hero token without resizing."

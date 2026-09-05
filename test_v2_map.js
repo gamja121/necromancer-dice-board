@@ -40,6 +40,14 @@ for (const tile of ["basic", "graveyard", "altar", "unknown", "forest", "rest", 
   assert(fs.existsSync(path.join(root, relative)), `Tile is missing: ${relative}`);
   assert(worker.includes(relative), `Tile is not cached: ${relative}`);
 }
+for (const tile of ["home", "village", "fortune-teller-camp", "boss"]) {
+  const relative = `art/v2-style/map-test/tiles/${tile}.png`;
+  assert(fs.existsSync(path.join(root, relative)), `New tile is missing: ${relative}`);
+  assert(worker.includes(relative), `New tile is not cached: ${relative}`);
+}
+assert(source.includes("[fixedTiles.home") && source.includes("fixedTiles.boss]"), "Home and boss tiles must bookend the route.");
+assert(source.includes("fixedTiles.village") && source.includes("fixedTiles.fortune"), "Village and fortune-teller tiles must be connected to the route.");
+assert(html.includes("v2-map-practice.js?v=3"), "The map page must load the connected tile version.");
 assert(worker.includes("v2-map-practice.html"), "Map test page is not cached.");
 assert(worker.includes("v2-landscape.js?v=1"), "Landscape helper is not cached.");
 const hero = "art/v2-style/map-test/hero/necromancer-hero.png";

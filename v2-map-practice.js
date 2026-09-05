@@ -11,7 +11,7 @@
     hell: { name: "지옥 지역", image: `${ROOT}maps/hell-map.jpg` }
   };
   const tileTypes = [
-    { id: "basic", name: "기본 타일", count: 6 },
+    { id: "basic", name: "기본 타일", count: 2 },
     { id: "graveyard", name: "공동묘지 타일", count: 2 },
     { id: "altar", name: "제단 타일", count: 1 },
     { id: "unknown", name: "미정 타일", count: 1 },
@@ -22,6 +22,12 @@
     { id: "event", name: "이벤트 타일", count: 3 },
     { id: "warp", name: "워프 타일", count: 2 }
   ];
+  const fixedTiles = Object.freeze({
+    home: Object.freeze({ id: "home", name: "우리집 타일", count: 1 }),
+    village: Object.freeze({ id: "village", name: "마을 타일", count: 1 }),
+    fortune: Object.freeze({ id: "fortune-teller-camp", name: "점술가의 막사 타일", count: 1 }),
+    boss: Object.freeze({ id: "boss", name: "보스 타일", count: 1 })
+  });
   const el = {
     board: document.getElementById("mapBoard"),
     ring: document.getElementById("tileRing"),
@@ -65,7 +71,9 @@
   }
 
   function createPool() {
-    return shuffle(tileTypes.flatMap((tile) => Array.from({ length: tile.count }, () => tile)));
+    const randomTiles = shuffle(tileTypes.flatMap((tile) => Array.from({ length: tile.count }, () => tile)));
+    return [fixedTiles.home, ...randomTiles.slice(0, 7), fixedTiles.village,
+      ...randomTiles.slice(7, 14), fixedTiles.fortune, ...randomTiles.slice(14), fixedTiles.boss];
   }
 
   function selectTile(button, tile, step) {
