@@ -6,7 +6,11 @@
     ragingTreant: "claw", "raging-treant": "claw",
     abyssHarpy: "claw", "abyss-harpy": "claw",
     boneGolem: "claw", "bone-golem": "claw",
-    seaWolf: "claw", "sea-wolf": "claw"
+    seaWolf: "claw", "sea-wolf": "claw",
+    plagueFrog: "poison", "plague-frog": "poison", "poison-toad": "poison",
+    poisonMushroom: "poison", "mushroom-soldier": "poison", "mushroom-monster": "poison",
+    plague: "poison", "plague-doctor": "poison",
+    worm: "toxicLiquid", "grave-worm": "toxicLiquid"
   });
   async function prepare(type) {
     const id = ATTACK_EFFECTS[type];

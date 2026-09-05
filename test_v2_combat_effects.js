@@ -7,6 +7,10 @@ async function main(){
   assert.equal(api.ATTACK_EFFECTS.siren,'music');
   for(const type of ['ghoul','ragingTreant','raging-treant','abyssHarpy','abyss-harpy','boneGolem','bone-golem','seaWolf','sea-wolf'])
     assert.equal(api.ATTACK_EFFECTS[type],'claw',type+' must use claw impact');
+  for(const type of ['plagueFrog','plague-frog','poison-toad','poisonMushroom','mushroom-soldier','mushroom-monster','plague','plague-doctor'])
+    assert.equal(api.ATTACK_EFFECTS[type],'poison',type+' must use poison gas impact');
+  for(const type of ['worm','grave-worm'])
+    assert.equal(api.ATTACK_EFFECTS[type],'toxicLiquid',type+' must use toxic liquid impact');
   assert.equal(await api.prepare('mimic'),null);
   let loaded;
   global.V2HitEffects={prepare:async id=>{loaded=id;return ['a','b','c'];}};
@@ -32,7 +36,7 @@ async function main(){
   for(const slug of ['forest-fairy','siren']) for(const [motion,count] of [['attack',5],['hit',4],['death',7]]) for(let i=1;i<=count;i++) assert(fs.existsSync(`art/v2-style/animation-test-frames/${slug}/${motion}-${String(i).padStart(2,'0')}.png`));
   console.log('PASS: attacker mappings, target playback, cancellation/cleanup, damage gates and demo frame assets.');
   const vm=require('node:vm');
-  for(const [slug,effect] of [['forest-fairy','wind'],['siren','music'],['ghoul','claw'],['raging-treant','claw'],['abyss-harpy','claw'],['bone-golem','claw'],['sea-wolf','claw']]) for(const damage of [0,2]) {
+  for(const [slug,effect] of [['forest-fairy','wind'],['siren','music'],['ghoul','claw'],['raging-treant','claw'],['abyss-harpy','claw'],['bone-golem','claw'],['sea-wolf','claw'],['plague-frog','poison'],['mushroom-soldier','poison'],['plague-doctor','poison'],['grave-worm','toxicLiquid']]) for(const damage of [0,2]) {
     const host={},events=[];
     const unit=slug=>({slug,name:slug,team:'ally',alive:true,hp:10,frames:{attack:5,hit:4,death:7},image:{},element:{classList:{add(){},remove(){}},querySelector(){return host;}}});
     const actor=unit(slug),target=unit('ghoul');target.team='enemy';
