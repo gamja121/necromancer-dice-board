@@ -16,7 +16,19 @@
     spiderling: "bite", "giant-spider": "bite",
     golem: "bite", "flesh-golem": "bite", "obese-zombie": "bite",
     cerberus: "bite",
-    crystalDevourer: "bite", "crystal-devourer": "bite", "carnivorous-flower": "bite"
+    crystalDevourer: "bite", "crystal-devourer": "bite", "carnivorous-flower": "bite",
+    demonDeathKnight: "slash", "death-knight": "slash", "demon-death-knight": "slash",
+    spear: "slash", "skeleton-spear": "slash",
+    goblinRider: "slash", "goblin-rider": "slash",
+    iceLord: "slash", "ice-lord": "slash",
+    minotaur: "slash",
+    knight: "slash", "skeleton-cavalry": "slash",
+    soulReaper: "slash", "soul-reaper": "slash", reaper: "slash",
+    doomExecutor: "slash", "doom-executor": "slash", gargoyle: "slash",
+    mimic: "slash",
+    hellMantis: "slash", "hell-mantis": "slash", "mantis-monster": "slash",
+    scorpionKnight: "slash", "scorpion-knight": "slash", "scorpion-warrior": "slash",
+    goblinSoldier: "slash", "goblin-soldier": "slash"
   });
   async function prepare(type) {
     const id = ATTACK_EFFECTS[type];

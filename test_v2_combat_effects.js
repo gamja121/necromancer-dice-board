@@ -13,7 +13,9 @@ async function main(){
     assert.equal(api.ATTACK_EFFECTS[type],'toxicLiquid',type+' must use toxic liquid impact');
   for(const type of ['boneHound','bone-hound','undead-hound','hydra','spiderling','giant-spider','golem','flesh-golem','obese-zombie','cerberus','crystalDevourer','crystal-devourer','carnivorous-flower'])
     assert.equal(api.ATTACK_EFFECTS[type],'bite',type+' must use bite impact');
-  assert.equal(await api.prepare('mimic'),null);
+  for(const type of ['demonDeathKnight','death-knight','demon-death-knight','spear','skeleton-spear','goblinRider','goblin-rider','iceLord','ice-lord','minotaur','knight','skeleton-cavalry','soulReaper','soul-reaper','reaper','doomExecutor','doom-executor','gargoyle','mimic','hellMantis','hell-mantis','mantis-monster','scorpionKnight','scorpion-knight','scorpion-warrior','goblinSoldier','goblin-soldier'])
+    assert.equal(api.ATTACK_EFFECTS[type],'slash',type+' must use slash impact');
+  assert.equal(await api.prepare('mummyGuardian'),null);
   let loaded;
   global.V2HitEffects={prepare:async id=>{loaded=id;return ['a','b','c'];}};
   global.Image=class{set src(v){queueMicrotask(()=>this.onload());}};
@@ -38,7 +40,7 @@ async function main(){
   for(const slug of ['forest-fairy','siren']) for(const [motion,count] of [['attack',5],['hit',4],['death',7]]) for(let i=1;i<=count;i++) assert(fs.existsSync(`art/v2-style/animation-test-frames/${slug}/${motion}-${String(i).padStart(2,'0')}.png`));
   console.log('PASS: attacker mappings, target playback, cancellation/cleanup, damage gates and demo frame assets.');
   const vm=require('node:vm');
-  for(const [slug,effect] of [['forest-fairy','wind'],['siren','music'],['ghoul','claw'],['raging-treant','claw'],['abyss-harpy','claw'],['bone-golem','claw'],['sea-wolf','claw'],['plague-frog','poison'],['mushroom-soldier','poison'],['plague-doctor','poison'],['grave-worm','toxicLiquid'],['bone-hound','bite'],['hydra','bite'],['spiderling','bite'],['flesh-golem','bite'],['cerberus','bite'],['crystal-devourer','bite']]) for(const damage of [0,2]) {
+  for(const [slug,effect] of [['forest-fairy','wind'],['siren','music'],['ghoul','claw'],['raging-treant','claw'],['abyss-harpy','claw'],['bone-golem','claw'],['sea-wolf','claw'],['plague-frog','poison'],['mushroom-soldier','poison'],['plague-doctor','poison'],['grave-worm','toxicLiquid'],['bone-hound','bite'],['hydra','bite'],['spiderling','bite'],['flesh-golem','bite'],['cerberus','bite'],['crystal-devourer','bite'],['death-knight','slash'],['skeleton-spear','slash'],['goblin-rider','slash'],['ice-lord','slash'],['minotaur','slash'],['skeleton-cavalry','slash'],['soul-reaper','slash'],['doom-executor','slash'],['mimic','slash'],['hell-mantis','slash'],['scorpion-knight','slash'],['goblin-soldier','slash']]) for(const damage of [0,2]) {
     const host={},events=[];
     const unit=slug=>({slug,name:slug,team:'ally',alive:true,hp:10,frames:{attack:5,hit:4,death:7},image:{},element:{classList:{add(){},remove(){}},querySelector(){return host;}}});
     const actor=unit(slug),target=unit('ghoul');target.team='enemy';
