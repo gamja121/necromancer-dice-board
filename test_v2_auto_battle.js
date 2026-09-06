@@ -111,10 +111,10 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v174'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v175'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
 assert(worker.includes("v2-auto-battle-practice.css?v=23"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=23") && worker.includes("v2-battle-brands.js?v=1"), "Turn-based auto battle, lineup picker and brands are not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=23") && worker.includes("v2-battle-brands.js?v=2"), "Turn-based auto battle, lineup picker and brands are not cached.");
 assert(worker.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit info frame is not cached.");
 // Exercise the real information-window functions without a rendering engine.
 const infoContext = { awaitingRoll: true, diceRolling: false, lastDiceRoll: null, V2BattleBrands: require("./v2-battle-brands.js"), document: { getElementById: () => ({ focus() {} }) } };

@@ -4,6 +4,8 @@ const fs = require('node:fs');
 const rules = require('./v2-summon-rules');
 const source = fs.readFileSync(__dirname + '/v2-auto-battle-practice.js', 'utf8');
 const types = require('./unit-data').UNIT_TYPES;
+const brands = require('./v2-battle-brands');
+for (const slug of Object.keys(rules.choices)) assert.equal(brands.samples[slug], 'summon');
 assert.equal(types.spear.label, '해골 병사');
 assert.equal(types.skeletonSummoner.label, '해골 소환사');
 assert.equal(types.crystalDevourer.label, '식인식물');

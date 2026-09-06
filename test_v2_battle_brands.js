@@ -18,7 +18,7 @@ const matrix = {
 for (const [id, modes] of Object.entries(matrix)) {
   modes.forEach((mode, i) => assert.equal(brands.mode(id, i + 1), mode, id + (i + 1)));
 }
-assert.equal(Object.keys(brands.samples).length, 8);
+assert.equal(Object.keys(brands.samples).length, 12);
 assert.equal(new Set(Object.values(brands.samples)).size, 6);
 let a = unit("critical"), b = unit("vampire", "enemy");
 brands.startRound([a, b], 5);
@@ -146,6 +146,8 @@ const badgeCss = fs.readFileSync(__dirname + "/v2-auto-battle-practice.css", "ut
 assert(badgeCss.includes(".brand-indicator.is-blessing { color: #8ee69a; }"));
 assert(badgeCss.includes(".brand-indicator.is-curse { color: #ff827a; }"));
 assert(badgeCss.includes("bottom: calc(88% + 6px)"), "Badge must sit above the 12%-top HP bar");
+domContext.UNIT_TYPES = require('./unit-data').UNIT_TYPES;
+vm.runInContext(source.slice(source.indexOf('  const UNIT_TYPE_KEYS'), source.indexOf('  const GRADE_LABELS')), domContext);
 for (const [slug, brand] of Object.entries(brands.samples)) {
   const state = vm.runInContext(`makeState({ slug: "${slug}", maxHp: 10 }, "ally", 0)`, domContext);
   assert.equal(state.brand, brand);
@@ -156,7 +158,7 @@ async function integration() {
   const damagePopups = [];
   let finishes = 0;
   const context = {
-    V2BattleBrands: brands, running: true, battleToken: 1, actionBusy: false,
+    V2BattleBrands: brands, V2SummonRules: require('./v2-summon-rules'), summonBeforeAttack: async () => {}, running: true, battleToken: 1, actionBusy: false,
     turnNumber: 0, lastDiceRoll: 2, actionCount: 0, speedMultiplier: 1,
     units: [unit("poison", "ally", 1), unit("critical", "enemy")],
     turnQueue: [], awaitingRoll: true, diceRolling: false,

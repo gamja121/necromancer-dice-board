@@ -9,6 +9,8 @@
     healing: { name: "회복의 낙인", bless: [6], curse: [1], blessing: "모든 아군 유닛 체력 1 회복", penalty: "무작위 적 1명 체력 1 회복", normal: "2, 3, 4, 5" }
   });
   const samples = Object.freeze({
+    "spider-knight": "summon", "goblin-chief": "summon",
+    "grave-priest": "summon", "crystal-devourer": "summon",
     "death-knight": "critical", "skeleton-spear": "vampire", ghoul: "poison",
     "ancient-treant": "guard", "goblin-rider": "summon", "orc-warrior": "healing",
     "boulder-ogre": "critical", minotaur: "vampire"
