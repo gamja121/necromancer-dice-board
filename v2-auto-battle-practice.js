@@ -86,7 +86,7 @@
     hydra: () => V2HydraFrames.prepare(), "bone-hound": () => V2HoundFrames.prepare(),
     "scorpion-knight": () => V2ScorpionFrames.prepare(), "hell-mantis": () => V2MantisFrames.prepare()
   });
-  const DEFAULT_ALLY_BY_SLUG = new Map(TEAM_DATA.ally.map(entry => [entry.slug, entry]));
+  const DEFAULT_ALLY_BY_SLUG = new Map([...TEAM_DATA.ally, ...TEAM_DATA.enemy].map(entry => [entry.slug, entry]));
   const ROSTER = ROSTER_SPECS.map(([slug, type, attackFrames, hitFrames, deathFrames, portraitSlug = slug, name]) => {
     if (DEFAULT_ALLY_BY_SLUG.has(slug)) return { ...DEFAULT_ALLY_BY_SLUG.get(slug) };
     const definition = UNIT_TYPES[type];
@@ -148,6 +148,8 @@
   let lastDiceRoll = null;
   let diceFrameIndex = 0;
   let introRunning = false;
+  let loadingLineup = false;
+  let lineupRequest = 0;
   let selectedAllySlugs = TEAM_DATA.ally.map(entry => entry.slug);
   let selectedAllyTeam = TEAM_DATA.ally.map(entry => ({ ...entry }));
 
@@ -177,6 +179,11 @@
   }
 
   function resetBattle(showStart) {
+    if (showStart) {
+      lineupRequest += 1;
+      loadingLineup = false;
+      startButton.textContent = "이 편성으로 전투 시작";
+    }
     battleToken += 1;
     running = false;
     introRunning = false;
@@ -216,7 +223,8 @@
   function makeState(data, team, slot) {
     const brandIds = Object.keys(V2BattleBrands.definitions);
     const fallbackBrand = brandIds[(slot + (team === "enemy" ? 4 : 0)) % brandIds.length];
-    return { ...data, team, slot, hp: data.maxHp, gauge: 0, alive: true, brand: V2BattleBrands.samples[data.slug] || fallbackBrand, brandMode: "normal", brandDisplayMode: "normal", poison: 0, element: null, image: null };
+    const isSummon = UNIT_TYPES[UNIT_TYPE_KEYS[data.slug]]?.grade === "special";
+    return { ...data, isSummon, team, slot, hp: data.maxHp, gauge: 0, alive: true, brand: V2BattleBrands.samples[data.slug] || fallbackBrand, brandMode: "normal", brandDisplayMode: "normal", poison: 0, element: null, image: null };
   }
 
   function renderTeams() {
@@ -314,6 +322,7 @@
   }
 
   function renderRosterSelection(notice = "") {
+    const scrollTop = unitRoster.scrollTop;
     selectedLineup.replaceChildren();
     for (let index = 0; index < 4; index += 1) {
       const slot = document.createElement("div");
@@ -327,6 +336,7 @@
       const selectedIndex = selectedAllySlugs.indexOf(entry.slug);
       const button = document.createElement("button");
       button.type = "button";
+      button.disabled = loadingLineup;
       button.dataset.unit = entry.slug;
       button.classList.toggle("is-selected", selectedIndex >= 0);
       button.setAttribute("aria-pressed", String(selectedIndex >= 0));
@@ -343,11 +353,13 @@
       unitRoster.append(button);
     }
     const count = selectedAllySlugs.length;
+    unitRoster.scrollTop = scrollTop;
     lineupStatus.textContent = notice || `선택한 순서대로 왼쪽부터 소환됩니다. ${count} / 4`;
-    startButton.disabled = count !== 4;
+    startButton.disabled = loadingLineup || count !== 4;
   }
 
   function toggleRosterUnit(slug) {
+    if (loadingLineup || !ROSTER_BY_SLUG.has(slug)) return;
     const selectedIndex = selectedAllySlugs.indexOf(slug);
     if (selectedIndex >= 0) selectedAllySlugs.splice(selectedIndex, 1);
     else if (selectedAllySlugs.length < 4) selectedAllySlugs.push(slug);
@@ -356,20 +368,29 @@
   }
 
   async function startSelectedBattle() {
-    if (selectedAllySlugs.length !== 4 || introRunning || running) return;
+    if (selectedAllySlugs.length !== 4 || introRunning || running || loadingLineup) return;
+    const request = ++lineupRequest;
+    loadingLineup = true;
+    renderRosterSelection();
     startButton.disabled = true;
     startButton.textContent = "유닛 모션 불러오는 중…";
     lineupStatus.textContent = "선택한 유닛을 전장에 준비하고 있습니다.";
     try {
-      selectedAllyTeam = selectedAllySlugs.map(slug => ({ ...ROSTER_BY_SLUG.get(slug) }));
-      await Promise.all(selectedAllyTeam.map(prepareSelectedMotion));
+      const preparedTeam = selectedAllySlugs.map(slug => ({ ...ROSTER_BY_SLUG.get(slug) }));
+      await Promise.all(preparedTeam.map(prepareSelectedMotion));
+      if (request !== lineupRequest) return;
+      selectedAllyTeam = preparedTeam;
       resetBattle(false);
       await beginBattle();
     } catch (error) {
+      if (request !== lineupRequest) return;
+      loadingLineup = false;
       console.error(error);
       startOverlay.hidden = false;
       renderRosterSelection("유닛 모션을 불러오지 못했습니다. 다시 시도해 주세요.");
     } finally {
+      if (request !== lineupRequest) return;
+      loadingLineup = false;
       startButton.textContent = "이 편성으로 전투 시작";
       startButton.disabled = selectedAllySlugs.length !== 4;
     }
@@ -569,7 +590,11 @@
     target.element.classList.add("is-targeted");
     const hitFrames = typeof V2CombatEffects !== "undefined" ? await V2CombatEffects.prepare(actor.slug) : null;
     if (token !== battleToken || !running) return;
-    await playMotion(actor, "attack", actor.frames.attack, token);
+    let signalImpact;
+    const impactReady = new Promise(resolve => { signalImpact = resolve; });
+    const attackPlayback = playMotion(actor, "attack", actor.frames.attack, token, false, signalImpact);
+    attackPlayback.then(signalImpact, signalImpact);
+    await impactReady;
     if (token !== battleToken || !running) return;
 
     const outcome = V2BattleBrands.attack(actor, target);
@@ -602,6 +627,8 @@
       target.image.src = frame(target, "attack", 1);
     }
 
+    await attackPlayback;
+    if (token !== battleToken || !running) return;
     actor.element.classList.remove("is-attacking");
     target.element.classList.remove("is-targeted");
     actor.image.src = frame(actor, "attack", 1);
@@ -612,11 +639,14 @@
     message.textContent = `${turnNumber}턴 · 남은 행동 ${turnQueue.filter((unitState) => unitState.alive).length}명`;
   }
 
-  async function playMotion(unitState, motion, count, token, holdLast) {
+  async function playMotion(unitState, motion, count, token, holdLast, onImpact) {
     const delay = () => Math.max(45, 135 / speedMultiplier);
     for (let index = 1; index <= count; index += 1) {
       if (token !== battleToken || !running) return;
+      while (paused && token === battleToken && running) await wait(50);
+      if (token !== battleToken || !running) return;
       unitState.image.src = frame(unitState, motion, index);
+      if (onImpact && index === Math.max(1, Math.ceil(count / 2))) onImpact();
       await wait(delay());
     }
     if (!holdLast) await wait(delay() * .35);
