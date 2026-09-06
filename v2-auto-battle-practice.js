@@ -30,6 +30,10 @@
   });
   // Visible alpha bounds in the existing 192px cutouts; bitmap files stay untouched.
   const PORTRAIT_BOUNDS = {
+    "death-knight": [57, 90, 82, 90],
+    "poison-mushroom": [70, 108, 54, 73],
+    "goblin-commoner": [72, 114, 50, 65],
+    "flesh-golem": [67, 101, 79, 85],
     "demon-death-knight": [36, 18, 135, 164],
     "skeleton-spear": [20, 12, 152, 171],
     "ghoul": [31, 12, 129, 172],
