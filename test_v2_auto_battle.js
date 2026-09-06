@@ -28,7 +28,7 @@ assert(!html.includes('id="unitInfoTeam"') && !html.includes('id="unitInfoState"
 const dicePanel = html.match(/<section id="turnDice"[\s\S]*?<\/section>/)?.[0] || "";
 assert(!dicePanel.includes("turn-dice-panel") && !dicePanel.includes("<span") && !dicePanel.includes("<strong") && !dicePanel.includes("<small"), "Only the dice button should remain in the center.");
 assert(!html.includes('class="versus"') && !source.includes("diceResultLabel") && !source.includes("diceTurnLabel"), "Center labels and obsolete references must be removed.");
-assert(html.indexOf('src="unit-data.js?v=46"') < html.indexOf('src="v2-auto-battle-practice.js'), "Shared unit metadata must load before the battle page.");
+assert(html.indexOf('src="unit-data.js?v=47"') < html.indexOf('src="v2-auto-battle-practice.js'), "Shared unit metadata must load before the battle page.");
 assert(!basicPanel.includes('id="unitInfoHp"'), "Stats must not be placed in the basic panel.");
 for (const id of ["unitInfoHp", "unitInfoAttack", "unitInfoSpeed"]) assert(statsPanel.includes(`id="${id}"`), `${id} must be in the lower-right stats panel.`);
 assert(!html.includes('id="unitInfoRoll"') && !source.includes("unitInfoRoll"), "Common roll must not be in the unit info window.");
@@ -69,7 +69,7 @@ assert(source.includes("showDamage(target, outcome.damage)"), "Damage popup must
 assert(css.includes("@keyframes damage-float") && css.includes(".brand-indicator.is-blessing"), "Damage animation and brand badges must both remain.");
 assert(source.includes("V2BattleBrands.attack(actor, target)"), "Assigned brands must affect attacks.");
 assert(source.includes("V2BattleBrands.startRound(units, lastDiceRoll)"), "Brands must use the shared turn roll.");
-assert(source.includes('roundState.textContent = `${allyAlive}+1 VS ${enemyAlive}+1`'), "Five-slot formation counter is missing.");
+assert(source.includes('roundState.textContent = `${allyAlive} VS ${enemyAlive}`'), "Counter must include actual living summons without a phantom extra unit.");
 assert((source.match(/unit\("/g) || []).length >= 8, "Default battle must define eight initial units.");
 assert(html.includes('id="unitRoster"') && html.includes('id="selectedLineup"') && html.includes('id="lineupStatus"'), "Pre-battle ally selection UI is missing.");
 assert(source.includes("const ROSTER_SPECS") && source.includes("selectedAllySlugs.length !== 4"), "The ally roster must require exactly four selections.");
@@ -111,15 +111,16 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v173'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v174'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=22"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=22") && worker.includes("v2-battle-brands.js?v=1"), "Turn-based auto battle, lineup picker and brands are not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=23"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=23") && worker.includes("v2-battle-brands.js?v=1"), "Turn-based auto battle, lineup picker and brands are not cached.");
 assert(worker.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit info frame is not cached.");
 // Exercise the real information-window functions without a rendering engine.
 const infoContext = { awaitingRoll: true, diceRolling: false, lastDiceRoll: null, V2BattleBrands: require("./v2-battle-brands.js"), document: { getElementById: () => ({ focus() {} }) } };
 for (const name of ["unitInfoName", "unitInfoImage", "unitInfoPortrait", "unitInfoGrade", "unitInfoLegion", "unitInfoHp", "unitInfoAttack", "unitInfoSpeed", "unitInfoBrands", "unitInfoOverlay"]) infoContext[name] = { textContent: "", hidden: true, attrs: {}, setAttribute(key, value) { this.attrs[key] = value; } };
 vm.createContext(infoContext);
+infoContext.V2SummonRules = require("./v2-summon-rules.js");
 infoContext.UNIT_TYPES = require("./unit-data.js").UNIT_TYPES;
 vm.runInContext(source.slice(source.indexOf("  const UNIT_TYPE_KEYS"), source.indexOf("  const TEAM_DATA")), infoContext);
 vm.runInContext(source.slice(source.indexOf("  function unit("), source.indexOf("  function frame(")), infoContext);

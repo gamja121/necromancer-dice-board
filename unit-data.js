@@ -13,7 +13,7 @@ var UNIT_TYPES = {
   },
   spear: {
     ultimateStyle: "pierce",
-    label: "해골 창병",
+    label: "해골 병사",
     legion: "skeleton",
     grade: "normal",
     hp: 2,
@@ -172,7 +172,7 @@ var UNIT_TYPES = {
     image: "assets/goblin-soldier.jpg",
   },
   skeletonSummoner: {
-    label: "해골소환술사",
+    label: "해골 소환사",
     legion: ["skeleton", "summon"],
     grade: "hero",
     hp: 2,
@@ -244,7 +244,7 @@ var UNIT_TYPES = {
     image: "assets/kraken.jpg",
   },
   crystalDevourer: {
-    label: "결정 포식화",
+    label: "식인식물",
     legion: ["plant", "summon"],
     grade: "hero",
     hp: 5,

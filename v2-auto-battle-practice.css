@@ -18,6 +18,8 @@ button, a { font: inherit; }
 .ally-team { left: 0; }
 .enemy-team { right: 0; }
 .unit { --depth-scale: 1; --depth-y: 0%; --unit-layer: 12; --action-shift-x: 0%; position: relative; z-index: var(--unit-layer); min-width: 0; overflow: visible; transition: opacity 220ms ease; }
+.ally-team .unit:nth-child(5) { --depth-scale: .88; --depth-y: -6%; --action-shift-x: -64%; }
+.enemy-team .unit:nth-child(1) { --depth-scale: .88; --depth-y: -6%; --action-shift-x: 64%; }
 .ally-team .unit:nth-child(1) { --depth-scale: 1.14; --depth-y: 11%; --unit-layer: 18; --action-shift-x: 192%; }
 .ally-team .unit:nth-child(2) { --depth-scale: 1.08; --depth-y: 7%; --unit-layer: 17; --action-shift-x: 128%; }
 .ally-team .unit:nth-child(3) { --depth-scale: 1.01; --depth-y: 2%; --unit-layer: 15; --action-shift-x: 64%; }

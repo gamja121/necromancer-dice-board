@@ -6,6 +6,7 @@
   ];
   const FRAME_ROOT = "art/v2-style/animation-test-frames/";
   const UNIT_TYPE_KEYS = {
+    "guardian-seed": "guardianSeed",
     "skeleton-spear": "spear", "skeleton-archer": "archer", "skeleton-cavalry": "knight",
     "grave-worm": "worm", "flesh-golem": "golem", ghoul: "ghoul", "boulder-ogre": "ogre",
     "plague-doctor": "plague", "plague-frog": "plagueFrog", hydra: "hydra", minotaur: "minotaur",
@@ -44,7 +45,7 @@
   const TEAM_DATA = {
     ally: [
       unit("death-knight", "데스 나이트", 12, 3, 4, 5, 4, 6, "demon-death-knight"),
-      unit("skeleton-spear", "해골 창병", 8, 2, 5, 5, 4, 5),
+      unit("skeleton-spear", "해골 병사", 8, 2, 5, 5, 4, 5),
       unit("ghoul", "구울", 9, 2, 3, 5, 4, 6),
       unit("ancient-treant", "고대 트렌트", 14, 3, 1, 5, 4, 6)
     ],
@@ -67,7 +68,7 @@
     ["sea-wolf", "seaWolf", 5, 4, 6], ["spider-knight", "spiderQueen", 5, 4, 5, "spider-queen"],
     ["spiderling", "spiderling", 5, 4, 6], ["goblin-chief", "goblinChief", 5, 4, 5],
     ["goblin-commoner", "goblinCommoner", 5, 4, 6], ["goblin-soldier", "goblinSoldier", 6, 4, 5],
-    ["grave-priest", "skeletonSummoner", 5, 4, 6, "skeleton-summoner", "묘지 사제"],
+    ["grave-priest", "skeletonSummoner", 5, 4, 6, "skeleton-summoner", "해골 소환사"],
     ["doom-executor", "doomExecutor", 5, 4, 5], ["abyss-eye", "abyssEye", 5, 4, 6],
     ["hell-mantis", "hellMantis", 5, 4, 6], ["scorpion-knight", "scorpionKnight", 5, 3, 5],
     ["ancient-treant", "ancientTreant", 5, 4, 6], ["stone-golem", "stoneGolem", 5, 4, 5],
@@ -81,6 +82,7 @@
     ["mimic", "mimic", 5, 4, 6], ["ice-princess", "icePrincess", 6, 4, 5], ["siren", "siren", 5, 4, 7]
   ]);
   const RUNTIME_PREPARERS = Object.freeze({
+    "guardian-seed": () => V2SeedFrames.prepare(),
     "goblin-soldier": () => V2GoblinFrames.prepare(), "ice-princess": () => V2PrincessFrames.prepare(),
     "bone-golem": () => V2BloodFrames.prepare(), "abyss-harpy": () => V2HarpyFrames.prepare(),
     hydra: () => V2HydraFrames.prepare(), "bone-hound": () => V2HoundFrames.prepare(),
@@ -232,6 +234,13 @@
     enemyTeam.replaceChildren();
     enemyTeam.append(makeSummonSlot("적군"));
     for (const unitState of units) {
+      const element = createUnitElement(unitState);
+      (unitState.team === "ally" ? allyTeam : enemyTeam).append(element);
+    }
+    allyTeam.append(makeSummonSlot("아군"));
+  }
+
+  function createUnitElement(unitState) {
       const element = document.createElement("article");
       element.className = unitState.team === "ally" ? "unit is-pending" : "unit";
       element.dataset.unit = unitState.slug;
@@ -252,10 +261,8 @@
           openUnitInfo(unitState);
         }
       });
-      (unitState.team === "ally" ? allyTeam : enemyTeam).append(element);
       updateUnit(unitState);
-    }
-    allyTeam.append(makeSummonSlot("아군"));
+      return element;
   }
 
   function makeSummonSlot(teamName) {
@@ -307,7 +314,7 @@
   function updateHud() {
     const allyAlive = aliveUnits("ally").length;
     const enemyAlive = aliveUnits("enemy").length;
-    roundState.textContent = `${allyAlive}+1 VS ${enemyAlive}+1`;
+    roundState.textContent = `${allyAlive} VS ${enemyAlive}`;
   }
 
   function aliveUnits(team) {
@@ -461,13 +468,20 @@
     turnNumber += 1;
     actionBusy = true;
     const token = battleToken;
+    for (const seed of units.filter(u => V2SummonRules.canBloom(u, turnNumber))) {
+      await playMotion(seed, "attack", seed.frames.attack, token, true);
+      if (token !== battleToken || !running) return;
+      const plant = makeState({ ...ROSTER_BY_SLUG.get("crystal-devourer") }, seed.team, seed.slot);
+      plant.isSummon = false;
+      replaceFighter(seed, plant);
+    }
     const fallen = V2BattleBrands.startRound(units, lastDiceRoll);
     units.forEach(updateUnit);
     await Promise.all(fallen.map(unitState => playMotion(unitState, "death", unitState.frames.death, token, true)));
     if (token !== battleToken || !running) return;
     updateHud();
     if (!aliveUnits("ally").length || !aliveUnits("enemy").length) return finishBattle();
-    turnQueue = units.filter((unitState) => unitState.alive)
+    turnQueue = units.filter((unitState) => unitState.alive && unitState.slug !== "guardian-seed")
       .map((unitState) => ({ unitState, tie: Math.random() }))
       .sort((left, right) => right.unitState.speed - left.unitState.speed || left.tie - right.tie)
       .map((entry) => entry.unitState);
@@ -556,14 +570,54 @@
         <p>일반 [${brand.normal}]: 통상 진행</p>
         <p class="brand-note">공통 주사위로 시작하는 턴에 적용 · 다음 굴림 때 갱신</p>
         <p class="brand-note">${stateText}${unitState.poison ? " · 중독: 다음 행동 시 피해 1" : ""}</p>
-        ${unitState.brand === "summon" ? '<p class="brand-note">소환물이 없으면 효과 없음 · 소환 생성 기능은 아직 없음</p>' : ""}`;
+        ${unitState.brand === "summon" ? '<p class="brand-note">아군 소환물에게 적용 · 개화한 식인식물은 제외</p>' : ""}`;
     } else unitInfoBrands.textContent = "낙인 미지정";
+    if (V2SummonRules.choices[unitState.slug]) unitInfoBrands.innerHTML += `<p>주사위 6: 자기 차례에 소환 후 공격 · 전투당 소환 성공 1회 (${unitState.summonUsed ? "사용 완료" : "미사용"})</p><p>${unitState.slug === "crystal-devourer" ? "중앙이 차면 사망한 아군 자리에도 씨앗 소환" : "중앙이 차면 소환을 건너뜀"}</p>`;
+    if (unitState.slug === "guardian-seed") unitInfoBrands.innerHTML += `<p>공격 불가 · 피격 ${unitState.receivedHits || 0}/2 · 2회 피격 후 다음 턴에 식인식물로 개화 (생존 시)</p>`;
     unitInfoOverlay.hidden = false;
     document.getElementById("unitInfoClose").focus();
   }
 
   function closeUnitInfo() {
     unitInfoOverlay.hidden = true;
+  }
+
+  function replaceFighter(old, next) {
+    const host = next.team === "ally" ? allyTeam : enemyTeam;
+    const node = old?.element || host.querySelector(".summon-slot");
+    const element = createUnitElement(next);
+    node.replaceWith(element);
+    if (old) units.splice(units.indexOf(old), 1, next);
+    else units.push(next);
+    revealUnit(next);
+    return next;
+  }
+
+  async function summonBeforeAttack(actor, token) {
+    const plan = V2SummonRules.plan(actor, units, lastDiceRoll);
+    if (!plan) return;
+    const data = plan.slug === "guardian-seed"
+      ? unit("guardian-seed", "수호 씨앗", 6, 0, 1, 5, 3, 4)
+      : { ...ROSTER_BY_SLUG.get(plan.slug) };
+    try { await prepareSelectedMotion(data); }
+    catch (error) { console.warn("Summon preparation failed", error); return; }
+    if (token !== battleToken || !running) return;
+    const summoned = makeState(data, actor.team, plan.slot);
+    summoned.isSummon = true;
+    summoned.bornTurn = turnNumber;
+    const old = units.find(u => u.team === actor.team && u.slot === plan.slot);
+    replaceFighter(old, summoned);
+    actor.summonUsed = true;
+    summoned.element.classList.add("is-pending");
+    message.textContent = `${actor.name} → ${summoned.name} 소환`;
+    try {
+      const frames = await V2SummonEffect.prepare();
+      if (token !== battleToken || !running) return;
+      await V2SummonEffect.play(summoned, frames, { isCurrent: () => token === battleToken && running, reveal: revealUnit, wait });
+    } catch (error) { console.warn("Summon effect unavailable", error); }
+    if (token !== battleToken || !running) return;
+    revealUnit(summoned);
+    updateHud();
   }
 
   async function performAttack(actor, token) {
@@ -581,6 +635,8 @@
         return;
       }
     }
+    await summonBeforeAttack(actor, token);
+    if (token !== battleToken || !running) return;
     const targets = aliveUnits(actor.team === "ally" ? "enemy" : "ally");
     const target = targets[Math.floor(Math.random() * targets.length)];
     if (!target) return finishBattle();
@@ -598,6 +654,7 @@
     if (token !== battleToken || !running) return;
 
     const outcome = V2BattleBrands.attack(actor, target);
+    V2SummonRules.registerHit(target, outcome, turnNumber);
     updateUnit(actor);
     updateUnit(target);
     message.textContent = outcome.miss ? `${actor.name} 공격 빗나감`

@@ -50,6 +50,7 @@ async function main(){
     const actor=unit(slug),target=unit('ghoul');target.team='enemy';
     const ctx={actor,Math,battleToken:1,running:true,turnNumber:1,actionCount:0,turnQueue:[],speedMultiplier:1,message:{},
       V2BattleBrands:{beforeAction:()=>false,attack:()=>({damage,miss:damage===0})},
+      summonBeforeAttack:async()=>{}, V2SummonRules:require('./v2-summon-rules'),
       V2CombatEffects:{prepare:async type=>{assert.equal(type,slug);assert.equal(api.ATTACK_EFFECTS[type],effect);return ['a'];},play:async (node,frames)=>{assert.equal(node,host);events.push('effect');}},
       updateUnit(){},updateHud(){},showDamage(){events.push('damage');},aliveUnits:team=>[team==='enemy'?target:actor],
       playMotion:async (unit,motion)=>events.push(motion),wait:async()=>{},frame:()=>'',finishBattle(){throw Error('unexpected finish');}};
