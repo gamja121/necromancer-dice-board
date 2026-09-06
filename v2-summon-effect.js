@@ -44,7 +44,42 @@
     }).catch(error => { prepared = null; throw error; });
     return prepared;
   }
+  // Measure opaque artwork, not the padded PNG rectangle.
+  function footAnchor(data, width, height) {
+    let bottom = -1;
+    for (let y = height - 1; y >= 0 && bottom < 0; y--) {
+      for (let x = 0; x < width; x++) {
+        if (data[(y * width + x) * 4 + 3] >= 128) { bottom = y; break; }
+      }
+    }
+    if (bottom < 0) return { x: .5, y: 1 };
+    let left = width, right = -1;
+    for (let y = Math.max(0, bottom - Math.ceil(height * .06)); y <= bottom; y++) {
+      for (let x = 0; x < width; x++) {
+        if (data[(y * width + x) * 4 + 3] >= 128) {
+          left = Math.min(left, x); right = Math.max(right, x);
+        }
+      }
+    }
+    return { x: (left + right + 1) / (2 * width), y: (bottom + 1) / height };
+  }
+  function placeAtFeet(canvas, image) {
+    if (!image?.naturalWidth || !image.naturalHeight) return;
+    const probe = root.document.createElement("canvas");
+    probe.width = image.naturalWidth; probe.height = image.naturalHeight;
+    const context = probe.getContext("2d", { willReadFrequently: true });
+    context.drawImage(image, 0, 0);
+    const anchor = footAnchor(context.getImageData(0, 0, probe.width, probe.height).data, probe.width, probe.height);
+    const scale = Math.min(image.clientWidth / probe.width, image.clientHeight / probe.height);
+    const width = probe.width * scale, height = probe.height * scale;
+    // object-fit: contain centers artwork inside the image element.
+    canvas.style.left = `${image.offsetLeft + (image.clientWidth - width) / 2 + anchor.x * width}px`;
+    canvas.style.top = `${image.offsetTop + (image.clientHeight - height) / 2 + anchor.y * height}px`;
+    canvas.style.bottom = "auto";
+  }
   async function play(unit, frames, options) {
+    if (!options.isCurrent()) return;
+    if (unit.image?.decode) { try { await unit.image.decode(); } catch (_) {} }
     if (!options.isCurrent()) return;
     unit.element.classList.add("is-summoning");
     const canvas = root.document.createElement("canvas");
@@ -52,6 +87,7 @@
     canvas.className = "summon-effect";
     canvas.setAttribute("aria-hidden", "true");
     unit.element.querySelector(".sprite-wrap").append(canvas);
+    try { placeAtFeet(canvas, unit.image); } catch (_) { /* Keep fallback for unavailable pixels. */ }
     const context = canvas.getContext("2d");
     try {
       for (let i = 0; i < frames.length; i++) {
@@ -69,7 +105,7 @@
       unit.element.classList.remove("is-summoning");
     }
   }
-  const api = { SHEET, CELLS, removeGreen, buildFrames, prepare, play };
+  const api = { SHEET, CELLS, removeGreen, buildFrames, prepare, play, footAnchor, placeAtFeet };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.V2SummonEffect = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);
