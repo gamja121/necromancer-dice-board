@@ -174,7 +174,7 @@
     const prepared = unitState.motionFrames?.[motion];
     if (prepared) return prepared[Math.min(index - 1, prepared.length - 1)];
     const frameNumber = unitState.frameNumbers?.[motion]?.[index - 1] || index;
-    const revision = ["death-knight", "ancient-treant", "goblin-commoner", "ice-lord"].includes(unitState.slug) ? "?v=20260907" : "";
+    const revision = unitState.slug === "death-knight" ? "?v=20260907-size2" : ["ancient-treant", "goblin-commoner", "ice-lord"].includes(unitState.slug) ? "?v=20260907" : "";
     return `${FRAME_ROOT}${unitState.slug}/${motion}-${String(frameNumber).padStart(2, "0")}.png${revision}`;
   }
 

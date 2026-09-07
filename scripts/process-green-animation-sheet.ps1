@@ -594,6 +594,28 @@ public static class GreenAnimationProcessor
         return canvas;
     }
 
+    // Fixed pixel scale and body/ground anchors: never fit each pose's bounding box independently.
+    private static Bitmap DeathKnightFrame(Bitmap source, Rectangle cell, int row, int frame)
+    {
+        int[][] anchors = {
+            new int[] {125, 367, 600, 890, 1150},
+            new int[] {126, 365, 592, 823},
+            new int[] {116, 316, 529, 747, 963, 1174}
+        };
+        int ground = row == 0 ? 224 : row == 1 ? 450 : 650;
+        var canvas = new Bitmap(320, 270, PixelFormat.Format32bppArgb);
+        for (int y = cell.Top; y < cell.Bottom; y++)
+        for (int x = cell.Left; x < cell.Right; x++)
+        {
+            if (row == 2 && frame == 5 && x >= 1135 && x <= 1205 && y < 575) continue;
+            Color pixel = RemoveChroma(source.GetPixel(x, y), false);
+            int dx = 160 + x - anchors[row][frame], dy = 250 + y - ground;
+            if (dx >= 0 && dx < 320 && dy >= 0 && dy < 270) canvas.SetPixel(dx, dy, pixel);
+            else if (pixel.A > 8) throw new InvalidOperationException("Death Knight frame exceeds fixed canvas");
+        }
+        return canvas;
+    }
+
     public static string[] Process(string inputPath, string outputDirectory, string unitName)
     {
         System.IO.Directory.CreateDirectory(outputDirectory);
@@ -639,6 +661,13 @@ public static class GreenAnimationProcessor
             for (int frame = 0; frame < counts[row]; frame++)
             {
                 Rectangle cell = cells[row][frame];
+                if (String.Equals(unitName, "death-knight", StringComparison.OrdinalIgnoreCase))
+                {
+                    string fixedPath = System.IO.Path.Combine(outputDirectory, names[row] + "-" + (frame + 1).ToString("00") + ".png");
+                    using (var fixedFrame = DeathKnightFrame(source, cell, row, frame)) fixedFrame.Save(fixedPath, ImageFormat.Png);
+                    outputs.Add(fixedPath);
+                    continue;
+                }
                 bool clearWhite = (String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
                     && row == 2 && frame == 0)
                     || String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase)
