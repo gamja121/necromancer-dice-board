@@ -443,7 +443,15 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/cr
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/grave-worm-animation-sheet.jpg")), "New raw Grave Worm sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/siren-animation-sheet.jpg")), "New raw Siren sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/mimic-animation-sheet.jpg")), "New raw Mimic sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v179"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v180"), "Service worker cache version was not bumped.");
+for (const slug of ['ancient-treant','skeleton-spear','stone-golem','goblin-rider']) {
+  for (const [motion,count] of Object.entries({attack:5,hit:4,death:slug === 'ancient-treant' ? 6 : 5})) {
+    for(let i=1;i<=count;i++) {
+      const png=fs.readFileSync(`${__dirname}/art/v2-style/animation-test-frames/${slug}/${motion}-${String(i).padStart(2,'0')}.png`);
+      assert(png.readUInt32BE(16) === 280 && png.readUInt32BE(20) === 270, `${slug} must keep a fixed canvas`);
+    }
+  }
+}
 for (const [motion, count] of Object.entries({attack:5, hit:4, death:6})) {
   for (let i = 1; i <= count; i++) {
     const png = fs.readFileSync(`${__dirname}/art/v2-style/animation-test-frames/death-knight/${motion}-${String(i).padStart(2, '0')}.png`);

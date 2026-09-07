@@ -67,7 +67,7 @@
   function pathFor(motion, index) {
     const unit = UNITS[state.unit];
     const frameNumber = motion === "death" && unit.deathFrames ? unit.deathFrames[index] : index + 1;
-    const revision = state.unit === "death-knight" ? "?v=20260907-size2" : ["ancient-treant", "goblin-commoner", "ice-lord"].includes(state.unit) ? "?v=20260907" : "";
+    const revision = ["death-knight", "ancient-treant", "skeleton-spear", "stone-golem", "goblin-rider"].includes(state.unit) ? "?v=20260907-size2" : ["goblin-commoner", "ice-lord"].includes(state.unit) ? "?v=20260907" : "";
     return `${unit.root}${motion}-${String(frameNumber).padStart(2, "0")}.png${revision}`;
   }
   function buildFrames() {

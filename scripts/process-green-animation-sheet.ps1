@@ -690,7 +690,11 @@ public static class GreenAnimationProcessor
                     string path = System.IO.Path.Combine(outputDirectory, names[row] + "-" + (frame + 1).ToString("00") + ".png");
                     if (String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase) && row != 1)
                         path = System.IO.Path.Combine(outputDirectory, names[row] + "-" + (frame + 2).ToString("00") + ".png");
-                    if (String.Equals(unitName, "orc-warrior", StringComparison.OrdinalIgnoreCase)
+                    if (String.Equals(unitName, "ancient-treant", StringComparison.OrdinalIgnoreCase)
+                        || String.Equals(unitName, "skeleton-spear", StringComparison.OrdinalIgnoreCase)
+                        || String.Equals(unitName, "stone-golem", StringComparison.OrdinalIgnoreCase)
+                        || String.Equals(unitName, "goblin-rider", StringComparison.OrdinalIgnoreCase)
+                        || String.Equals(unitName, "orc-warrior", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "boulder-ogre", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "ice-lord", StringComparison.OrdinalIgnoreCase)
                         || String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase)
@@ -712,6 +716,12 @@ public static class GreenAnimationProcessor
                             : String.Equals(unitName, "raging-treant", StringComparison.OrdinalIgnoreCase) ? 300
                             : String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase) ? 300 : 250;
                         int canvasHeight = String.Equals(unitName, "minotaur", StringComparison.OrdinalIgnoreCase) ? 270 : 250;
+                        if (unitName == "ancient-treant" || unitName == "skeleton-spear" || unitName == "stone-golem" || unitName == "goblin-rider")
+                        {
+                            canvasWidth = 280;
+                            canvasHeight = 270;
+                            if (output.Width > canvasWidth || output.Height > canvasHeight) throw new InvalidOperationException("Frame exceeds fixed canvas: " + path);
+                        }
                         using (var normalized = PlaceOnCanvas(output, canvasWidth, canvasHeight))
                         {
                             // Ice Lord hit poses sit very close together in the source sheet.
