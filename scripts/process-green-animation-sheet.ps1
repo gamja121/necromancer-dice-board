@@ -114,7 +114,7 @@ public static class GreenAnimationProcessor
         return c;
     }
 
-    private static Bitmap Extract(Bitmap source, Rectangle cell, bool magenta, bool clearWhite = false, bool strictMagenta = false, bool clearNeutralWhite = false)
+    private static Bitmap Extract(Bitmap source, Rectangle cell, bool magenta, bool clearWhite = false, bool strictMagenta = false, bool clearNeutralWhite = false, Rectangle? excluded = null)
     {
         using (var keyed = new Bitmap(cell.Width, cell.Height, PixelFormat.Format32bppArgb))
         {
@@ -131,6 +131,7 @@ public static class GreenAnimationProcessor
                 Color output = removeWhite
                     ? Color.Transparent
                     : RemoveChroma(input, magenta, strictMagenta);
+                if (excluded.HasValue && excluded.Value.Contains(cell.X + x, cell.Y + y)) output = Color.Transparent;
 
                 // The Stone Golem's first death pose overlaps the white label gutter.
                 // Remove the divider above/below the arm and neutral white residue beside it.
@@ -393,7 +394,7 @@ public static class GreenAnimationProcessor
                 new Rectangle[] {
                     Rectangle.FromLTRB(90, 600, 290, 825), Rectangle.FromLTRB(290, 600, 485, 825),
                     Rectangle.FromLTRB(485, 600, 680, 825), Rectangle.FromLTRB(680, 600, 875, 825),
-                    Rectangle.FromLTRB(875, 600, 1070, 825), Rectangle.FromLTRB(1070, 600, 1275, 825)
+                    Rectangle.FromLTRB(875, 600, 1070, 800), Rectangle.FromLTRB(1070, 600, 1275, 800)
                 }
             };
         }
@@ -403,7 +404,7 @@ public static class GreenAnimationProcessor
             return new Rectangle[][] {
                 new Rectangle[] {
                     Rectangle.FromLTRB(110, 0, 320, 205), Rectangle.FromLTRB(320, 0, 520, 205),
-                    Rectangle.FromLTRB(520, 0, 735, 205), Rectangle.FromLTRB(735, 0, 985, 205),
+                    Rectangle.FromLTRB(520, 0, 756, 205), Rectangle.FromLTRB(756, 0, 985, 205),
                     Rectangle.FromLTRB(985, 0, 1170, 205)
                 },
                 new Rectangle[] {
@@ -502,9 +503,9 @@ public static class GreenAnimationProcessor
         {
             return new Rectangle[][] {
                 new Rectangle[] {
-                    Rectangle.FromLTRB(118, 2, 312, 190), Rectangle.FromLTRB(322, 2, 514, 190),
-                    Rectangle.FromLTRB(522, 2, 724, 190), Rectangle.FromLTRB(734, 2, 1010, 190),
-                    Rectangle.FromLTRB(1012, 2, 1202, 190)
+                    Rectangle.FromLTRB(118, 0, 312, 195), Rectangle.FromLTRB(322, 0, 514, 195),
+                    Rectangle.FromLTRB(522, 0, 724, 195), Rectangle.FromLTRB(734, 0, 1010, 195),
+                    Rectangle.FromLTRB(1012, 0, 1202, 195)
                 },
                 new Rectangle[] {
                     Rectangle.FromLTRB(112, 192, 312, 390), Rectangle.FromLTRB(322, 192, 512, 390),
@@ -644,8 +645,11 @@ public static class GreenAnimationProcessor
                     || String.Equals(unitName, "ghoul", StringComparison.OrdinalIgnoreCase);
                 bool clearNeutralWhite = String.Equals(unitName, "yeti", StringComparison.OrdinalIgnoreCase)
                     || String.Equals(unitName, "ghoul", StringComparison.OrdinalIgnoreCase);
-                using (var output = Extract(source, cell, magenta, clearWhite, strictMagenta, clearNeutralWhite))
+                Rectangle? excluded = String.Equals(unitName, "ancient-treant", StringComparison.OrdinalIgnoreCase) && row == 2 && frame == 5
+                    ? (Rectangle?)Rectangle.FromLTRB(1150, 440, 1215, 492) : null;
+                using (var output = Extract(source, cell, magenta, clearWhite, strictMagenta, clearNeutralWhite, excluded))
                 {
+                    if (String.Equals(unitName, "goblin-commoner", StringComparison.OrdinalIgnoreCase) && row == 0) KeepLargestComponent(output);
                     // The Ancient Treant's final death pose should face the opposite direction.
                     // Keep this deterministic adjustment here so regenerating the frames preserves it.
                     if (String.Equals(unitName, "ancient-treant", StringComparison.OrdinalIgnoreCase)

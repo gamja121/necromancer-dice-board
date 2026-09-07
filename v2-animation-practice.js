@@ -67,7 +67,8 @@
   function pathFor(motion, index) {
     const unit = UNITS[state.unit];
     const frameNumber = motion === "death" && unit.deathFrames ? unit.deathFrames[index] : index + 1;
-    return `${unit.root}${motion}-${String(frameNumber).padStart(2, "0")}.png`;
+    const revision = ["death-knight", "ancient-treant", "goblin-commoner", "ice-lord"].includes(state.unit) ? "?v=20260907" : "";
+    return `${unit.root}${motion}-${String(frameNumber).padStart(2, "0")}.png${revision}`;
   }
   function buildFrames() {
     Object.entries(UNITS[state.unit].counts).forEach(([motion, count]) => {
