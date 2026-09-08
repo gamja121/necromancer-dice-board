@@ -42,12 +42,27 @@
   }
   const LABEL_SHEET='art/v2-style/ui/combat-labels-sheet.jpg';
   const LABEL_CELLS={miss:[290,0,740,290],critical:[300,300,730,265]};
-  let labels;
+  const STATUS_SHEET='art/v2-style/ui/status-labels-sheet.jpg';
+  const STATUS_CELLS={poison:[405,10,495,275],immune:[405,292,485,270]};
+  const LABEL_TEXT={miss:'빗나감',critical:'치명타',poison:'중독',immune:'무적'};
+  let labels={};
+  function prepareStatusLabels() {
+    return new Promise((resolve,reject)=>{
+      const image=new root.Image();image.onerror=()=>reject(Error('Status labels failed to load'));
+      image.onload=()=>{try {
+        for(const [name,[x,y,w,h]] of Object.entries(STATUS_CELLS)) {
+          const c=root.document.createElement('canvas');c.width=w;c.height=h;
+          const ctx=c.getContext('2d');ctx.drawImage(image,x,y,w,h,0,0,w,h);
+          const pixels=ctx.getImageData(0,0,w,h);key(pixels.data);ctx.putImageData(pixels,0,0);labels[name]=c;
+        }
+        resolve(labels);
+      }catch(error){reject(error);}};image.src=STATUS_SHEET;
+    });
+  }
   function prepareLabels() {
     return new Promise((resolve,reject)=>{
       const image=new root.Image();image.onerror=()=>reject(Error('Combat labels failed to load'));
       image.onload=()=>{try {
-        labels={};
         for(const [name,[x,y,w,h]] of Object.entries(LABEL_CELLS)) {
           const c=root.document.createElement('canvas');c.width=w;c.height=h;
           const ctx=c.getContext('2d');ctx.drawImage(image,x,y,w,h,0,0,w,h);
@@ -58,17 +73,17 @@
     });
   }
   function showLabel(unit,type) {
-    if(!LABEL_CELLS[type] || !unit.element)return;
+    if(!LABEL_TEXT[type] || !unit.element)return;
     const host=root.document.createElement('span');host.className='combat-label combat-label-'+type;
-    host.setAttribute('aria-label',type==='miss'?'빗나감':'치명타');
+    host.setAttribute('aria-label',LABEL_TEXT[type]);
     if(labels?.[type]) {
       const source=labels[type],c=root.document.createElement('canvas');c.width=source.width;c.height=source.height;
       c.setAttribute('aria-hidden','true');c.getContext('2d').drawImage(source,0,0);host.append(c);
-    } else host.textContent=type==='miss'?'빗나감':'치명타';
+    } else host.textContent=LABEL_TEXT[type];
     unit.element.querySelector('.sprite-wrap').append(host);
     host.addEventListener('animationend',()=>host.remove(),{once:true});
     root.setTimeout(()=>host.remove(),1300);
   }
-  const api={SHEET,CELLS,key,prepare,render,LABEL_SHEET,LABEL_CELLS,prepareLabels,showLabel};
+  const api={SHEET,CELLS,key,prepare,render,LABEL_SHEET,LABEL_CELLS,prepareLabels,showLabel,STATUS_CELLS,prepareStatusLabels};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.V2DamageDigits=api;
 })(globalThis);

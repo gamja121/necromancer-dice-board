@@ -1,6 +1,6 @@
 (function (root) {
   const RATIOS = Object.freeze({
-    "death-knight": 1, "plague-frog": .5, "grave-worm": .5,
+    "bone-golem": 1.5, "death-knight": 1, "plague-frog": .5, "grave-worm": .5,
     "spider-knight": 2, "stone-golem": 2, "flesh-golem": 1.5,
     "skeleton-cavalry": 1.5, spiderling: .5, "guardian-seed": .5,
     "goblin-chief": 1.5, kraken: 2, minotaur: 1.5,

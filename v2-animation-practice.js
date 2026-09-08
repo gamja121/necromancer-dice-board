@@ -8,7 +8,7 @@
   const UNITS = Object.freeze({
     "goblin-soldier": { name: "고블린 병사", runtimeSheet: true, counts: { attack: 6, hit: 4, death: 5 } },
     "ice-princess": { name: "얼음 공주", runtimeSheet: true, counts: { attack: 6, hit: 4, death: 5 } },
-    "bone-golem": { name: "핏빛 해골", runtimeSheet: true, counts: { attack: 5, hit: 4, death: 5 } },
+    "bone-golem": { name: "블러드 골렘", runtimeSheet: true, counts: { attack: 5, hit: 4, death: 5 } },
     "guardian-seed": { name: "수호 씨앗", runtimeSheet: true, isSummon: true, canAttack: false, attackLabel: "개화", counts: { attack: 5, hit: 3, death: 4 } },
     "abyss-harpy": { name: "심연 하피", runtimeSheet: true, counts: { attack: 4, hit: 4, death: 5 } },
     "hydra": { name: "히드라", runtimeSheet: true, counts: { attack: 5, hit: 4, death: 6 } },

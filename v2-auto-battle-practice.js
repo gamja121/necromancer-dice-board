@@ -672,7 +672,9 @@
     const outcome = V2BattleBrands.attack(actor, target);
     if (typeof V2DamageDigits !== "undefined") {
       if (outcome.miss) V2DamageDigits.showLabel(target, "miss");
+      else if (outcome.immune) V2DamageDigits.showLabel(target, "immune");
       else if (outcome.damage > 0 && actor.brand === "critical" && actor.brandMode === "blessing") V2DamageDigits.showLabel(target, "critical");
+      if (outcome.damage > 0 && target.hp > 0 && actor.brand === "poison" && actor.brandMode === "blessing") V2DamageDigits.showLabel(target, "poison");
     }
     V2SummonRules.registerHit(target, outcome, turnNumber);
     updateUnit(actor);
@@ -776,5 +778,6 @@
   resetBattle(true);
   if (typeof V2DamageDigits !== "undefined") V2DamageDigits.prepare().catch(error => console.warn(error));
   if (typeof V2DamageDigits !== "undefined") V2DamageDigits.prepareLabels().catch(error => console.warn(error));
+  if (typeof V2DamageDigits !== "undefined") V2DamageDigits.prepareStatusLabels().catch(error => console.warn(error));
   requestAnimationFrame(battleLoop);
 })();

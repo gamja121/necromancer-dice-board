@@ -62,6 +62,7 @@ button, a { font: inherit; }
 .combat-label canvas { display: block; width: 100%; height: auto; }
 .combat-label-miss { top: 16%; width: clamp(90px, 13vw, 160px); font-size: 32px; }
 .combat-label-critical { top: 5%; width: clamp(42px, 6vw, 72px); font-size: 14px; }
+.combat-label-poison, .combat-label-immune { top: 8%; width: clamp(56px, 8vw, 100px); font-size: 20px; }
 .battlefield.is-cinematic .unit.is-targeted .sprite-wrap { transform: translateY(var(--depth-y)) scale(var(--depth-scale)); }
 .battlefield.is-cinematic .unit.is-targeted.is-hit .sprite-wrap { translate: 6px 0; }
 .battlefield.is-cinematic .ally-team .unit.is-targeted.is-hit .sprite-wrap { translate: -6px 0; }

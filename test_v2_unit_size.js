@@ -1,6 +1,7 @@
 const assert = require('assert');
 const { RATIOS, layout } = require('./v2-unit-size');
-assert.equal(Object.keys(RATIOS).length, 16);
+assert.equal(Object.keys(RATIOS).length, 17);
+assert.equal(RATIOS['bone-golem'], 1.5);
 assert.equal(RATIOS.hydra, 2.5);
 assert.equal(RATIOS['guardian-seed'], .5);
 const m = { width: 320, height: 270, top: 40, bottom: 249 };

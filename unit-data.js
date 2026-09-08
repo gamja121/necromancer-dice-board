@@ -312,7 +312,7 @@ var UNIT_TYPES = {
     image: "assets/troll.jpg",
   },
   boneGolem: {
-    label: "핏빛 해골",
+    label: "블러드 골렘",
     legion: ["skeleton", "element"],
     grade: "advanced",
     hp: 6,

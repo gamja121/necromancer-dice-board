@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-expedition-v183";
+const CACHE_NAME = "necromancer-expedition-v184";
 const APP_SHELL = [
   "./",
   "./index.html",
