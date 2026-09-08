@@ -4,13 +4,16 @@ global.document = {createElement:node};
 const api = require('./v2-unit-cards');
 assert(api.ART.includes('ghoul'));
 assert(api.ART.includes('goblin-chief'));
-assert(!api.ART.includes('bone-golem'));
+for (const slug of ['bone-golem','forest-fairy','flesh-golem','hydra','ice-princess']) {
+  assert(api.ART.includes(slug));
+  assert(require('fs').existsSync(require('path').join(__dirname, 'art/v2-style/ui/unit-card-' + slug + '.jpg')));
+}
 for (const slug of ['ancient-treant','stone-golem','kraken','crystal-devourer','skeleton-spear']) assert(api.ART.includes(slug));
 const field=node(); let selected;
 const units=api.ART.map((slug,slot)=>({slug,slot,team:'ally',name:slug,alive:true,hp:8,maxHp:8,portrait:'fallback.png'}));
 api.sync(field,units,u=>selected=u);
 assert.equal(field.children.length,1);
-assert.equal(field.children[0].children[0].children.length,29);
+assert.equal(field.children[0].children[0].children.length,34);
 assert.equal(new Set(api.ART).size, api.ART.length);
 for (const slug of ['mushroom-soldier','goblin-rider','orc-warrior','abyss-harpy','boulder-ogre']) {
   assert(api.ART.includes(slug));

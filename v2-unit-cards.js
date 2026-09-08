@@ -1,5 +1,5 @@
 (function(root) {
-  const ART = ['minotaur','ice-lord','plague-frog','orc-warrior','plague-doctor','ghoul','goblin-chief','goblin-soldier','sea-wolf','grave-priest','abyss-eye','doom-executor','death-knight','hell-mantis','scorpion-knight','ancient-treant','stone-golem','kraken','crystal-devourer','skeleton-spear','skeleton-archer','skeleton-cavalry','spider-knight','raging-treant','cerberus','mushroom-soldier','goblin-rider','abyss-harpy','boulder-ogre'];
+  const ART = ['minotaur','ice-lord','plague-frog','orc-warrior','plague-doctor','ghoul','goblin-chief','goblin-soldier','sea-wolf','grave-priest','abyss-eye','doom-executor','death-knight','hell-mantis','scorpion-knight','ancient-treant','stone-golem','kraken','crystal-devourer','skeleton-spear','skeleton-archer','skeleton-cavalry','spider-knight','raging-treant','cerberus','mushroom-soldier','goblin-rider','abyss-harpy','boulder-ogre','bone-golem','forest-fairy','flesh-golem','hydra','ice-princess'];
   let selected;
   function clearSelection() {
     if (selected) selected.classList.toggle('is-selected', false);
@@ -29,7 +29,7 @@
         if (ART.includes(unit.slug)) {
           // Crop the supplied 1280x575 photo to the card only, without changing the original.
           art.classList.add('has-card-art');
-          art.style.backgroundImage = 'url("art/v2-style/ui/unit-card-' + unit.slug + '.jpg?v=7")';
+          art.style.backgroundImage = 'url("art/v2-style/ui/unit-card-' + unit.slug + '.jpg?v=8")';
         } else {
           const image = document.createElement('img'); image.src = unit.portrait; image.alt = '';
           art.append(image);
