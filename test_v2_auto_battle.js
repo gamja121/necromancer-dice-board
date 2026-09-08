@@ -119,15 +119,17 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v188'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v189'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=33"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=38") && worker.includes("v2-legions.js?v=1"), "Turn-based auto battle and legions are not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=34"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=39") && worker.includes("v2-legions.js?v=1"), "Turn-based auto battle and legions are not cached.");
 assert(worker.includes("art/v2-style/ui/legion-slot-frame.png"), "The cropped one-cell legion frame is not cached.");
 assert(html.includes('id="capturePanel"') && html.includes('id="captureRollButton"'), "Post-battle corpse capture controls are missing.");
 assert(source.includes("V2Legions.create(units)") && source.includes("V2Legions.applyOpening(legionState, units)"), "Initial-lineup legion state is not applied.");
 assert(source.includes("V2Legions.captureAttempts(legionState, \"ally\")"), "Corpse legion retry is not connected to capture dice.");
 assert(source.includes("function renderActiveLegions()") && source.includes('slot.className = "active-legion-slot"'), "Active legions must render as individual square slots.");
+assert(source.includes("function showHealing(unitState, amount)") && source.includes("showHealing(actor, legionHealing)"), "Undead healing must have a visible combat indicator.");
+assert(css.includes(".healing-number {") && css.includes("#7cff83"), "Healing feedback must be visibly distinct from damage.");
 assert(source.includes('key !== "element"') && source.includes('unitState.legions.includes("element")'), "Element legion display must disappear when its survival condition ends.");
 assert(worker.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit info frame is not cached.");
 // Exercise the real information-window functions without a rendering engine.

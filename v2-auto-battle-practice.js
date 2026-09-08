@@ -338,6 +338,16 @@
     number.addEventListener("animationend", () => number.remove(), { once: true });
   }
 
+  function showHealing(unitState, amount) {
+    if (!Number.isFinite(amount) || amount <= 0 || !unitState.element) return;
+    const number = document.createElement("span");
+    number.className = "healing-number";
+    number.textContent = `+${amount} 회복`;
+    number.setAttribute("aria-label", `체력 ${amount} 회복`);
+    unitState.element.querySelector(".sprite-wrap").append(number);
+    number.addEventListener("animationend", () => number.remove(), { once: true });
+  }
+
   function updateUnit(unitState) {
     if (!unitState.element) return;
     const bar = unitState.element.querySelector(".hp-bar");
@@ -709,6 +719,7 @@
       actor.element.classList.remove("is-frozen");
       const healed = V2Legions.afterAction(legionState, actor);
       updateUnit(actor);
+      showHealing(actor, healed);
       await wait(Math.max(250, 420 / speedMultiplier));
       if (token !== battleToken || !running) return;
       actionCount += 1;
@@ -793,6 +804,7 @@
     actionCount += 1;
     const legionHealing = V2Legions.afterAction(legionState, actor);
     updateUnit(actor);
+    showHealing(actor, legionHealing);
     updateHud();
     if (!aliveUnits("ally").length || !aliveUnits("enemy").length) return finishBattle();
     actionBusy = false;

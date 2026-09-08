@@ -112,6 +112,7 @@ button, a { font: inherit; }
 .unit.is-dead { filter: grayscale(.25) brightness(.72); }
 .unit.is-dead .bar { opacity: .45; }
 .damage-number { position: absolute; z-index: 70; left: 50%; top: 19%; color: #ff3b2f; font: 900 clamp(18px, 2.8vw, 32px)/1 Georgia, serif; letter-spacing: -.04em; text-shadow: 0 2px 2px #240000, 0 0 5px #ff2b1f; pointer-events: none; animation: damage-float 720ms cubic-bezier(.15, .72, .25, 1) forwards; }
+.healing-number { position: absolute; z-index: 71; left: 50%; top: 13%; color: #7cff83; font: 900 clamp(12px, 1.65vw, 21px)/1 "Malgun Gothic", sans-serif; white-space: nowrap; text-shadow: 0 2px 2px #062500, 0 0 7px #40e55c; pointer-events: none; animation: damage-float 1000ms cubic-bezier(.15, .72, .25, 1) forwards; }
 .summon-slot { position: relative; z-index: 10; visibility: hidden; pointer-events: none; }
 .turn-dice { position: absolute; z-index: 55; inset: 0; display: grid; place-items: center; pointer-events: none; }
 .turn-dice[hidden] { display: none; }

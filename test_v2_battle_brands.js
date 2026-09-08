@@ -2,6 +2,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const vm = require("node:vm");
 const brands = require("./v2-battle-brands.js");
+const legions = require("./v2-legions.js");
 function unit(brand, team = "ally", hp = 10) {
   return { brand, team, hp, maxHp: 10, attack: 3, alive: true, poison: 0, brandMode: "normal",
     slug: "ghoul", name: "test", speed: 3, gauge: 100, frames: { attack: 5, hit: 4, death: 6 },
@@ -165,7 +166,7 @@ async function integration() {
     turnQueue: [], awaitingRoll: true, diceRolling: false,
     battlefield: { classList: { add() {}, remove() {} } }, turnDice: {}, pauseButton: {}, message: {},
     closeUnitInfo() {}, updateUnit() {}, updateHud() {},
-    showDamage: (target, amount) => damagePopups.push({ team: target.team, amount }),
+    showDamage: (target, amount) => damagePopups.push({ team: target.team, amount }), showHealing() {},
     frame: (u, motion, n) => motion + n, wait: async () => {},
     playMotion: async (u, motion) => { animations.push([u.team, motion]); },
     finishBattle: () => { finishes++; context.running = false; },
@@ -202,6 +203,15 @@ async function integration() {
   assert.equal(context.actionBusy, false);
   assert.equal(context.turnQueue.length, 2);
   assert.equal(new Set(context.turnQueue).size, 2);
+  const undead = [unit("critical"), unit("guard"), unit("healing")];
+  undead.forEach(member => { member.legions = ["skeleton"]; member.isSummon = false; });
+  undead[0].hp = 4;
+  const durableEnemy = unit("critical", "enemy");
+  durableEnemy.attack = 1;
+  Object.assign(context, { running: true, actionBusy: false, units: [...undead, durableEnemy], turnQueue: [], V2Legions: legions });
+  context.legionState = legions.create(context.units, () => .99);
+  await vm.runInContext("performAttack(units[0], battleToken)", context);
+  assert.equal(undead[0].hp, 5, "An injured undead must recover exactly 1 HP after its real battle action");
   console.log("SUCCESS: 36 brand conditions, six effects, actual-damage lifesteal, poison death, turn integration and UI-safe combat passed.");
 }
 integration().catch(error => { console.error(error); process.exitCode = 1; });
