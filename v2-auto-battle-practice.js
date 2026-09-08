@@ -262,6 +262,7 @@
         <div class="sprite-wrap"><img src="${frame(unitState, "attack", 1)}" alt="${unitState.name}"></div>`;
       unitState.element = element;
       unitState.image = element.querySelector("img");
+      if (typeof V2UnitSize !== "undefined") V2UnitSize.attach(unitState);
       element.addEventListener("click", () => openUnitInfo(unitState));
       element.addEventListener("keydown", (event) => {
         if (event.key === "Enter" || event.key === " ") {
