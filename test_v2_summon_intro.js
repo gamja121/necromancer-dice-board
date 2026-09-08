@@ -50,7 +50,7 @@ assert.deepEqual(crops, effect.CELLS);
 assert(frames.every(frame => frame.width === 320 && frame.height === 288));
 function element(pending = false) {
   const classes = new Set(pending ? ["is-pending"] : []);
-  return { classes, attrs: pending ? { "aria-hidden": "true" } : {}, tabIndex: pending ? -1 : 0,
+  return { classes, attrs: pending ? { "aria-hidden": "true" } : {}, tabIndex: -1,
     classList: { add: name => classes.add(name), remove: name => classes.delete(name) },
     removeAttribute(key) { delete this.attrs[key]; }
   };
