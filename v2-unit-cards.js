@@ -1,6 +1,6 @@
 (function(root) {
   const ART = ['minotaur','ice-lord','plague-frog','orc-warrior','plague-doctor','ghoul','goblin-chief','goblin-soldier','sea-wolf','grave-priest','abyss-eye','doom-executor','death-knight','hell-mantis','scorpion-knight','ancient-treant','stone-golem','kraken','crystal-devourer','skeleton-spear','skeleton-archer','skeleton-cavalry','spider-knight','raging-treant','cerberus','mushroom-soldier','goblin-rider','abyss-harpy','boulder-ogre','bone-golem','forest-fairy','flesh-golem','hydra','ice-princess'];
-  ART.push('mimic','bone-hound','soul-reaper','siren','grave-worm');
+  ART.push('mimic','bone-hound','soul-reaper','siren','grave-worm','yeti');
   let selected;
   let phase = 'locked', currentUnits = [], currentDock;
   function setPhase(value) {

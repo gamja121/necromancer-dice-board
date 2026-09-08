@@ -16,7 +16,9 @@ assert(units.every(u=>u.infoCard.disabled));
 units[0].infoCard.click(); assert.equal(selected,undefined);
 api.setPhase('ready');
 assert.equal(field.children.length,1);
-assert.equal(field.children[0].children[0].children.length,39);
+assert.equal(field.children[0].children[0].children.length,40);
+assert(api.ART.includes('yeti'));
+assert(require('fs').existsSync(require('path').join(__dirname,'art/v2-style/ui/unit-card-yeti.jpg')));
 for (const slug of ['mimic','bone-hound','soul-reaper','siren','grave-worm']) {
   assert(api.ART.includes(slug));
   assert(require('fs').existsSync(require('path').join(__dirname, 'art/v2-style/ui/unit-card-' + slug + '.jpg')));
