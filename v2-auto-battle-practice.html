@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0a0807">
   <title>4대4 속도 자동전투 테스트</title>
-  <link rel="stylesheet" href="v2-auto-battle-practice.css?v=31">
+  <link rel="stylesheet" href="v2-auto-battle-practice.css?v=32">
 </head>
 <body>
   <main class="auto-battle-lab">
@@ -88,6 +88,12 @@
           <span>BATTLE COMPLETE</span>
           <h2 id="resultTitle">승리</h2>
           <p id="resultBody"></p>
+          <div id="capturePanel" class="capture-panel" hidden>
+            <h3>적 시체 영입</h3>
+            <div id="captureChoices" class="capture-choices"></div>
+            <p id="captureStatus">시체를 선택하세요.</p>
+            <button id="captureRollButton" type="button" disabled>영입 주사위</button>
+          </div>
           <button id="resultRestartButton" type="button">다시 전투</button>
         </div>
       </section>
@@ -106,12 +112,13 @@
   <script src="v2-princess-frames.js?v=1"></script>
   <script src="v2-goblin-frames.js?v=1"></script>
   <script src="v2-battle-brands.js?v=2"></script>
+  <script src="v2-legions.js?v=1"></script>
   <script src="v2-summon-effect.js?v=3"></script>
   <script src="v2-hit-effects.js?v=9"></script>
   <script src="v2-combat-effects.js?v=7"></script>
   <script src="v2-damage-digits.js?v=3"></script>
   <script src="v2-unit-size.js?v=3"></script>
   <script src="v2-unit-cards.js?v=11"></script>
-  <script src="v2-auto-battle-practice.js?v=36"></script>
+  <script src="v2-auto-battle-practice.js?v=37"></script>
 </body>
 </html>

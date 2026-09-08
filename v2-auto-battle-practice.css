@@ -16,6 +16,16 @@
 .unit-card-art { display: block; margin: auto; height: min(clamp(80px, 18dvh, 160px), 29cqw); aspect-ratio: 370 / 540; overflow: hidden; background: #ccb990; border-radius: 4px; }
 .unit-card-art.has-card-art { background-size: 346% 106.5%; background-position: 51.7% 44%; background-repeat: no-repeat; }
 .unit-card-art img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.unit.is-frozen .sprite-wrap > img { filter: saturate(.45) hue-rotate(155deg) brightness(1.2) drop-shadow(0 0 8px #7bdcff); }
+.unit.is-element-immune .sprite-wrap::after { content: ""; position: absolute; z-index: 8; inset: 18% 12% 5%; border: 2px solid #ffd572; border-radius: 50%; box-shadow: 0 0 12px #fff2a0, inset 0 0 12px #fff2a066; pointer-events: none; }
+.legion-active-note { margin-top: 8px !important; padding-top: 7px; border-top: 1px solid #8a6848; color: #f2cc82 !important; }
+.capture-panel { margin: 8px 0 12px; }
+.capture-panel[hidden] { display: none; }
+.capture-panel h3 { margin: 5px 0; color: #e9c780; font-size: 14px; }
+.capture-choices { display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; }
+.capture-choices button { min-width: 0; height: 30px; padding: 0 8px; border-color: #776147; background: #211810; font-size: 10px; }
+.capture-choices button.is-selected { border-color: #ffd071; box-shadow: 0 0 7px #e9a745; }
+.capture-panel > p { margin: 5px auto; }
 * { box-sizing: border-box; }
 html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
 body { background: #080604; }

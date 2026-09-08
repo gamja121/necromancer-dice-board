@@ -159,6 +159,7 @@ async function integration() {
   let finishes = 0;
   const context = {
     V2BattleBrands: brands, V2SummonRules: require('./v2-summon-rules'), summonBeforeAttack: async () => {}, running: true, battleToken: 1, actionBusy: false,
+    V2Legions: { startTurn(){}, consumeFreeze(){return false;}, beforeAttack(){return {};}, afterAttack(){return {poison:false,frozen:false};}, afterAction(){return 0;} }, legionState: {},
     turnNumber: 0, lastDiceRoll: 2, actionCount: 0, speedMultiplier: 1,
     units: [unit("poison", "ally", 1), unit("critical", "enemy")],
     turnQueue: [], awaitingRoll: true, diceRolling: false,

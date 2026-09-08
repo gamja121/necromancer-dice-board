@@ -58,11 +58,12 @@
     if (unit.hp === 0) unit.alive = false;
     return 1;
   }
-  function attack(actor, target) {
+  function attack(actor, target, options = {}) {
     const miss = actor.brandMode === "curse" && ["critical", "guard"].includes(actor.brand);
-    const immune = target.brand === "guard" && target.brandMode === "blessing";
+    const immune = Boolean(options.immune) || target.brand === "guard" && target.brandMode === "blessing";
     let power = actor.attack;
     if (actor.brand === "critical" && actor.brandMode === "blessing") power *= 2;
+    power *= options.powerMultiplier || 1;
     if (target.brand === "vampire" && target.brandMode === "curse") power *= 2;
     const damage = miss || immune ? 0 : Math.min(power, Math.max(0, target.hp));
     target.hp -= damage;

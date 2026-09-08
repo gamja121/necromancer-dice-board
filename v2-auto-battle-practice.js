@@ -141,6 +141,10 @@
   const unitInfoAttack = document.getElementById("unitInfoAttack");
   const unitInfoSpeed = document.getElementById("unitInfoSpeed");
   const unitInfoBrands = document.getElementById("unitInfoBrands");
+  const capturePanel = document.getElementById("capturePanel");
+  const captureChoices = document.getElementById("captureChoices");
+  const captureRollButton = document.getElementById("captureRollButton");
+  const captureStatus = document.getElementById("captureStatus");
 
   let units = [];
   let running = false;
@@ -157,6 +161,9 @@
   let diceFrameIndex = 0;
   let introRunning = false;
   let loadingLineup = false;
+  let legionState = null;
+  let selectedCorpse = null;
+  let captureAttemptsLeft = 0;
   let lineupRequest = 0;
   let selectedAllySlugs = TEAM_DATA.ally.map(entry => entry.slug);
   let selectedAllyTeam = TEAM_DATA.ally.map(entry => ({ ...entry }));
@@ -206,12 +213,19 @@
     diceRolling = false;
     lastDiceRoll = null;
     diceFrameIndex = 0;
+    selectedCorpse = null;
+    captureAttemptsLeft = 0;
+    captureRollButton.textContent = "영입 주사위";
     speedMultiplier = 1;
     speedButton.textContent = "속도 ×1";
     pauseButton.textContent = "일시정지";
     pauseButton.disabled = true;
     speedButton.disabled = true;
     resultOverlay.hidden = true;
+    capturePanel.hidden = true;
+    captureChoices.replaceChildren();
+    captureStatus.textContent = "시체를 선택하세요.";
+    captureRollButton.disabled = true;
     startOverlay.hidden = !showStart;
     if (showStart) renderRosterSelection();
     turnDice.hidden = true;
@@ -225,6 +239,8 @@
       ...selectedAllyTeam.map((data, slot) => makeState(data, "ally", slot)),
       ...TEAM_DATA.enemy.map((data, slot) => makeState(data, "enemy", slot))
     ];
+    legionState = V2Legions.create(units);
+    V2Legions.applyOpening(legionState, units);
     renderTeams();
     if (typeof V2UnitCards !== "undefined") V2UnitCards.setPhase("locked");
     message.textContent = "전투 시작을 눌러주세요";
@@ -295,6 +311,8 @@
     unitState.element.querySelector(".hp-bar i").style.width = `${Math.max(0, unitState.hp / unitState.maxHp * 100)}%`;
     unitState.element.classList.toggle("is-ready", unitState.alive && unitState.gauge >= 100);
     unitState.element.classList.toggle("is-dead", !unitState.alive);
+    unitState.element.classList.toggle("is-frozen", Boolean(unitState.frozen));
+    unitState.element.classList.toggle("is-element-immune", Boolean(unitState.elementImmune));
     updateBrandIndicator(unitState);
     if (typeof V2UnitCards !== "undefined") V2UnitCards.update(unitState);
   }
@@ -483,6 +501,7 @@
       replaceFighter(seed, plant);
     }
     const fallen = V2BattleBrands.startRound(units, lastDiceRoll);
+    V2Legions.startTurn(legionState, units);
     units.forEach(updateUnit);
     await Promise.all(fallen.map(unitState => playMotion(unitState, "death", unitState.frames.death, token, true)));
     if (token !== battleToken || !running) return;
@@ -581,6 +600,8 @@
         <p class="brand-note">${stateText}${unitState.poison ? " · 중독: 다음 행동 시 피해 1" : ""}</p>
         ${unitState.brand === "summon" ? '<p class="brand-note">아군 소환물에게 적용 · 개화한 식인식물은 제외</p>' : ""}`;
     } else unitInfoBrands.textContent = "낙인 미지정";
+    const activeLegions = unitState.legions.filter(key => V2Legions.active(legionState, unitState.team, key));
+    if (activeLegions.length) unitInfoBrands.innerHTML += `<p class="legion-active-note">활성 군단 · ${activeLegions.map(key=>V2Legions.RULES[key].name).join(" · ")}<br>${activeLegions.map(key=>V2Legions.RULES[key].effect).join("<br>")}</p>`;
     if (V2SummonRules.choices[unitState.slug]) unitInfoBrands.innerHTML += `<p>주사위 6: 자기 차례에 소환 후 공격 · 전투당 소환 성공 1회 (${unitState.summonUsed ? "사용 완료" : "미사용"})</p><p>${unitState.slug === "crystal-devourer" ? "중앙이 차면 사망한 아군 자리에도 씨앗 소환" : "중앙이 차면 소환을 건너뜀"}</p>`;
     if (unitState.slug === "guardian-seed") unitInfoBrands.innerHTML += `<p>공격 불가 · 피격 ${unitState.receivedHits || 0}/2 · 2회 피격 후 다음 턴에 식인식물로 개화 (생존 시)</p>`;
     unitInfoOverlay.hidden = false;
@@ -595,6 +616,7 @@
   function replaceFighter(old, next) {
     const host = next.team === "ally" ? allyTeam : enemyTeam;
     const node = old?.element || host.querySelector(".summon-slot");
+    V2Legions.applyUnit(legionState, next);
     const element = createUnitElement(next);
     node.replaceWith(element);
     if (old) units.splice(units.indexOf(old), 1, next);
@@ -646,6 +668,18 @@
         return;
       }
     }
+    if (V2Legions.consumeFreeze(actor)) {
+      message.textContent = `${actor.name} 빙결 · 이번 턴 공격 불가`;
+      actor.element.classList.remove("is-frozen");
+      const healed = V2Legions.afterAction(legionState, actor);
+      updateUnit(actor);
+      await wait(Math.max(250, 420 / speedMultiplier));
+      if (token !== battleToken || !running) return;
+      actionCount += 1;
+      actionBusy = false;
+      message.textContent = `${turnNumber}턴 · ${actor.name} 빙결${healed ? ` · 회복 +${healed}` : ""}`;
+      return;
+    }
     await summonBeforeAttack(actor, token);
     if (token !== battleToken || !running) return;
     const targets = aliveUnits(actor.team === "ally" ? "enemy" : "ally");
@@ -670,16 +704,19 @@
     await impactReady;
     if (token !== battleToken || !running) return;
 
-    const outcome = V2BattleBrands.attack(actor, target);
+    const legionAttack = V2Legions.beforeAttack(legionState, actor, target);
+    const outcome = V2BattleBrands.attack(actor, target, legionAttack);
+    const legionApplied = V2Legions.afterAttack(legionState, actor, target, outcome);
     if (typeof V2DamageDigits !== "undefined") {
       if (outcome.miss) V2DamageDigits.showLabel(target, "miss");
       else if (outcome.immune) V2DamageDigits.showLabel(target, "immune");
-      else if (outcome.damage > 0 && actor.brand === "critical" && actor.brandMode === "blessing") V2DamageDigits.showLabel(target, "critical");
-      if (outcome.damage > 0 && target.hp > 0 && actor.brand === "poison" && actor.brandMode === "blessing") V2DamageDigits.showLabel(target, "poison");
+      else if (outcome.damage > 0 && (legionAttack.legionCritical || actor.brand === "critical" && actor.brandMode === "blessing")) V2DamageDigits.showLabel(target, "critical");
+      if (outcome.damage > 0 && target.hp > 0 && (legionApplied.poison || actor.brand === "poison" && actor.brandMode === "blessing")) V2DamageDigits.showLabel(target, "poison");
     }
     V2SummonRules.registerHit(target, outcome, turnNumber);
     updateUnit(actor);
     updateUnit(target);
+    if (legionApplied.frozen) target.element.classList.add("is-frozen");
     message.textContent = outcome.miss ? `${actor.name} 공격 빗나감`
       : outcome.immune ? `${target.name} 수호 · 피해 무시`
       : `${actor.name} → ${target.name} · 피해 ${outcome.damage}${outcome.recovered ? ` · 흡혈 +${outcome.recovered}` : ""}`;
@@ -718,10 +755,12 @@
       battlefield.classList.remove("is-cinematic");
     }
     actionCount += 1;
+    const legionHealing = V2Legions.afterAction(legionState, actor);
+    updateUnit(actor);
     updateHud();
     if (!aliveUnits("ally").length || !aliveUnits("enemy").length) return finishBattle();
     actionBusy = false;
-    message.textContent = `${turnNumber}턴 · 남은 행동 ${turnQueue.filter((unitState) => unitState.alive).length}명`;
+    message.textContent = `${turnNumber}턴 · 남은 행동 ${turnQueue.filter((unitState) => unitState.alive).length}명${legionHealing ? ` · ${actor.name} 회복 +${legionHealing}` : ""}`;
   }
 
   async function playMotion(unitState, motion, count, token, holdLast, onImpact) {
@@ -753,8 +792,56 @@
     const won = aliveUnits("ally").length > 0;
     resultTitle.textContent = won ? "아군 승리" : aliveUnits("enemy").length ? "적군 승리" : "무승부";
     resultBody.textContent = `${actionCount}번의 공격 후 전투가 끝났습니다. 매 턴 속도가 높은 순서로 생존 유닛 모두가 한 번씩 행동했습니다.`;
+    setupCorpseCapture(won);
     resultOverlay.hidden = false;
     message.textContent = "전투 종료";
+  }
+
+  function setupCorpseCapture(won) {
+    capturePanel.hidden = true;
+    captureChoices.replaceChildren();
+    selectedCorpse = null;
+    if (!won) return;
+    const corpses = units.filter(unit => unit.team === "enemy" && !unit.alive && !unit.isSummon);
+    if (!corpses.length) return;
+    capturePanel.hidden = false;
+    captureStatus.textContent = V2Legions.active(legionState, "ally", "corpse")
+      ? "시체 군단 활성 · 첫 실패 시 한 번 더 굴릴 수 있습니다."
+      : "시체를 선택하면 영입 주사위를 한 번 굴립니다.";
+    for (const corpse of corpses) {
+      corpse.captureTarget = 2 + Math.floor(Math.random() * 5);
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = `${corpse.name} · ${corpse.captureTarget}+`;
+      button.addEventListener("click", () => {
+        selectedCorpse = corpse;
+        captureAttemptsLeft = V2Legions.captureAttempts(legionState, "ally");
+        [...captureChoices.children].forEach(child => child.classList.toggle("is-selected", child === button));
+        captureRollButton.disabled = false;
+        captureStatus.textContent = `${corpse.name} 선택 · 주사위 ${corpse.captureTarget} 이상 필요 · ${captureAttemptsLeft}회 가능`;
+      });
+      captureChoices.append(button);
+    }
+  }
+
+  function rollCorpseCapture() {
+    if (!selectedCorpse || captureAttemptsLeft <= 0) return;
+    const roll = 1 + Math.floor(Math.random() * 6);
+    captureAttemptsLeft -= 1;
+    if (roll >= selectedCorpse.captureTarget) {
+      captureStatus.textContent = `주사위 ${roll} · ${selectedCorpse.name} 영입 성공`;
+      captureRollButton.disabled = true;
+      [...captureChoices.children].forEach(button => button.disabled = true);
+      return;
+    }
+    if (captureAttemptsLeft > 0) {
+      captureStatus.textContent = `주사위 ${roll} · 실패 · 시체 군단 재시도 1회 남음`;
+      captureRollButton.textContent = "한 번 더 굴리기";
+    } else {
+      captureStatus.textContent = `주사위 ${roll} · 영입 실패`;
+      captureRollButton.disabled = true;
+      [...captureChoices.children].forEach(button => button.disabled = true);
+    }
   }
 
   function wait(milliseconds) {
@@ -763,6 +850,7 @@
 
   startButton.addEventListener("click", startSelectedBattle);
   turnDiceButton.addEventListener("click", rollTurnDice);
+  captureRollButton.addEventListener("click", rollCorpseCapture);
   document.getElementById("unitInfoClose").addEventListener("click", closeUnitInfo);
   document.getElementById("unitInfoBackdrop").addEventListener("click", closeUnitInfo);
   restartButton.addEventListener("click", () => resetBattle(true));

@@ -33,7 +33,7 @@ assert(!html.includes('id="unitInfoTeam"') && !html.includes('id="unitInfoState"
 const dicePanel = html.match(/<section id="turnDice"[\s\S]*?<\/section>/)?.[0] || "";
 assert(!dicePanel.includes("turn-dice-panel") && !dicePanel.includes("<span") && !dicePanel.includes("<strong") && !dicePanel.includes("<small"), "Only the dice button should remain in the center.");
 assert(!html.includes('class="versus"') && !source.includes("diceResultLabel") && !source.includes("diceTurnLabel"), "Center labels and obsolete references must be removed.");
-assert(html.indexOf('src="unit-data.js?v=47"') < html.indexOf('src="v2-auto-battle-practice.js'), "Shared unit metadata must load before the battle page.");
+assert(html.indexOf('src="unit-data.js?v=48"') < html.indexOf('src="v2-auto-battle-practice.js'), "Shared unit metadata must load before the battle page.");
 assert(!basicPanel.includes('id="unitInfoHp"'), "Stats must not be placed in the basic panel.");
 for (const id of ["unitInfoHp", "unitInfoAttack", "unitInfoSpeed"]) assert(statsPanel.includes(`id="${id}"`), `${id} must be in the lower-right stats panel.`);
 assert(!html.includes('id="unitInfoRoll"') && !source.includes("unitInfoRoll"), "Common roll must not be in the unit info window.");
@@ -72,7 +72,7 @@ assert(css.includes(".summon-slot { position: relative; z-index: 10; visibility:
 assert(!source.includes('class="unit-card"') && !source.includes('class="bar gauge-bar"'), "Name/speed cards and gauges must stay hidden.");
 assert(source.includes("showDamage(target, outcome.damage)"), "Damage popup must use the actual damage after brands.");
 assert(css.includes("@keyframes damage-float") && css.includes(".brand-indicator.is-blessing"), "Damage animation and brand badges must both remain.");
-assert(source.includes("V2BattleBrands.attack(actor, target)"), "Assigned brands must affect attacks.");
+assert(source.includes("V2BattleBrands.attack(actor, target, legionAttack)"), "Assigned brands and legions must affect attacks.");
 assert(source.includes("V2BattleBrands.startRound(units, lastDiceRoll)"), "Brands must use the shared turn roll.");
 assert(source.includes('roundState.textContent = `${allyAlive} VS ${enemyAlive}`'), "Counter must include actual living summons without a phantom extra unit.");
 assert((source.match(/unit\("/g) || []).length >= 8, "Default battle must define eight initial units.");
@@ -116,13 +116,16 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v186'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v187'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=25"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=30") && worker.includes("v2-battle-brands.js?v=2"), "Turn-based auto battle, lineup picker and brands are not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=32"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=37") && worker.includes("v2-legions.js?v=1"), "Turn-based auto battle and legions are not cached.");
+assert(html.includes('id="capturePanel"') && html.includes('id="captureRollButton"'), "Post-battle corpse capture controls are missing.");
+assert(source.includes("V2Legions.create(units)") && source.includes("V2Legions.applyOpening(legionState, units)"), "Initial-lineup legion state is not applied.");
+assert(source.includes("V2Legions.captureAttempts(legionState, \"ally\")"), "Corpse legion retry is not connected to capture dice.");
 assert(worker.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit info frame is not cached.");
 // Exercise the real information-window functions without a rendering engine.
-const infoContext = { awaitingRoll: true, diceRolling: false, lastDiceRoll: null, V2BattleBrands: require("./v2-battle-brands.js"), document: { getElementById: () => ({ focus() {} }) } };
+const infoContext = { awaitingRoll: true, diceRolling: false, lastDiceRoll: null, legionState:{}, V2Legions:{active:()=>false,RULES:{}}, V2BattleBrands: require("./v2-battle-brands.js"), document: { getElementById: () => ({ focus() {} }) } };
 for (const name of ["unitInfoName", "unitInfoImage", "unitInfoPortrait", "unitInfoGrade", "unitInfoLegion", "unitInfoHp", "unitInfoAttack", "unitInfoSpeed", "unitInfoBrands", "unitInfoOverlay"]) infoContext[name] = { textContent: "", hidden: true, attrs: {}, setAttribute(key, value) { this.attrs[key] = value; } };
 vm.createContext(infoContext);
 infoContext.V2SummonRules = require("./v2-summon-rules.js");
