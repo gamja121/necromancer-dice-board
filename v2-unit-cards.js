@@ -1,5 +1,5 @@
 (function(root) {
-  const ART = ['minotaur','ice-lord','plague-frog','orc-warrior','plague-doctor','bone-golem','ancient-treant','goblin-soldier','sea-wolf','grave-priest'];
+  const ART = ['minotaur','ice-lord','plague-frog','orc-warrior','plague-doctor','ghoul','goblin-chief','goblin-soldier','sea-wolf','grave-priest'];
   function sync(field, units, openInfo) {
     let dock = field.querySelector('.unit-card-dock');
     if (!dock) {

@@ -2,6 +2,10 @@ const assert = require('assert');
 function node() { return { children:[],dataset:{},style:{},classList:{add(){},toggle(){}},setAttribute(){},append(...v){this.children.push(...v)},replaceChildren(){this.children=[]},addEventListener(t,f){this[t]=f},querySelector(){return this.children[0]} }; }
 global.document = {createElement:node};
 const api = require('./v2-unit-cards');
+assert(api.ART.includes('ghoul'));
+assert(api.ART.includes('goblin-chief'));
+assert(!api.ART.includes('bone-golem'));
+assert(!api.ART.includes('ancient-treant'));
 const field=node(); let selected;
 const units=api.ART.map((slug,slot)=>({slug,slot,team:'ally',name:slug,alive:true,hp:8,maxHp:8,portrait:'fallback.png'}));
 api.sync(field,units,u=>selected=u);
