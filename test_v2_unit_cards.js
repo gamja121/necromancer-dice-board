@@ -12,6 +12,9 @@ for (const slug of ['ancient-treant','stone-golem','kraken','crystal-devourer','
 const field=node(); let selected;
 const units=api.ART.map((slug,slot)=>({slug,slot,team:'ally',name:slug,alive:true,hp:8,maxHp:8,portrait:'fallback.png'}));
 api.sync(field,units,u=>selected=u);
+assert(units.every(u=>u.infoCard.disabled));
+units[0].infoCard.click(); assert.equal(selected,undefined);
+api.setPhase('ready');
 assert.equal(field.children.length,1);
 assert.equal(field.children[0].children[0].children.length,39);
 for (const slug of ['mimic','bone-hound','soul-reaper','siren','grave-worm']) {
@@ -34,4 +37,9 @@ api.sync(field,units,u=>selected=u);
 assert.equal(field.children.length,1);
 assert.equal(units[0].infoCard.children[0].children[0].src,'fallback.png');
 units[0].infoCard.click(); assert.equal(selected,units[0]);
+api.setPhase('acting'); assert(units.every(u=>u.infoCard.disabled));
+api.setPhase('ready'); assert(units.every(u=>!u.infoCard.disabled));
+const enemies=[3,1,4,0,2].map(slot=>({slug:'enemy'+slot,slot,team:'enemy',alive:true,hp:1,maxHp:1}));
+api.sync(field,enemies,()=>{});
+assert.deepEqual(field.children[0].children[1].children.map(b=>b.dataset.unit),['enemy4','enemy0','enemy1','enemy2','enemy3']);
 console.log('PASS: five card mappings, exact unit clicks, fallback and replacement');

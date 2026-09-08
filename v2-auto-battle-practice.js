@@ -226,6 +226,7 @@
       ...TEAM_DATA.enemy.map((data, slot) => makeState(data, "enemy", slot))
     ];
     renderTeams();
+    if (typeof V2UnitCards !== "undefined") V2UnitCards.setPhase("locked");
     message.textContent = "전투 시작을 눌러주세요";
     updateHud();
   }
@@ -462,6 +463,7 @@
   }
 
   async function startTurn() {
+    if (typeof V2UnitCards !== "undefined") V2UnitCards.setPhase("acting");
     if (!running) return;
     if (!aliveUnits("ally").length || !aliveUnits("enemy").length) return finishBattle();
     awaitingRoll = false;
@@ -507,6 +509,7 @@
     pauseButton.disabled = true;
     pauseButton.textContent = "일시정지";
     turnDice.hidden = false;
+    if (typeof V2UnitCards !== "undefined") V2UnitCards.setPhase("ready");
     turnDiceButton.disabled = false;
     turnDiceButton.classList.remove("is-rolling");
     turnDiceImage.src = DICE_ROLL_FRAMES[0];
@@ -520,6 +523,7 @@
     if (!running || !awaitingRoll || diceRolling) return;
     closeUnitInfo();
     diceRolling = true;
+    if (typeof V2UnitCards !== "undefined") V2UnitCards.setPhase("acting");
     showRolledBrands(null);
     turnDiceButton.disabled = true;
     turnDiceButton.classList.add("is-rolling");
@@ -735,6 +739,7 @@
   }
 
   function finishBattle() {
+    if (typeof V2UnitCards !== "undefined") V2UnitCards.setPhase("locked");
     battlefield.classList.remove("is-cinematic");
     running = false;
     actionBusy = false;

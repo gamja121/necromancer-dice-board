@@ -2,6 +2,13 @@
   const ART = ['minotaur','ice-lord','plague-frog','orc-warrior','plague-doctor','ghoul','goblin-chief','goblin-soldier','sea-wolf','grave-priest','abyss-eye','doom-executor','death-knight','hell-mantis','scorpion-knight','ancient-treant','stone-golem','kraken','crystal-devourer','skeleton-spear','skeleton-archer','skeleton-cavalry','spider-knight','raging-treant','cerberus','mushroom-soldier','goblin-rider','abyss-harpy','boulder-ogre','bone-golem','forest-fairy','flesh-golem','hydra','ice-princess'];
   ART.push('mimic','bone-hound','soul-reaper','siren','grave-worm');
   let selected;
+  let phase = 'locked', currentUnits = [], currentDock;
+  function setPhase(value) {
+    phase = value;
+    clearSelection();
+    if (currentDock) currentDock.classList.toggle('is-tucked', value === 'acting');
+    for (const unit of currentUnits) if (unit.infoCard) unit.infoCard.disabled = value !== 'ready';
+  }
   function clearSelection() {
     if (selected) selected.classList.toggle('is-selected', false);
     selected = null;
@@ -13,11 +20,14 @@
       dock.setAttribute('aria-label','전장 유닛 정보 카드'); field.append(dock);
     }
     dock.replaceChildren();
+    currentDock = dock; currentUnits = units;
     clearSelection();
     for (const team of ['ally','enemy']) {
       const group = document.createElement('div'); group.className = 'unit-card-team';
       group.setAttribute('aria-label',team === 'ally' ? '아군' : '적군');
-      const entries = units.filter(u => u.team === team).sort((a,b) => team === 'ally' ? a.slot-b.slot : b.slot-a.slot);
+      // Enemy summon slot is first in the battlefield DOM; regular slots run 0..3.
+      const position = u => team === 'enemy' && u.slot === 4 ? -1 : u.slot;
+      const entries = units.filter(u => u.team === team).sort((a,b) => position(a)-position(b));
       for (const unit of entries) {
         const button = document.createElement('button'); button.type = 'button';
         button.className = 'unit-info-card'; button.dataset.unit = unit.slug;
@@ -37,6 +47,7 @@
         }
         button.append(art);
         button.addEventListener('click',() => {
+          if (button.disabled) return;
           clearSelection(); selected = button;
           button.classList.toggle('is-selected', true);
           openInfo(unit);
@@ -45,13 +56,14 @@
       }
       dock.append(group);
     }
+    setPhase(phase);
   }
   function update(unit) {
     if (!unit.infoCard) return;
     unit.infoCard.classList.toggle('is-dead', !unit.alive);
     unit.infoCard.title = unit.name + ' · ' + Math.max(0,unit.hp) + '/' + unit.maxHp;
   }
-  const api = { ART,sync,update,clearSelection };
+  const api = { ART,sync,update,clearSelection,setPhase };
   if(typeof module !== 'undefined' && module.exports) module.exports=api;
   else root.V2UnitCards=api;
 })(globalThis);

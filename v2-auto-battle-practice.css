@@ -5,6 +5,8 @@
 .unit-info-card + .unit-info-card { margin-left: -3px; }
 .unit-info-card { translate: 0 16px; transition: translate 180ms ease-out; }
 .unit-info-card.is-selected { translate: 0 -8px; z-index: 6; }
+.unit-card-dock.is-tucked .unit-info-card { translate: 0 calc(100% - 12px); }
+.unit-info-card:disabled { cursor: default; }
 .team .unit { pointer-events: none; }
 .unit-card-team { container-type: inline-size; }
 @media (prefers-reduced-motion: reduce) { .unit-info-card { transition: none; } }
