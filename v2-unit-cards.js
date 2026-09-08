@@ -1,5 +1,5 @@
 (function(root) {
-  const ART = ['minotaur','ice-lord','plague-frog','orc-warrior','plague-doctor','ghoul','goblin-chief','goblin-soldier','sea-wolf','grave-priest','abyss-eye','doom-executor','death-knight','hell-mantis','scorpion-knight'];
+  const ART = ['minotaur','ice-lord','plague-frog','orc-warrior','plague-doctor','ghoul','goblin-chief','goblin-soldier','sea-wolf','grave-priest','abyss-eye','doom-executor','death-knight','hell-mantis','scorpion-knight','ancient-treant','stone-golem','kraken','crystal-devourer','skeleton-spear'];
   let selected;
   function clearSelection() {
     if (selected) selected.classList.toggle('is-selected', false);
@@ -29,7 +29,7 @@
         if (ART.includes(unit.slug)) {
           // Crop the supplied 1280x575 photo to the card only, without changing the original.
           art.classList.add('has-card-art');
-          art.style.backgroundImage = 'url("art/v2-style/ui/unit-card-' + unit.slug + '.jpg")';
+          art.style.backgroundImage = 'url("art/v2-style/ui/unit-card-' + unit.slug + '.jpg?v=5")';
         } else {
           const image = document.createElement('img'); image.src = unit.portrait; image.alt = '';
           art.append(image);
