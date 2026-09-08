@@ -21,7 +21,7 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
 body { background: #080604; }
 button, a { font: inherit; }
 .auto-battle-lab { display: grid; place-items: center; width: 100vw; height: 100dvh; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); background: radial-gradient(circle, #33251b, #070504 76%); }
-.battlefield { position: relative; width: min(100vw, 177.78dvh); height: min(100dvh, 56.25vw); overflow: hidden; background: #18120e url("art/v2-style/battle-backgrounds/uploaded-raw/wasteland-chasm-battlefield.jpg") center / cover no-repeat; box-shadow: 0 0 38px #000, inset 0 0 0 2px #b78a5266; isolation: isolate; }
+.battlefield { position: relative; width: min(100vw, 177.78dvh); height: min(100dvh, 56.25vw); overflow: hidden; background: #18120e url("art/v2-style/battle-backgrounds/uploaded-raw/lava-forest.jpg") center / cover no-repeat; box-shadow: 0 0 38px #000, inset 0 0 0 2px #b78a5266; isolation: isolate; }
 .battle-shade { position: absolute; z-index: 1; inset: 0; background: linear-gradient(90deg, #07121c70, transparent 36%, transparent 64%, #24090770), linear-gradient(0deg, #030202c9, transparent 45%, #05030366); pointer-events: none; }
 .battle-toolbar { position: absolute; z-index: 30; top: 2.5%; left: 2%; right: 2%; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; }
 .battle-toolbar > a, .battle-controls button { min-width: 56px; height: 32px; padding: 0 9px; border: 1px solid #8b6a48; border-radius: 3px; background: #160f0be8; color: #ead7b7; font-size: clamp(9px, 1.2vw, 12px); font-weight: 900; text-decoration: none; }

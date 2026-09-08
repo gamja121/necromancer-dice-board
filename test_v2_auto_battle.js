@@ -7,6 +7,11 @@ function assert(condition, message) {
 }
 
 const root = __dirname;
+for (const scene of ['lava-forest','snow-forest','dark-forest']) {
+  const file = 'art/v2-style/battle-backgrounds/uploaded-raw/' + scene + '.jpg';
+  assert(fs.existsSync(path.join(root,file)), 'Missing battlefield: ' + scene);
+  assert(fs.readFileSync(path.join(root,'v2-auto-battle-practice.js'),'utf8').includes(file), 'Unconnected battlefield: ' + scene);
+}
 const html = fs.readFileSync(path.join(root, "v2-auto-battle-practice.html"), "utf8");
 const css = fs.readFileSync(path.join(root, "v2-auto-battle-practice.css"), "utf8");
 const source = fs.readFileSync(path.join(root, "v2-auto-battle-practice.js"), "utf8");

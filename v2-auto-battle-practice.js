@@ -1,8 +1,8 @@
 (function () {
   const BATTLEFIELDS = [
-    "art/v2-style/battle-backgrounds/uploaded-raw/wasteland-chasm-battlefield.jpg",
-    "art/v2-style/battle-backgrounds/uploaded-raw/haunted-forest-ruins-battlefield.jpg",
-    "art/v2-style/battle-backgrounds/uploaded-raw/necropolis-pyramids-battlefield.jpg"
+    "art/v2-style/battle-backgrounds/uploaded-raw/lava-forest.jpg",
+    "art/v2-style/battle-backgrounds/uploaded-raw/snow-forest.jpg",
+    "art/v2-style/battle-backgrounds/uploaded-raw/dark-forest.jpg"
   ];
   const FRAME_ROOT = "art/v2-style/animation-test-frames/";
   const UNIT_TYPE_KEYS = {
