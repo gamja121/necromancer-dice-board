@@ -246,6 +246,7 @@
       (unitState.team === "ally" ? allyTeam : enemyTeam).append(element);
     }
     allyTeam.append(makeSummonSlot("아군"));
+    if (typeof V2UnitCards !== "undefined") V2UnitCards.sync(battlefield, units, openUnitInfo);
   }
 
   function createUnitElement(unitState) {
@@ -301,6 +302,7 @@
     unitState.element.classList.toggle("is-ready", unitState.alive && unitState.gauge >= 100);
     unitState.element.classList.toggle("is-dead", !unitState.alive);
     updateBrandIndicator(unitState);
+    if (typeof V2UnitCards !== "undefined") V2UnitCards.update(unitState);
   }
 
   function updateBrandIndicator(unitState) {
@@ -600,6 +602,7 @@
     if (old) units.splice(units.indexOf(old), 1, next);
     else units.push(next);
     revealUnit(next);
+    if (typeof V2UnitCards !== "undefined") V2UnitCards.sync(battlefield, units, openUnitInfo);
     return next;
   }
 

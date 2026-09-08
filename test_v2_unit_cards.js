@@ -1,0 +1,16 @@
+const assert = require('assert');
+function node() { return { children:[],dataset:{},style:{},classList:{add(){},toggle(){}},setAttribute(){},append(...v){this.children.push(...v)},replaceChildren(){this.children=[]},addEventListener(t,f){this[t]=f},querySelector(){return this.children[0]} }; }
+global.document = {createElement:node};
+const api = require('./v2-unit-cards');
+const field=node(); let selected;
+const units=api.ART.map((slug,slot)=>({slug,slot,team:'ally',name:slug,alive:true,hp:8,maxHp:8,portrait:'fallback.png'}));
+api.sync(field,units,u=>selected=u);
+assert.equal(field.children.length,1);
+assert.equal(field.children[0].children[0].children.length,5);
+units.forEach(u=>{u.infoCard.click();assert.equal(selected,u);assert(u.infoCard.children[0].style.backgroundImage.includes(u.slug));});
+units[0]={...units[0],slug:'guardian-seed'};
+api.sync(field,units,u=>selected=u);
+assert.equal(field.children.length,1);
+assert.equal(units[0].infoCard.children[0].children[0].src,'fallback.png');
+units[0].infoCard.click(); assert.equal(selected,units[0]);
+console.log('PASS: five card mappings, exact unit clicks, fallback and replacement');
