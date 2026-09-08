@@ -1,5 +1,5 @@
 (function(root) {
-  const ART = ['minotaur','ice-lord','plague-frog','orc-warrior','plague-doctor'];
+  const ART = ['minotaur','ice-lord','plague-frog','orc-warrior','plague-doctor','bone-golem','ancient-treant','goblin-soldier','sea-wolf','grave-priest'];
   function sync(field, units, openInfo) {
     let dock = field.querySelector('.unit-card-dock');
     if (!dock) {
@@ -14,6 +14,9 @@
       for (const unit of entries) {
         const button = document.createElement('button'); button.type = 'button';
         button.className = 'unit-info-card'; button.dataset.unit = unit.slug;
+        // Stable irregular placement: state updates never shuffle touch targets.
+        const index = entries.indexOf(unit);
+        button.style.transform = 'translateY(' + [2,-3,1,-1,3][index % 5] + 'px) rotate(' + [-7,4,-3,7,-5][(index + (team === 'enemy' ? 2 : 0)) % 5] + 'deg)';
         button.setAttribute('aria-label', (team === 'ally' ? '아군 ' : '적군 ') + unit.name + ' 정보 보기');
         button.title = unit.name;
         const art = document.createElement('span'); art.className = 'unit-card-art';
@@ -25,8 +28,7 @@
           const image = document.createElement('img'); image.src = unit.portrait; image.alt = '';
           art.append(image);
         }
-        const label = document.createElement('span'); label.className = 'unit-card-name'; label.textContent = unit.name;
-        button.append(art,label);
+        button.append(art);
         button.addEventListener('click',() => openInfo(unit));
         unit.infoCard = button; update(unit); group.append(button);
       }
