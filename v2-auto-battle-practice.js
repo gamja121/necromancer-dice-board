@@ -344,6 +344,7 @@
     number.className = "healing-number";
     number.textContent = `+${amount} 회복`;
     number.setAttribute("aria-label", `체력 ${amount} 회복`);
+    if (typeof V2DamageDigits !== "undefined") V2DamageDigits.renderHealing(number, amount);
     unitState.element.querySelector(".sprite-wrap").append(number);
     number.addEventListener("animationend", () => number.remove(), { once: true });
   }
@@ -917,5 +918,6 @@
   if (typeof V2DamageDigits !== "undefined") V2DamageDigits.prepare().catch(error => console.warn(error));
   if (typeof V2DamageDigits !== "undefined") V2DamageDigits.prepareLabels().catch(error => console.warn(error));
   if (typeof V2DamageDigits !== "undefined") V2DamageDigits.prepareStatusLabels().catch(error => console.warn(error));
+  if (typeof V2DamageDigits !== "undefined") V2DamageDigits.prepareHealing().catch(error => console.warn(error));
   requestAnimationFrame(battleLoop);
 })();

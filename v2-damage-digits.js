@@ -3,11 +3,23 @@
   const SHEET='art/v2-style/ui/damage-digits-sheet.jpg';
   const edges=[0,140,250,385,515,645,777,904,1026,1156,1280];
   const CELLS=edges.slice(0,-1).map((x,i)=>[x,0,edges[i+1]-x,190]).concat([[28,267,100,48]]);
+  const HEALING_SHEET='art/v2-style/ui/healing-digits-sheet.jpg';
+  const HEALING_CELLS=[
+    [15,240,120,175],[137,240,120,175],[260,240,105,175],[360,240,115,175],
+    [468,240,115,175],[585,240,120,175],[698,240,110,175],[803,240,115,175],
+    [918,240,118,175],[1033,240,120,175],[1150,240,130,175]
+  ];
   function key(data) {
     for(let i=0;i<data.length;i+=4) {
       const excess=data[i+1]-Math.max(data[i],data[i+2]);
       if(excess>45) data[i+3]=0;
       else if(excess>0) data[i+1]=Math.max(data[i],data[i+2]);
+    }
+  }
+  function keyHealing(data) {
+    for(let i=0;i<data.length;i+=4) {
+      const r=data[i],g=data[i+1],b=data[i+2];
+      if(r>110&&b>75&&r-g>35&&b-g>15)data[i+3]=0;
     }
   }
   let glyphs, pending;
@@ -36,6 +48,34 @@
       const source=glyphs[index], canvas=root.document.createElement('canvas');
       canvas.width=source.width;canvas.height=source.height;
       canvas.className=character==='-'?'damage-minus':'damage-digit';
+      canvas.setAttribute('aria-hidden','true');canvas.getContext('2d').drawImage(source,0,0);host.append(canvas);
+    }
+    return true;
+  }
+  let healingGlyphs,healingPending;
+  function prepareHealing() {
+    if(healingPending)return healingPending;
+    healingPending=new Promise((resolve,reject)=>{
+      const image=new root.Image();image.onerror=()=>reject(Error('Healing digits failed to load'));
+      image.onload=()=>{try {
+        healingGlyphs=HEALING_CELLS.map(([x,y,w,h])=>{
+          const canvas=root.document.createElement('canvas');canvas.width=w;canvas.height=h;
+          const ctx=canvas.getContext('2d');ctx.drawImage(image,x,y,w,h,0,0,w,h);
+          const pixels=ctx.getImageData(0,0,w,h);keyHealing(pixels.data);ctx.putImageData(pixels,0,0);
+          return canvas;
+        });resolve(healingGlyphs);
+      }catch(error){reject(error);}};image.src=HEALING_SHEET;
+    }).catch(error=>{healingPending=null;throw error;});
+    return healingPending;
+  }
+  function renderHealing(host,amount) {
+    if(!healingGlyphs||!Number.isFinite(amount)||amount<=0)return false;
+    host.textContent='';host.classList.add('has-healing-art');
+    for(const character of '+'+String(Math.round(amount))) {
+      const index=character==='+'?0:Number(character)+1;
+      const source=healingGlyphs[index],canvas=root.document.createElement('canvas');
+      canvas.width=source.width;canvas.height=source.height;
+      canvas.className=character==='+'?'healing-plus':'healing-digit';
       canvas.setAttribute('aria-hidden','true');canvas.getContext('2d').drawImage(source,0,0);host.append(canvas);
     }
     return true;
@@ -84,6 +124,6 @@
     host.addEventListener('animationend',()=>host.remove(),{once:true});
     root.setTimeout(()=>host.remove(),1300);
   }
-  const api={SHEET,CELLS,key,prepare,render,LABEL_SHEET,LABEL_CELLS,prepareLabels,showLabel,STATUS_CELLS,prepareStatusLabels};
+  const api={SHEET,CELLS,key,prepare,render,HEALING_SHEET,HEALING_CELLS,keyHealing,prepareHealing,renderHealing,LABEL_SHEET,LABEL_CELLS,prepareLabels,showLabel,STATUS_CELLS,prepareStatusLabels};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.V2DamageDigits=api;
 })(globalThis);

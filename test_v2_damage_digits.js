@@ -3,11 +3,15 @@ const api=require('./v2-damage-digits');
 assert.equal(api.CELLS.length,11);
 assert(api.CELLS.slice(0,10).every(c=>c[1]===0&&c[3]===190));
 assert.deepEqual(api.CELLS[10],[28,267,100,48]);
+assert.equal(api.HEALING_CELLS.length,11);
+assert.equal(api.HEALING_SHEET,'art/v2-style/ui/healing-digits-sheet.jpg');
 const pixels=new Uint8ClampedArray([0,210,0,255,160,30,30,255]);api.key(pixels);
 assert.equal(pixels[3],0);assert.equal(pixels[7],255);
+const healingPixels=new Uint8ClampedArray([225,105,165,255,20,130,45,255]);api.keyHealing(healingPixels);
+assert.equal(healingPixels[3],0);assert.equal(healingPixels[7],255);
 global.Image=class{set src(v){queueMicrotask(()=>this.onload());}};
 global.document={createElement:()=>({setAttribute(){},getContext:()=>({drawImage(){},getImageData:()=>({data:new Uint8ClampedArray([0,210,0,255])}),putImageData(){}})})};
-Promise.all([api.prepare(),api.prepareLabels(),api.prepareStatusLabels()]).then(()=>{
+Promise.all([api.prepare(),api.prepareHealing(),api.prepareLabels(),api.prepareStatusLabels()]).then(()=>{
   assert.deepEqual(api.STATUS_CELLS.poison,[405,10,495,275]);
   assert.deepEqual(api.STATUS_CELLS.immune,[405,292,485,270]);
   assert.deepEqual(api.LABEL_CELLS.miss,[290,0,740,290]);
@@ -19,5 +23,10 @@ Promise.all([api.prepare(),api.prepareLabels(),api.prepareStatusLabels()]).then(
   assert.equal(children[2].width,api.CELLS[0][2]);
   assert.equal(children[3].width,api.CELLS[5][2]);
   assert.equal(api.render(host,0),false);
-  console.log('PASS: top-row digits, minus, green removal and multi-digit damage');
+  children.length=0;
+  assert(api.renderHealing(host,10));assert.equal(children.length,3);
+  assert.equal(children[0].className,'healing-plus');
+  assert.equal(children[1].width,api.HEALING_CELLS[2][2]);
+  assert.equal(children[2].width,api.HEALING_CELLS[1][2]);
+  console.log('PASS: damage digits and transparent green healing digits');
 }).catch(e=>{console.error(e);process.exitCode=1;});
