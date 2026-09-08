@@ -10,7 +10,11 @@ const field=node(); let selected;
 const units=api.ART.map((slug,slot)=>({slug,slot,team:'ally',name:slug,alive:true,hp:8,maxHp:8,portrait:'fallback.png'}));
 api.sync(field,units,u=>selected=u);
 assert.equal(field.children.length,1);
-assert.equal(field.children[0].children[0].children.length,20);
+assert.equal(field.children[0].children[0].children.length,25);
+for (const slug of ['skeleton-archer','skeleton-cavalry','spider-knight','raging-treant','cerberus']) {
+  assert(api.ART.includes(slug));
+  assert(require('fs').existsSync(require('path').join(__dirname, 'art/v2-style/ui/unit-card-' + slug + '.jpg')));
+}
 units.forEach(u=>assert.equal(u.infoCard.children.length,1));
 units.forEach(u=>{u.infoCard.click();assert.equal(selected,u);assert(u.infoCard.children[0].style.backgroundImage.includes(u.slug));});
 units[0]={...units[0],slug:'guardian-seed'};
