@@ -41,6 +41,16 @@ button, a { font: inherit; }
 .battle-state span { min-width: 170px; color: #d2c2aa; font-size: clamp(8px, 1.15vw, 11px); text-align: center; }
 .battle-controls { display: flex; gap: 5px; }
 .battle-controls button:disabled { opacity: .48; }
+.team-legion-panel { position: absolute; z-index: 28; top: 10%; display: flex; align-items: center; gap: 6px; max-width: 43%; pointer-events: none; }
+.ally-legion-panel { left: 2%; }
+.enemy-legion-panel { right: 2%; flex-direction: row-reverse; }
+.team-legion-panel > span { color: #dac39e; font-size: clamp(7px, .85vw, 10px); font-weight: 900; line-height: 1.15; text-align: center; text-shadow: 0 2px 3px #000, 0 0 5px #000; white-space: nowrap; }
+.active-legion-slots { display: flex; gap: 2px; }
+.enemy-legion-panel .active-legion-slots { flex-direction: row-reverse; }
+.active-legion-slot { display: grid; place-content: center; width: clamp(36px, 4.5vw, 54px); aspect-ratio: 1; padding: 8% 10% 5%; background: url("art/v2-style/ui/legion-slot-frame.png") center / contain no-repeat; filter: drop-shadow(0 3px 3px #000b); text-align: center; }
+.active-legion-slot strong { color: #f2d6a5; font-size: clamp(7px, .78vw, 10px); line-height: 1.05; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
+.active-legion-slot small { margin-top: 2px; color: #bda783; font-size: clamp(6px, .62vw, 8px); font-weight: 900; line-height: 1; }
+.team-legion-empty { color: #8f806c; font-size: clamp(7px, .75vw, 9px); text-shadow: 0 1px 3px #000; }
 .team { position: absolute; z-index: auto; top: 22%; bottom: 9%; width: 48%; display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: 1fr; gap: 0; }
 .ally-team { left: 0; }
 .enemy-team { right: 0; }

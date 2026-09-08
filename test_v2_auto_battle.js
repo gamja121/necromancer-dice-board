@@ -19,6 +19,9 @@ const worker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
 
 assert(html.includes('id="allyTeam"'), "Ally team container is missing.");
 assert(html.includes('id="enemyTeam"'), "Enemy team container is missing.");
+assert(html.includes('id="allyActiveLegions"') && html.includes('id="enemyActiveLegions"'), "Both active-legion panels are missing.");
+assert(css.includes(".active-legion-slot {") && css.includes('url("art/v2-style/ui/legion-slot-frame.png")'), "Active legions must use the cropped square frame.");
+assert(css.includes(".ally-legion-panel { left: 2%") && css.includes(".enemy-legion-panel { right: 2%"), "Legion panels must sit above both formations.");
 assert(html.includes('id="roundState">4+1 VS 4+1'), "Initial five-slot formation counter is missing.");
 assert(html.includes('id="turnDice"'), "Between-turn dice panel is missing.");
 assert(html.includes('id="turnDiceButton"'), "Between-turn dice control is missing.");
@@ -116,13 +119,16 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v187'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v188'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=32"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=37") && worker.includes("v2-legions.js?v=1"), "Turn-based auto battle and legions are not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=33"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=38") && worker.includes("v2-legions.js?v=1"), "Turn-based auto battle and legions are not cached.");
+assert(worker.includes("art/v2-style/ui/legion-slot-frame.png"), "The cropped one-cell legion frame is not cached.");
 assert(html.includes('id="capturePanel"') && html.includes('id="captureRollButton"'), "Post-battle corpse capture controls are missing.");
 assert(source.includes("V2Legions.create(units)") && source.includes("V2Legions.applyOpening(legionState, units)"), "Initial-lineup legion state is not applied.");
 assert(source.includes("V2Legions.captureAttempts(legionState, \"ally\")"), "Corpse legion retry is not connected to capture dice.");
+assert(source.includes("function renderActiveLegions()") && source.includes('slot.className = "active-legion-slot"'), "Active legions must render as individual square slots.");
+assert(source.includes('key !== "element"') && source.includes('unitState.legions.includes("element")'), "Element legion display must disappear when its survival condition ends.");
 assert(worker.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit info frame is not cached.");
 // Exercise the real information-window functions without a rendering engine.
 const infoContext = { awaitingRoll: true, diceRolling: false, lastDiceRoll: null, legionState:{}, V2Legions:{active:()=>false,RULES:{}}, V2BattleBrands: require("./v2-battle-brands.js"), document: { getElementById: () => ({ focus() {} }) } };

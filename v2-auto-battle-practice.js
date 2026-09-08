@@ -115,6 +115,8 @@
   }
   const allyTeam = document.getElementById("allyTeam");
   const enemyTeam = document.getElementById("enemyTeam");
+  const allyActiveLegions = document.getElementById("allyActiveLegions");
+  const enemyActiveLegions = document.getElementById("enemyActiveLegions");
   const message = document.getElementById("battleMessage");
   const roundState = document.getElementById("roundState");
   const startOverlay = document.getElementById("startOverlay");
@@ -263,7 +265,40 @@
       (unitState.team === "ally" ? allyTeam : enemyTeam).append(element);
     }
     allyTeam.append(makeSummonSlot("아군"));
+    renderActiveLegions();
     if (typeof V2UnitCards !== "undefined") V2UnitCards.sync(battlefield, units, openUnitInfo);
+  }
+
+  function renderActiveLegions() {
+    for (const [team, host] of [["ally", allyActiveLegions], ["enemy", enemyActiveLegions]]) {
+      host.replaceChildren();
+      const keys = Object.keys(V2Legions.RULES).filter(key => {
+        if (!V2Legions.active(legionState, team, key)) return false;
+        if (key !== "element") return true;
+        return units.filter(unitState => unitState.team === team && unitState.alive && unitState.legions.includes("element")).length > 1;
+      });
+      if (!keys.length) {
+        const empty = document.createElement("em");
+        empty.className = "team-legion-empty";
+        empty.textContent = "없음";
+        host.append(empty);
+        continue;
+      }
+      for (const key of keys) {
+        const rule = V2Legions.RULES[key];
+        const count = legionState.teams[team].counts[key] || 0;
+        const slot = document.createElement("div");
+        slot.className = "active-legion-slot";
+        slot.title = `${rule.name} ${count}/${rule.need} · ${rule.effect}`;
+        slot.setAttribute("aria-label", slot.title);
+        const name = document.createElement("strong");
+        name.textContent = rule.name;
+        const threshold = document.createElement("small");
+        threshold.textContent = `${count}/${rule.need}`;
+        slot.append(name, threshold);
+        host.append(slot);
+      }
+    }
   }
 
   function createUnitElement(unitState) {
@@ -339,6 +374,7 @@
     const allyAlive = aliveUnits("ally").length;
     const enemyAlive = aliveUnits("enemy").length;
     roundState.textContent = `${allyAlive} VS ${enemyAlive}`;
+    renderActiveLegions();
   }
 
   function aliveUnits(team) {

@@ -443,7 +443,7 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/cr
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/grave-worm-animation-sheet.jpg")), "New raw Grave Worm sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/siren-animation-sheet.jpg")), "New raw Siren sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/mimic-animation-sheet.jpg")), "New raw Mimic sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v187"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v188"), "Service worker cache version was not bumped.");
 for (const slug of ['ancient-treant','skeleton-spear','stone-golem','goblin-rider']) {
   for (const [motion,count] of Object.entries({attack:5,hit:4,death:slug === 'ancient-treant' ? 6 : 5})) {
     for(let i=1;i<=count;i++) {
