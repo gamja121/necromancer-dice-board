@@ -10,7 +10,7 @@ const field=node(); let selected;
 const units=api.ART.map((slug,slot)=>({slug,slot,team:'ally',name:slug,alive:true,hp:8,maxHp:8,portrait:'fallback.png'}));
 api.sync(field,units,u=>selected=u);
 assert.equal(field.children.length,1);
-assert.equal(field.children[0].children[0].children.length,10);
+assert.equal(field.children[0].children[0].children.length,15);
 units.forEach(u=>assert.equal(u.infoCard.children.length,1));
 units.forEach(u=>{u.infoCard.click();assert.equal(selected,u);assert(u.infoCard.children[0].style.backgroundImage.includes(u.slug));});
 units[0]={...units[0],slug:'guardian-seed'};

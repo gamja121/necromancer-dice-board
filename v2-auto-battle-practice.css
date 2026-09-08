@@ -2,11 +2,16 @@
 .unit-card-dock { position: absolute; z-index: 60; bottom: 8px; left: 2%; right: 2%; display: flex; justify-content: space-between; gap: 3%; pointer-events: none; }
 .unit-card-team { display: flex; align-items: end; justify-content: center; width: 48.5%; overflow: visible; pointer-events: none; }
 .unit-info-card { position: relative; flex: 0 0 auto; width: auto; min-height: 44px; padding: 0; border: 0; border-radius: 4px; background: transparent; touch-action: manipulation; cursor: pointer; pointer-events: auto; transform-origin: 50% 85%; filter: drop-shadow(1px 3px 3px #0009); }
-.unit-info-card + .unit-info-card { margin-left: clamp(-20px, -2vw, -9px); }
+.unit-info-card + .unit-info-card { margin-left: -3px; }
+.unit-info-card { translate: 0 16px; transition: translate 180ms ease-out; }
+.unit-info-card.is-selected { translate: 0 -8px; z-index: 6; }
+.team .unit { pointer-events: none; }
+.unit-card-team { container-type: inline-size; }
+@media (prefers-reduced-motion: reduce) { .unit-info-card { transition: none; } }
 .unit-info-card:hover, .unit-info-card:focus-visible { z-index: 5; }
 .unit-info-card:focus-visible { outline: 3px solid #ffd875; outline-offset: -2px; }
 .unit-info-card.is-dead { filter: grayscale(1); opacity: .6; }
-.unit-card-art { display: block; margin: auto; height: clamp(64px, 14dvh, 128px); aspect-ratio: 370 / 540; overflow: hidden; background: #ccb990; border-radius: 4px; }
+.unit-card-art { display: block; margin: auto; height: min(clamp(80px, 18dvh, 160px), 29cqw); aspect-ratio: 370 / 540; overflow: hidden; background: #ccb990; border-radius: 4px; }
 .unit-card-art.has-card-art { background-size: 346% 106.5%; background-position: 51.7% 44%; background-repeat: no-repeat; }
 .unit-card-art img { display: block; width: 100%; height: 100%; object-fit: contain; }
 * { box-sizing: border-box; }

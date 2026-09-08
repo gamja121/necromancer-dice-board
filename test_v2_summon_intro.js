@@ -98,7 +98,7 @@ async function run() {
   assert.equal(test.context.running, true);
   assert.equal(test.context.introRunning, false);
   assert.equal(test.context.actionBusy, false);
-  assert(test.context.units.every(u => u.element.tabIndex === 0));
+  assert(test.context.units.every(u => u.element.tabIndex === -1));
   const cancelled = setup();
   cancelled.context.V2SummonEffect.play = async () => {
     cancelled.context.battleToken++;

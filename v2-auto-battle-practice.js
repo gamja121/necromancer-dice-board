@@ -253,10 +253,10 @@
       const element = document.createElement("article");
       element.className = unitState.team === "ally" ? "unit is-pending" : "unit";
       element.dataset.unit = unitState.slug;
-      element.tabIndex = unitState.team === "ally" ? -1 : 0;
+      element.tabIndex = -1;
       if (unitState.team === "ally") element.setAttribute("aria-hidden", "true");
-      element.setAttribute("role", "button");
-      element.setAttribute("aria-label", `${unitState.name} 정보 보기`);
+      element.setAttribute("role", "img");
+      element.setAttribute("aria-label", unitState.name);
       element.innerHTML = `
         <span class="brand-indicator" aria-live="polite" hidden></span>
         <div class="bar hp-bar" role="progressbar" aria-label="${unitState.name} 체력" aria-valuemin="0"><i></i></div>
@@ -264,13 +264,6 @@
       unitState.element = element;
       unitState.image = element.querySelector("img");
       if (typeof V2UnitSize !== "undefined") V2UnitSize.attach(unitState);
-      element.addEventListener("click", () => openUnitInfo(unitState));
-      element.addEventListener("keydown", (event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          openUnitInfo(unitState);
-        }
-      });
       updateUnit(unitState);
       return element;
   }
@@ -337,7 +330,7 @@
     unitState.element.classList.remove("is-pending");
     unitState.element.classList.add("is-arriving");
     unitState.element.removeAttribute("aria-hidden");
-    unitState.element.tabIndex = 0;
+    unitState.element.tabIndex = -1;
   }
 
   function renderRosterSelection(notice = "") {
@@ -592,6 +585,7 @@
 
   function closeUnitInfo() {
     unitInfoOverlay.hidden = true;
+    if (typeof V2UnitCards !== "undefined") V2UnitCards.clearSelection();
   }
 
   function replaceFighter(old, next) {

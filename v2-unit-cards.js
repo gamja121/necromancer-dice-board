@@ -1,5 +1,10 @@
 (function(root) {
-  const ART = ['minotaur','ice-lord','plague-frog','orc-warrior','plague-doctor','ghoul','goblin-chief','goblin-soldier','sea-wolf','grave-priest'];
+  const ART = ['minotaur','ice-lord','plague-frog','orc-warrior','plague-doctor','ghoul','goblin-chief','goblin-soldier','sea-wolf','grave-priest','abyss-eye','doom-executor','death-knight','hell-mantis','scorpion-knight'];
+  let selected;
+  function clearSelection() {
+    if (selected) selected.classList.toggle('is-selected', false);
+    selected = null;
+  }
   function sync(field, units, openInfo) {
     let dock = field.querySelector('.unit-card-dock');
     if (!dock) {
@@ -7,6 +12,7 @@
       dock.setAttribute('aria-label','전장 유닛 정보 카드'); field.append(dock);
     }
     dock.replaceChildren();
+    clearSelection();
     for (const team of ['ally','enemy']) {
       const group = document.createElement('div'); group.className = 'unit-card-team';
       group.setAttribute('aria-label',team === 'ally' ? '아군' : '적군');
@@ -16,7 +22,7 @@
         button.className = 'unit-info-card'; button.dataset.unit = unit.slug;
         // Stable irregular placement: state updates never shuffle touch targets.
         const index = entries.indexOf(unit);
-        button.style.transform = 'translateY(' + [2,-3,1,-1,3][index % 5] + 'px) rotate(' + [-7,4,-3,7,-5][(index + (team === 'enemy' ? 2 : 0)) % 5] + 'deg)';
+        button.style.transform = 'rotate(' + [-3,2,-1,3,-2][(index + (team === 'enemy' ? 2 : 0)) % 5] + 'deg)';
         button.setAttribute('aria-label', (team === 'ally' ? '아군 ' : '적군 ') + unit.name + ' 정보 보기');
         button.title = unit.name;
         const art = document.createElement('span'); art.className = 'unit-card-art';
@@ -29,7 +35,11 @@
           art.append(image);
         }
         button.append(art);
-        button.addEventListener('click',() => openInfo(unit));
+        button.addEventListener('click',() => {
+          clearSelection(); selected = button;
+          button.classList.toggle('is-selected', true);
+          openInfo(unit);
+        });
         unit.infoCard = button; update(unit); group.append(button);
       }
       dock.append(group);
@@ -40,7 +50,7 @@
     unit.infoCard.classList.toggle('is-dead', !unit.alive);
     unit.infoCard.title = unit.name + ' · ' + Math.max(0,unit.hp) + '/' + unit.maxHp;
   }
-  const api = { ART,sync,update };
+  const api = { ART,sync,update,clearSelection };
   if(typeof module !== 'undefined' && module.exports) module.exports=api;
   else root.V2UnitCards=api;
 })(globalThis);
