@@ -4,7 +4,7 @@
     "spider-knight": 2, "stone-golem": 2, "flesh-golem": 1.5,
     "skeleton-cavalry": 1.5, spiderling: .5, "guardian-seed": .5,
     "goblin-chief": 1.5, kraken: 2, minotaur: 1.5,
-    "goblin-rider": 1.5, yeti: 1.5, "orc-warrior": 1.5, hydra: 2.5
+    "goblin-rider": 1, yeti: 1.5, "orc-warrior": 1.5, hydra: 2
   });
   function measure(image) {
     const canvas = root.document.createElement("canvas");
