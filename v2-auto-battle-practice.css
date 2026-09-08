@@ -56,8 +56,12 @@ button, a { font: inherit; }
 .battlefield.is-cinematic .battle-shade { background: #0009; }
 .battlefield.is-cinematic .unit.is-attacking { filter: drop-shadow(0 0 5px #f6ce6c); }
 .battlefield.is-cinematic .unit.is-targeted { filter: drop-shadow(0 0 4px #e34839); }
-.battlefield.is-cinematic .unit.is-attacking .sprite-wrap { transform: translate(12%, var(--depth-y)) scale(var(--depth-scale)); }
-.battlefield.is-cinematic .enemy-team .unit.is-attacking .sprite-wrap { transform: translate(-12%, var(--depth-y)) scale(var(--depth-scale)); }
+.battlefield.is-cinematic .unit.is-attacking .sprite-wrap { transform: translate(36%, calc(var(--depth-y) + 5%)) scale(var(--depth-scale)); }
+.battlefield.is-cinematic .enemy-team .unit.is-attacking .sprite-wrap { transform: translate(-36%, calc(var(--depth-y) + 5%)) scale(var(--depth-scale)); }
+.combat-label { position: absolute; z-index: 75; left: 50%; pointer-events: none; color: #df3934; font-weight: 900; white-space: nowrap; filter: drop-shadow(0 2px 2px #000) drop-shadow(0 0 2px #ffa775); animation: damage-float 1000ms ease-out forwards; }
+.combat-label canvas { display: block; width: 100%; height: auto; }
+.combat-label-miss { top: 16%; width: clamp(90px, 13vw, 160px); font-size: 32px; }
+.combat-label-critical { top: 5%; width: clamp(42px, 6vw, 72px); font-size: 14px; }
 .battlefield.is-cinematic .unit.is-targeted .sprite-wrap { transform: translateY(var(--depth-y)) scale(var(--depth-scale)); }
 .battlefield.is-cinematic .unit.is-targeted.is-hit .sprite-wrap { translate: 6px 0; }
 .battlefield.is-cinematic .ally-team .unit.is-targeted.is-hit .sprite-wrap { translate: -6px 0; }

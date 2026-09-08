@@ -653,7 +653,7 @@
     message.textContent = `${turnNumber}턴 · ${actor.name}(속도 ${actor.speed}) → ${target.name}`;
     actor.element.classList.add("is-attacking");
     target.element.classList.add("is-targeted");
-    const cinematic = actor.slug === "death-knight";
+    const cinematic = true;
     if (cinematic) {
       battlefield.classList.add("is-cinematic");
       await wait(Math.max(180, 320 / speedMultiplier));
@@ -669,6 +669,10 @@
     if (token !== battleToken || !running) return;
 
     const outcome = V2BattleBrands.attack(actor, target);
+    if (typeof V2DamageDigits !== "undefined") {
+      if (outcome.miss) V2DamageDigits.showLabel(target, "miss");
+      else if (outcome.damage > 0 && actor.brand === "critical" && actor.brandMode === "blessing") V2DamageDigits.showLabel(target, "critical");
+    }
     V2SummonRules.registerHit(target, outcome, turnNumber);
     updateUnit(actor);
     updateUnit(target);
@@ -724,8 +728,8 @@
       if (token !== battleToken || !running) return;
       unitState.image.src = frame(unitState, motion, index);
       if (onImpact && index === Math.max(1, Math.ceil(count / 2))) onImpact();
-      const knightTiming = unitState.slug === "death-knight" && motion === "attack";
-      await wait(knightTiming ? Math.max(index === 3 ? 130 : 45, [0, 160, 90, 190, 70, 100][index] / speedMultiplier) : delay());
+      const impactFrame = Math.max(1, Math.ceil(count / 2));
+      await wait(motion === "attack" && onImpact ? Math.max(index === impactFrame ? 130 : 45, (index === impactFrame ? 190 : index === 1 ? 160 : 90) / speedMultiplier) : delay());
     }
     if (!holdLast) await wait(delay() * .35);
   }
@@ -770,5 +774,6 @@
 
   resetBattle(true);
   if (typeof V2DamageDigits !== "undefined") V2DamageDigits.prepare().catch(error => console.warn(error));
+  if (typeof V2DamageDigits !== "undefined") V2DamageDigits.prepareLabels().catch(error => console.warn(error));
   requestAnimationFrame(battleLoop);
 })();

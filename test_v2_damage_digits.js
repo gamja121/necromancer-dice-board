@@ -7,7 +7,9 @@ const pixels=new Uint8ClampedArray([0,210,0,255,160,30,30,255]);api.key(pixels);
 assert.equal(pixels[3],0);assert.equal(pixels[7],255);
 global.Image=class{set src(v){queueMicrotask(()=>this.onload());}};
 global.document={createElement:()=>({setAttribute(){},getContext:()=>({drawImage(){},getImageData:()=>({data:new Uint8ClampedArray([0,210,0,255])}),putImageData(){}})})};
-api.prepare().then(()=>{
+Promise.all([api.prepare(),api.prepareLabels()]).then(()=>{
+  assert.deepEqual(api.LABEL_CELLS.miss,[290,0,740,290]);
+  assert.deepEqual(api.LABEL_CELLS.critical,[300,300,730,265]);
   const children=[],host={classList:{add(){}},append:c=>children.push(c)};
   assert(api.render(host,105));assert.equal(children.length,4);
   assert.equal(children[0].className,'damage-minus');

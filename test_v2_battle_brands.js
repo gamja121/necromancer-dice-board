@@ -162,7 +162,7 @@ async function integration() {
     turnNumber: 0, lastDiceRoll: 2, actionCount: 0, speedMultiplier: 1,
     units: [unit("poison", "ally", 1), unit("critical", "enemy")],
     turnQueue: [], awaitingRoll: true, diceRolling: false,
-    battlefield: { classList: { remove() {} } }, turnDice: {}, pauseButton: {}, message: {},
+    battlefield: { classList: { add() {}, remove() {} } }, turnDice: {}, pauseButton: {}, message: {},
     closeUnitInfo() {}, updateUnit() {}, updateHud() {},
     showDamage: (target, amount) => damagePopups.push({ team: target.team, amount }),
     frame: (u, motion, n) => motion + n, wait: async () => {},
