@@ -52,6 +52,21 @@ button, a { font: inherit; }
 .unit.is-attacking .sprite-wrap { transform: translate(var(--action-shift-x), 14%) scale(1.43); }
 .unit.is-targeted .sprite-wrap { transform: translate(var(--action-shift-x), 11%) scale(1.32); }
 .unit.is-hit img { animation: hit-red-flash 260ms ease-in-out 2; }
+.battlefield.is-cinematic .unit:not(.is-attacking):not(.is-targeted) { opacity: .3; }
+.battlefield.is-cinematic .battle-shade { background: #0009; }
+.battlefield.is-cinematic .unit.is-attacking { filter: drop-shadow(0 0 5px #f6ce6c); }
+.battlefield.is-cinematic .unit.is-targeted { filter: drop-shadow(0 0 4px #e34839); }
+.battlefield.is-cinematic .unit.is-attacking .sprite-wrap { transform: translate(12%, var(--depth-y)) scale(var(--depth-scale)); }
+.battlefield.is-cinematic .enemy-team .unit.is-attacking .sprite-wrap { transform: translate(-12%, var(--depth-y)) scale(var(--depth-scale)); }
+.battlefield.is-cinematic .unit.is-targeted .sprite-wrap { transform: translateY(var(--depth-y)) scale(var(--depth-scale)); }
+.battlefield.is-cinematic .unit.is-targeted.is-hit .sprite-wrap { translate: 6px 0; }
+.battlefield.is-cinematic .ally-team .unit.is-targeted.is-hit .sprite-wrap { translate: -6px 0; }
+.damage-number.has-digit-art { display: flex; align-items: center; gap: 0; filter: drop-shadow(0 1px 2px #000) drop-shadow(0 0 2px #ffba82); }
+.damage-number .damage-digit { height: clamp(28px, 4vw, 46px); width: auto; }
+.damage-number .damage-minus { height: clamp(8px, 1.1vw, 13px); width: auto; }
+@media (prefers-reduced-motion: reduce) {
+  .battlefield.is-cinematic .unit.is-targeted.is-hit .sprite-wrap { translate: none; }
+}
 .unit.is-dead { filter: grayscale(.25) brightness(.72); }
 .unit.is-dead .bar { opacity: .45; }
 .damage-number { position: absolute; z-index: 70; left: 50%; top: 19%; color: #ff3b2f; font: 900 clamp(18px, 2.8vw, 32px)/1 Georgia, serif; letter-spacing: -.04em; text-shadow: 0 2px 2px #240000, 0 0 5px #ff2b1f; pointer-events: none; animation: damage-float 720ms cubic-bezier(.15, .72, .25, 1) forwards; }

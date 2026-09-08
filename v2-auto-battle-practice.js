@@ -188,6 +188,7 @@
   }
 
   function resetBattle(showStart) {
+    battlefield.classList.remove("is-cinematic");
     if (showStart) {
       lineupRequest += 1;
       loadingLineup = false;
@@ -285,6 +286,7 @@
     number.className = "damage-number";
     number.textContent = `-${amount}`;
     number.setAttribute("aria-label", `${amount} 피해`);
+    if (typeof V2DamageDigits !== "undefined") V2DamageDigits.render(number, amount);
     unitState.element.querySelector(".sprite-wrap").append(number);
     number.addEventListener("animationend", () => number.remove(), { once: true });
   }
@@ -651,6 +653,12 @@
     message.textContent = `${turnNumber}턴 · ${actor.name}(속도 ${actor.speed}) → ${target.name}`;
     actor.element.classList.add("is-attacking");
     target.element.classList.add("is-targeted");
+    const cinematic = actor.slug === "death-knight";
+    if (cinematic) {
+      battlefield.classList.add("is-cinematic");
+      await wait(Math.max(180, 320 / speedMultiplier));
+      if (token !== battleToken || !running) return;
+    }
     const hitFrames = typeof V2CombatEffects !== "undefined" ? await V2CombatEffects.prepare(actor.slug) : null;
     if (token !== battleToken || !running) return;
     let signalImpact;
@@ -696,6 +704,11 @@
     actor.element.classList.remove("is-attacking");
     target.element.classList.remove("is-targeted");
     actor.image.src = frame(actor, "attack", 1);
+    if (cinematic) {
+      await wait(Math.max(160, 240 / speedMultiplier));
+      if (token !== battleToken || !running) return;
+      battlefield.classList.remove("is-cinematic");
+    }
     actionCount += 1;
     updateHud();
     if (!aliveUnits("ally").length || !aliveUnits("enemy").length) return finishBattle();
@@ -711,12 +724,14 @@
       if (token !== battleToken || !running) return;
       unitState.image.src = frame(unitState, motion, index);
       if (onImpact && index === Math.max(1, Math.ceil(count / 2))) onImpact();
-      await wait(delay());
+      const knightTiming = unitState.slug === "death-knight" && motion === "attack";
+      await wait(knightTiming ? Math.max(index === 3 ? 130 : 45, [0, 160, 90, 190, 70, 100][index] / speedMultiplier) : delay());
     }
     if (!holdLast) await wait(delay() * .35);
   }
 
   function finishBattle() {
+    battlefield.classList.remove("is-cinematic");
     running = false;
     actionBusy = false;
     awaitingRoll = false;
@@ -754,5 +769,6 @@
   });
 
   resetBattle(true);
+  if (typeof V2DamageDigits !== "undefined") V2DamageDigits.prepare().catch(error => console.warn(error));
   requestAnimationFrame(battleLoop);
 })();

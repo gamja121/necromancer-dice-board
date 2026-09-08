@@ -1,0 +1,19 @@
+const assert=require('node:assert/strict');
+const api=require('./v2-damage-digits');
+assert.equal(api.CELLS.length,11);
+assert(api.CELLS.slice(0,10).every(c=>c[1]===0&&c[3]===190));
+assert.deepEqual(api.CELLS[10],[28,267,100,48]);
+const pixels=new Uint8ClampedArray([0,210,0,255,160,30,30,255]);api.key(pixels);
+assert.equal(pixels[3],0);assert.equal(pixels[7],255);
+global.Image=class{set src(v){queueMicrotask(()=>this.onload());}};
+global.document={createElement:()=>({setAttribute(){},getContext:()=>({drawImage(){},getImageData:()=>({data:new Uint8ClampedArray([0,210,0,255])}),putImageData(){}})})};
+api.prepare().then(()=>{
+  const children=[],host={classList:{add(){}},append:c=>children.push(c)};
+  assert(api.render(host,105));assert.equal(children.length,4);
+  assert.equal(children[0].className,'damage-minus');
+  assert.equal(children[1].width,api.CELLS[1][2]);
+  assert.equal(children[2].width,api.CELLS[0][2]);
+  assert.equal(children[3].width,api.CELLS[5][2]);
+  assert.equal(api.render(host,0),false);
+  console.log('PASS: top-row digits, minus, green removal and multi-digit damage');
+}).catch(e=>{console.error(e);process.exitCode=1;});
