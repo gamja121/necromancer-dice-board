@@ -17,6 +17,8 @@
 .unit-card-art.has-card-art { background-size: 346% 106.5%; background-position: 51.7% 44%; background-repeat: no-repeat; }
 .unit-card-art img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .unit.is-frozen .sprite-wrap > img { filter: saturate(.45) hue-rotate(155deg) brightness(1.2) drop-shadow(0 0 8px #7bdcff); }
+.unit.is-poisoned .sprite-wrap > img { filter: sepia(.35) saturate(2.4) hue-rotate(62deg) brightness(.95) drop-shadow(0 0 8px #67e548); }
+.unit.is-frozen.is-poisoned .sprite-wrap > img { filter: saturate(1.7) hue-rotate(105deg) brightness(1.08) drop-shadow(0 0 8px #55dcb2); }
 .unit.is-element-immune .sprite-wrap::after { content: ""; position: absolute; z-index: 8; inset: 18% 12% 5%; border: 2px solid #ffd572; border-radius: 50%; box-shadow: 0 0 12px #fff2a0, inset 0 0 12px #fff2a066; pointer-events: none; }
 .legion-active-note { margin-top: 8px !important; padding-top: 7px; border-top: 1px solid #8a6848; color: #f2cc82 !important; }
 .legion-overview { margin-top: 8px; padding-top: 7px; border-top: 1px solid #8a6848; }

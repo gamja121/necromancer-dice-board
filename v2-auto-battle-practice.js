@@ -362,6 +362,7 @@
     unitState.element.classList.toggle("is-ready", unitState.alive && unitState.gauge >= 100);
     unitState.element.classList.toggle("is-dead", !unitState.alive);
     unitState.element.classList.toggle("is-frozen", Boolean(unitState.frozen));
+    unitState.element.classList.toggle("is-poisoned", Boolean(unitState.poison));
     unitState.element.classList.toggle("is-element-immune", Boolean(unitState.elementImmune));
     unitState.element.querySelector('[data-status="freeze"]').hidden = !unitState.alive || !unitState.frozen;
     unitState.element.querySelector('[data-status="poison"]').hidden = !unitState.alive || !unitState.poison;
