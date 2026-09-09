@@ -24,6 +24,7 @@ assert.equal(circle.style.top, "85px");
 assert.equal(circle.style.bottom, "auto");
 delete global.document;
 assert(css.includes(".sprite-wrap > img { position: relative; z-index: 2; }"));
+assert(source.includes('unitState.image = element.querySelector(".sprite-wrap > img")'), "Summon effects must measure the fighter sprite rather than the freeze status label.");
 assert(css.includes(".summon-effect { position: absolute; z-index: 1;"));
 assert(css.includes(".unit.is-pending.is-summoning .sprite-wrap > img") && css.includes("filter: brightness(0)"), "A black silhouette must precede materialization");
 assert(css.includes("@keyframes summon-unit-materialize") && css.includes("filter: brightness(1)"), "Silhouette must resolve into full color");

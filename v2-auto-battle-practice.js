@@ -318,7 +318,7 @@
         <div class="bar hp-bar" role="progressbar" aria-label="${unitState.name} 체력" aria-valuemin="0"><i></i></div>
         <div class="sprite-wrap"><img src="${frame(unitState, "attack", 1)}" alt="${unitState.name}"></div>`;
       unitState.element = element;
-      unitState.image = element.querySelector("img");
+      unitState.image = element.querySelector(".sprite-wrap > img");
       if (typeof V2UnitSize !== "undefined") V2UnitSize.attach(unitState);
       updateUnit(unitState);
       return element;

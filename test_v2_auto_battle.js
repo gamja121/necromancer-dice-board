@@ -119,10 +119,10 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v193'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v194'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
 assert(worker.includes("v2-auto-battle-practice.css?v=37"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=42") && worker.includes("v2-legions.js?v=2") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=43") && worker.includes("v2-legions.js?v=2") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
 assert(worker.includes("art/v2-style/ui/freeze-status-label.png"), "Persistent freeze label is not cached.");
 assert(worker.includes("v2-damage-digits.js?v=4") && worker.includes("art/v2-style/ui/healing-digits-sheet.jpg"), "Healing digit art is not cached.");
 assert(worker.includes("v2-unit-cards.js?v=12"), "Summoned-unit card mapping is not cached.");
@@ -135,6 +135,7 @@ assert(source.includes("function renderActiveLegions()") && source.includes('slo
 assert(source.includes("function showHealing(unitState, amount)") && source.includes("showHealing(actor, legionHealing)"), "Undead healing must have a visible combat indicator.");
 assert(source.includes("V2DamageDigits.renderHealing(number, amount)"), "Healing popup must use the uploaded green digits.");
 assert(source.includes('data-status="freeze"') && source.includes('data-status="poison"'), "Persistent freeze and poison labels are missing.");
+assert(source.includes('unitState.image = element.querySelector(".sprite-wrap > img")'), "Unit sizing and summon circles must anchor to the fighter sprite, not a status-label image.");
 assert(source.includes("V2BattleBrands.beforeAction(actor, turnNumber)"), "Poison must resolve immediately before the next-turn attack.");
 assert(source.includes("function legionDetails(unitState)") && source.includes("현재 이 유닛에 적용") && source.includes("활성 군단"), "Unit info must summarize direct and team legion effects.");
 assert(source.includes("baseMaxHp: data.maxHp") && source.includes("baseAttack: data.attack") && source.includes("baseSpeed: data.speed"), "Pre-legion stats must be retained for comparisons.");
