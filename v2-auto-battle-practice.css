@@ -39,6 +39,7 @@
 .unit.is-capture-selected .sprite-wrap { filter: drop-shadow(0 0 11px #75f08b) brightness(1.15); }
 .unit-info-card.is-capture-candidate { cursor: pointer; opacity: .82; outline: 1px solid #cf9d54; outline-offset: -2px; }
 .unit-info-card.is-capture-selected { z-index: 7; opacity: 1; outline: 3px solid #76e58a; translate: 0 -8px; }
+.unit-info-card.is-capture-selected::before { content: ""; position: absolute; z-index: 12; left: 50%; bottom: calc(100% + 3px); width: clamp(35px, 5.2vw, 67px); aspect-ratio: 1; background: url("art/v2-style/ui/corpse-selection-arrow.png") center / contain no-repeat; pointer-events: none; filter: drop-shadow(0 3px 3px #000c); transform: translateX(-50%) rotate(180deg); transform-origin: center; animation: corpse-selection-arrow 650ms ease-in-out infinite alternate; }
 * { box-sizing: border-box; }
 html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
 body { background: #080604; }
@@ -144,11 +145,20 @@ button, a { font: inherit; }
 .battlefield.is-between-turns .unit { cursor: pointer; }
 .battlefield.is-between-turns .unit:hover .hp-bar,
 .battlefield.is-between-turns .unit:focus-visible .hp-bar { box-shadow: 0 0 10px #e2a84999; }
-.unit-info-overlay { position: absolute; z-index: 90; inset: 0; display: grid; place-items: center start; padding: 3.5% 5%; }
+.unit-info-overlay { position: absolute; z-index: 90; inset: 0; display: flex; align-items: center; justify-content: flex-start; gap: 1.8%; padding: 3.5% 5%; }
 .unit-info-overlay[hidden] { display: none; }
 .unit-info-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #030201c4; backdrop-filter: blur(2px); }
 .unit-info-panel { position: relative; z-index: 1; height: min(90%, 650px); aspect-ratio: 406 / 651; overflow: hidden; border: 0; background: #211c18; box-shadow: 0 18px 42px #000e; }
 .unit-info-frame-art { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; pointer-events: none; user-select: none; }
+.legion-info-panel { position: relative; z-index: 1; width: min(31%, 370px); aspect-ratio: 1; overflow: hidden; background: #211c18; box-shadow: 0 18px 42px #000e; }
+.legion-info-frame-art { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; pointer-events: none; user-select: none; }
+.legion-info-inner { position: absolute; z-index: 1; inset: 10.5%; display: flex; flex-direction: column; min-height: 0; }
+.legion-info-inner > h2 { flex: 0 0 auto; margin: 0 0 5%; color: #e9d6b3; font: 900 clamp(10px, 1.35vw, 17px)/1 Georgia, "Malgun Gothic", serif; text-align: center; text-shadow: 0 2px 2px #000; }
+.legion-info-content { min-height: 0; overflow: auto; scrollbar-color: #815c37 #130d09; }
+.legion-info-content > p { color: #bfb19d; font-size: clamp(7px, .82vw, 10px); line-height: 1.45; text-align: center; }
+.legion-info-content .legion-overview { margin: 0; padding: 0; border: 0; }
+.legion-info-content .legion-overview h4 { font-size: clamp(8px, .92vw, 11px); }
+.legion-info-content .legion-overview li { font-size: clamp(7px, .82vw, 10px); }
 .unit-info-panel > header { position: absolute; z-index: 2; top: .7%; left: 18%; display: grid; place-items: center; width: 64%; height: 5.2%; padding: 0; border: 0; background: transparent; }
 .unit-info-panel > header span { display: none; }
 .unit-info-panel > header h2 { max-width: 100%; margin: 0; overflow: hidden; color: #e9d6b3; font: 900 clamp(9px, 1.35vw, 17px)/1 Georgia, "Malgun Gothic", serif; text-overflow: ellipsis; text-shadow: 0 2px 2px #000; white-space: nowrap; }
@@ -237,6 +247,10 @@ button, a { font: inherit; }
 @keyframes brand-reveal {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
+}
+@keyframes corpse-selection-arrow {
+  from { transform: translate(-50%, 2px) rotate(180deg); }
+  to { transform: translate(-50%, 10px) rotate(180deg); }
 }
 @keyframes summon-unit-materialize {
   0% { opacity: .92; filter: brightness(0) drop-shadow(0 6px 5px #000); transform: translateY(8px) scale(.94); }

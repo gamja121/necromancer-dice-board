@@ -119,15 +119,18 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v197'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v198'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=39"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=46") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=40"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=47") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
 assert(worker.includes("art/v2-style/ui/freeze-status-label.png"), "Persistent freeze label is not cached.");
 assert(worker.includes("v2-damage-digits.js?v=4") && worker.includes("art/v2-style/ui/healing-digits-sheet.jpg"), "Healing digit art is not cached.");
 assert(worker.includes("v2-unit-cards.js?v=12"), "Summoned-unit card mapping is not cached.");
 for (const slug of ["goblin-commoner","guardian-seed","spiderling"]) assert(worker.includes(`art/v2-style/ui/unit-card-${slug}.jpg`), `Summoned ${slug} card art is not cached.`);
 assert(worker.includes("art/v2-style/ui/legion-slot-frame.png"), "The cropped one-cell legion frame is not cached.");
+assert(fs.existsSync(path.join(root, "art/v2-style/ui/corpse-selection-arrow.png")) && worker.includes("art/v2-style/ui/corpse-selection-arrow.png"), "The corpse-selection arrow asset must be stored and cached.");
+assert(html.includes('class="legion-info-panel"') && html.includes('id="legionInfoContent"'), "Legion effects need a separate one-cell window beside unit information.");
+assert(css.includes('.legion-info-panel') && css.includes('background: url("art/v2-style/ui/corpse-selection-arrow.png")'), "Separate legion window and corpse-selection arrow styling are missing.");
 assert(html.includes('id="capturePanel"') && html.includes('id="captureRollButton"'), "Post-battle corpse capture controls are missing.");
 assert(!html.includes('id="captureChoices"') && source.includes('resultOverlay.hidden = captureReady'), "Victory must keep corpse selection on the battlefield instead of opening a separate choice list.");
 assert(source.includes('corpse.element.classList.add("is-capture-candidate")') && source.includes('corpse.element.addEventListener("click", () => selectCorpse(corpse))') && source.includes('corpse.infoCard.addEventListener("click", () => selectCorpse(corpse))'), "Dead enemy bodies and cards must both select the capture target.");
@@ -147,7 +150,7 @@ function interactiveNode() {
     addEventListener(type, handler) { listeners[type] = handler; }
   };
 }
-const corpseBody = interactiveNode(), corpseCard = interactiveNode(), allyBody = interactiveNode();
+const corpseBody = interactiveNode(), corpseCard = interactiveNode(), corpseBody2 = interactiveNode(), corpseCard2 = interactiveNode(), allyBody = interactiveNode();
 const captureContext = {
   capturePanel: { hidden: true }, captureStatus: { textContent: "" }, captureRollButton: { disabled: true, textContent: "" },
   battlefield: { classList: interactiveNode().classList }, selectedCorpse: null, captureTargetLocked: false, captureAttemptsLeft: 0,
@@ -155,6 +158,7 @@ const captureContext = {
   V2Legions: { active: () => false, captureAttempts: () => 1 },
   units: [
     { name: "적 시체", team: "enemy", alive: false, isSummon: false, element: corpseBody, infoCard: corpseCard },
+    { name: "다른 적 시체", team: "enemy", alive: false, isSummon: false, element: corpseBody2, infoCard: corpseCard2 },
     { name: "아군", team: "ally", alive: true, isSummon: false, element: allyBody }
   ]
 };
@@ -162,8 +166,9 @@ vm.createContext(captureContext);
 vm.runInContext(source.slice(source.indexOf("  function setupCorpseCapture("), source.indexOf("  function wait(")), captureContext);
 assert(vm.runInContext("setupCorpseCapture(true)", captureContext) === true, "Victory must enter direct battlefield corpse selection.");
 assert(corpseBody.names.has("is-capture-candidate") && corpseCard.names.has("is-capture-candidate") && !corpseCard.disabled, "Both corpse body and card must become selectable.");
-corpseBody.listeners.click();
-assert(!captureContext.captureRollButton.disabled && corpseBody.names.has("is-capture-selected") && corpseCard.names.has("is-capture-selected"), "Selecting the corpse must highlight both views and enable the roll.");
+assert(!captureContext.captureRollButton.disabled && corpseBody.names.has("is-capture-selected") && corpseCard.names.has("is-capture-selected"), "The first corpse must be selected by default so the arrow has a target.");
+corpseCard2.listeners.click();
+assert(!corpseBody.names.has("is-capture-selected") && !corpseCard.names.has("is-capture-selected") && corpseBody2.names.has("is-capture-selected") && corpseCard2.names.has("is-capture-selected"), "Clicking another corpse card must move the selection and arrow to that card.");
 vm.runInContext("rollCorpseCapture()", captureContext);
 assert(captureContext.captureTargetLocked && corpseCard.disabled && captureContext.captureRollButton.disabled, "First capture roll must lock the corpse target and finish on success.");
 assert(source.includes("function showHealing(unitState, amount)") && source.includes("showHealing(actor, legionHealing)"), "Undead healing must have a visible combat indicator.");
@@ -181,7 +186,7 @@ assert(source.includes('V2Legions.suppressed(legionState, team)') && source.incl
 assert(worker.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit info frame is not cached.");
 // Exercise the real information-window functions without a rendering engine.
 const infoContext = { awaitingRoll: true, diceRolling: false, lastDiceRoll: null, legionState:{}, V2Legions:{active:()=>false,suppressed:()=>false,RULES:{}}, V2BattleBrands: require("./v2-battle-brands.js"), document: { getElementById: () => ({ focus() {} }) } };
-for (const name of ["unitInfoName", "unitInfoImage", "unitInfoPortrait", "unitInfoGrade", "unitInfoLegion", "unitInfoHp", "unitInfoAttack", "unitInfoSpeed", "unitInfoBrands", "unitInfoOverlay"]) infoContext[name] = { textContent: "", hidden: true, attrs: {}, setAttribute(key, value) { this.attrs[key] = value; } };
+for (const name of ["unitInfoName", "unitInfoImage", "unitInfoPortrait", "unitInfoGrade", "unitInfoLegion", "unitInfoHp", "unitInfoAttack", "unitInfoSpeed", "unitInfoBrands", "legionInfoContent", "unitInfoOverlay"]) infoContext[name] = { textContent: "", hidden: true, attrs: {}, setAttribute(key, value) { this.attrs[key] = value; } };
 vm.createContext(infoContext);
 infoContext.V2SummonRules = require("./v2-summon-rules.js");
 infoContext.UNIT_TYPES = require("./unit-data.js").UNIT_TYPES;
@@ -220,9 +225,10 @@ vm.runInContext("openUnitInfo(selected)", infoContext);
 assert(infoContext.unitInfoHp.textContent === "7 / 9 · 최대 8 → 9", "Maximum HP comparison is incorrect.");
 assert(infoContext.unitInfoAttack.textContent === "2 → 3", "Attack comparison is incorrect.");
 assert(infoContext.unitInfoSpeed.textContent === "5 → 3", "Speed comparison is incorrect.");
-assert(infoContext.unitInfoBrands.innerHTML.includes("식물 · 최대 체력 8 → 9") && infoContext.unitInfoBrands.innerHTML.includes("벌래 · 공격력 2 → 3") && infoContext.unitInfoBrands.innerHTML.includes("상대 악마 · 속도 5 → 3"), "Applied stat changes must be immediately visible.");
-assert(infoContext.unitInfoBrands.innerHTML.includes("식물 2/2") && infoContext.unitInfoBrands.innerHTML.includes("벌래 2/2"), "Team legion thresholds must be visible.");
-assert(infoContext.unitInfoBrands.innerHTML.includes("활성 군단 · 간략 효과") && infoContext.unitInfoBrands.innerHTML.includes("아군 전체 최대 체력 +1") && infoContext.unitInfoBrands.innerHTML.includes("아군 전체 공격력 +1"), "Active legion buffs need concise explanations.");
+assert(infoContext.legionInfoContent.innerHTML.includes("식물 · 최대 체력 8 → 9") && infoContext.legionInfoContent.innerHTML.includes("벌래 · 공격력 2 → 3") && infoContext.legionInfoContent.innerHTML.includes("상대 악마 · 속도 5 → 3"), "Applied stat changes must be immediately visible in the separate legion window.");
+assert(infoContext.legionInfoContent.innerHTML.includes("식물 2/2") && infoContext.legionInfoContent.innerHTML.includes("벌래 2/2"), "Team legion thresholds must be visible in the separate legion window.");
+assert(infoContext.legionInfoContent.innerHTML.includes("활성 군단 · 간략 효과") && infoContext.legionInfoContent.innerHTML.includes("아군 전체 최대 체력 +1") && infoContext.legionInfoContent.innerHTML.includes("아군 전체 공격력 +1"), "Active legion buffs need concise explanations.");
+assert(!infoContext.unitInfoBrands.innerHTML.includes("활성 군단 · 간략 효과"), "Legion effects must no longer be mixed into the brand information window.");
 // Verify the actual team entry: animation slug and portrait slug intentionally differ.
 const expectedBrandViews = {
   critical: "216 48 228 228", vampire: "526 48 234 228", guard: "841 48 228 228",

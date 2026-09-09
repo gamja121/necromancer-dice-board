@@ -148,6 +148,7 @@
   const unitInfoAttack = document.getElementById("unitInfoAttack");
   const unitInfoSpeed = document.getElementById("unitInfoSpeed");
   const unitInfoBrands = document.getElementById("unitInfoBrands");
+  const legionInfoContent = document.getElementById("legionInfoContent");
   const capturePanel = document.getElementById("capturePanel");
   const captureRollButton = document.getElementById("captureRollButton");
   const captureStatus = document.getElementById("captureStatus");
@@ -713,7 +714,7 @@
         <p class="brand-note">${stateText}${unitState.poison ? " · 중독: 다음 턴 공격 전 피해 1" : ""}</p>
         ${unitState.brand === "summon" ? '<p class="brand-note">아군 소환물에게 적용 · 개화한 식인식물은 제외</p>' : ""}`;
     } else unitInfoBrands.textContent = "낙인 미지정";
-    unitInfoBrands.innerHTML += legionDetails(unitState);
+    legionInfoContent.innerHTML = legionDetails(unitState);
     if (V2SummonRules.choices[unitState.slug]) unitInfoBrands.innerHTML += `<p>주사위 6: 자기 차례에 소환 후 공격 · 전투당 소환 성공 1회 (${unitState.summonUsed ? "사용 완료" : "미사용"})</p><p>${unitState.slug === "crystal-devourer" ? "중앙이 차면 사망한 아군 자리에도 씨앗 소환" : "중앙이 차면 소환을 건너뜀"}</p>`;
     if (unitState.slug === "guardian-seed") unitInfoBrands.innerHTML += `<p>공격 불가 · 피격 ${unitState.receivedHits || 0}/2 · 2회 피격 후 다음 턴에 식인식물로 개화 (생존 시)</p>`;
     unitInfoOverlay.hidden = false;
@@ -949,6 +950,7 @@
         corpse.infoCard.addEventListener("click", () => selectCorpse(corpse));
       }
     }
+    selectCorpse(corpses[0]);
     return true;
   }
 
