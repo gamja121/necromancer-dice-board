@@ -16,7 +16,7 @@ assert(units.every(u=>u.infoCard.disabled));
 units[0].infoCard.click(); assert.equal(selected,undefined);
 api.setPhase('ready');
 assert.equal(field.children.length,1);
-assert.equal(field.children[0].children[0].children.length,40);
+assert.equal(field.children[0].children[0].children.length,api.ART.length);
 assert(api.ART.includes('yeti'));
 assert(require('fs').existsSync(require('path').join(__dirname,'art/v2-style/ui/unit-card-yeti.jpg')));
 for (const slug of ['mimic','bone-hound','soul-reaper','siren','grave-worm']) {
@@ -34,14 +34,19 @@ for (const slug of ['skeleton-archer','skeleton-cavalry','spider-knight','raging
 }
 units.forEach(u=>assert.equal(u.infoCard.children.length,1));
 units.forEach(u=>{u.infoCard.click();assert.equal(selected,u);assert(u.infoCard.children[0].style.backgroundImage.includes(u.slug));});
+for (const slug of ['goblin-commoner','guardian-seed','spiderling']) {
+  assert(api.ART.includes(slug));
+  assert(require('fs').existsSync(require('path').join(__dirname,'art/v2-style/ui/unit-card-'+slug+'.jpg')));
+}
 units[0]={...units[0],slug:'guardian-seed'};
 api.sync(field,units,u=>selected=u);
 assert.equal(field.children.length,1);
-assert.equal(units[0].infoCard.children[0].children[0].src,'fallback.png');
+assert(units[0].infoCard.children[0].style.backgroundImage.includes('unit-card-guardian-seed.jpg'));
+assert.equal(units[0].infoCard.children[0].children.length,0);
 units[0].infoCard.click(); assert.equal(selected,units[0]);
 api.setPhase('acting'); assert(units.every(u=>u.infoCard.disabled));
 api.setPhase('ready'); assert(units.every(u=>!u.infoCard.disabled));
 const enemies=[3,1,4,0,2].map(slot=>({slug:'enemy'+slot,slot,team:'enemy',alive:true,hp:1,maxHp:1}));
 api.sync(field,enemies,()=>{});
 assert.deepEqual(field.children[0].children[1].children.map(b=>b.dataset.unit),['enemy4','enemy0','enemy1','enemy2','enemy3']);
-console.log('PASS: five card mappings, exact unit clicks, fallback and replacement');
+console.log('PASS: regular and summoned card mappings, exact unit clicks and replacement');

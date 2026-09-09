@@ -119,11 +119,13 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v190'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v191'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
 assert(worker.includes("v2-auto-battle-practice.css?v=35"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
 assert(worker.includes("v2-auto-battle-practice.js?v=40") && worker.includes("v2-legions.js?v=1"), "Turn-based auto battle and legions are not cached.");
 assert(worker.includes("v2-damage-digits.js?v=4") && worker.includes("art/v2-style/ui/healing-digits-sheet.jpg"), "Healing digit art is not cached.");
+assert(worker.includes("v2-unit-cards.js?v=12"), "Summoned-unit card mapping is not cached.");
+for (const slug of ["goblin-commoner","guardian-seed","spiderling"]) assert(worker.includes(`art/v2-style/ui/unit-card-${slug}.jpg`), `Summoned ${slug} card art is not cached.`);
 assert(worker.includes("art/v2-style/ui/legion-slot-frame.png"), "The cropped one-cell legion frame is not cached.");
 assert(html.includes('id="capturePanel"') && html.includes('id="captureRollButton"'), "Post-battle corpse capture controls are missing.");
 assert(source.includes("V2Legions.create(units)") && source.includes("V2Legions.applyOpening(legionState, units)"), "Initial-lineup legion state is not applied.");

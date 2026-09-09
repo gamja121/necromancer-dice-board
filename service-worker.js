@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-expedition-v190";
+const CACHE_NAME = "necromancer-expedition-v191";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -54,7 +54,10 @@ const APP_SHELL = [
   "./v2-damage-digits.js?v=4",
   "./art/v2-style/ui/healing-digits-sheet.jpg",
   "./v2-unit-size.js?v=3",
-  "./v2-unit-cards.js?v=11",
+  "./v2-unit-cards.js?v=12",
+  "./art/v2-style/ui/unit-card-goblin-commoner.jpg",
+  "./art/v2-style/ui/unit-card-guardian-seed.jpg",
+  "./art/v2-style/ui/unit-card-spiderling.jpg",
   "./art/v2-style/ui/status-labels-sheet.jpg",
   "./art/v2-style/battle-backgrounds/uploaded-raw/lava-forest.jpg",
   "./art/v2-style/battle-backgrounds/uploaded-raw/snow-forest.jpg",
