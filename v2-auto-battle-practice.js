@@ -121,8 +121,13 @@
   const roundState = document.getElementById("roundState");
   const startOverlay = document.getElementById("startOverlay");
   const startButton = document.getElementById("startButton");
+  const allyLineupTab = document.getElementById("allyLineupTab");
+  const enemyLineupTab = document.getElementById("enemyLineupTab");
   const lineupStatus = document.getElementById("lineupStatus");
   const selectedLineup = document.getElementById("selectedLineup");
+  const selectedEnemyLineup = document.getElementById("selectedEnemyLineup");
+  const allyLineupSummary = document.getElementById("allyLineupSummary");
+  const enemyLineupSummary = document.getElementById("enemyLineupSummary");
   const unitRoster = document.getElementById("unitRoster");
   const resultOverlay = document.getElementById("resultOverlay");
   const resultTitle = document.getElementById("resultTitle");
@@ -144,7 +149,6 @@
   const unitInfoSpeed = document.getElementById("unitInfoSpeed");
   const unitInfoBrands = document.getElementById("unitInfoBrands");
   const capturePanel = document.getElementById("capturePanel");
-  const captureChoices = document.getElementById("captureChoices");
   const captureRollButton = document.getElementById("captureRollButton");
   const captureStatus = document.getElementById("captureStatus");
 
@@ -166,9 +170,13 @@
   let legionState = null;
   let selectedCorpse = null;
   let captureAttemptsLeft = 0;
+  let captureTargetLocked = false;
   let lineupRequest = 0;
+  let lineupSide = "ally";
   let selectedAllySlugs = TEAM_DATA.ally.map(entry => entry.slug);
+  let selectedEnemySlugs = TEAM_DATA.enemy.map(entry => entry.slug);
   let selectedAllyTeam = TEAM_DATA.ally.map(entry => ({ ...entry }));
+  let selectedEnemyTeam = TEAM_DATA.enemy.map(entry => ({ ...entry }));
 
   [...DICE_ROLL_FRAMES, ...DICE_RESULT_FRAMES].forEach((src) => { const image = new Image(); image.src = src; });
 
@@ -201,6 +209,7 @@
     if (showStart) {
       lineupRequest += 1;
       loadingLineup = false;
+      lineupSide = "ally";
       startButton.textContent = "이 편성으로 전투 시작";
     }
     battleToken += 1;
@@ -217,6 +226,7 @@
     diceFrameIndex = 0;
     selectedCorpse = null;
     captureAttemptsLeft = 0;
+    captureTargetLocked = false;
     captureRollButton.textContent = "영입 주사위";
     speedMultiplier = 1;
     speedButton.textContent = "속도 ×1";
@@ -225,7 +235,7 @@
     speedButton.disabled = true;
     resultOverlay.hidden = true;
     capturePanel.hidden = true;
-    captureChoices.replaceChildren();
+    battlefield.classList.remove("is-corpse-capture");
     captureStatus.textContent = "시체를 선택하세요.";
     captureRollButton.disabled = true;
     startOverlay.hidden = !showStart;
@@ -239,7 +249,7 @@
     battlefield.style.backgroundImage = `url("${BATTLEFIELDS[Math.floor(Math.random() * BATTLEFIELDS.length)]}")`;
     units = [
       ...selectedAllyTeam.map((data, slot) => makeState(data, "ally", slot)),
-      ...TEAM_DATA.enemy.map((data, slot) => makeState(data, "enemy", slot))
+      ...selectedEnemyTeam.map((data, slot) => makeState(data, "enemy", slot))
     ];
     legionState = V2Legions.create(units);
     V2Legions.applyOpening(legionState, units);
@@ -405,17 +415,28 @@
 
   function renderRosterSelection(notice = "") {
     const scrollTop = unitRoster.scrollTop;
-    selectedLineup.replaceChildren();
-    for (let index = 0; index < 4; index += 1) {
-      const slot = document.createElement("div");
-      const selected = ROSTER_BY_SLUG.get(selectedAllySlugs[index]);
-      slot.className = selected ? "selected-slot" : "selected-slot is-empty";
-      slot.textContent = selected ? `${index + 1}. ${selected.name}` : `${index + 1}. 빈 자리`;
-      selectedLineup.append(slot);
-    }
+    const renderSelectedTeam = (host, slugs) => {
+      host.replaceChildren();
+      for (let index = 0; index < 4; index += 1) {
+        const slot = document.createElement("div");
+        const selected = ROSTER_BY_SLUG.get(slugs[index]);
+        slot.className = selected ? "selected-slot" : "selected-slot is-empty";
+        slot.textContent = selected ? `${index + 1}. ${selected.name}` : `${index + 1}. 빈 자리`;
+        host.append(slot);
+      }
+    };
+    renderSelectedTeam(selectedLineup, selectedAllySlugs);
+    renderSelectedTeam(selectedEnemyLineup, selectedEnemySlugs);
+    allyLineupTab.classList.toggle("is-active", lineupSide === "ally");
+    enemyLineupTab.classList.toggle("is-active", lineupSide === "enemy");
+    allyLineupTab.setAttribute("aria-pressed", String(lineupSide === "ally"));
+    enemyLineupTab.setAttribute("aria-pressed", String(lineupSide === "enemy"));
+    allyLineupSummary.classList.toggle("is-active", lineupSide === "ally");
+    enemyLineupSummary.classList.toggle("is-active", lineupSide === "enemy");
+    const activeSlugs = lineupSide === "ally" ? selectedAllySlugs : selectedEnemySlugs;
     unitRoster.replaceChildren();
     for (const entry of ROSTER) {
-      const selectedIndex = selectedAllySlugs.indexOf(entry.slug);
+      const selectedIndex = activeSlugs.indexOf(entry.slug);
       const button = document.createElement("button");
       button.type = "button";
       button.disabled = loadingLineup;
@@ -434,23 +455,30 @@
       button.addEventListener("click", () => toggleRosterUnit(entry.slug));
       unitRoster.append(button);
     }
-    const count = selectedAllySlugs.length;
+    const activeName = lineupSide === "ally" ? "아군" : "적군";
     unitRoster.scrollTop = scrollTop;
-    lineupStatus.textContent = notice || `선택한 순서대로 왼쪽부터 소환됩니다. ${count} / 4`;
-    startButton.disabled = loadingLineup || count !== 4;
+    lineupStatus.textContent = notice || `${activeName} 편집 중 · 아군 ${selectedAllySlugs.length}/4 · 적군 ${selectedEnemySlugs.length}/4`;
+    startButton.disabled = loadingLineup || selectedAllySlugs.length !== 4 || selectedEnemySlugs.length !== 4;
   }
 
   function toggleRosterUnit(slug) {
     if (loadingLineup || !ROSTER_BY_SLUG.has(slug)) return;
-    const selectedIndex = selectedAllySlugs.indexOf(slug);
-    if (selectedIndex >= 0) selectedAllySlugs.splice(selectedIndex, 1);
-    else if (selectedAllySlugs.length < 4) selectedAllySlugs.push(slug);
+    const activeSlugs = lineupSide === "ally" ? selectedAllySlugs : selectedEnemySlugs;
+    const selectedIndex = activeSlugs.indexOf(slug);
+    if (selectedIndex >= 0) activeSlugs.splice(selectedIndex, 1);
+    else if (activeSlugs.length < 4) activeSlugs.push(slug);
     else return renderRosterSelection("4명까지 선택할 수 있습니다. 먼저 한 명을 해제하세요.");
     renderRosterSelection();
   }
 
+  function selectLineupSide(team) {
+    if (loadingLineup || !["ally", "enemy"].includes(team)) return;
+    lineupSide = team;
+    renderRosterSelection();
+  }
+
   async function startSelectedBattle() {
-    if (selectedAllySlugs.length !== 4 || introRunning || running || loadingLineup) return;
+    if (selectedAllySlugs.length !== 4 || selectedEnemySlugs.length !== 4 || introRunning || running || loadingLineup) return;
     const request = ++lineupRequest;
     loadingLineup = true;
     renderRosterSelection();
@@ -458,10 +486,12 @@
     startButton.textContent = "유닛 모션 불러오는 중…";
     lineupStatus.textContent = "선택한 유닛을 전장에 준비하고 있습니다.";
     try {
-      const preparedTeam = selectedAllySlugs.map(slug => ({ ...ROSTER_BY_SLUG.get(slug) }));
-      await Promise.all(preparedTeam.map(prepareSelectedMotion));
+      const preparedAllyTeam = selectedAllySlugs.map(slug => ({ ...ROSTER_BY_SLUG.get(slug) }));
+      const preparedEnemyTeam = selectedEnemySlugs.map(slug => ({ ...ROSTER_BY_SLUG.get(slug) }));
+      await Promise.all([...preparedAllyTeam, ...preparedEnemyTeam].map(prepareSelectedMotion));
       if (request !== lineupRequest) return;
-      selectedAllyTeam = preparedTeam;
+      selectedAllyTeam = preparedAllyTeam;
+      selectedEnemyTeam = preparedEnemyTeam;
       resetBattle(false);
       await beginBattle();
     } catch (error) {
@@ -474,7 +504,7 @@
       if (request !== lineupRequest) return;
       loadingLineup = false;
       startButton.textContent = "이 편성으로 전투 시작";
-      startButton.disabled = selectedAllySlugs.length !== 4;
+      startButton.disabled = selectedAllySlugs.length !== 4 || selectedEnemySlugs.length !== 4;
     }
   }
 
@@ -883,46 +913,76 @@
     const won = aliveUnits("ally").length > 0;
     resultTitle.textContent = won ? "아군 승리" : aliveUnits("enemy").length ? "적군 승리" : "무승부";
     resultBody.textContent = `${actionCount}번의 공격 후 전투가 끝났습니다. 매 턴 속도가 높은 순서로 생존 유닛 모두가 한 번씩 행동했습니다.`;
-    setupCorpseCapture(won);
-    resultOverlay.hidden = false;
-    message.textContent = "전투 종료";
+    const captureReady = setupCorpseCapture(won);
+    resultOverlay.hidden = captureReady;
+    message.textContent = captureReady ? "아군 승리 · 죽은 적을 직접 선택하세요" : "전투 종료";
   }
 
   function setupCorpseCapture(won) {
     capturePanel.hidden = true;
-    captureChoices.replaceChildren();
+    battlefield.classList.remove("is-corpse-capture");
     selectedCorpse = null;
-    if (!won) return;
+    captureTargetLocked = false;
+    captureAttemptsLeft = 0;
+    captureRollButton.disabled = true;
+    captureRollButton.textContent = "영입 주사위";
+    if (!won) return false;
     const corpses = units.filter(unit => unit.team === "enemy" && !unit.alive && !unit.isSummon);
-    if (!corpses.length) return;
+    if (!corpses.length) return false;
     capturePanel.hidden = false;
+    battlefield.classList.add("is-corpse-capture");
     captureStatus.textContent = V2Legions.active(legionState, "ally", "corpse")
-      ? "시체 군단 활성 · 첫 실패 시 한 번 더 굴릴 수 있습니다."
-      : "시체를 선택하면 영입 주사위를 한 번 굴립니다.";
+      ? "죽은 적을 직접 선택하세요 · 실패 시 한 번 더 굴릴 수 있습니다."
+      : "죽은 적을 직접 선택한 뒤 영입 주사위를 굴리세요.";
     for (const corpse of corpses) {
       corpse.captureTarget = 2 + Math.floor(Math.random() * 5);
-      const button = document.createElement("button");
-      button.type = "button";
-      button.textContent = `${corpse.name} · ${corpse.captureTarget}+`;
-      button.addEventListener("click", () => {
-        selectedCorpse = corpse;
-        captureAttemptsLeft = V2Legions.captureAttempts(legionState, "ally");
-        [...captureChoices.children].forEach(child => child.classList.toggle("is-selected", child === button));
-        captureRollButton.disabled = false;
-        captureStatus.textContent = `${corpse.name} 선택 · 주사위 ${corpse.captureTarget} 이상 필요 · ${captureAttemptsLeft}회 가능`;
+      corpse.element.classList.add("is-capture-candidate");
+      corpse.element.tabIndex = 0;
+      corpse.element.setAttribute("aria-label", `${corpse.name} 시체 선택 · 주사위 ${corpse.captureTarget} 이상`);
+      corpse.element.addEventListener("click", () => selectCorpse(corpse));
+      corpse.element.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") { event.preventDefault(); selectCorpse(corpse); }
       });
-      captureChoices.append(button);
+      if (corpse.infoCard) {
+        corpse.infoCard.disabled = false;
+        corpse.infoCard.classList.add("is-capture-candidate");
+        corpse.infoCard.addEventListener("click", () => selectCorpse(corpse));
+      }
+    }
+    return true;
+  }
+
+  function selectCorpse(corpse) {
+    if (captureTargetLocked || !corpse || corpse.team !== "enemy" || corpse.alive || corpse.isSummon) return;
+    selectedCorpse = corpse;
+    captureAttemptsLeft = V2Legions.captureAttempts(legionState, "ally");
+    for (const unitState of units) {
+      unitState.element?.classList.toggle("is-capture-selected", unitState === corpse);
+      unitState.infoCard?.classList.toggle("is-capture-selected", unitState === corpse);
+    }
+    captureRollButton.disabled = false;
+    captureStatus.textContent = `${corpse.name} 선택 · 주사위 ${corpse.captureTarget} 이상 필요 · ${captureAttemptsLeft}회 가능`;
+  }
+
+  function lockCorpseSelection() {
+    captureTargetLocked = true;
+    for (const unitState of units.filter(unit => unit.team === "enemy" && !unit.alive)) {
+      unitState.element?.classList.remove("is-capture-candidate");
+      if (unitState.infoCard) {
+        unitState.infoCard.disabled = true;
+        unitState.infoCard.classList.remove("is-capture-candidate");
+      }
     }
   }
 
   function rollCorpseCapture() {
     if (!selectedCorpse || captureAttemptsLeft <= 0) return;
+    if (!captureTargetLocked) lockCorpseSelection();
     const roll = 1 + Math.floor(Math.random() * 6);
     captureAttemptsLeft -= 1;
     if (roll >= selectedCorpse.captureTarget) {
       captureStatus.textContent = `주사위 ${roll} · ${selectedCorpse.name} 영입 성공`;
       captureRollButton.disabled = true;
-      [...captureChoices.children].forEach(button => button.disabled = true);
       return;
     }
     if (captureAttemptsLeft > 0) {
@@ -931,7 +991,6 @@
     } else {
       captureStatus.textContent = `주사위 ${roll} · 영입 실패`;
       captureRollButton.disabled = true;
-      [...captureChoices.children].forEach(button => button.disabled = true);
     }
   }
 
@@ -940,6 +999,10 @@
   }
 
   startButton.addEventListener("click", startSelectedBattle);
+  allyLineupTab.addEventListener("click", () => selectLineupSide("ally"));
+  enemyLineupTab.addEventListener("click", () => selectLineupSide("enemy"));
+  allyLineupSummary.addEventListener("click", () => selectLineupSide("ally"));
+  enemyLineupSummary.addEventListener("click", () => selectLineupSide("enemy"));
   turnDiceButton.addEventListener("click", rollTurnDice);
   captureRollButton.addEventListener("click", rollCorpseCapture);
   document.getElementById("unitInfoClose").addEventListener("click", closeUnitInfo);

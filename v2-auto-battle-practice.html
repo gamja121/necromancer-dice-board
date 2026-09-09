@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0a0807">
   <title>4대4 속도 자동전투 테스트</title>
-  <link rel="stylesheet" href="v2-auto-battle-practice.css?v=38">
+  <link rel="stylesheet" href="v2-auto-battle-practice.css?v=39">
 </head>
 <body>
   <main class="auto-battle-lab">
@@ -84,12 +84,25 @@
       <section id="startOverlay" class="battle-overlay">
         <div class="overlay-panel lineup-panel">
           <span>LANDSCAPE BATTLE TEST</span>
-          <h1>아군 4명을 선택하세요</h1>
-          <p id="lineupStatus" aria-live="polite">선택한 순서대로 왼쪽부터 소환됩니다. 4 / 4</p>
-          <div id="selectedLineup" class="selected-lineup" aria-label="선택한 아군"></div>
+          <h1>아군과 적군을 선택하세요</h1>
+          <div class="lineup-side-tabs" role="group" aria-label="편집할 진영">
+            <button id="allyLineupTab" type="button" class="is-active" aria-pressed="true">아군 편성</button>
+            <button id="enemyLineupTab" type="button" aria-pressed="false">적군 편성</button>
+          </div>
+          <div class="lineup-summaries">
+            <section id="allyLineupSummary" class="lineup-side-summary is-active"><strong>아군</strong><div id="selectedLineup" class="selected-lineup" aria-label="선택한 아군"></div></section>
+            <section id="enemyLineupSummary" class="lineup-side-summary"><strong>적군</strong><div id="selectedEnemyLineup" class="selected-lineup" aria-label="선택한 적군"></div></section>
+          </div>
+          <p id="lineupStatus" aria-live="polite">아군 4 / 4 · 적군 4 / 4</p>
           <button id="startButton" type="button">이 편성으로 전투 시작</button>
           <div id="unitRoster" class="unit-roster" aria-label="선택 가능한 유닛"></div>
         </div>
+      </section>
+
+      <section id="capturePanel" class="battlefield-capture" aria-live="polite" hidden>
+        <h3>아군 승리 · 적 시체 영입</h3>
+        <p id="captureStatus">전장의 죽은 적 또는 적 카드를 선택하세요.</p>
+        <button id="captureRollButton" type="button" disabled>영입 주사위</button>
       </section>
 
       <section id="resultOverlay" class="battle-overlay" hidden>
@@ -97,12 +110,6 @@
           <span>BATTLE COMPLETE</span>
           <h2 id="resultTitle">승리</h2>
           <p id="resultBody"></p>
-          <div id="capturePanel" class="capture-panel" hidden>
-            <h3>적 시체 영입</h3>
-            <div id="captureChoices" class="capture-choices"></div>
-            <p id="captureStatus">시체를 선택하세요.</p>
-            <button id="captureRollButton" type="button" disabled>영입 주사위</button>
-          </div>
           <button id="resultRestartButton" type="button">다시 전투</button>
         </div>
       </section>
@@ -128,6 +135,6 @@
   <script src="v2-damage-digits.js?v=4"></script>
   <script src="v2-unit-size.js?v=3"></script>
   <script src="v2-unit-cards.js?v=12"></script>
-  <script src="v2-auto-battle-practice.js?v=45"></script>
+  <script src="v2-auto-battle-practice.js?v=46"></script>
 </body>
 </html>

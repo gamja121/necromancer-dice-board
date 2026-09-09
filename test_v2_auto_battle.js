@@ -79,10 +79,10 @@ assert(source.includes("V2BattleBrands.attack(actor, target, legionAttack)"), "A
 assert(source.includes("V2BattleBrands.startRound(units, lastDiceRoll)"), "Brands must use the shared turn roll.");
 assert(source.includes('roundState.textContent = `${allyAlive} VS ${enemyAlive}`'), "Counter must include actual living summons without a phantom extra unit.");
 assert((source.match(/unit\("/g) || []).length >= 8, "Default battle must define eight initial units.");
-assert(html.includes('id="unitRoster"') && html.includes('id="selectedLineup"') && html.includes('id="lineupStatus"'), "Pre-battle ally selection UI is missing.");
-assert(source.includes("const ROSTER_SPECS") && source.includes("selectedAllySlugs.length !== 4"), "The ally roster must require exactly four selections.");
-assert(source.includes("selectedAllyTeam.map") && source.includes("startSelectedBattle"), "The selected ally lineup must be used to create the battle.");
-assert(source.includes("selectedAllySlugs.push(slug)") && source.includes("selectedAllySlugs.splice(selectedIndex, 1)"), "Roster choices must support selecting and removing units.");
+assert(html.includes('id="unitRoster"') && html.includes('id="selectedLineup"') && html.includes('id="selectedEnemyLineup"') && html.includes('id="lineupStatus"'), "Pre-battle ally and enemy selection UI is missing.");
+assert(source.includes("selectedAllySlugs.length !== 4") && source.includes("selectedEnemySlugs.length !== 4"), "Both rosters must require exactly four selections.");
+assert(source.includes("selectedAllyTeam.map") && source.includes("selectedEnemyTeam.map") && source.includes("startSelectedBattle"), "Both selected lineups must create the battle.");
+assert(source.includes('lineupSide === "ally" ? selectedAllySlugs : selectedEnemySlugs') && source.includes("activeSlugs.push(slug)") && source.includes("activeSlugs.splice(selectedIndex, 1)"), "Either roster must support selecting and removing units.");
 assert(css.includes(".unit-roster") && css.includes("overflow-y: auto") && css.includes("touch-action: pan-y") && css.includes("grid-template-columns: repeat(9"), "The roster must be a touch-scrollable grid.");
 assert(html.indexOf('id="startButton"') < html.indexOf('id="unitRoster"'), "The start button must stay above the scrollable roster on mobile.");
 assert(css.includes(".lineup-panel > #startButton") && css.includes("grid-template-columns: repeat(8"), "Portrait-phone lineup controls must stay visible and compact.");
@@ -119,19 +119,53 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v196'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v197'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=38"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=45") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=39"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=46") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
 assert(worker.includes("art/v2-style/ui/freeze-status-label.png"), "Persistent freeze label is not cached.");
 assert(worker.includes("v2-damage-digits.js?v=4") && worker.includes("art/v2-style/ui/healing-digits-sheet.jpg"), "Healing digit art is not cached.");
 assert(worker.includes("v2-unit-cards.js?v=12"), "Summoned-unit card mapping is not cached.");
 for (const slug of ["goblin-commoner","guardian-seed","spiderling"]) assert(worker.includes(`art/v2-style/ui/unit-card-${slug}.jpg`), `Summoned ${slug} card art is not cached.`);
 assert(worker.includes("art/v2-style/ui/legion-slot-frame.png"), "The cropped one-cell legion frame is not cached.");
 assert(html.includes('id="capturePanel"') && html.includes('id="captureRollButton"'), "Post-battle corpse capture controls are missing.");
+assert(!html.includes('id="captureChoices"') && source.includes('resultOverlay.hidden = captureReady'), "Victory must keep corpse selection on the battlefield instead of opening a separate choice list.");
+assert(source.includes('corpse.element.classList.add("is-capture-candidate")') && source.includes('corpse.element.addEventListener("click", () => selectCorpse(corpse))') && source.includes('corpse.infoCard.addEventListener("click", () => selectCorpse(corpse))'), "Dead enemy bodies and cards must both select the capture target.");
+assert(source.includes("captureTargetLocked") && source.includes("lockCorpseSelection()"), "The selected corpse must lock after the first capture roll.");
 assert(source.includes("V2Legions.create(units)") && source.includes("V2Legions.applyOpening(legionState, units)"), "Initial-lineup legion state is not applied.");
 assert(source.includes("V2Legions.captureAttempts(legionState, \"ally\")"), "Corpse legion retry is not connected to capture dice.");
 assert(source.includes("function renderActiveLegions()") && source.includes('slot.className = "active-legion-slot"'), "Active legions must render as individual square slots.");
+function interactiveNode() {
+  const names = new Set(), listeners = {};
+  return {
+    names, listeners, disabled: true, tabIndex: -1, attrs: {},
+    classList: {
+      add: name => names.add(name), remove: name => names.delete(name),
+      toggle(name, force) { if (force) names.add(name); else names.delete(name); }
+    },
+    setAttribute(key, value) { this.attrs[key] = value; },
+    addEventListener(type, handler) { listeners[type] = handler; }
+  };
+}
+const corpseBody = interactiveNode(), corpseCard = interactiveNode(), allyBody = interactiveNode();
+const captureContext = {
+  capturePanel: { hidden: true }, captureStatus: { textContent: "" }, captureRollButton: { disabled: true, textContent: "" },
+  battlefield: { classList: interactiveNode().classList }, selectedCorpse: null, captureTargetLocked: false, captureAttemptsLeft: 0,
+  legionState: {}, Math: { floor: Math.floor, random: () => .99 },
+  V2Legions: { active: () => false, captureAttempts: () => 1 },
+  units: [
+    { name: "적 시체", team: "enemy", alive: false, isSummon: false, element: corpseBody, infoCard: corpseCard },
+    { name: "아군", team: "ally", alive: true, isSummon: false, element: allyBody }
+  ]
+};
+vm.createContext(captureContext);
+vm.runInContext(source.slice(source.indexOf("  function setupCorpseCapture("), source.indexOf("  function wait(")), captureContext);
+assert(vm.runInContext("setupCorpseCapture(true)", captureContext) === true, "Victory must enter direct battlefield corpse selection.");
+assert(corpseBody.names.has("is-capture-candidate") && corpseCard.names.has("is-capture-candidate") && !corpseCard.disabled, "Both corpse body and card must become selectable.");
+corpseBody.listeners.click();
+assert(!captureContext.captureRollButton.disabled && corpseBody.names.has("is-capture-selected") && corpseCard.names.has("is-capture-selected"), "Selecting the corpse must highlight both views and enable the roll.");
+vm.runInContext("rollCorpseCapture()", captureContext);
+assert(captureContext.captureTargetLocked && corpseCard.disabled && captureContext.captureRollButton.disabled, "First capture roll must lock the corpse target and finish on success.");
 assert(source.includes("function showHealing(unitState, amount)") && source.includes("showHealing(actor, legionHealing)"), "Undead healing must have a visible combat indicator.");
 assert(source.includes("V2DamageDigits.renderHealing(number, amount)"), "Healing popup must use the uploaded green digits.");
 assert(source.includes('data-status="freeze"') && source.includes('data-status="poison"'), "Persistent freeze and poison labels are missing.");
