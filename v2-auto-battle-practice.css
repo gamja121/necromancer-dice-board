@@ -71,6 +71,12 @@ button, a { font: inherit; }
 .brand-indicator[hidden] { display: none; }
 .brand-indicator.is-blessing { color: #8ee69a; }
 .brand-indicator.is-curse { color: #ff827a; }
+.persistent-statuses { position: absolute; z-index: 9; top: -6%; left: 0; display: flex; align-items: center; justify-content: center; gap: 3px; width: 100%; pointer-events: none; }
+.unit-status[hidden] { display: none; }
+.unit-status-freeze { width: clamp(46px, 6.3vw, 78px); filter: drop-shadow(0 2px 2px #00172d) drop-shadow(0 0 5px #63aaff); }
+.unit .unit-status-freeze img { display: block; width: 100%; height: auto; filter: none; transform: none; }
+.enemy-team .unit .unit-status-freeze img { transform: none; }
+.unit-status-poison { color: #7fe15c; font: 900 clamp(10px, 1.35vw, 17px)/1 "Malgun Gothic", sans-serif; text-shadow: 0 2px 2px #062000, 0 0 6px #65dc44; }
 .bar > i { display: block; width: 0; height: 100%; transition: width 90ms linear; }
 .hp-bar > i { width: 100%; background: linear-gradient(90deg, #7c1717, #e44932, #ffb34d); }
 .sprite-wrap { position: absolute; z-index: 2; inset: 13% -28% 0; display: grid; place-items: end center; transform: translateY(var(--depth-y)) scale(var(--depth-scale)); transition: transform 190ms cubic-bezier(.2, .8, .25, 1); }

@@ -4,7 +4,7 @@
     critical: { name: "치명타의 낙인", bless: [5, 6], curse: [1], blessing: "공격 피해량 2배", penalty: "공격 빗나감", normal: "2, 3, 4" },
     vampire: { name: "흡혈의 낙인", bless: [2, 4, 6], curse: [3], blessing: "실제로 가한 피해만큼 체력 회복 (최대 체력까지)", penalty: "받는 공격 피해 2배", normal: "1, 5" },
     guard: { name: "수호의 낙인", bless: [1, 2], curse: [6], blessing: "이번 턴 받는 공격 피해 무시", penalty: "공격 빗나감", normal: "3, 4, 5" },
-    poison: { name: "중독의 낙인", bless: [1, 3, 5], curse: [2, 4, 6], blessing: "공격으로 피해를 주면 중독 부여 · 대상의 다음 행동 시작에 고정 피해 1 (1회, 중첩 없음)", penalty: "턴 시작 시 자신의 체력 1 감소", normal: "없음" },
+    poison: { name: "중독의 낙인", bless: [1, 3, 5], curse: [2, 4, 6], blessing: "공격으로 피해를 주면 중독 부여 · 대상의 다음 턴 공격 전에 고정 피해 1 (1회, 중첩 없음)", penalty: "턴 시작 시 자신의 체력 1 감소", normal: "없음" },
     summon: { name: "소환의 낙인", bless: [2, 4], curse: [6], blessing: "모든 아군 소환물 체력 2 회복 (최대 체력까지)", penalty: "모든 아군 소환물 체력 1 감소", normal: "1, 3, 5" },
     healing: { name: "회복의 낙인", bless: [6], curse: [1], blessing: "모든 아군 유닛 체력 1 회복", penalty: "무작위 적 1명 체력 1 회복", normal: "2, 3, 4, 5" }
   });
@@ -51,9 +51,11 @@
     }
     return alive.filter(unit => !unit.alive);
   }
-  function beforeAction(unit) {
+  function beforeAction(unit, turnNumber) {
     if (!unit.alive || !unit.poison) return 0;
+    if (Number.isFinite(turnNumber) && Number.isFinite(unit.poisonAppliedTurn) && turnNumber <= unit.poisonAppliedTurn) return 0;
     unit.poison = 0;
+    unit.poisonAppliedTurn = null;
     unit.hp = Math.max(0, unit.hp - 1);
     if (unit.hp === 0) unit.alive = false;
     return 1;

@@ -119,10 +119,11 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v191'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v192'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=35"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=40") && worker.includes("v2-legions.js?v=1"), "Turn-based auto battle and legions are not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=36"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=41") && worker.includes("v2-legions.js?v=2") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
+assert(worker.includes("art/v2-style/ui/freeze-status-label.png"), "Persistent freeze label is not cached.");
 assert(worker.includes("v2-damage-digits.js?v=4") && worker.includes("art/v2-style/ui/healing-digits-sheet.jpg"), "Healing digit art is not cached.");
 assert(worker.includes("v2-unit-cards.js?v=12"), "Summoned-unit card mapping is not cached.");
 for (const slug of ["goblin-commoner","guardian-seed","spiderling"]) assert(worker.includes(`art/v2-style/ui/unit-card-${slug}.jpg`), `Summoned ${slug} card art is not cached.`);
@@ -133,6 +134,8 @@ assert(source.includes("V2Legions.captureAttempts(legionState, \"ally\")"), "Cor
 assert(source.includes("function renderActiveLegions()") && source.includes('slot.className = "active-legion-slot"'), "Active legions must render as individual square slots.");
 assert(source.includes("function showHealing(unitState, amount)") && source.includes("showHealing(actor, legionHealing)"), "Undead healing must have a visible combat indicator.");
 assert(source.includes("V2DamageDigits.renderHealing(number, amount)"), "Healing popup must use the uploaded green digits.");
+assert(source.includes('data-status="freeze"') && source.includes('data-status="poison"'), "Persistent freeze and poison labels are missing.");
+assert(source.includes("V2BattleBrands.beforeAction(actor, turnNumber)"), "Poison must resolve immediately before the next-turn attack.");
 assert(css.includes(".healing-number {") && css.includes("#7cff83"), "Healing feedback must be visibly distinct from damage.");
 assert(source.includes('key !== "element"') && source.includes('unitState.legions.includes("element")'), "Element legion display must disappear when its survival condition ends.");
 assert(worker.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit info frame is not cached.");

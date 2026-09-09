@@ -4,7 +4,7 @@
     skeleton:{name:'언데드',need:3,effect:'행동 후 체력 1 회복'},
     beast:{name:'야수',need:3,effect:'공격 시 25% 확률 치명타'},
     corpse:{name:'시체',need:2,effect:'적 시체 영입 실패 시 1회 재시도'},
-    plague:{name:'역병',need:3,effect:'피해를 준 대상에게 1턴 중독'},
+    plague:{name:'역병',need:3,effect:'피해를 준 대상의 다음 턴 공격 전 중독 피해 1'},
     ice:{name:'얼음',need:3,effect:'공격 시 30% 확률로 이번 턴 빙결'},
     summon:{name:'소환',need:2,effect:'소환물 최대 체력 +3 · 공격력 +1'},
     demon:{name:'악마',need:3,effect:'상대 전체 속도 -2'},
@@ -35,7 +35,7 @@
   }
   function applyOpening(state,units) { units.forEach(unit=>applyUnit(state,unit)); }
   function startTurn(state,units) {
-    units.forEach(unit=>{unit.elementImmune=false;unit.frozen=false;});
+    units.forEach(unit=>{unit.elementImmune=false;});
     for (const team of ['ally','enemy']) {
       if (!active(state,team,'element')) continue;
       const livingElements=units.filter(u=>u.team===team&&u.alive&&legionsOf(u).includes('element'));

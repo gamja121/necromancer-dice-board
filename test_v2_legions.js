@@ -17,7 +17,9 @@ state.random=()=>.25;assert.equal(L.beforeAttack(state,units[0],units[3]).powerM
 units=[unit('ally','plague'),unit('ally','plague'),unit('ally',['plague','ice']),unit('ally','ice'),unit('ally','ice'),unit('enemy','corpse')];
 state=L.create(units,()=>.29);
 let applied=L.afterAttack(state,units[2],units[5],{damage:1});
-assert(applied.poison&&applied.frozen);assert.equal(units[5].poison,1);assert(L.consumeFreeze(units[5]));
+assert(applied.poison&&applied.frozen);assert.equal(units[5].poison,1);
+L.startTurn(state,units);assert.equal(units[5].frozen,true,'Freeze must survive the turn boundary');
+assert(L.consumeFreeze(units[5]));assert.equal(L.consumeFreeze(units[5]),false,'Freeze must remove exactly one attack opportunity');
 
 units=[unit('ally','summon'),unit('ally','summon'),unit('ally','insect'),unit('ally','insect'),unit('enemy','corpse')];
 state=L.create(units);L.applyOpening(state,units);

@@ -253,7 +253,7 @@
     const brandIds = Object.keys(V2BattleBrands.definitions);
     const fallbackBrand = brandIds[(slot + (team === "enemy" ? 4 : 0)) % brandIds.length];
     const isSummon = UNIT_TYPES[UNIT_TYPE_KEYS[data.slug]]?.grade === "special";
-    return { ...data, isSummon, team, slot, hp: data.maxHp, gauge: 0, alive: true, brand: V2BattleBrands.samples[data.slug] || fallbackBrand, brandMode: "normal", brandDisplayMode: "normal", poison: 0, element: null, image: null };
+    return { ...data, isSummon, team, slot, hp: data.maxHp, gauge: 0, alive: true, brand: V2BattleBrands.samples[data.slug] || fallbackBrand, brandMode: "normal", brandDisplayMode: "normal", poison: 0, poisonAppliedTurn: null, element: null, image: null };
   }
 
   function renderTeams() {
@@ -310,6 +310,10 @@
       element.setAttribute("role", "img");
       element.setAttribute("aria-label", unitState.name);
       element.innerHTML = `
+        <div class="persistent-statuses" aria-live="polite">
+          <span class="unit-status unit-status-freeze" data-status="freeze" hidden><img src="art/v2-style/ui/freeze-status-label.png" alt="결빙"></span>
+          <span class="unit-status unit-status-poison" data-status="poison" hidden>중독</span>
+        </div>
         <span class="brand-indicator" aria-live="polite" hidden></span>
         <div class="bar hp-bar" role="progressbar" aria-label="${unitState.name} 체력" aria-valuemin="0"><i></i></div>
         <div class="sprite-wrap"><img src="${frame(unitState, "attack", 1)}" alt="${unitState.name}"></div>`;
@@ -359,6 +363,8 @@
     unitState.element.classList.toggle("is-dead", !unitState.alive);
     unitState.element.classList.toggle("is-frozen", Boolean(unitState.frozen));
     unitState.element.classList.toggle("is-element-immune", Boolean(unitState.elementImmune));
+    unitState.element.querySelector('[data-status="freeze"]').hidden = !unitState.alive || !unitState.frozen;
+    unitState.element.querySelector('[data-status="poison"]').hidden = !unitState.alive || !unitState.poison;
     updateBrandIndicator(unitState);
     if (typeof V2UnitCards !== "undefined") V2UnitCards.update(unitState);
   }
@@ -644,7 +650,7 @@
         <p class="brand-curse">저주 [${brand.curse.join(", ")}]<br>${brand.penalty}</p>
         <p>일반 [${brand.normal}]: 통상 진행</p>
         <p class="brand-note">공통 주사위로 시작하는 턴에 적용 · 다음 굴림 때 갱신</p>
-        <p class="brand-note">${stateText}${unitState.poison ? " · 중독: 다음 행동 시 피해 1" : ""}</p>
+        <p class="brand-note">${stateText}${unitState.poison ? " · 중독: 다음 턴 공격 전 피해 1" : ""}</p>
         ${unitState.brand === "summon" ? '<p class="brand-note">아군 소환물에게 적용 · 개화한 식인식물은 제외</p>' : ""}`;
     } else unitInfoBrands.textContent = "낙인 미지정";
     const activeLegions = unitState.legions.filter(key => V2Legions.active(legionState, unitState.team, key));
@@ -704,8 +710,13 @@
     actionBusy = true;
     actor.gauge = 0;
     updateUnit(actor);
-    if (V2BattleBrands.beforeAction(actor)) {
+    const poisonDamage = V2BattleBrands.beforeAction(actor, turnNumber);
+    if (poisonDamage) {
       updateUnit(actor);
+      showDamage(actor, poisonDamage);
+      message.textContent = `${actor.name} 중독 피해 ${poisonDamage}`;
+      await wait(Math.max(260, 460 / speedMultiplier));
+      if (token !== battleToken || !running) return;
       if (!actor.alive) {
         await playMotion(actor, "death", actor.frames.death, token, true);
         if (token !== battleToken || !running) return;
@@ -752,9 +763,11 @@
     await impactReady;
     if (token !== battleToken || !running) return;
 
+    const hadPoison = Boolean(target.poison);
     const legionAttack = V2Legions.beforeAttack(legionState, actor, target);
     const outcome = V2BattleBrands.attack(actor, target, legionAttack);
     const legionApplied = V2Legions.afterAttack(legionState, actor, target, outcome);
+    if (!hadPoison && target.poison) target.poisonAppliedTurn = turnNumber;
     if (typeof V2DamageDigits !== "undefined") {
       if (outcome.miss) V2DamageDigits.showLabel(target, "miss");
       else if (outcome.immune) V2DamageDigits.showLabel(target, "immune");

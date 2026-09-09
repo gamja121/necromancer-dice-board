@@ -50,6 +50,11 @@ assert.equal(b.poison, 1);
 assert.equal(brands.beforeAction(b), 1);
 assert.equal(b.hp, 6);
 assert.equal(brands.beforeAction(b), 0, "Poison ticks only once");
+b.poison = 1; b.poisonAppliedTurn = 2; b.hp = 6;
+assert.equal(brands.beforeAction(b, 2), 0, "Poison must remain visible during the turn it was applied");
+assert.equal(b.hp, 6);
+assert.equal(brands.beforeAction(b, 3), 1, "Poison must damage immediately before the next turn attack");
+assert.equal(b.hp, 5);assert.equal(b.poison, 0);
 b.hp = 1; b.poison = 1;
 brands.beforeAction(b);
 assert.equal(b.alive, false);
@@ -103,12 +108,14 @@ assert(page.indexOf('src="v2-battle-brands.js') < page.indexOf('src="v2-auto-bat
 const hp = { attrs: {}, setAttribute(key, value) { this.attrs[key] = value; } };
 const fill = { style: {} };
 const badge = { hidden: true, textContent: "", className: "" };
+const freezeStatus = { hidden: true }, poisonStatus = { hidden: true };
 const domContext = {
   V2BattleBrands: brands,
   selected: { ...unit("critical"), maxHp: 12, hp: 6, element: {
     querySelector(selector) {
-      assert([".hp-bar", ".hp-bar i", ".brand-indicator"].includes(selector), "Removed labels must not be accessed");
-      return selector === ".hp-bar" ? hp : selector === ".brand-indicator" ? badge : fill;
+      assert([".hp-bar", ".hp-bar i", ".brand-indicator", '[data-status="freeze"]', '[data-status="poison"]'].includes(selector), "Unknown unit indicator accessed");
+      return selector === ".hp-bar" ? hp : selector === ".brand-indicator" ? badge
+        : selector === '[data-status="freeze"]' ? freezeStatus : selector === '[data-status="poison"]' ? poisonStatus : fill;
     }, classList: { toggle() {} }
   } }
 };
@@ -120,6 +127,10 @@ assert.equal(fill.style.width, "50%");
 assert.equal(hp.attrs["aria-valuenow"], "6");
 assert.equal(hp.attrs["aria-valuemax"], "12");
 assert.equal(badge.hidden, true, "Initial badge must stay hidden");
+assert.equal(freezeStatus.hidden, true);assert.equal(poisonStatus.hidden, true);
+domContext.selected.frozen = true;domContext.selected.poison = 1;
+vm.runInContext("updateUnit(selected)", domContext);
+assert.equal(freezeStatus.hidden, false);assert.equal(poisonStatus.hidden, false);
 domContext.units = [domContext.selected];
 for (const [brand, expectedModes] of Object.entries(matrix)) {
   domContext.selected.brand = brand;
@@ -143,6 +154,7 @@ assert.equal(badge.hidden, false);
 domContext.selected.alive = false;
 vm.runInContext("updateUnit(selected)", domContext);
 assert.equal(badge.hidden, true, "Dead units must not display an active badge");
+assert.equal(freezeStatus.hidden, true);assert.equal(poisonStatus.hidden, true);
 const badgeCss = fs.readFileSync(__dirname + "/v2-auto-battle-practice.css", "utf8");
 assert(badgeCss.includes(".brand-indicator.is-blessing { color: #8ee69a; }"));
 assert(badgeCss.includes(".brand-indicator.is-curse { color: #ff827a; }"));
@@ -189,15 +201,15 @@ async function integration() {
   await vm.runInContext("performAttack(units[0], battleToken)", context);
   assert.equal(context.units[0].hp, 3);
   assert.equal(context.units[1].alive, false);
-  assert.deepEqual(damagePopups, [{ team: "enemy", amount: 2 }], "Popup must display actual HP loss, not overkill attack power");
+  assert.deepEqual(damagePopups, [{ team: "ally", amount: 1 }, { team: "enemy", amount: 2 }], "Poison and attack popups must display their actual HP loss");
   Object.assign(context, { running: true, units: [unit("critical"), unit("guard", "enemy")] });
   brands.startRound(context.units, 1);
   await vm.runInContext("performAttack(units[0], battleToken)", context);
-  assert.equal(damagePopups.length, 1, "Miss must not display damage");
+  assert.equal(damagePopups.length, 2, "Miss must not display damage");
   Object.assign(context, { running: true, units: [unit("vampire"), unit("guard", "enemy")] });
   brands.startRound(context.units, 2);
   await vm.runInContext("performAttack(units[0], battleToken)", context);
-  assert.equal(damagePopups.length, 1, "Invulnerability must not display damage");
+  assert.equal(damagePopups.length, 2, "Invulnerability must not display damage");
   Object.assign(context, { running: true, actionBusy: false, units: [unit("critical"), unit("guard", "enemy")], lastDiceRoll: 3, turnQueue: [] });
   await vm.runInContext("startTurn()", context);
   assert.equal(context.actionBusy, false);
