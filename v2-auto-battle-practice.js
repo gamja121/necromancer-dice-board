@@ -22,7 +22,7 @@
     "bone-hound": "boneHound", mimic: "mimic", "ice-princess": "icePrincess", siren: "siren"
   };
   const GRADE_LABELS = { normal: "일반", advanced: "희귀", hero: "영웅", special: "소환물" };
-  const LEGION_LABELS = { skeleton: "언데드", corpse: "시체", beast: "야수", plague: "역병", ice: "얼음", summon: "소환", demon: "악마", insect: "곤충", plant: "식물", element: "원소" };
+  const LEGION_LABELS = { skeleton: "언데드", corpse: "시체", beast: "야수", plague: "역병", ice: "얼음", summon: "소환", demon: "악마", insect: "벌래", plant: "식물", element: "원소" };
   // Viewports into the unmodified uploaded icon sheet: top row, then bottom row.
   const BRAND_ICON_VIEWS = Object.freeze({
     critical: [216, 48, 228, 228], vampire: [526, 48, 234, 228], guard: [841, 48, 228, 228],
@@ -273,14 +273,12 @@
     for (const [team, host] of [["ally", allyActiveLegions], ["enemy", enemyActiveLegions]]) {
       host.replaceChildren();
       const keys = Object.keys(V2Legions.RULES).filter(key => {
-        if (!V2Legions.active(legionState, team, key)) return false;
-        if (key !== "element") return true;
-        return units.filter(unitState => unitState.team === team && unitState.alive && unitState.legions.includes("element")).length > 1;
+        return V2Legions.active(legionState, team, key);
       });
       if (!keys.length) {
         const empty = document.createElement("em");
         empty.className = "team-legion-empty";
-        empty.textContent = "없음";
+        empty.textContent = V2Legions.suppressed(legionState, team) ? "상대 원소로 억제" : "없음";
         host.append(empty);
         continue;
       }
@@ -363,7 +361,6 @@
     unitState.element.classList.toggle("is-dead", !unitState.alive);
     unitState.element.classList.toggle("is-frozen", Boolean(unitState.frozen));
     unitState.element.classList.toggle("is-poisoned", Boolean(unitState.poison));
-    unitState.element.classList.toggle("is-element-immune", Boolean(unitState.elementImmune));
     unitState.element.querySelector('[data-status="freeze"]').hidden = !unitState.alive || !unitState.frozen;
     unitState.element.querySelector('[data-status="poison"]').hidden = !unitState.alive || !unitState.poison;
     updateBrandIndicator(unitState);
@@ -635,17 +632,15 @@
     const baseSpeed = unitState.baseSpeed ?? unitState.speed;
     const applied = [];
     if (active("plant") && unitState.maxHp !== baseMaxHp) applied.push(`식물 · 최대 체력 ${baseMaxHp} → ${unitState.maxHp}`);
-    if (active("insect") && unitState.attack !== baseAttack) applied.push(`벌레 · 공격력 ${baseAttack} → ${unitState.attack}`);
+    if (active("insect") && unitState.attack !== baseAttack) applied.push(`벌래 · 공격력 ${baseAttack} → ${unitState.attack}`);
     if (V2Legions.active(legionState, enemyTeamKey, "demon") && unitState.speed !== baseSpeed) applied.push(`상대 악마 · 속도 ${baseSpeed} → ${unitState.speed}`);
     if (active("summon") && unitState.isSummon) applied.push(`소환 · 최대 체력 +3, 공격력 +1`);
     if (active("skeleton") && ownLegions.includes("skeleton")) applied.push("언데드 · 행동 후 체력 1 회복");
     if (active("beast") && ownLegions.includes("beast")) applied.push("야수 · 공격 시 치명타 확률 25%");
     if (active("plague") && ownLegions.includes("plague")) applied.push("역병 · 공격 대상에게 다음 턴 중독 피해 1");
     if (active("ice") && ownLegions.includes("ice")) applied.push("얼음 · 공격 시 결빙 확률 30%");
-    if (active("element")) {
-      const livingElements = units.filter(member => member.team === team && member.alive && member.legions.includes("element")).length;
-      applied.push(livingElements <= 1 ? "원소 · 생존 조건 미달로 무적 해제" : unitState.elementImmune ? "원소 · 현재 무적 대상" : "원소 · 이번 턴 무적 대상 아님");
-    }
+    if (active("element")) applied.push("원소 · 상대 군단 효과 억제 중");
+    if (V2Legions.suppressed(legionState, team)) applied.push("상대 원소 · 우리 군단 효과 억제됨");
     const activeKeys = Object.keys(V2Legions.RULES).filter(key => active(key));
     const current = applied.length ? applied.map(text => `<li>${text}</li>`).join("") : "<li>이 유닛에 직접 적용된 효과 없음</li>";
     const teamEffects = activeKeys.length ? activeKeys.map(key => {
@@ -653,7 +648,7 @@
       const count = legionState.teams[team].counts[key] || 0;
       return `<li><b>${rule.name} ${count}/${rule.need}</b><span>${rule.effect}</span></li>`;
     }).join("") : "<li>활성 군단 없음</li>";
-    return `<section class="legion-overview"><h4>현재 이 유닛에 적용</h4><ul class="legion-current-effects">${current}</ul><h4>${team === "ally" ? "아군" : "적군"} 활성 군단</h4><ul class="legion-team-effects">${teamEffects}</ul></section>`;
+    return `<section class="legion-overview"><h4>현재 이 유닛에 적용</h4><ul class="legion-current-effects">${current}</ul><h4>${team === "ally" ? "아군" : "적군"} 활성 군단 · 간략 효과</h4><ul class="legion-team-effects">${teamEffects}</ul></section>`;
   }
 
   function openUnitInfo(unitState) {

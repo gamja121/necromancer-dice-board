@@ -1,16 +1,16 @@
 (function(root) {
   'use strict';
   const RULES = Object.freeze({
-    skeleton:{name:'언데드',need:3,effect:'행동 후 체력 1 회복'},
-    beast:{name:'야수',need:3,effect:'공격 시 25% 확률 치명타'},
-    corpse:{name:'시체',need:2,effect:'적 시체 영입 실패 시 1회 재시도'},
-    plague:{name:'역병',need:3,effect:'피해를 준 대상의 다음 턴 공격 전 중독 피해 1'},
-    ice:{name:'얼음',need:3,effect:'공격 시 30% 확률로 이번 턴 빙결'},
+    skeleton:{name:'언데드',need:3,effect:'행동 후 체력 +1'},
+    beast:{name:'야수',need:3,effect:'치명타 확률 25%'},
+    corpse:{name:'시체',need:2,effect:'시체 영입 실패 시 1회 재굴림'},
+    plague:{name:'역병',need:3,effect:'공격 적중 시 중독 피해 1'},
+    ice:{name:'얼음',need:3,effect:'공격 시 결빙 확률 30%'},
     summon:{name:'소환',need:2,effect:'소환물 최대 체력 +3 · 공격력 +1'},
     demon:{name:'악마',need:3,effect:'상대 전체 속도 -2'},
     plant:{name:'식물',need:2,effect:'아군 전체 최대 체력 +1'},
-    insect:{name:'벌레',need:2,effect:'아군 전체 공격력 +1'},
-    element:{name:'원소',need:4,effect:'매 턴 무작위 아군 1명 무적 · 원소 생존 1명 이하면 해제'}
+    insect:{name:'벌래',need:2,effect:'아군 전체 공격력 +1'},
+    element:{name:'원소',need:2,effect:'상대 군단 효과 억제'}
   });
   const legionsOf = unit => Array.isArray(unit.legions) ? unit.legions : unit.legions ? [unit.legions] : [];
   function create(initialUnits, random = Math.random) {
@@ -24,7 +24,9 @@
     return {teams,random};
   }
   const opposing = team => team==='ally'?'enemy':'ally';
-  const active = (state,team,key) => Boolean(state?.teams?.[team]?.active.has(key));
+  const qualified = (state,team,key) => Boolean(state?.teams?.[team]?.active.has(key));
+  const suppressed = (state,team) => qualified(state,opposing(team),'element');
+  const active = (state,team,key) => qualified(state,team,key) && (key==='element'||!suppressed(state,team));
   function applyUnit(state,unit) {
     if (unit.legionStatsApplied) return;
     unit.legionStatsApplied=true;
@@ -36,17 +38,10 @@
   function applyOpening(state,units) { units.forEach(unit=>applyUnit(state,unit)); }
   function startTurn(state,units) {
     units.forEach(unit=>{unit.elementImmune=false;});
-    for (const team of ['ally','enemy']) {
-      if (!active(state,team,'element')) continue;
-      const livingElements=units.filter(u=>u.team===team&&u.alive&&legionsOf(u).includes('element'));
-      if (livingElements.length<=1) continue;
-      const candidates=units.filter(u=>u.team===team&&u.alive);
-      if (candidates.length) candidates[Math.floor(state.random()*candidates.length)].elementImmune=true;
-    }
   }
   function beforeAttack(state,actor,target) {
     const legionCritical=active(state,actor.team,'beast')&&legionsOf(actor).includes('beast')&&state.random()<.25;
-    return {legionCritical,powerMultiplier:legionCritical?2:1,immune:Boolean(target.elementImmune)};
+    return {legionCritical,powerMultiplier:legionCritical?2:1,immune:false};
   }
   function afterAttack(state,actor,target,outcome) {
     const applied={poison:false,frozen:false};
@@ -66,8 +61,8 @@
   function consumeFreeze(unit) { if (!unit.frozen) return false; unit.frozen=false; return true; }
   function captureAttempts(state,team) { return active(state,team,'corpse')?2:1; }
   function activeSummary(state,team) {
-    return [...state.teams[team].active].map(key=>RULES[key].name).join(' · ')||'활성 군단 없음';
+    return Object.keys(RULES).filter(key=>active(state,team,key)).map(key=>RULES[key].name).join(' · ')||'활성 군단 없음';
   }
-  const api={RULES,create,active,applyUnit,applyOpening,startTurn,beforeAttack,afterAttack,afterAction,consumeFreeze,captureAttempts,activeSummary};
+  const api={RULES,create,qualified,suppressed,active,applyUnit,applyOpening,startTurn,beforeAttack,afterAttack,afterAction,consumeFreeze,captureAttempts,activeSummary};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.V2Legions=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
