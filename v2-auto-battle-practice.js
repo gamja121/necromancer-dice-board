@@ -253,7 +253,7 @@
     const brandIds = Object.keys(V2BattleBrands.definitions);
     const fallbackBrand = brandIds[(slot + (team === "enemy" ? 4 : 0)) % brandIds.length];
     const isSummon = UNIT_TYPES[UNIT_TYPE_KEYS[data.slug]]?.grade === "special";
-    return { ...data, isSummon, team, slot, hp: data.maxHp, gauge: 0, alive: true, brand: V2BattleBrands.samples[data.slug] || fallbackBrand, brandMode: "normal", brandDisplayMode: "normal", poison: 0, poisonAppliedTurn: null, element: null, image: null };
+    return { ...data, isSummon, team, slot, baseMaxHp: data.maxHp, baseAttack: data.attack, baseSpeed: data.speed, hp: data.maxHp, gauge: 0, alive: true, brand: V2BattleBrands.samples[data.slug] || fallbackBrand, brandMode: "normal", brandDisplayMode: "normal", poison: 0, poisonAppliedTurn: null, element: null, image: null };
   }
 
   function renderTeams() {
@@ -624,6 +624,37 @@
     startTurn();
   }
 
+  function legionDetails(unitState) {
+    const team = unitState.team;
+    const enemyTeamKey = team === "ally" ? "enemy" : "ally";
+    const ownLegions = unitState.legions || [];
+    const active = key => V2Legions.active(legionState, team, key);
+    const baseMaxHp = unitState.baseMaxHp ?? unitState.maxHp;
+    const baseAttack = unitState.baseAttack ?? unitState.attack;
+    const baseSpeed = unitState.baseSpeed ?? unitState.speed;
+    const applied = [];
+    if (active("plant") && unitState.maxHp !== baseMaxHp) applied.push(`식물 · 최대 체력 ${baseMaxHp} → ${unitState.maxHp}`);
+    if (active("insect") && unitState.attack !== baseAttack) applied.push(`벌레 · 공격력 ${baseAttack} → ${unitState.attack}`);
+    if (V2Legions.active(legionState, enemyTeamKey, "demon") && unitState.speed !== baseSpeed) applied.push(`상대 악마 · 속도 ${baseSpeed} → ${unitState.speed}`);
+    if (active("summon") && unitState.isSummon) applied.push(`소환 · 최대 체력 +3, 공격력 +1`);
+    if (active("skeleton") && ownLegions.includes("skeleton")) applied.push("언데드 · 행동 후 체력 1 회복");
+    if (active("beast") && ownLegions.includes("beast")) applied.push("야수 · 공격 시 치명타 확률 25%");
+    if (active("plague") && ownLegions.includes("plague")) applied.push("역병 · 공격 대상에게 다음 턴 중독 피해 1");
+    if (active("ice") && ownLegions.includes("ice")) applied.push("얼음 · 공격 시 결빙 확률 30%");
+    if (active("element")) {
+      const livingElements = units.filter(member => member.team === team && member.alive && member.legions.includes("element")).length;
+      applied.push(livingElements <= 1 ? "원소 · 생존 조건 미달로 무적 해제" : unitState.elementImmune ? "원소 · 현재 무적 대상" : "원소 · 이번 턴 무적 대상 아님");
+    }
+    const activeKeys = Object.keys(V2Legions.RULES).filter(key => active(key));
+    const current = applied.length ? applied.map(text => `<li>${text}</li>`).join("") : "<li>이 유닛에 직접 적용된 효과 없음</li>";
+    const teamEffects = activeKeys.length ? activeKeys.map(key => {
+      const rule = V2Legions.RULES[key];
+      const count = legionState.teams[team].counts[key] || 0;
+      return `<li><b>${rule.name} ${count}/${rule.need}</b><span>${rule.effect}</span></li>`;
+    }).join("") : "<li>활성 군단 없음</li>";
+    return `<section class="legion-overview"><h4>현재 이 유닛에 적용</h4><ul class="legion-current-effects">${current}</ul><h4>${team === "ally" ? "아군" : "적군"} 활성 군단</h4><ul class="legion-team-effects">${teamEffects}</ul></section>`;
+  }
+
   function openUnitInfo(unitState) {
     if (!awaitingRoll || diceRolling) return;
     unitInfoName.textContent = unitState.name;
@@ -634,9 +665,12 @@
     unitInfoPortrait.setAttribute("aria-label", unitState.name);
     unitInfoGrade.textContent = GRADE_LABELS[unitState.grade] || "미지정";
     unitInfoLegion.textContent = unitState.legions.map((key) => LEGION_LABELS[key] || key).join(" · ") || "미지정";
-    unitInfoHp.textContent = `${Math.max(0, unitState.hp)} / ${unitState.maxHp}`;
-    unitInfoAttack.textContent = String(unitState.attack);
-    unitInfoSpeed.textContent = String(unitState.speed);
+    const baseMaxHp = unitState.baseMaxHp ?? unitState.maxHp;
+    const baseAttack = unitState.baseAttack ?? unitState.attack;
+    const baseSpeed = unitState.baseSpeed ?? unitState.speed;
+    unitInfoHp.textContent = `${Math.max(0, unitState.hp)} / ${unitState.maxHp}${baseMaxHp !== unitState.maxHp ? ` · 최대 ${baseMaxHp} → ${unitState.maxHp}` : ""}`;
+    unitInfoAttack.textContent = baseAttack === unitState.attack ? String(unitState.attack) : `${baseAttack} → ${unitState.attack}`;
+    unitInfoSpeed.textContent = baseSpeed === unitState.speed ? String(unitState.speed) : `${baseSpeed} → ${unitState.speed}`;
     const brand = V2BattleBrands.definitions[unitState.brand];
     if (brand) {
       const stateText = lastDiceRoll == null ? "주사위를 굴리면 효과가 결정됩니다."
@@ -653,8 +687,7 @@
         <p class="brand-note">${stateText}${unitState.poison ? " · 중독: 다음 턴 공격 전 피해 1" : ""}</p>
         ${unitState.brand === "summon" ? '<p class="brand-note">아군 소환물에게 적용 · 개화한 식인식물은 제외</p>' : ""}`;
     } else unitInfoBrands.textContent = "낙인 미지정";
-    const activeLegions = unitState.legions.filter(key => V2Legions.active(legionState, unitState.team, key));
-    if (activeLegions.length) unitInfoBrands.innerHTML += `<p class="legion-active-note">활성 군단 · ${activeLegions.map(key=>V2Legions.RULES[key].name).join(" · ")}<br>${activeLegions.map(key=>V2Legions.RULES[key].effect).join("<br>")}</p>`;
+    unitInfoBrands.innerHTML += legionDetails(unitState);
     if (V2SummonRules.choices[unitState.slug]) unitInfoBrands.innerHTML += `<p>주사위 6: 자기 차례에 소환 후 공격 · 전투당 소환 성공 1회 (${unitState.summonUsed ? "사용 완료" : "미사용"})</p><p>${unitState.slug === "crystal-devourer" ? "중앙이 차면 사망한 아군 자리에도 씨앗 소환" : "중앙이 차면 소환을 건너뜀"}</p>`;
     if (unitState.slug === "guardian-seed") unitInfoBrands.innerHTML += `<p>공격 불가 · 피격 ${unitState.receivedHits || 0}/2 · 2회 피격 후 다음 턴에 식인식물로 개화 (생존 시)</p>`;
     unitInfoOverlay.hidden = false;

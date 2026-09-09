@@ -119,10 +119,10 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v192'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v193'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=36"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=41") && worker.includes("v2-legions.js?v=2") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=37"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=42") && worker.includes("v2-legions.js?v=2") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
 assert(worker.includes("art/v2-style/ui/freeze-status-label.png"), "Persistent freeze label is not cached.");
 assert(worker.includes("v2-damage-digits.js?v=4") && worker.includes("art/v2-style/ui/healing-digits-sheet.jpg"), "Healing digit art is not cached.");
 assert(worker.includes("v2-unit-cards.js?v=12"), "Summoned-unit card mapping is not cached.");
@@ -136,6 +136,8 @@ assert(source.includes("function showHealing(unitState, amount)") && source.incl
 assert(source.includes("V2DamageDigits.renderHealing(number, amount)"), "Healing popup must use the uploaded green digits.");
 assert(source.includes('data-status="freeze"') && source.includes('data-status="poison"'), "Persistent freeze and poison labels are missing.");
 assert(source.includes("V2BattleBrands.beforeAction(actor, turnNumber)"), "Poison must resolve immediately before the next-turn attack.");
+assert(source.includes("function legionDetails(unitState)") && source.includes("현재 이 유닛에 적용") && source.includes("활성 군단"), "Unit info must summarize direct and team legion effects.");
+assert(source.includes("baseMaxHp: data.maxHp") && source.includes("baseAttack: data.attack") && source.includes("baseSpeed: data.speed"), "Pre-legion stats must be retained for comparisons.");
 assert(css.includes(".healing-number {") && css.includes("#7cff83"), "Healing feedback must be visibly distinct from damage.");
 assert(source.includes('key !== "element"') && source.includes('unitState.legions.includes("element")'), "Element legion display must disappear when its survival condition ends.");
 assert(worker.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit info frame is not cached.");
@@ -152,7 +154,7 @@ for (const [slug, grade, legions] of [["death-knight", "hero", ["demon"]], ["ske
   assert(data.grade === grade && JSON.stringify(data.legions) === JSON.stringify(legions), `Incorrect registry mapping for ${slug}`);
   assert(data.maxHp === 12 && data.attack === 3 && data.speed === 2, "Importing metadata must not change battle stats.");
 }
-vm.runInContext(source.slice(source.indexOf("  function openUnitInfo("), source.indexOf("  async function performAttack(")), infoContext);
+vm.runInContext(source.slice(source.indexOf("  function legionDetails("), source.indexOf("  async function performAttack(")), infoContext);
 for (const [team, alive, hp, name, attack, speed] of [["ally", true, 7, "구울", 2, 3], ["enemy", false, -1, "오우거", 3, 2], ["ally", true, 9, "구울", 2, 3]]) {
   infoContext.selected = { team, alive, hp, name, attack, speed, grade: alive ? "normal" : "advanced", legions: alive ? ["corpse"] : ["plant", "element"], maxHp: 14, portrait: "art/v2-style/processed/192/ghoul.png", portraitBounds: [31, 12, 129, 172] };
   vm.runInContext("openUnitInfo(selected)", infoContext);
@@ -168,6 +170,19 @@ for (const [team, alive, hp, name, attack, speed] of [["ally", true, 7, "구울"
   vm.runInContext("closeUnitInfo()", infoContext);
   assert(infoContext.unitInfoOverlay.hidden, "Close must hide the panel.");
 }
+infoContext.V2Legions = {
+  RULES: require("./v2-legions.js").RULES,
+  active: (state, team, key) => team === "ally" ? ["plant", "insect"].includes(key) : key === "demon"
+};
+infoContext.legionState = { teams: { ally: { counts: { plant: 2, insect: 2 } }, enemy: { counts: { demon: 3 } } } };
+infoContext.units = [];
+infoContext.selected = { team: "ally", alive: true, hp: 7, maxHp: 9, baseMaxHp: 8, attack: 3, baseAttack: 2, speed: 3, baseSpeed: 5, grade: "normal", legions: ["plant"], portrait: "art/v2-style/processed/192/ancient-treant.png", portraitBounds: [0, 0, 192, 192], brand: "guard" };
+vm.runInContext("openUnitInfo(selected)", infoContext);
+assert(infoContext.unitInfoHp.textContent === "7 / 9 · 최대 8 → 9", "Maximum HP comparison is incorrect.");
+assert(infoContext.unitInfoAttack.textContent === "2 → 3", "Attack comparison is incorrect.");
+assert(infoContext.unitInfoSpeed.textContent === "5 → 3", "Speed comparison is incorrect.");
+assert(infoContext.unitInfoBrands.innerHTML.includes("식물 · 최대 체력 8 → 9") && infoContext.unitInfoBrands.innerHTML.includes("벌레 · 공격력 2 → 3") && infoContext.unitInfoBrands.innerHTML.includes("상대 악마 · 속도 5 → 3"), "Applied stat changes must be immediately visible.");
+assert(infoContext.unitInfoBrands.innerHTML.includes("식물 2/2") && infoContext.unitInfoBrands.innerHTML.includes("벌레 2/2"), "Team legion thresholds must be visible.");
 // Verify the actual team entry: animation slug and portrait slug intentionally differ.
 const expectedBrandViews = {
   critical: "216 48 228 228", vampire: "526 48 234 228", guard: "841 48 228 228",
