@@ -1028,3 +1028,14 @@
   if (typeof V2DamageDigits !== "undefined") V2DamageDigits.prepareHealing().catch(error => console.warn(error));
   requestAnimationFrame(battleLoop);
 })();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", async () => {
+    try {
+      const registration = await navigator.serviceWorker.register("./service-worker.js", { updateViaCache: "none" });
+      await registration.update();
+    } catch (error) {
+      console.warn("전투 화면 업데이트 확인 실패", error);
+    }
+  });
+}

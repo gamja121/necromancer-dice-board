@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-expedition-v198";
+const CACHE_NAME = "necromancer-expedition-v199";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -49,7 +49,7 @@ const APP_SHELL = [
   "./v2-auto-battle-practice.css?v=40",
   "./v2-battle-brands.js?v=3",
   "./v2-legions.js?v=3",
-  "./v2-auto-battle-practice.js?v=47",
+  "./v2-auto-battle-practice.js?v=48",
   "./art/v2-style/ui/freeze-status-label.png",
   "./art/v2-style/ui/legion-slot-frame.png",
   "./art/v2-style/ui/corpse-selection-arrow.png",
@@ -380,8 +380,12 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
+  const networkRequest = event.request.mode === "navigate"
+    ? new Request(event.request, { cache: "reload" })
+    : event.request;
+
   event.respondWith(
-    fetch(event.request)
+    fetch(networkRequest)
       .then((response) => {
         if (response.ok) {
           const copy = response.clone();

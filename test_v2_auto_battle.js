@@ -119,10 +119,12 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v198'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v199'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
 assert(worker.includes("v2-auto-battle-practice.css?v=40"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=47") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=48") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
+assert(source.includes('serviceWorker.register("./service-worker.js", { updateViaCache: "none" })'), "The standalone battle page must request service-worker updates directly.");
+assert(worker.includes('new Request(event.request, { cache: "reload" })'), "Navigation must bypass stale browser HTTP cache before updating the offline copy.");
 assert(worker.includes("art/v2-style/ui/freeze-status-label.png"), "Persistent freeze label is not cached.");
 assert(worker.includes("v2-damage-digits.js?v=4") && worker.includes("art/v2-style/ui/healing-digits-sheet.jpg"), "Healing digit art is not cached.");
 assert(worker.includes("v2-unit-cards.js?v=12"), "Summoned-unit card mapping is not cached.");
