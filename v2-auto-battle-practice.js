@@ -228,7 +228,7 @@
     selectedCorpse = null;
     captureAttemptsLeft = 0;
     captureTargetLocked = false;
-    captureRollButton.textContent = "영입 주사위";
+    captureRollButton.textContent = "영혼 수확 주사위";
     speedMultiplier = 1;
     speedButton.textContent = "속도 ×1";
     pauseButton.textContent = "일시정지";
@@ -370,8 +370,8 @@
     unitState.element.querySelector(".hp-bar i").style.width = `${Math.max(0, unitState.hp / unitState.maxHp * 100)}%`;
     unitState.element.classList.toggle("is-ready", unitState.alive && unitState.gauge >= 100);
     unitState.element.classList.toggle("is-dead", !unitState.alive);
-    unitState.element.classList.toggle("is-frozen", Boolean(unitState.frozen));
-    unitState.element.classList.toggle("is-poisoned", Boolean(unitState.poison));
+    unitState.element.classList.toggle("is-frozen", unitState.alive && Boolean(unitState.frozen));
+    unitState.element.classList.toggle("is-poisoned", unitState.alive && Boolean(unitState.poison));
     unitState.element.querySelector('[data-status="freeze"]').hidden = !unitState.alive || !unitState.frozen;
     unitState.element.querySelector('[data-status="poison"]').hidden = !unitState.alive || !unitState.poison;
     updateBrandIndicator(unitState);
@@ -977,21 +977,84 @@
     }
   }
 
-  function rollCorpseCapture() {
-    if (!selectedCorpse || captureAttemptsLeft <= 0) return;
+  async function animateSoulHarvest(corpse) {
+    const card = corpse?.infoCard;
+    if (!card || !card.isConnected) return;
+    let left = card.offsetLeft;
+    let top = card.offsetTop;
+    let parent = card.offsetParent;
+    while (parent && parent !== battlefield) {
+      left += parent.offsetLeft;
+      top += parent.offsetTop;
+      parent = parent.offsetParent;
+    }
+    const width = card.offsetWidth;
+    const height = card.offsetHeight;
+    const targetLeft = battlefield.clientWidth / 2 - width / 2;
+    const targetTop = battlefield.clientHeight / 2 - height / 2;
+    const spiritCard = card.cloneNode(true);
+    spiritCard.className = "unit-info-card soul-harvest-card";
+    spiritCard.disabled = true;
+    spiritCard.removeAttribute("id");
+    spiritCard.style.left = `${left}px`;
+    spiritCard.style.top = `${top - 8}px`;
+    spiritCard.style.width = `${width}px`;
+    spiritCard.style.height = `${height}px`;
+    battlefield.append(spiritCard);
+    card.classList.add("is-soul-harvested");
+    const animation = spiritCard.animate([
+      { left: `${left}px`, top: `${top - 8}px`, transform: card.style.transform || "rotate(0deg)", opacity: 1 },
+      { left: `${targetLeft}px`, top: `${targetTop}px`, transform: "rotate(0deg) scale(1.22)", opacity: 1, offset: .62 },
+      { left: `${targetLeft}px`, top: `${targetTop}px`, transform: "rotate(0deg) scale(1.34)", filter: "drop-shadow(0 0 18px #b8f8ff) brightness(1.28)", opacity: 1, offset: .78 },
+      { left: `${targetLeft}px`, top: `${targetTop}px`, transform: "rotate(0deg) scale(.04)", filter: "drop-shadow(0 0 24px #e9ffff) brightness(2)", opacity: 0 }
+    ], { duration: 1350, easing: "cubic-bezier(.2,.72,.22,1)", fill: "forwards" });
+    await animation.finished.catch(() => {});
+    spiritCard.remove();
+  }
+
+  async function rollCorpseCapture() {
+    if (!selectedCorpse || captureAttemptsLeft <= 0 || diceRolling) return;
+    diceRolling = true;
+    captureRollButton.disabled = true;
     if (!captureTargetLocked) lockCorpseSelection();
+    battlefield.classList.add("is-capture-rolling");
+    turnDice.hidden = false;
+    turnDiceButton.disabled = true;
+    turnDiceButton.classList.add("is-rolling");
+    turnDiceImage.alt = "영혼 수확 주사위 굴리는 중";
+    captureStatus.textContent = `${selectedCorpse.name} 영혼 수확 주사위 굴리는 중…`;
+    const steps = 18 + Math.floor(Math.random() * 5);
+    for (let step = 0; step < steps; step += 1) {
+      diceFrameIndex = (diceFrameIndex + 1) % DICE_ROLL_FRAMES.length;
+      turnDiceImage.src = DICE_ROLL_FRAMES[diceFrameIndex];
+      const progress = step / Math.max(1, steps - 1);
+      await wait(42 + Math.round(progress * progress * 62));
+    }
     const roll = 1 + Math.floor(Math.random() * 6);
+    turnDiceImage.src = DICE_RESULT_FRAMES[roll - 1];
+    turnDiceImage.alt = `영혼 수확 주사위 결과 ${roll}`;
+    turnDiceButton.classList.remove("is-rolling");
     captureAttemptsLeft -= 1;
     if (roll >= selectedCorpse.captureTarget) {
-      captureStatus.textContent = `주사위 ${roll} · ${selectedCorpse.name} 영입 성공`;
-      captureRollButton.disabled = true;
+      captureStatus.textContent = `주사위 ${roll} · ${selectedCorpse.name} 영혼 수확 성공`;
+      await wait(420);
+      await animateSoulHarvest(selectedCorpse);
+      selectedCorpse.element?.classList.remove("is-capture-selected");
+      turnDice.hidden = true;
+      battlefield.classList.remove("is-capture-rolling");
+      diceRolling = false;
       return;
     }
+    await wait(620);
+    turnDice.hidden = true;
+    battlefield.classList.remove("is-capture-rolling");
+    diceRolling = false;
     if (captureAttemptsLeft > 0) {
       captureStatus.textContent = `주사위 ${roll} · 실패 · 시체 군단 재시도 1회 남음`;
       captureRollButton.textContent = "한 번 더 굴리기";
+      captureRollButton.disabled = false;
     } else {
-      captureStatus.textContent = `주사위 ${roll} · 영입 실패`;
+      captureStatus.textContent = `주사위 ${roll} · 영혼 수확 실패`;
       captureRollButton.disabled = true;
     }
   }

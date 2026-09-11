@@ -119,10 +119,10 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v200'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v201'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=41"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=48") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=42"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=49") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
 assert(source.includes('serviceWorker.register("./service-worker.js", { updateViaCache: "none" })'), "The standalone battle page must request service-worker updates directly.");
 assert(worker.includes('new Request(event.request, { cache: "reload" })'), "Navigation must bypass stale browser HTTP cache before updating the offline copy.");
 assert(worker.includes("art/v2-style/ui/freeze-status-label.png"), "Persistent freeze label is not cached.");
@@ -171,12 +171,15 @@ assert(corpseBody.names.has("is-capture-candidate") && corpseCard.names.has("is-
 assert(!captureContext.captureRollButton.disabled && corpseBody.names.has("is-capture-selected") && corpseCard.names.has("is-capture-selected"), "The first corpse must be selected by default so the arrow has a target.");
 corpseCard2.listeners.click();
 assert(!corpseBody.names.has("is-capture-selected") && !corpseCard.names.has("is-capture-selected") && corpseBody2.names.has("is-capture-selected") && corpseCard2.names.has("is-capture-selected"), "Clicking another corpse card must move the selection and arrow to that card.");
-vm.runInContext("rollCorpseCapture()", captureContext);
-assert(captureContext.captureTargetLocked && corpseCard.disabled && captureContext.captureRollButton.disabled, "First capture roll must lock the corpse target and finish on success.");
+vm.runInContext("lockCorpseSelection()", captureContext);
+assert(captureContext.captureTargetLocked && corpseCard.disabled && corpseCard2.disabled, "Starting soul harvest must lock every corpse target.");
+assert(source.includes("async function rollCorpseCapture()") && source.includes("DICE_ROLL_FRAMES[diceFrameIndex]") && source.includes("DICE_RESULT_FRAMES[roll - 1]"), "Soul harvest must visibly roll the real dice before resolving.");
+assert(source.includes("async function animateSoulHarvest(corpse)") && source.includes('className = "unit-info-card soul-harvest-card"') && source.includes("animation.finished"), "A successful soul harvest must pull the selected card into the battlefield center.");
+assert(source.includes('classList.toggle("is-frozen", unitState.alive &&') && source.includes('classList.toggle("is-poisoned", unitState.alive &&'), "Dead bodies must lose freeze and poison tint classes.");
 assert(source.includes("function showHealing(unitState, amount)") && source.includes("showHealing(actor, legionHealing)"), "Undead healing must have a visible combat indicator.");
 assert(source.includes("V2DamageDigits.renderHealing(number, amount)"), "Healing popup must use the uploaded green digits.");
 assert(source.includes('data-status="freeze"') && source.includes('data-status="poison"'), "Persistent freeze and poison labels are missing.");
-assert(source.includes('classList.toggle("is-poisoned", Boolean(unitState.poison))'), "Poisoned units must keep a visual state until poison resolves.");
+assert(source.includes('classList.toggle("is-poisoned", unitState.alive && Boolean(unitState.poison))'), "Living poisoned units must keep a visual state until poison resolves.");
 assert(css.includes(".unit.is-poisoned .sprite-wrap > img") && css.includes("#67e548"), "Poisoned units must be visibly tinted green.");
 assert(source.includes('unitState.image = element.querySelector(".sprite-wrap > img")'), "Unit sizing and summon circles must anchor to the fighter sprite, not a status-label image.");
 assert(source.includes("V2BattleBrands.beforeAction(actor, turnNumber)"), "Poison must resolve immediately before the next-turn attack.");
