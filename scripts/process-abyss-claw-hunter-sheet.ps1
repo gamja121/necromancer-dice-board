@@ -11,6 +11,7 @@ Add-Type -AssemblyName System.Drawing
 
 $sourceCode = @"
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -44,7 +45,7 @@ public static class AbyssClawHunterProcessor
         return color;
     }
 
-    private static Bitmap Extract(Bitmap source, Rectangle cell, bool green, bool mirror)
+    private static Bitmap Extract(Bitmap source, Rectangle cell, bool green, bool mirror, bool isolate = false)
     {
         using (var keyed = new Bitmap(cell.Width, cell.Height, PixelFormat.Format32bppArgb))
         {
@@ -53,6 +54,49 @@ public static class AbyssClawHunterProcessor
             {
                 Color color = source.GetPixel(cell.X + x, cell.Y + y);
                 keyed.SetPixel(x, y, green ? RemoveGreen(color) : RemoveWhite(color));
+            }
+            if (isolate)
+            {
+                // Separate neighboring artwork by connectivity, not by cutting through a claw.
+                var visited = new bool[cell.Width * cell.Height];
+                var largest = new List<int>();
+                for (int seed = 0; seed < visited.Length; seed++)
+                {
+                    if (visited[seed] || keyed.GetPixel(seed % cell.Width, seed / cell.Width).A <= 10) continue;
+                    var component = new List<int>();
+                    var queue = new Queue<int>();
+                    queue.Enqueue(seed); visited[seed] = true;
+                    while (queue.Count > 0)
+                    {
+                        int current = queue.Dequeue(); component.Add(current);
+                        int cx = current % cell.Width, cy = current / cell.Width;
+                        for (int dy = -1; dy <= 1; dy++)
+                        for (int dx = -1; dx <= 1; dx++)
+                        {
+                            int nx = cx + dx, ny = cy + dy;
+                            if (nx < 0 || ny < 0 || nx >= cell.Width || ny >= cell.Height) continue;
+                            int next = ny * cell.Width + nx;
+                            if (visited[next] || keyed.GetPixel(nx, ny).A <= 10) continue;
+                            visited[next] = true; queue.Enqueue(next);
+                        }
+                    }
+                    if (component.Count > largest.Count) largest = component;
+                }
+                var keep = new bool[visited.Length];
+                foreach (int pixel in largest)
+                {
+                    int x = pixel % cell.Width, y = pixel / cell.Width;
+                    if (x == 0 || y == 0 || x == cell.Width - 1 || y == cell.Height - 1)
+                        throw new InvalidOperationException("Sprite touches crop boundary: " + cell);
+                    for (int dy = -2; dy <= 2; dy++)
+                    for (int dx = -2; dx <= 2; dx++)
+                    {
+                        int nx = x + dx, ny = y + dy;
+                        if (nx >= 0 && ny >= 0 && nx < cell.Width && ny < cell.Height) keep[ny * cell.Width + nx] = true;
+                    }
+                }
+                for (int pixel = 0; pixel < keep.Length; pixel++)
+                    if (!keep[pixel]) keyed.SetPixel(pixel % cell.Width, pixel / cell.Width, Color.Transparent);
             }
             int left = cell.Width, top = cell.Height, right = -1, bottom = -1;
             for (int y = 0; y < cell.Height; y++)
@@ -93,7 +137,7 @@ public static class AbyssClawHunterProcessor
 
     private static void SaveFrame(Bitmap source, Rectangle cell, string outputDirectory, string motion, int index, bool mirror)
     {
-        using (var frame = Extract(source, cell, true, mirror))
+        using (var frame = Extract(source, cell, true, mirror, !(motion == "death" && index == 5)))
         using (var canvas = Place(frame, 280, 270, 254, 244, 262))
             canvas.Save(System.IO.Path.Combine(outputDirectory, motion + "-" + index.ToString("00") + ".png"), ImageFormat.Png);
     }
@@ -102,17 +146,17 @@ public static class AbyssClawHunterProcessor
     {
         System.IO.Directory.CreateDirectory(outputDirectory);
         Rectangle[] attack = {
-            Rectangle.FromLTRB(168, 8, 386, 241), Rectangle.FromLTRB(395, 8, 590, 241),
-            Rectangle.FromLTRB(590, 8, 832, 241), Rectangle.FromLTRB(808, 8, 1062, 241),
-            Rectangle.FromLTRB(1080, 8, 1279, 241)
+            Rectangle.FromLTRB(168, 0, 395, 250), Rectangle.FromLTRB(380, 0, 600, 250),
+            Rectangle.FromLTRB(580, 0, 830, 250), Rectangle.FromLTRB(815, 0, 1090, 250),
+            Rectangle.FromLTRB(1060, 0, 1280, 250)
         };
         Rectangle[] hit = {
-            Rectangle.FromLTRB(230, 263, 475, 480), Rectangle.FromLTRB(480, 263, 715, 480),
-            Rectangle.FromLTRB(720, 263, 950, 480), Rectangle.FromLTRB(955, 263, 1190, 480)
+            Rectangle.FromLTRB(230, 250, 485, 480), Rectangle.FromLTRB(470, 250, 730, 480),
+            Rectangle.FromLTRB(715, 250, 960, 480), Rectangle.FromLTRB(945, 250, 1190, 480)
         };
         Rectangle[] death = {
-            Rectangle.FromLTRB(178, 488, 365, 710), Rectangle.FromLTRB(370, 488, 552, 710),
-            Rectangle.FromLTRB(555, 488, 803, 710), Rectangle.FromLTRB(822, 488, 1030, 710),
+            Rectangle.FromLTRB(168, 488, 380, 714), Rectangle.FromLTRB(355, 488, 565, 714),
+            Rectangle.FromLTRB(550, 488, 815, 714), Rectangle.FromLTRB(805, 488, 1050, 714),
             Rectangle.FromLTRB(1058, 488, 1279, 710)
         };
         using (var sheet = new Bitmap(sheetPath))

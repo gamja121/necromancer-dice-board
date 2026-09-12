@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-expedition-v207";
+const CACHE_NAME = "necromancer-expedition-v208";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -371,7 +371,8 @@ Object.entries({ attack: 5, hit: 4, death: 5 }).forEach(([motion, count]) => {
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(APP_SHELL))
+      .then((cache) => cache.addAll(APP_SHELL.map(path =>
+        path.includes("/abyss-claw-hunter/") ? new Request(path, { cache: "reload" }) : path)))
       .then(() => self.skipWaiting())
   );
 });
