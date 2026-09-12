@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-expedition-v214";
+const CACHE_NAME = "necromancer-expedition-v215";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -78,8 +78,8 @@ const APP_SHELL = [
   "./styles.css?v=43",
   "./ultimate-vfx.css?v=43",
   "./dice-overlay.css?v=46",
-  "./unit-data.js?v=51",
-  "./assets/corpse-slime.jpg",
+  "./unit-data.js?v=52",
+  "./assets/corpse-slime.jpg?v=20260913-card",
   "./art/v2-style/processed/192/corpse-slime.png",
   "./art/v2-style/animation-sheets/green-raw/corpse-slime-animation-sheet.jpg",
   "./assets/abyss-claw-hunter.jpg",

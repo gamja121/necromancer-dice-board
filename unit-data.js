@@ -69,7 +69,7 @@ var UNIT_TYPES = {
     grade: "normal",
     hp: 3,
     dice: [0, 1, 1, 1, 2, 2],
-    image: "assets/corpse-slime.jpg",
+    image: "assets/corpse-slime.jpg?v=20260913-card",
   },
   ogre: {
     label: "오우거",
@@ -94,7 +94,7 @@ var UNIT_TYPES = {
     grade: "normal",
     hp: 2,
     dice: [0, 0, 1, 1, 1, 2],
-    image: "assets/plague-frog.jpg",
+    image: "assets/plague-frog.jpg?v=20260913-card",
   },
   hydra: {
     label: "히드라",
@@ -110,7 +110,7 @@ var UNIT_TYPES = {
     grade: "advanced",
     hp: 5,
     dice: [0, 1, 2, 2, 3, 3],
-    image: "assets/minotaur.jpg",
+    image: "assets/minotaur.jpg?v=20260913-card",
   },
   yeti: {
     ultimateStyle: "claw",
@@ -119,7 +119,7 @@ var UNIT_TYPES = {
     grade: "normal",
     hp: 3,
     dice: [0, 0, 1, 1, 1, 2],
-    image: "assets/yeti.jpg",
+    image: "assets/yeti.jpg?v=20260913-card",
   },
   iceLord: {
     label: "얼음 군주",
@@ -127,7 +127,7 @@ var UNIT_TYPES = {
     grade: "advanced",
     hp: 4,
     dice: [0, 1, 2, 2, 3, 3],
-    image: "assets/ice-lord.jpg",
+    image: "assets/ice-lord.jpg?v=20260913-card",
   },
   seaWolf: {
     label: "바다 늑대",

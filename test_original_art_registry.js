@@ -15,9 +15,10 @@ assert.strictEqual(unitData.UNIT_TYPES.corpseSlime.label, "시체 슬라임", "�
 
 for (const type of enemyTypes) {
   const definition = unitData.UNIT_TYPES[type];
-  const filename = path.basename(definition.image);
+  const source = definition.image.split("?")[0];
+  const filename = path.basename(source);
   const basename = filename.replace(/\.[^.]+$/, "");
-  const sourcePath = path.join(root, definition.image);
+  const sourcePath = path.join(root, source);
   const processedPath = path.join(processedDir, `${basename}.png`);
   assert.ok(fs.existsSync(sourcePath), `${type} 원본 파일 누락: ${definition.image}`);
   assert.ok(fs.existsSync(processedPath), `${type} 전투 PNG 누락: ${basename}.png`);
@@ -25,6 +26,10 @@ for (const type of enemyTypes) {
   assert.strictEqual(png.readUInt32BE(16), 192, `${basename}.png 너비는 192여야 함`);
   assert.strictEqual(png.readUInt32BE(20), 192, `${basename}.png 높이는 192여야 함`);
   assert.strictEqual(png[25], 6, `${basename}.png는 알파 채널 RGBA 형식이어야 함`);
+}
+
+for (const type of ["corpseSlime", "minotaur", "plagueFrog", "iceLord", "yeti"]) {
+  assert.ok(unitData.UNIT_TYPES[type].image.endsWith("?v=20260913-card"), `${type} 카드 캐시 버전이 필요함`);
 }
 
 assert.strictEqual(unitData.UNIT_TYPES.worm.label, "역병 벌레");
