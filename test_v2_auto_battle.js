@@ -127,10 +127,10 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v204'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v205'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=44"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=52") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=45"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=53") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
 assert(source.includes('serviceWorker.register("./service-worker.js", { updateViaCache: "none" })'), "The standalone battle page must request service-worker updates directly.");
 assert(worker.includes('new Request(event.request, { cache: "reload" })'), "Navigation must bypass stale browser HTTP cache before updating the offline copy.");
 assert(worker.includes("art/v2-style/ui/freeze-status-label.png"), "Persistent freeze label is not cached.");
@@ -141,10 +141,12 @@ assert(worker.includes("art/v2-style/ui/legion-slot-frame.png"), "The cropped on
 assert(fs.existsSync(path.join(root, "art/v2-style/ui/corpse-selection-arrow.png")) && worker.includes("art/v2-style/ui/corpse-selection-arrow.png"), "The corpse-selection arrow asset must be stored and cached.");
 assert(html.includes('class="legion-info-panel"') && html.includes('id="legionInfoContent"'), "Legion effects need a separate one-cell window beside unit information.");
 assert(css.includes('.legion-info-panel') && css.includes('background: url("art/v2-style/ui/corpse-selection-arrow.png")'), "Separate legion window and corpse-selection arrow styling are missing.");
-assert(html.includes('id="capturePanel"') && html.includes('id="captureRollButton"'), "Post-battle corpse capture controls are missing.");
+assert(html.includes('id="capturePanel"') && !html.includes('id="captureRollButton"'), "Soul harvest must use the central dice without a separate button.");
 assert(html.match(/id="capturePanel"[\s\S]*?legion-info-window-hd\.png[\s\S]*?class="legion-info-inner"/), "Soul-harvest guidance must reuse the legion-effect information window.");
 assert(css.includes("mix-blend-mode: screen") && css.includes("saturate(2.2) brightness(1.28)"), "The corpse selection arrow must screen out black pixels and remain vivid red.");
-assert(source.includes("function returnToMap()") && source.includes('captureStatus.textContent += " · 맵으로 돌아갑니다"') && source.includes("await wait(900)") && source.includes("returnToMap();"), "A final soul-harvest failure from the map must return to the map.");
+assert(source.includes("function returnToMap()") && (source.match(/returnToMap\(\);/g) || []).length >= 2, "Both successful and failed soul harvests must return to the map.");
+assert(source.includes('classList.contains("is-corpse-capture")') && source.includes("rollCorpseCapture()"), "The central dice must perform soul harvest during corpse selection.");
+assert(css.includes("width: min(22%, 250px)") && !css.includes(".battlefield-capture button"), "The soul-harvest guidance window must be compact and button-free.");
 assert(!html.includes('id="captureChoices"') && source.includes('resultOverlay.hidden = captureReady'), "Victory must keep corpse selection on the battlefield instead of opening a separate choice list.");
 assert(source.includes('corpse.element.classList.add("is-capture-candidate")') && source.includes('corpse.element.addEventListener("click", () => selectCorpse(corpse))') && source.includes('corpse.infoCard.addEventListener("click", () => selectCorpse(corpse))'), "Dead enemy bodies and cards must both select the capture target.");
 assert(source.includes("captureTargetLocked") && source.includes("lockCorpseSelection()"), "The selected corpse must lock after the first capture roll.");
@@ -165,7 +167,7 @@ function interactiveNode() {
 }
 const corpseBody = interactiveNode(), corpseCard = interactiveNode(), corpseBody2 = interactiveNode(), corpseCard2 = interactiveNode(), allyBody = interactiveNode();
 const captureContext = {
-  capturePanel: { hidden: true }, captureStatus: { textContent: "" }, captureRollButton: { disabled: true, textContent: "" },
+  capturePanel: { hidden: true }, captureStatus: { textContent: "" }, turnDice: { hidden: true }, turnDiceButton: { disabled: true }, turnDiceImage: {}, DICE_ROLL_FRAMES: ["roll.png"],
   battlefield: { classList: interactiveNode().classList }, selectedCorpse: null, captureTargetLocked: false, captureAttemptsLeft: 0,
   legionState: {}, Math: { floor: Math.floor, random: () => .99 },
   V2Legions: { active: () => false, captureAttempts: () => 1 },
@@ -179,13 +181,13 @@ vm.createContext(captureContext);
 vm.runInContext(source.slice(source.indexOf("  function setupCorpseCapture("), source.indexOf("  function wait(")), captureContext);
 assert(vm.runInContext("setupCorpseCapture(true)", captureContext) === true, "Victory must enter direct battlefield corpse selection.");
 assert(corpseBody.names.has("is-capture-candidate") && corpseCard.names.has("is-capture-candidate") && !corpseCard.disabled, "Both corpse body and card must become selectable.");
-assert(!captureContext.captureRollButton.disabled && corpseBody.names.has("is-capture-selected") && corpseCard.names.has("is-capture-selected"), "The first corpse must be selected by default so the arrow has a target.");
+assert(!captureContext.turnDice.hidden && !captureContext.turnDiceButton.disabled && corpseBody.names.has("is-capture-selected") && corpseCard.names.has("is-capture-selected"), "The first corpse and central soul-harvest dice must be ready by default.");
 corpseCard2.listeners.click();
 assert(!corpseBody.names.has("is-capture-selected") && !corpseCard.names.has("is-capture-selected") && corpseBody2.names.has("is-capture-selected") && corpseCard2.names.has("is-capture-selected"), "Clicking another corpse card must move the selection and arrow to that card.");
 vm.runInContext("lockCorpseSelection()", captureContext);
 assert(captureContext.captureTargetLocked && corpseCard.disabled && corpseCard2.disabled, "Starting soul harvest must lock every corpse target.");
 assert(source.includes("async function rollCorpseCapture()") && source.includes("DICE_ROLL_FRAMES[diceFrameIndex]") && source.includes("DICE_RESULT_FRAMES[roll - 1]"), "Soul harvest must visibly roll the real dice before resolving.");
-assert(source.includes("async function animateSoulHarvest(corpse)") && source.includes('className = "unit-info-card soul-harvest-card"') && source.includes("animation.finished"), "A successful soul harvest must pull the selected card into the battlefield center.");
+assert(source.includes("async function animateSoulHarvest(corpse)") && source.includes("intakeTop") && source.includes("scale(2.35)") && !source.slice(source.indexOf("  async function animateSoulHarvest("), source.indexOf("  async function rollCorpseCapture(")).includes("scale(.04)"), "A successful soul harvest must expand through the lower center into the player.");
 assert(source.includes('classList.toggle("is-frozen", unitState.alive &&') && source.includes('classList.toggle("is-poisoned", unitState.alive &&'), "Dead bodies must lose freeze and poison tint classes.");
 assert(source.includes("function showHealing(unitState, amount)") && source.includes("showHealing(actor, legionHealing)"), "Undead healing must have a visible combat indicator.");
 assert(source.includes("V2DamageDigits.renderHealing(number, amount)"), "Healing popup must use the uploaded green digits.");

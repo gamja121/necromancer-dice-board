@@ -158,7 +158,6 @@
   const unitInfoBrands = document.getElementById("unitInfoBrands");
   const legionInfoContent = document.getElementById("legionInfoContent");
   const capturePanel = document.getElementById("capturePanel");
-  const captureRollButton = document.getElementById("captureRollButton");
   const captureStatus = document.getElementById("captureStatus");
 
   let units = [];
@@ -236,7 +235,6 @@
     selectedCorpse = null;
     captureAttemptsLeft = 0;
     captureTargetLocked = false;
-    captureRollButton.textContent = "영혼 수확 주사위";
     speedMultiplier = 1;
     speedButton.textContent = "속도 ×1";
     pauseButton.textContent = "일시정지";
@@ -246,7 +244,6 @@
     capturePanel.hidden = true;
     battlefield.classList.remove("is-corpse-capture");
     captureStatus.textContent = "시체를 선택하세요.";
-    captureRollButton.disabled = true;
     startOverlay.hidden = !showStart;
     if (showStart) renderRosterSelection();
     turnDice.hidden = true;
@@ -937,13 +934,15 @@
     selectedCorpse = null;
     captureTargetLocked = false;
     captureAttemptsLeft = 0;
-    captureRollButton.disabled = true;
-    captureRollButton.textContent = "영입 주사위";
     if (!won) return false;
     const corpses = units.filter(unit => unit.team === "enemy" && !unit.alive && !unit.isSummon);
     if (!corpses.length) return false;
     capturePanel.hidden = false;
     battlefield.classList.add("is-corpse-capture");
+    turnDice.hidden = false;
+    turnDiceButton.disabled = false;
+    turnDiceImage.src = DICE_ROLL_FRAMES[0];
+    turnDiceImage.alt = "영혼 수확 주사위 굴리기";
     captureStatus.textContent = V2Legions.active(legionState, "ally", "corpse")
       ? "죽은 적을 직접 선택하세요 · 실패 시 한 번 더 굴릴 수 있습니다."
       : "죽은 적을 직접 선택한 뒤 영입 주사위를 굴리세요.";
@@ -974,7 +973,7 @@
       unitState.element?.classList.toggle("is-capture-selected", unitState === corpse);
       unitState.infoCard?.classList.toggle("is-capture-selected", unitState === corpse);
     }
-    captureRollButton.disabled = false;
+    turnDiceButton.disabled = false;
     captureStatus.textContent = `${corpse.name} 선택 · 주사위 ${corpse.captureTarget} 이상 필요 · ${captureAttemptsLeft}회 가능`;
   }
 
@@ -1010,6 +1009,7 @@
     const height = card.offsetHeight;
     const targetLeft = battlefield.clientWidth / 2 - width / 2;
     const targetTop = battlefield.clientHeight / 2 - height / 2;
+    const intakeTop = battlefield.clientHeight * .9 - height / 2;
     const spiritCard = card.cloneNode(true);
     spiritCard.className = "unit-info-card soul-harvest-card";
     spiritCard.disabled = true;
@@ -1022,10 +1022,10 @@
     card.classList.add("is-soul-harvested");
     const animation = spiritCard.animate([
       { left: `${left}px`, top: `${top - 8}px`, transform: card.style.transform || "rotate(0deg)", opacity: 1 },
-      { left: `${targetLeft}px`, top: `${targetTop}px`, transform: "rotate(0deg) scale(1.22)", opacity: 1, offset: .62 },
-      { left: `${targetLeft}px`, top: `${targetTop}px`, transform: "rotate(0deg) scale(1.34)", filter: "drop-shadow(0 0 18px #b8f8ff) brightness(1.28)", opacity: 1, offset: .78 },
-      { left: `${targetLeft}px`, top: `${targetTop}px`, transform: "rotate(0deg) scale(.04)", filter: "drop-shadow(0 0 24px #e9ffff) brightness(2)", opacity: 0 }
-    ], { duration: 1350, easing: "cubic-bezier(.2,.72,.22,1)", fill: "forwards" });
+      { left: `${targetLeft}px`, top: `${targetTop}px`, transform: "rotate(0deg) scale(1.2)", filter: "drop-shadow(0 0 14px #b8f8ff) brightness(1.18)", opacity: 1, offset: .58 },
+      { left: `${targetLeft}px`, top: `${intakeTop}px`, transform: "rotate(0deg) scale(1.55)", filter: "drop-shadow(0 0 22px #d9ffff) brightness(1.45)", opacity: 1, offset: .82 },
+      { left: `${targetLeft}px`, top: `${intakeTop + height * .28}px`, transform: "rotate(0deg) scale(2.35)", filter: "blur(3px) drop-shadow(0 0 28px #efffff) brightness(2)", opacity: 0 }
+    ], { duration: 1500, easing: "cubic-bezier(.2,.72,.18,1)", fill: "forwards" });
     await animation.finished.catch(() => {});
     spiritCard.remove();
   }
@@ -1033,7 +1033,6 @@
   async function rollCorpseCapture() {
     if (!selectedCorpse || captureAttemptsLeft <= 0 || diceRolling) return;
     diceRolling = true;
-    captureRollButton.disabled = true;
     if (!captureTargetLocked) lockCorpseSelection();
     battlefield.classList.add("is-capture-rolling");
     turnDice.hidden = false;
@@ -1058,27 +1057,26 @@
       await wait(420);
       await animateSoulHarvest(selectedCorpse);
       selectedCorpse.element?.classList.remove("is-capture-selected");
-      turnDice.hidden = true;
       battlefield.classList.remove("is-capture-rolling");
       diceRolling = false;
+      captureStatus.textContent += " · 맵으로 돌아갑니다";
+      await wait(650);
+      returnToMap();
       return;
     }
     await wait(620);
-    turnDice.hidden = true;
     battlefield.classList.remove("is-capture-rolling");
     diceRolling = false;
     if (captureAttemptsLeft > 0) {
       captureStatus.textContent = `주사위 ${roll} · 실패 · 시체 군단 재시도 1회 남음`;
-      captureRollButton.textContent = "한 번 더 굴리기";
-      captureRollButton.disabled = false;
+      turnDiceImage.src = DICE_ROLL_FRAMES[0];
+      turnDiceImage.alt = "영혼 수확 주사위 다시 굴리기";
+      turnDiceButton.disabled = false;
     } else {
       captureStatus.textContent = `주사위 ${roll} · 영혼 수확 실패`;
-      captureRollButton.disabled = true;
-      if (fromMap) {
-        captureStatus.textContent += " · 맵으로 돌아갑니다";
-        await wait(900);
-        returnToMap();
-      }
+      captureStatus.textContent += " · 맵으로 돌아갑니다";
+      await wait(900);
+      returnToMap();
     }
   }
 
@@ -1091,8 +1089,10 @@
   enemyLineupTab.addEventListener("click", () => selectLineupSide("enemy"));
   allyLineupSummary.addEventListener("click", () => selectLineupSide("ally"));
   enemyLineupSummary.addEventListener("click", () => selectLineupSide("enemy"));
-  turnDiceButton.addEventListener("click", rollTurnDice);
-  captureRollButton.addEventListener("click", rollCorpseCapture);
+  turnDiceButton.addEventListener("click", () => {
+    if (battlefield.classList.contains("is-corpse-capture")) rollCorpseCapture();
+    else rollTurnDice();
+  });
   document.getElementById("unitInfoClose").addEventListener("click", closeUnitInfo);
   document.getElementById("unitInfoBackdrop").addEventListener("click", closeUnitInfo);
   restartButton.addEventListener("click", () => resetBattle(true));
