@@ -188,7 +188,7 @@ var UNIT_TYPES = {
     image: "assets/skeleton-summoner.jpg",
   },
   doomExecutor: {
-    label: "석상 가고일",
+    label: "석익 악마",
     legion: "demon",
     grade: "advanced",
     hp: 5,

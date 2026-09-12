@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-expedition-v218";
+const CACHE_NAME = "necromancer-expedition-v219";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -57,7 +57,7 @@ const APP_SHELL = [
   "./v2-damage-digits.js?v=4",
   "./art/v2-style/ui/healing-digits-sheet.jpg",
   "./v2-unit-size.js?v=5",
-  "./v2-unit-cards.js?v=15",
+  "./v2-unit-cards.js?v=16",
   "./art/v2-style/ui/unit-card-corpse-slime.png?v=11",
   "./art/v2-style/ui/unit-card-minotaur.png?v=11",
   "./art/v2-style/ui/unit-card-plague-frog.png?v=11",
@@ -68,7 +68,11 @@ const APP_SHELL = [
   "./art/v2-style/ui/unit-card-ghoul.png?v=11",
   "./art/v2-style/ui/unit-card-goblin-chief.png?v=11",
   "./art/v2-style/ui/unit-card-goblin-soldier.png?v=11",
-  "./art/v2-style/ui/unit-card-goblin-commoner.jpg",
+  "./art/v2-style/ui/unit-card-goblin-commoner.png?v=12",
+  "./art/v2-style/ui/unit-card-sea-wolf.png?v=12",
+  "./art/v2-style/ui/unit-card-grave-priest.png?v=12",
+  "./art/v2-style/ui/unit-card-abyss-eye.png?v=12",
+  "./art/v2-style/ui/unit-card-doom-executor.png?v=12",
   "./art/v2-style/ui/unit-card-guardian-seed.jpg",
   "./art/v2-style/ui/unit-card-spiderling.jpg",
   "./art/v2-style/ui/status-labels-sheet.jpg",
@@ -88,7 +92,7 @@ const APP_SHELL = [
   "./styles.css?v=43",
   "./ultimate-vfx.css?v=43",
   "./dice-overlay.css?v=46",
-  "./unit-data.js?v=53",
+  "./unit-data.js?v=54",
   "./assets/corpse-slime.jpg?v=20260913-card",
   "./art/v2-style/processed/192/corpse-slime.png",
   "./art/v2-style/animation-sheets/green-raw/corpse-slime-animation-sheet.jpg",

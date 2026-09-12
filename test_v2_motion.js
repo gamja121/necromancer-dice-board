@@ -104,7 +104,7 @@ assert(practiceSource.includes('"mimic": { name: "미믹", root: "art/v2-style/a
 assert(practiceSource.includes('"goblin-chief": { name: "고블린족장", root: "art/v2-style/animation-test-frames/goblin-chief/", counts: { attack: 5, hit: 4, death: 5 } }'), "Goblin Chief frame counts are incorrect.");
 assert(practiceSource.includes('"plague-doctor": { name: "역병술사", root: "art/v2-style/animation-test-frames/plague-doctor/", counts: { attack: 5, hit: 4, death: 5 } }'), "Plague Doctor frame counts are incorrect.");
 assert(practiceSource.includes('"plague-frog": { name: "역병 개구리", root: "art/v2-style/animation-test-frames/plague-frog/", counts: { attack: 5, hit: 4, death: 5 } }'), "Plague Frog frame counts are incorrect.");
-assert(practiceSource.includes('"doom-executor": { name: "석상 가고일", root: "art/v2-style/animation-test-frames/doom-executor/", counts: { attack: 5, hit: 4, death: 5 } }'), "Doom Executor frame counts are incorrect.");
+assert(practiceSource.includes('"doom-executor": { name: "석익 악마", root: "art/v2-style/animation-test-frames/doom-executor/", counts: { attack: 5, hit: 4, death: 5 } }'), "Doom Executor frame counts are incorrect.");
 assert(practiceSource.includes('"mummy-guardian": { name: "미라 수호병", root: "art/v2-style/animation-test-frames/mummy-guardian/", counts: { attack: 5, hit: 4, death: 5 } }'), "Mummy Guardian frame counts are incorrect.");
 assert(practiceSource.includes('"soul-reaper": { name: "영혼 수확자", root: "art/v2-style/animation-test-frames/soul-reaper/", counts: { attack: 6, hit: 4, death: 6 } }'), "Soul Reaper frame counts are incorrect.");
 assert(practiceSource.includes('"minotaur": { name: "미노타우로스", root: "art/v2-style/animation-test-frames/minotaur/", counts: { attack: 6, hit: 4, death: 6 } }'), "Minotaur frame counts are incorrect.");
@@ -445,7 +445,7 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/cr
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/grave-worm-animation-sheet.jpg")), "New raw Grave Worm sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/siren-animation-sheet.jpg")), "New raw Siren sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/mimic-animation-sheet.jpg")), "New raw Mimic sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v218"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v219"), "Service worker cache version was not bumped.");
 for (const slug of ['ancient-treant','skeleton-spear','stone-golem','goblin-rider']) {
   for (const [motion,count] of Object.entries({attack:5,hit:4,death:slug === 'ancient-treant' ? 6 : 5})) {
     for(let i=1;i<=count;i++) {
