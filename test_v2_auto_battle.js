@@ -17,6 +17,8 @@ const css = fs.readFileSync(path.join(root, "v2-auto-battle-practice.css"), "utf
 const source = fs.readFileSync(path.join(root, "v2-auto-battle-practice.js"), "utf8");
 const worker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
 
+assert(css.includes("overflow-y: scroll") && css.includes("touch-action: none") && css.includes("height: auto; max-height: 100%"), "The lineup roster must remain vertically scrollable on touch screens.");
+
 assert(html.includes('id="allyTeam"'), "Ally team container is missing.");
 assert(html.includes('id="enemyTeam"'), "Enemy team container is missing.");
 assert(html.includes('id="allyActiveLegions"') && html.includes('id="enemyActiveLegions"'), "Both active-legion panels are missing.");
@@ -91,7 +93,8 @@ assert(html.includes('id="unitRoster"') && html.includes('id="selectedLineup"') 
 assert(source.includes("selectedAllySlugs.length >= 1") && source.includes("selectedEnemySlugs.length >= 1") && source.includes("!isLineupReady()"), "Both rosters must allow battle with one to four selections.");
 assert(source.includes("selectedAllyTeam.map") && source.includes("selectedEnemyTeam.map") && source.includes("startSelectedBattle"), "Both selected lineups must create the battle.");
 assert(source.includes('lineupSide === "ally" ? selectedAllySlugs : selectedEnemySlugs') && source.includes("activeSlugs.push(slug)") && source.includes("activeSlugs.splice(selectedIndex, 1)"), "Either roster must support selecting and removing units.");
-assert(css.includes(".unit-roster") && css.includes("overflow-y: auto") && css.includes("touch-action: pan-x pan-y") && css.includes("grid-template-columns: repeat(9"), "The rotated roster must accept touch scrolling on both physical axes.");
+assert(css.includes(".unit-roster") && css.includes("overflow-y: scroll") && css.includes("touch-action: none") && css.includes("grid-template-columns: repeat(9"), "The rotated roster must reserve touch movement for manual scrolling on both physical axes.");
+assert(source.includes('unitRoster.addEventListener("touchstart"') && source.includes('unitRoster.addEventListener("touchmove"') && source.includes("Math.abs(deltaY) >= Math.abs(deltaX)"), "The rotated roster must translate either physical swipe axis into list scrolling.");
 assert(html.indexOf('id="startButton"') < html.indexOf('id="unitRoster"'), "The start button must stay above the scrollable roster on mobile.");
 assert(css.includes(".lineup-panel > #startButton") && css.includes("grid-template-columns: repeat(8"), "Portrait-phone lineup controls must stay visible and compact.");
 assert(source.includes("turnQueue = units.filter"), "Per-turn action queue is missing.");
@@ -127,10 +130,10 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v211'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v212'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=45"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=54") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=46"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=55") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
 assert(source.includes('serviceWorker.register("./service-worker.js", { updateViaCache: "none" })'), "The standalone battle page must request service-worker updates directly.");
 assert(worker.includes('new Request(event.request, { cache: "reload" })'), "Navigation must bypass stale browser HTTP cache before updating the offline copy.");
 assert(worker.includes("art/v2-style/ui/freeze-status-label.png"), "Persistent freeze label is not cached.");

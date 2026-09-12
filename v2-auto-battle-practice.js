@@ -185,6 +185,7 @@
   let lineupSide = "ally";
   let selectedAllySlugs = TEAM_DATA.ally.map(entry => entry.slug);
   let selectedEnemySlugs = TEAM_DATA.enemy.map(entry => entry.slug);
+  let rosterTouchScroll = null;
   let selectedAllyTeam = TEAM_DATA.ally.map(entry => ({ ...entry }));
   let selectedEnemyTeam = TEAM_DATA.enemy.map(entry => ({ ...entry }));
 
@@ -481,6 +482,27 @@
     else if (activeSlugs.length < 4) activeSlugs.push(slug);
     else return renderRosterSelection("4명까지 선택할 수 있습니다. 먼저 한 명을 해제하세요.");
     renderRosterSelection();
+  }
+
+  function beginRosterTouchScroll(event) {
+    if (event.touches.length !== 1) return;
+    const touch = event.touches[0];
+    rosterTouchScroll = { x: touch.clientX, y: touch.clientY, top: unitRoster.scrollTop };
+  }
+
+  function moveRosterTouchScroll(event) {
+    if (!rosterTouchScroll || event.touches.length !== 1) return;
+    const touch = event.touches[0];
+    const deltaX = touch.clientX - rosterTouchScroll.x;
+    const deltaY = touch.clientY - rosterTouchScroll.y;
+    const physicalDelta = Math.abs(deltaY) >= Math.abs(deltaX) ? deltaY : deltaX;
+    if (Math.abs(physicalDelta) < 2) return;
+    unitRoster.scrollTop = rosterTouchScroll.top - physicalDelta;
+    event.preventDefault();
+  }
+
+  function endRosterTouchScroll() {
+    rosterTouchScroll = null;
   }
 
   function selectLineupSide(team) {
@@ -1087,6 +1109,10 @@
   }
 
   startButton.addEventListener("click", startSelectedBattle);
+  unitRoster.addEventListener("touchstart", beginRosterTouchScroll, { passive: true });
+  unitRoster.addEventListener("touchmove", moveRosterTouchScroll, { passive: false });
+  unitRoster.addEventListener("touchend", endRosterTouchScroll, { passive: true });
+  unitRoster.addEventListener("touchcancel", endRosterTouchScroll, { passive: true });
   allyLineupTab.addEventListener("click", () => selectLineupSide("ally"));
   enemyLineupTab.addEventListener("click", () => selectLineupSide("enemy"));
   allyLineupSummary.addEventListener("click", () => selectLineupSide("ally"));
