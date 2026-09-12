@@ -414,6 +414,10 @@
     unitState.element.tabIndex = -1;
   }
 
+  function isLineupReady() {
+    return selectedAllySlugs.length >= 1 && selectedEnemySlugs.length >= 1;
+  }
+
   function renderRosterSelection(notice = "") {
     const scrollTop = unitRoster.scrollTop;
     const renderSelectedTeam = (host, slugs) => {
@@ -459,7 +463,7 @@
     const activeName = lineupSide === "ally" ? "아군" : "적군";
     unitRoster.scrollTop = scrollTop;
     lineupStatus.textContent = notice || `${activeName} 편집 중 · 아군 ${selectedAllySlugs.length}/4 · 적군 ${selectedEnemySlugs.length}/4`;
-    startButton.disabled = loadingLineup || selectedAllySlugs.length !== 4 || selectedEnemySlugs.length !== 4;
+    startButton.disabled = loadingLineup || !isLineupReady();
   }
 
   function toggleRosterUnit(slug) {
@@ -479,7 +483,7 @@
   }
 
   async function startSelectedBattle() {
-    if (selectedAllySlugs.length !== 4 || selectedEnemySlugs.length !== 4 || introRunning || running || loadingLineup) return;
+    if (!isLineupReady() || introRunning || running || loadingLineup) return;
     const request = ++lineupRequest;
     loadingLineup = true;
     renderRosterSelection();
@@ -505,7 +509,7 @@
       if (request !== lineupRequest) return;
       loadingLineup = false;
       startButton.textContent = "이 편성으로 전투 시작";
-      startButton.disabled = selectedAllySlugs.length !== 4 || selectedEnemySlugs.length !== 4;
+      startButton.disabled = !isLineupReady();
     }
   }
 

@@ -80,10 +80,10 @@ assert(source.includes("V2BattleBrands.startRound(units, lastDiceRoll)"), "Brand
 assert(source.includes('roundState.textContent = `${allyAlive} VS ${enemyAlive}`'), "Counter must include actual living summons without a phantom extra unit.");
 assert((source.match(/unit\("/g) || []).length >= 8, "Default battle must define eight initial units.");
 assert(html.includes('id="unitRoster"') && html.includes('id="selectedLineup"') && html.includes('id="selectedEnemyLineup"') && html.includes('id="lineupStatus"'), "Pre-battle ally and enemy selection UI is missing.");
-assert(source.includes("selectedAllySlugs.length !== 4") && source.includes("selectedEnemySlugs.length !== 4"), "Both rosters must require exactly four selections.");
+assert(source.includes("selectedAllySlugs.length >= 1") && source.includes("selectedEnemySlugs.length >= 1") && source.includes("!isLineupReady()"), "Both rosters must allow battle with one to four selections.");
 assert(source.includes("selectedAllyTeam.map") && source.includes("selectedEnemyTeam.map") && source.includes("startSelectedBattle"), "Both selected lineups must create the battle.");
 assert(source.includes('lineupSide === "ally" ? selectedAllySlugs : selectedEnemySlugs') && source.includes("activeSlugs.push(slug)") && source.includes("activeSlugs.splice(selectedIndex, 1)"), "Either roster must support selecting and removing units.");
-assert(css.includes(".unit-roster") && css.includes("overflow-y: auto") && css.includes("touch-action: pan-y") && css.includes("grid-template-columns: repeat(9"), "The roster must be a touch-scrollable grid.");
+assert(css.includes(".unit-roster") && css.includes("overflow-y: auto") && css.includes("touch-action: pan-x pan-y") && css.includes("grid-template-columns: repeat(9"), "The rotated roster must accept touch scrolling on both physical axes.");
 assert(html.indexOf('id="startButton"') < html.indexOf('id="unitRoster"'), "The start button must stay above the scrollable roster on mobile.");
 assert(css.includes(".lineup-panel > #startButton") && css.includes("grid-template-columns: repeat(8"), "Portrait-phone lineup controls must stay visible and compact.");
 assert(source.includes("turnQueue = units.filter"), "Per-turn action queue is missing.");
@@ -119,10 +119,10 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v201'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v202'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=42"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=49") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=43"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=50") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
 assert(source.includes('serviceWorker.register("./service-worker.js", { updateViaCache: "none" })'), "The standalone battle page must request service-worker updates directly.");
 assert(worker.includes('new Request(event.request, { cache: "reload" })'), "Navigation must bypass stale browser HTTP cache before updating the offline copy.");
 assert(worker.includes("art/v2-style/ui/freeze-status-label.png"), "Persistent freeze label is not cached.");
