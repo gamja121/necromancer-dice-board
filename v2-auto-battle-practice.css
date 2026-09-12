@@ -29,10 +29,13 @@
 .legion-team-effects li { display: grid; grid-template-columns: auto 1fr; gap: 5px; }
 .legion-team-effects b { color: #f0cf91; white-space: nowrap; }
 .legion-team-effects span { color: #bfb19d; }
-.battlefield-capture { position: absolute; z-index: 78; top: 7%; left: 50%; width: min(22%, 250px); aspect-ratio: 1; overflow: hidden; transform: translateX(-50%); background: transparent; clip-path: polygon(3% 1.3%, 97% 1.3%, 98.7% 3%, 98.7% 97%, 97% 98.7%, 3% 98.7%, 1.3% 97%, 1.3% 3%); text-align: center; }
+.battlefield-capture { position: absolute; z-index: 78; top: 7%; left: 50%; width: min(25%, 280px); height: clamp(72px, 10.5vw, 112px); overflow: hidden; transform: translateX(-50%); border: clamp(10px, 1.25vw, 16px) solid transparent; border-image: url("art/v2-style/ui/legion-info-window-hd.png") 112 72 72 fill / 1; background: #160f0b; text-align: center; }
 .battlefield-capture[hidden] { display: none; }
-.battlefield-capture .capture-info-content { display: flex; flex: 1 1 auto; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 4% 9% 12%; overflow: hidden; }
-.battlefield-capture .capture-info-content > p { margin: 0; color: #d3c2a7; font-size: clamp(8px, .93vw, 12px); line-height: 1.5; }
+.battlefield-capture > .legion-info-frame-art { display: none; }
+.battlefield-capture .legion-info-inner { inset: 0; }
+.battlefield-capture .legion-info-inner > h2 { flex: 0 0 clamp(15px, 2.2vw, 24px); margin: 0 0 2px; font-size: clamp(8px, 1.05vw, 12px); }
+.battlefield-capture .capture-info-content { display: flex; flex: 1 1 auto; align-items: center; justify-content: center; width: 100%; padding: 0 3px 3px; overflow: hidden; }
+.battlefield-capture .capture-info-content > p { margin: 0; color: #d3c2a7; font-size: clamp(8px, .93vw, 12px); font-weight: 800; line-height: 1.25; white-space: nowrap; }
 .unit.is-capture-candidate { cursor: pointer; }
 .unit.is-capture-candidate .sprite-wrap { filter: drop-shadow(0 0 7px #e3b75d); }
 .unit.is-capture-selected .sprite-wrap { filter: drop-shadow(0 0 11px #75f08b) brightness(1.15); }

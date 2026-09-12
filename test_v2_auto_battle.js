@@ -130,10 +130,10 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v212'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v213'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=46"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=55") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=47"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=56") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
 assert(source.includes('serviceWorker.register("./service-worker.js", { updateViaCache: "none" })'), "The standalone battle page must request service-worker updates directly.");
 assert(worker.includes('new Request(event.request, { cache: "reload" })'), "Navigation must bypass stale browser HTTP cache before updating the offline copy.");
 assert(worker.includes("art/v2-style/ui/freeze-status-label.png"), "Persistent freeze label is not cached.");
@@ -149,7 +149,8 @@ assert(html.match(/id="capturePanel"[\s\S]*?legion-info-window-hd\.png[\s\S]*?cl
 assert(css.includes("mix-blend-mode: screen") && css.includes("saturate(2.2) brightness(1.28)"), "The corpse selection arrow must screen out black pixels and remain vivid red.");
 assert(source.includes("function returnToMap()") && (source.match(/returnToMap\(\);/g) || []).length >= 2, "Both successful and failed soul harvests must return to the map.");
 assert(source.includes('classList.contains("is-corpse-capture")') && source.includes("rollCorpseCapture()"), "The central dice must perform soul harvest during corpse selection.");
-assert(css.includes("width: min(22%, 250px)") && !css.includes(".battlefield-capture button"), "The soul-harvest guidance window must be compact and button-free.");
+assert(css.includes("height: clamp(72px, 10.5vw, 112px)") && css.includes("border-image:") && !css.includes(".battlefield-capture button"), "The soul-harvest guidance window must tightly fit its text and remain button-free.");
+assert(source.includes('return `${corpse.name} · 필요 주사위 ${corpse.captureTarget}') && !source.includes("회 가능") && !source.includes("재시도 1회") && !source.includes("한 번 더 굴릴 수"), "Soul-harvest guidance must show only the monster name and required die value without attempt counts.");
 assert(!html.includes('id="captureChoices"') && source.includes('resultOverlay.hidden = captureReady'), "Victory must keep corpse selection on the battlefield instead of opening a separate choice list.");
 assert(source.includes('corpse.element.classList.add("is-capture-candidate")') && source.includes('corpse.element.addEventListener("click", () => selectCorpse(corpse))') && source.includes('corpse.infoCard.addEventListener("click", () => selectCorpse(corpse))'), "Dead enemy bodies and cards must both select the capture target.");
 assert(source.includes("captureTargetLocked") && source.includes("lockCorpseSelection()"), "The selected corpse must lock after the first capture roll.");

@@ -967,9 +967,7 @@
     turnDiceButton.disabled = false;
     turnDiceImage.src = DICE_ROLL_FRAMES[0];
     turnDiceImage.alt = "영혼 수확 주사위 굴리기";
-    captureStatus.textContent = V2Legions.active(legionState, "ally", "corpse")
-      ? "죽은 적을 직접 선택하세요 · 실패 시 한 번 더 굴릴 수 있습니다."
-      : "죽은 적을 직접 선택한 뒤 영입 주사위를 굴리세요.";
+    captureStatus.textContent = "시체를 선택하세요.";
     for (const corpse of corpses) {
       corpse.captureTarget = 2 + Math.floor(Math.random() * 5);
       corpse.element.classList.add("is-capture-candidate");
@@ -998,7 +996,11 @@
       unitState.infoCard?.classList.toggle("is-capture-selected", unitState === corpse);
     }
     turnDiceButton.disabled = false;
-    captureStatus.textContent = `${corpse.name} 선택 · 주사위 ${corpse.captureTarget} 이상 필요 · ${captureAttemptsLeft}회 가능`;
+    captureStatus.textContent = captureSummary(corpse);
+  }
+
+  function captureSummary(corpse, result = "") {
+    return `${corpse.name} · 필요 주사위 ${corpse.captureTarget}${result ? ` · ${result}` : ""}`;
   }
 
   function lockCorpseSelection() {
@@ -1063,7 +1065,7 @@
     turnDiceButton.disabled = true;
     turnDiceButton.classList.add("is-rolling");
     turnDiceImage.alt = "영혼 수확 주사위 굴리는 중";
-    captureStatus.textContent = `${selectedCorpse.name} 영혼 수확 주사위 굴리는 중…`;
+    captureStatus.textContent = captureSummary(selectedCorpse);
     const steps = 18 + Math.floor(Math.random() * 5);
     for (let step = 0; step < steps; step += 1) {
       diceFrameIndex = (diceFrameIndex + 1) % DICE_ROLL_FRAMES.length;
@@ -1077,13 +1079,12 @@
     turnDiceButton.classList.remove("is-rolling");
     captureAttemptsLeft -= 1;
     if (roll >= selectedCorpse.captureTarget) {
-      captureStatus.textContent = `주사위 ${roll} · ${selectedCorpse.name} 영혼 수확 성공`;
+      captureStatus.textContent = captureSummary(selectedCorpse, "성공");
       await wait(420);
       await animateSoulHarvest(selectedCorpse);
       selectedCorpse.element?.classList.remove("is-capture-selected");
       battlefield.classList.remove("is-capture-rolling");
       diceRolling = false;
-      captureStatus.textContent += " · 맵으로 돌아갑니다";
       await wait(650);
       returnToMap();
       return;
@@ -1092,13 +1093,12 @@
     battlefield.classList.remove("is-capture-rolling");
     diceRolling = false;
     if (captureAttemptsLeft > 0) {
-      captureStatus.textContent = `주사위 ${roll} · 실패 · 시체 군단 재시도 1회 남음`;
+      captureStatus.textContent = captureSummary(selectedCorpse, "실패");
       turnDiceImage.src = DICE_ROLL_FRAMES[0];
       turnDiceImage.alt = "영혼 수확 주사위 다시 굴리기";
       turnDiceButton.disabled = false;
     } else {
-      captureStatus.textContent = `주사위 ${roll} · 영혼 수확 실패`;
-      captureStatus.textContent += " · 맵으로 돌아갑니다";
+      captureStatus.textContent = captureSummary(selectedCorpse, "실패");
       await wait(900);
       returnToMap();
     }
