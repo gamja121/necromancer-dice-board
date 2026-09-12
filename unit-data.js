@@ -213,7 +213,7 @@ var UNIT_TYPES = {
   },
   abyssClawHunter: {
     label: "심연 집게사냥꾼",
-    legion: "insect",
+    legion: ["insect", "plague"],
     grade: "advanced",
     hp: 4,
     dice: [0, 1, 1, 2, 2, 3],
@@ -601,7 +601,7 @@ var ENCOUNTER_UNIT_META = {
     cost: 4.0,
     minStage: 2,
     roles: ["frontline", "burst"],
-    themes: ["insect"],
+    themes: ["insect", "plague"],
     maxCopies: 1,
     weight: 45,
     directSpawn: true,

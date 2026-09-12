@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-expedition-v210";
+const CACHE_NAME = "necromancer-expedition-v211";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -6,7 +6,7 @@ const APP_SHELL = [
   "./v2-animation-practice.html",
   "./v2-animation-practice.css?v=7",
   "./v2-animation-practice.js?v=73",
-  "./v2-combat-effects.js?v=7",
+  "./v2-combat-effects.js?v=8",
   "./v2-hit-effects.js?v=9",
   "./art/v2-style/ui/toxic-liquid-hit-sheet.jpg",
   "./art/v2-style/ui/bite-hit-sheet.jpg",
@@ -56,7 +56,7 @@ const APP_SHELL = [
   "./art/v2-style/ui/corpse-selection-arrow.png",
   "./v2-damage-digits.js?v=4",
   "./art/v2-style/ui/healing-digits-sheet.jpg",
-  "./v2-unit-size.js?v=3",
+  "./v2-unit-size.js?v=4",
   "./v2-unit-cards.js?v=12",
   "./art/v2-style/ui/unit-card-goblin-commoner.jpg",
   "./art/v2-style/ui/unit-card-guardian-seed.jpg",
@@ -78,7 +78,7 @@ const APP_SHELL = [
   "./styles.css?v=43",
   "./ultimate-vfx.css?v=43",
   "./dice-overlay.css?v=46",
-  "./unit-data.js?v=49",
+  "./unit-data.js?v=50",
   "./assets/abyss-claw-hunter.jpg",
   "./art/v2-style/processed/192/abyss-claw-hunter.png",
   "./art/v2-style/animation-sheets/green-raw/abyss-claw-hunter-animation-sheet.jpg",
