@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-expedition-v216";
+const CACHE_NAME = "necromancer-expedition-v217";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -46,7 +46,7 @@ const APP_SHELL = [
   "./v2-map-practice.js?v=5",
   "./v2-landscape.js?v=1",
   "./v2-auto-battle-practice.html",
-  "./v2-auto-battle-practice.css?v=47",
+  "./v2-auto-battle-practice.css?v=48",
   "./v2-battle-brands.js?v=3",
   "./v2-legions.js?v=3",
   "./v2-auto-battle-practice.js?v=57",
@@ -57,7 +57,12 @@ const APP_SHELL = [
   "./v2-damage-digits.js?v=4",
   "./art/v2-style/ui/healing-digits-sheet.jpg",
   "./v2-unit-size.js?v=5",
-  "./v2-unit-cards.js?v=13",
+  "./v2-unit-cards.js?v=14",
+  "./art/v2-style/ui/unit-card-corpse-slime.png?v=10",
+  "./art/v2-style/ui/unit-card-minotaur.png?v=10",
+  "./art/v2-style/ui/unit-card-plague-frog.png?v=10",
+  "./art/v2-style/ui/unit-card-ice-lord.png?v=10",
+  "./art/v2-style/ui/unit-card-yeti.png?v=10",
   "./art/v2-style/ui/unit-card-goblin-commoner.jpg",
   "./art/v2-style/ui/unit-card-guardian-seed.jpg",
   "./art/v2-style/ui/unit-card-spiderling.jpg",

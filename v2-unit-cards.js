@@ -1,6 +1,7 @@
 (function(root) {
   const ART = ['corpse-slime','minotaur','ice-lord','plague-frog','orc-warrior','plague-doctor','ghoul','goblin-chief','goblin-soldier','sea-wolf','grave-priest','abyss-eye','doom-executor','death-knight','hell-mantis','scorpion-knight','ancient-treant','stone-golem','kraken','crystal-devourer','skeleton-spear','skeleton-archer','skeleton-cavalry','spider-knight','raging-treant','cerberus','mushroom-soldier','goblin-rider','abyss-harpy','boulder-ogre','bone-golem','forest-fairy','flesh-golem','hydra','ice-princess'];
   ART.push('mimic','bone-hound','soul-reaper','siren','grave-worm','yeti','goblin-commoner','guardian-seed','spiderling');
+  const CUTOUT_ART = new Set(['corpse-slime','minotaur','plague-frog','ice-lord','yeti']);
   let selected;
   let phase = 'locked', currentUnits = [], currentDock;
   function setPhase(value) {
@@ -38,9 +39,14 @@
         button.title = unit.name;
         const art = document.createElement('span'); art.className = 'unit-card-art';
         if (ART.includes(unit.slug)) {
-          // Crop the supplied 1280x575 photo to the card only, without changing the original.
           art.classList.add('has-card-art');
-          art.style.backgroundImage = 'url("art/v2-style/ui/unit-card-' + unit.slug + '.jpg?v=9")';
+          if (CUTOUT_ART.has(unit.slug)) {
+            art.classList.add('has-cutout-card');
+            art.style.backgroundImage = 'url("art/v2-style/ui/unit-card-' + unit.slug + '.png?v=10")';
+          } else {
+            // Crop the supplied 1280x575 photo to the card only, without changing the original.
+            art.style.backgroundImage = 'url("art/v2-style/ui/unit-card-' + unit.slug + '.jpg?v=9")';
+          }
         } else {
           const image = document.createElement('img'); image.src = unit.portrait; image.alt = '';
           art.append(image);
@@ -63,7 +69,7 @@
     unit.infoCard.classList.toggle('is-dead', !unit.alive);
     unit.infoCard.title = unit.name + ' · ' + Math.max(0,unit.hp) + '/' + unit.maxHp;
   }
-  const api = { ART,sync,update,clearSelection,setPhase };
+  const api = { ART,CUTOUT_ART,sync,update,clearSelection,setPhase };
   if(typeof module !== 'undefined' && module.exports) module.exports=api;
   else root.V2UnitCards=api;
 })(globalThis);

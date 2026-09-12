@@ -4,7 +4,13 @@ global.document = {createElement:node};
 const api = require('./v2-unit-cards');
 for (const slug of ['corpse-slime','minotaur','plague-frog','ice-lord','yeti']) {
   assert(api.ART.includes(slug));
-  assert(require('fs').existsSync(require('path').join(__dirname, 'art/v2-style/ui/unit-card-' + slug + '.jpg')));
+  assert(api.CUTOUT_ART.has(slug));
+  const cutout = require('path').join(__dirname, 'art/v2-style/ui/unit-card-' + slug + '.png');
+  assert(require('fs').existsSync(cutout));
+  const png = require('fs').readFileSync(cutout);
+  assert.equal(png.readUInt32BE(16), 740);
+  assert.equal(png.readUInt32BE(20), 1080);
+  assert.equal(png[25], 6);
 }
 assert(api.ART.includes('ghoul'));
 assert(api.ART.includes('goblin-chief'));
