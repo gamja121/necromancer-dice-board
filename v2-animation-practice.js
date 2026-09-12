@@ -48,6 +48,7 @@
     "siren": { name: "세이렌", root: "art/v2-style/animation-test-frames/siren/", counts: { attack: 5, hit: 4, death: 7 } },
     "mimic": { name: "미믹", root: "art/v2-style/animation-test-frames/mimic/", counts: { attack: 5, hit: 4, death: 6 } },
     "cerberus": { name: "케르베로스", root: "art/v2-style/animation-test-frames/cerberus/", counts: { attack: 5, hit: 4, death: 6 } },
+    "abyss-claw-hunter": { name: "심연 집게사냥꾼", root: "art/v2-style/animation-test-frames/abyss-claw-hunter/", counts: { attack: 5, hit: 4, death: 5 } },
     "spiderling": { name: "새끼거미", root: "art/v2-style/animation-test-frames/spiderling/", counts: { attack: 5, hit: 4, death: 6 } },
     "flesh-golem": { name: "누더기 포식자", root: "art/v2-style/animation-test-frames/flesh-golem/", counts: { attack: 5, hit: 5, death: 5 }, deathFrames: [1, 2, 3, 5, 6] }
   });

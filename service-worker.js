@@ -1,11 +1,11 @@
-const CACHE_NAME = "necromancer-expedition-v205";
+const CACHE_NAME = "necromancer-expedition-v206";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./v2.html",
   "./v2-animation-practice.html",
   "./v2-animation-practice.css?v=7",
-  "./v2-animation-practice.js?v=72",
+  "./v2-animation-practice.js?v=73",
   "./v2-combat-effects.js?v=7",
   "./v2-hit-effects.js?v=9",
   "./art/v2-style/ui/toxic-liquid-hit-sheet.jpg",
@@ -49,7 +49,7 @@ const APP_SHELL = [
   "./v2-auto-battle-practice.css?v=45",
   "./v2-battle-brands.js?v=3",
   "./v2-legions.js?v=3",
-  "./v2-auto-battle-practice.js?v=53",
+  "./v2-auto-battle-practice.js?v=54",
   "./art/v2-style/ui/freeze-status-label.png",
   "./art/v2-style/ui/legion-slot-frame.png",
   "./art/v2-style/ui/legion-info-window-hd.png",
@@ -78,8 +78,12 @@ const APP_SHELL = [
   "./styles.css?v=43",
   "./ultimate-vfx.css?v=43",
   "./dice-overlay.css?v=46",
-  "./unit-data.js?v=48",
-  "./encounter-generator.js?v=43",
+  "./unit-data.js?v=49",
+  "./assets/abyss-claw-hunter.jpg",
+  "./art/v2-style/processed/192/abyss-claw-hunter.png",
+  "./art/v2-style/animation-sheets/green-raw/abyss-claw-hunter-animation-sheet.jpg",
+  "./art/v2-style/animation-sheets/green-raw/abyss-claw-hunter-attack-03-generated.png",
+  "./encounter-generator.js?v=44",
   "./ultimate-vfx.js?v=43",
   "./map-generator.js?v=43",
   "./event-data.js?v=43",
@@ -355,6 +359,12 @@ Object.entries({ attack: 5, hit: 5, death: 6 }).forEach(([motion, count]) => {
   for (let index = 1; index <= count; index += 1) {
     if (motion === "death" && index === 4) continue;
     APP_SHELL.push(`./art/v2-style/animation-test-frames/flesh-golem/${motion}-${String(index).padStart(2, "0")}.png`);
+  }
+});
+
+Object.entries({ attack: 5, hit: 4, death: 5 }).forEach(([motion, count]) => {
+  for (let index = 1; index <= count; index += 1) {
+    APP_SHELL.push(`./art/v2-style/animation-test-frames/abyss-claw-hunter/${motion}-${String(index).padStart(2, "0")}.png`);
   }
 });
 

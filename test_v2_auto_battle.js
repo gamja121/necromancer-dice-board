@@ -36,7 +36,7 @@ assert(!html.includes('id="unitInfoTeam"') && !html.includes('id="unitInfoState"
 const dicePanel = html.match(/<section id="turnDice"[\s\S]*?<\/section>/)?.[0] || "";
 assert(!dicePanel.includes("turn-dice-panel") && !dicePanel.includes("<span") && !dicePanel.includes("<strong") && !dicePanel.includes("<small"), "Only the dice button should remain in the center.");
 assert(!html.includes('class="versus"') && !source.includes("diceResultLabel") && !source.includes("diceTurnLabel"), "Center labels and obsolete references must be removed.");
-assert(html.indexOf('src="unit-data.js?v=48"') < html.indexOf('src="v2-auto-battle-practice.js'), "Shared unit metadata must load before the battle page.");
+assert(html.indexOf('src="unit-data.js?v=49"') < html.indexOf('src="v2-auto-battle-practice.js'), "Shared unit metadata must load before the battle page.");
 assert(!basicPanel.includes('id="unitInfoHp"'), "Stats must not be placed in the basic panel.");
 for (const id of ["unitInfoHp", "unitInfoAttack", "unitInfoSpeed"]) assert(statsPanel.includes(`id="${id}"`), `${id} must be in the lower-right stats panel.`);
 assert(!html.includes('id="unitInfoRoll"') && !source.includes("unitInfoRoll"), "Common roll must not be in the unit info window.");
@@ -127,10 +127,10 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v205'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v206'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
 assert(worker.includes("v2-auto-battle-practice.css?v=45"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=53") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=54") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
 assert(source.includes('serviceWorker.register("./service-worker.js", { updateViaCache: "none" })'), "The standalone battle page must request service-worker updates directly.");
 assert(worker.includes('new Request(event.request, { cache: "reload" })'), "Navigation must bypass stale browser HTTP cache before updating the offline copy.");
 assert(worker.includes("art/v2-style/ui/freeze-status-label.png"), "Persistent freeze label is not cached.");
@@ -210,7 +210,7 @@ infoContext.V2SummonRules = require("./v2-summon-rules.js");
 infoContext.UNIT_TYPES = require("./unit-data.js").UNIT_TYPES;
 vm.runInContext(source.slice(source.indexOf("  const UNIT_TYPE_KEYS"), source.indexOf("  const TEAM_DATA")), infoContext);
 vm.runInContext(source.slice(source.indexOf("  function unit("), source.indexOf("  function frame(")), infoContext);
-for (const [slug, grade, legions] of [["death-knight", "hero", ["demon"]], ["skeleton-spear", "normal", ["skeleton"]], ["ghoul", "normal", ["corpse"]], ["ancient-treant", "advanced", ["plant", "element"]], ["goblin-rider", "normal", ["beast"]], ["orc-warrior", "advanced", ["beast"]], ["boulder-ogre", "advanced", ["beast"]], ["minotaur", "advanced", ["beast"]]]) {
+for (const [slug, grade, legions] of [["death-knight", "hero", ["demon"]], ["skeleton-spear", "normal", ["skeleton"]], ["ghoul", "normal", ["corpse"]], ["ancient-treant", "advanced", ["plant", "element"]], ["goblin-rider", "normal", ["beast"]], ["orc-warrior", "advanced", ["beast"]], ["boulder-ogre", "advanced", ["beast"]], ["minotaur", "advanced", ["beast"]], ["abyss-claw-hunter", "advanced", ["insect"]]]) {
   const data = vm.runInContext(`unit(${JSON.stringify(slug)}, "test", 12, 3, 2, 5, 4, 6)`, infoContext);
   assert(data.grade === grade && JSON.stringify(data.legions) === JSON.stringify(legions), `Incorrect registry mapping for ${slug}`);
   assert(data.maxHp === 12 && data.attack === 3 && data.speed === 2, "Importing metadata must not change battle stats.");
@@ -264,8 +264,9 @@ for (const brand of Object.keys(infoContext.V2BattleBrands.definitions)) {
   assert(infoContext.unitInfoBrands.innerHTML.indexOf('class="brand-icon"') < infoContext.unitInfoBrands.innerHTML.indexOf("<h4>"), "Icon must precede its description heading.");
 }
 vm.runInContext(source.slice(source.indexOf("  const TEAM_DATA"), source.indexOf("  const battlefield")), infoContext);
-assert(vm.runInContext("ROSTER.length", infoContext) === 43, "Every attack-capable unit must appear in the ally picker.");
-assert(vm.runInContext("new Set(ROSTER.map(unit => unit.slug)).size", infoContext) === 43, "The ally picker must not contain duplicate units.");
+assert(vm.runInContext("ROSTER.length", infoContext) === 44, "Every attack-capable unit must appear in the ally picker.");
+assert(vm.runInContext("new Set(ROSTER.map(unit => unit.slug)).size", infoContext) === 44, "The ally picker must not contain duplicate units.");
+assert(vm.runInContext("ROSTER_BY_SLUG.get('abyss-claw-hunter').name", infoContext) === "심연 집게사냥꾼", "The new monster must be selectable by its assigned name.");
 assert(!vm.runInContext("ROSTER.some(unit => unit.slug === 'guardian-seed')", infoContext), "The non-attacking Guardian Seed must stay out of the battle picker.");
 const selectableRoster = vm.runInContext("ROSTER.map(unit => ({ slug: unit.slug, portrait: unit.portrait, frames: unit.frames, frameNumbers: unit.frameNumbers }))", infoContext);
 const runtimeRoster = new Set(["goblin-soldier", "ice-princess", "bone-golem", "abyss-harpy", "hydra", "bone-hound", "scorpion-knight", "hell-mantis"]);

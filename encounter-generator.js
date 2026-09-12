@@ -454,7 +454,7 @@
       ["archer", "plagueFrog", "knight"],
       ["ghoul", "hellMantis", "poisonMushroom", "goblinRider"],
       ["spear", "archer", "goblinSoldier", "knight"],
-      ["abyssEye", "stoneGolem", "poisonMushroom"],
+      ["abyssEye", "abyssClawHunter", "poisonMushroom"],
       ["yeti", "abyssEye", "troll"],
       ["archer", "plagueFrog", "seaWolf", "ragingTreant"],
       ["worm", "abyssEye", "poisonMushroom", "troll"],

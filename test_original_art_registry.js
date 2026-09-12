@@ -8,8 +8,9 @@ const originalDir = path.join(root, "art", "v2-style", "references", "cute-grote
 const processedDir = path.join(root, "art", "v2-style", "processed", "192");
 const enemyTypes = Object.keys(unitData.UNIT_TYPES).filter((type) => type !== "summoner");
 
-assert.strictEqual(enemyTypes.length, 44, "주인공을 제외한 유닛 원화는 44종이어야 함");
-assert.strictEqual(fs.readdirSync(originalDir).filter((name) => /\.(jpg|jpeg|png)$/i.test(name)).length, 44, "통합 원화 폴더는 정확히 44장이어야 함");
+assert.strictEqual(enemyTypes.length, 45, "주인공을 제외한 유닛 원화는 45종이어야 함");
+assert.strictEqual(fs.readdirSync(originalDir).filter((name) => /\.(jpg|jpeg|png)$/i.test(name)).length, 45, "통합 원화 폴더는 정확히 45장이어야 함");
+assert.strictEqual(unitData.UNIT_TYPES.abyssClawHunter.label, "심연 집게사냥꾼", "신규 마물 이름이 등록되어야 함");
 
 for (const type of enemyTypes) {
   const definition = unitData.UNIT_TYPES[type];
@@ -31,4 +32,4 @@ assert.strictEqual(unitData.UNIT_TYPES.icePrincess.label, "얼음 공주");
 assert.strictEqual(unitData.UNIT_TYPES.siren.label, "세이렌");
 unitData.validateUnitRegistry();
 
-console.log("SUCCESS: 주인공 별도 + 44종 원화/전투 PNG/신규 유닛 레지스트리 검증 완료.");
+console.log("SUCCESS: 주인공 별도 + 45종 원화/전투 PNG/신규 유닛 레지스트리 검증 완료.");

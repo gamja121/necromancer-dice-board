@@ -211,6 +211,14 @@ var UNIT_TYPES = {
     dice: [0, 0, 1, 1, 2, 2],
     image: "assets/hell-mantis.jpg",
   },
+  abyssClawHunter: {
+    label: "심연 집게사냥꾼",
+    legion: "insect",
+    grade: "advanced",
+    hp: 4,
+    dice: [0, 1, 1, 2, 2, 3],
+    image: "assets/abyss-claw-hunter.jpg",
+  },
   scorpionKnight: {
     label: "전갈 기사",
     legion: "insect",
@@ -587,6 +595,15 @@ var ENCOUNTER_UNIT_META = {
     themes: ["insect"],
     maxCopies: 2,
     weight: 100,
+    directSpawn: true,
+  },
+  abyssClawHunter: {
+    cost: 4.0,
+    minStage: 2,
+    roles: ["frontline", "burst"],
+    themes: ["insect"],
+    maxCopies: 1,
+    weight: 45,
     directSpawn: true,
   },
   scorpionKnight: {
