@@ -2,6 +2,10 @@ const assert = require('assert');
 function node() { return { children:[],dataset:{},style:{},classList:{add(){},toggle(){}},setAttribute(){},append(...v){this.children.push(...v)},replaceChildren(){this.children=[]},addEventListener(t,f){this[t]=f},querySelector(){return this.children[0]} }; }
 global.document = {createElement:node};
 const api = require('./v2-unit-cards');
+for (const slug of ['corpse-slime','minotaur','plague-frog','ice-lord','yeti']) {
+  assert(api.ART.includes(slug));
+  assert(require('fs').existsSync(require('path').join(__dirname, 'art/v2-style/ui/unit-card-' + slug + '.jpg')));
+}
 assert(api.ART.includes('ghoul'));
 assert(api.ART.includes('goblin-chief'));
 for (const slug of ['bone-golem','forest-fairy','flesh-golem','hydra','ice-princess']) {
