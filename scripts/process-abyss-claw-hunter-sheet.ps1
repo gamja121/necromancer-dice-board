@@ -116,6 +116,42 @@ public static class AbyssClawHunterProcessor
         }
     }
 
+    private static Bitmap KeyGreenCell(Bitmap source, Rectangle cell)
+    {
+        var keyed = new Bitmap(cell.Width, cell.Height, PixelFormat.Format32bppArgb);
+        for (int y = 0; y < cell.Height; y++)
+        for (int x = 0; x < cell.Width; x++)
+            keyed.SetPixel(x, y, RemoveGreen(source.GetPixel(cell.X + x, cell.Y + y)));
+        return keyed;
+    }
+
+    private static Bitmap BuildAttackThree(Bitmap sheet, Rectangle sourceCell, Bitmap generated)
+    {
+        using (var originalBody = KeyGreenCell(sheet, sourceCell))
+        using (var generatedClaw = Extract(
+            generated,
+            Rectangle.FromLTRB(100, 60, Math.Min(560, generated.Width), Math.Min(650, generated.Height)),
+            true, false, false))
+        {
+            var composite = new Bitmap(sourceCell.Width, sourceCell.Height, PixelFormat.Format32bppArgb);
+            using (var graphics = Graphics.FromImage(composite))
+            {
+                graphics.Clear(Color.Transparent);
+                graphics.CompositingMode = CompositingMode.SourceOver;
+                graphics.CompositingQuality = CompositingQuality.HighQuality;
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                graphics.SmoothingMode = SmoothingMode.HighQuality;
+
+                // Keep the uploaded third frame pixel-for-pixel. Only the generated raised claw
+                // is placed behind its left shoulder, so the original body masks the join.
+                graphics.DrawImage(generatedClaw, new Rectangle(8, 4, 104, 132));
+                graphics.DrawImageUnscaled(originalBody, 0, 0);
+            }
+            return composite;
+        }
+    }
+
     private static Bitmap Place(Bitmap frame, int width, int height, int maxWidth, int maxHeight, int bottom)
     {
         var canvas = new Bitmap(width, height, PixelFormat.Format32bppArgb);
@@ -161,11 +197,12 @@ public static class AbyssClawHunterProcessor
         };
         using (var sheet = new Bitmap(sheetPath))
         using (var generated = new Bitmap(generatedAttackPath))
+        using (var attackThree = BuildAttackThree(sheet, attack[2], generated))
         {
             // Canonical battle art faces right. The first two source attacks and the repaired third attack face left, so mirror them.
             SaveFrame(sheet, attack[0], outputDirectory, "attack", 1, true);
             SaveFrame(sheet, attack[1], outputDirectory, "attack", 2, true);
-            SaveFrame(generated, new Rectangle(0, 0, generated.Width, generated.Height), outputDirectory, "attack", 3, true);
+            SaveFrame(attackThree, new Rectangle(0, 0, attackThree.Width, attackThree.Height), outputDirectory, "attack", 3, true);
             SaveFrame(sheet, attack[3], outputDirectory, "attack", 4, false);
             SaveFrame(sheet, attack[4], outputDirectory, "attack", 5, true);
             SaveFrame(sheet, hit[0], outputDirectory, "hit", 1, true);
