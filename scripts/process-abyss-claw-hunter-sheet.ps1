@@ -102,18 +102,18 @@ public static class AbyssClawHunterProcessor
     {
         System.IO.Directory.CreateDirectory(outputDirectory);
         Rectangle[] attack = {
-            Rectangle.FromLTRB(168, 8, 386, 241), Rectangle.FromLTRB(378, 8, 616, 241),
-            Rectangle.FromLTRB(590, 8, 832, 241), Rectangle.FromLTRB(800, 8, 1065, 241),
-            Rectangle.FromLTRB(1050, 8, 1279, 241)
+            Rectangle.FromLTRB(168, 8, 386, 241), Rectangle.FromLTRB(395, 8, 590, 241),
+            Rectangle.FromLTRB(590, 8, 832, 241), Rectangle.FromLTRB(808, 8, 1062, 241),
+            Rectangle.FromLTRB(1080, 8, 1279, 241)
         };
         Rectangle[] hit = {
-            Rectangle.FromLTRB(224, 263, 485, 480), Rectangle.FromLTRB(455, 263, 716, 480),
-            Rectangle.FromLTRB(700, 263, 954, 480), Rectangle.FromLTRB(938, 263, 1200, 480)
+            Rectangle.FromLTRB(230, 263, 475, 480), Rectangle.FromLTRB(480, 263, 715, 480),
+            Rectangle.FromLTRB(720, 263, 950, 480), Rectangle.FromLTRB(955, 263, 1190, 480)
         };
         Rectangle[] death = {
-            Rectangle.FromLTRB(178, 488, 382, 710), Rectangle.FromLTRB(372, 488, 576, 710),
-            Rectangle.FromLTRB(558, 488, 807, 710), Rectangle.FromLTRB(798, 488, 1040, 710),
-            Rectangle.FromLTRB(1030, 488, 1279, 710)
+            Rectangle.FromLTRB(178, 488, 365, 710), Rectangle.FromLTRB(370, 488, 552, 710),
+            Rectangle.FromLTRB(555, 488, 803, 710), Rectangle.FromLTRB(822, 488, 1030, 710),
+            Rectangle.FromLTRB(1058, 488, 1279, 710)
         };
         using (var sheet = new Bitmap(sheetPath))
         using (var generated = new Bitmap(generatedAttackPath))
@@ -123,7 +123,7 @@ public static class AbyssClawHunterProcessor
             SaveFrame(sheet, attack[1], outputDirectory, "attack", 2, true);
             SaveFrame(generated, new Rectangle(0, 0, generated.Width, generated.Height), outputDirectory, "attack", 3, true);
             SaveFrame(sheet, attack[3], outputDirectory, "attack", 4, false);
-            SaveFrame(sheet, attack[4], outputDirectory, "attack", 5, false);
+            SaveFrame(sheet, attack[4], outputDirectory, "attack", 5, true);
             SaveFrame(sheet, hit[0], outputDirectory, "hit", 1, true);
             for (int index = 1; index < hit.Length; index++) SaveFrame(sheet, hit[index], outputDirectory, "hit", index + 1, false);
             for (int index = 0; index < death.Length; index++) SaveFrame(sheet, death[index], outputDirectory, "death", index + 1, false);
