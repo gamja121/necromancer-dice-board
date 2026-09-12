@@ -1,6 +1,7 @@
 param(
   [Parameter(Mandatory = $true)][string]$SourceDirectory,
   [Parameter(Mandatory = $true)][string]$OutputDirectory,
+  [ValidateSet("original", "batch2")][string]$CardSet = "original",
   [string]$PreviewPath = ""
 )
 
@@ -142,13 +143,23 @@ public static class UnitCardCutoutProcessor
 "@
 
 Add-Type -TypeDefinition $sourceCode -ReferencedAssemblies System.Drawing
-$cards = @(
-  @{ Source = "1-Photo-1.jpg"; Output = "unit-card-corpse-slime.png" },
-  @{ Source = "2-Photo-2.jpg"; Output = "unit-card-minotaur.png" },
-  @{ Source = "3-Photo-3.jpg"; Output = "unit-card-plague-frog.png" },
-  @{ Source = "4-Photo-4.jpg"; Output = "unit-card-ice-lord.png" },
-  @{ Source = "5-Photo-5.jpg"; Output = "unit-card-yeti.png" }
-)
+$cards = if ($CardSet -eq "batch2") {
+  @(
+    @{ Source = "1-Photo-1.jpg"; Output = "unit-card-guardian-seed.png" },
+    @{ Source = "2-Photo-2.jpg"; Output = "unit-card-plague-doctor.png" },
+    @{ Source = "3-Photo-3.jpg"; Output = "unit-card-ghoul.png" },
+    @{ Source = "4-Photo-4.jpg"; Output = "unit-card-goblin-chief.png" },
+    @{ Source = "5-Photo-5.jpg"; Output = "unit-card-goblin-soldier.png" }
+  )
+} else {
+  @(
+    @{ Source = "1-Photo-1.jpg"; Output = "unit-card-corpse-slime.png" },
+    @{ Source = "2-Photo-2.jpg"; Output = "unit-card-minotaur.png" },
+    @{ Source = "3-Photo-3.jpg"; Output = "unit-card-plague-frog.png" },
+    @{ Source = "4-Photo-4.jpg"; Output = "unit-card-ice-lord.png" },
+    @{ Source = "5-Photo-5.jpg"; Output = "unit-card-yeti.png" }
+  )
+}
 $outputs = @()
 foreach ($card in $cards) {
   $source = Join-Path $SourceDirectory $card.Source

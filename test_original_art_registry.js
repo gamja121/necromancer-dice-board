@@ -31,6 +31,9 @@ for (const type of enemyTypes) {
 for (const type of ["corpseSlime", "minotaur", "plagueFrog", "iceLord", "yeti"]) {
   assert.ok(unitData.UNIT_TYPES[type].image.endsWith("?v=20260913-card"), `${type} 카드 캐시 버전이 필요함`);
 }
+for (const type of ["guardianSeed", "plague", "ghoul", "goblinChief", "goblinSoldier"]) {
+  assert.ok(unitData.UNIT_TYPES[type].image.endsWith("?v=20260913-card2"), `${type} 두 번째 카드 캐시 버전이 필요함`);
+}
 
 assert.strictEqual(unitData.UNIT_TYPES.worm.label, "역병 벌레");
 assert.strictEqual(unitData.UNIT_TYPES.seaWolf.label, "바다 늑대");

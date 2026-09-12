@@ -12,6 +12,16 @@ for (const slug of ['corpse-slime','minotaur','plague-frog','ice-lord','yeti']) 
   assert.equal(png.readUInt32BE(20), 1080);
   assert.equal(png[25], 6);
 }
+for (const slug of ['guardian-seed','plague-doctor','ghoul','goblin-chief','goblin-soldier']) {
+  assert(api.ART.includes(slug));
+  assert(api.CUTOUT_ART.has(slug));
+  const cutout = require('path').join(__dirname, 'art/v2-style/ui/unit-card-' + slug + '.png');
+  assert(require('fs').existsSync(cutout));
+  const png = require('fs').readFileSync(cutout);
+  assert.equal(png.readUInt32BE(16), 740);
+  assert.equal(png.readUInt32BE(20), 1080);
+  assert.equal(png[25], 6);
+}
 assert(api.ART.includes('ghoul'));
 assert(api.ART.includes('goblin-chief'));
 for (const slug of ['bone-golem','forest-fairy','flesh-golem','hydra','ice-princess']) {
@@ -51,7 +61,7 @@ for (const slug of ['goblin-commoner','guardian-seed','spiderling']) {
 units[0]={...units[0],slug:'guardian-seed'};
 api.sync(field,units,u=>selected=u);
 assert.equal(field.children.length,1);
-assert(units[0].infoCard.children[0].style.backgroundImage.includes('unit-card-guardian-seed.jpg'));
+assert(units[0].infoCard.children[0].style.backgroundImage.includes('unit-card-guardian-seed.png?v=11'));
 assert.equal(units[0].infoCard.children[0].children.length,0);
 units[0].infoCard.click(); assert.equal(selected,units[0]);
 api.setPhase('acting'); assert(units.every(u=>u.infoCard.disabled));

@@ -61,7 +61,7 @@ var UNIT_TYPES = {
     grade: "normal",
     hp: 3,
     dice: [0, 1, 1, 2, 2, 2],
-    image: "assets/ghoul.jpg",
+    image: "assets/ghoul.jpg?v=20260913-card2",
   },
   corpseSlime: {
     label: "시체 슬라임",
@@ -86,7 +86,7 @@ var UNIT_TYPES = {
     grade: "advanced",
     hp: 3,
     dice: [0, 0, 1, 2, 2, 3],
-    image: "assets/plague-doctor.jpg",
+    image: "assets/plague-doctor.jpg?v=20260913-card2",
   },
   plagueFrog: {
     label: "역병 개구리",
@@ -160,7 +160,7 @@ var UNIT_TYPES = {
     grade: "hero",
     hp: 5,
     dice: [0, 1, 1, 2, 2, 3],
-    image: "assets/goblin-chief.jpg",
+    image: "assets/goblin-chief.jpg?v=20260913-card2",
   },
   goblinCommoner: {
     label: "평민고블린",
@@ -177,7 +177,7 @@ var UNIT_TYPES = {
     grade: "normal",
     hp: 2,
     dice: [0, 0, 1, 1, 1, 2],
-    image: "assets/goblin-soldier.jpg",
+    image: "assets/goblin-soldier.jpg?v=20260913-card2",
   },
   skeletonSummoner: {
     label: "해골 소환사",
@@ -273,7 +273,7 @@ var UNIT_TYPES = {
     grade: "special",
     hp: 1,
     dice: [0, 0, 0, 0, 0, 0],
-    image: "assets/guardian-seed.jpg",
+    image: "assets/guardian-seed.jpg?v=20260913-card2",
     noCorpse: true,
     fixedHp: true,
     immobile: true,
