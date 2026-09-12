@@ -1,12 +1,12 @@
-const CACHE_NAME = "necromancer-expedition-v213";
+const CACHE_NAME = "necromancer-expedition-v214";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./v2.html",
   "./v2-animation-practice.html",
   "./v2-animation-practice.css?v=7",
-  "./v2-animation-practice.js?v=73",
-  "./v2-combat-effects.js?v=8",
+  "./v2-animation-practice.js?v=74",
+  "./v2-combat-effects.js?v=9",
   "./v2-hit-effects.js?v=9",
   "./art/v2-style/ui/toxic-liquid-hit-sheet.jpg",
   "./art/v2-style/ui/bite-hit-sheet.jpg",
@@ -49,14 +49,14 @@ const APP_SHELL = [
   "./v2-auto-battle-practice.css?v=47",
   "./v2-battle-brands.js?v=3",
   "./v2-legions.js?v=3",
-  "./v2-auto-battle-practice.js?v=56",
+  "./v2-auto-battle-practice.js?v=57",
   "./art/v2-style/ui/freeze-status-label.png",
   "./art/v2-style/ui/legion-slot-frame.png",
   "./art/v2-style/ui/legion-info-window-hd.png",
   "./art/v2-style/ui/corpse-selection-arrow.png",
   "./v2-damage-digits.js?v=4",
   "./art/v2-style/ui/healing-digits-sheet.jpg",
-  "./v2-unit-size.js?v=4",
+  "./v2-unit-size.js?v=5",
   "./v2-unit-cards.js?v=12",
   "./art/v2-style/ui/unit-card-goblin-commoner.jpg",
   "./art/v2-style/ui/unit-card-guardian-seed.jpg",
@@ -78,7 +78,10 @@ const APP_SHELL = [
   "./styles.css?v=43",
   "./ultimate-vfx.css?v=43",
   "./dice-overlay.css?v=46",
-  "./unit-data.js?v=50",
+  "./unit-data.js?v=51",
+  "./assets/corpse-slime.jpg",
+  "./art/v2-style/processed/192/corpse-slime.png",
+  "./art/v2-style/animation-sheets/green-raw/corpse-slime-animation-sheet.jpg",
   "./assets/abyss-claw-hunter.jpg",
   "./art/v2-style/processed/192/abyss-claw-hunter.png",
   "./art/v2-style/animation-sheets/green-raw/abyss-claw-hunter-animation-sheet.jpg",
@@ -215,6 +218,12 @@ Object.entries({ attack: 6, hit: 4, death: 6 }).forEach(([motion, count]) => {
 Object.entries({ attack: 5, hit: 4, death: 5 }).forEach(([motion, count]) => {
   for (let index = 1; index <= count; index += 1) {
     APP_SHELL.push(`./art/v2-style/animation-test-frames/mummy-guardian/${motion}-${String(index).padStart(2, "0")}.png`);
+  }
+});
+
+Object.entries({ attack: 7, hit: 4, death: 5 }).forEach(([motion, count]) => {
+  for (let index = 1; index <= count; index += 1) {
+    APP_SHELL.push(`./art/v2-style/animation-test-frames/corpse-slime/${motion}-${String(index).padStart(2, "0")}.png`);
   }
 });
 Object.entries({ attack: 5, hit: 4, death: 5 }).forEach(([motion, count]) => {

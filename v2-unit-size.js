@@ -5,7 +5,7 @@
     "skeleton-cavalry": 1.5, spiderling: .5, "guardian-seed": .5,
     "goblin-chief": 1.5, kraken: 2, minotaur: 1.5,
     "goblin-rider": 1, yeti: 1.5, "orc-warrior": 1.5, hydra: 2,
-    "abyss-claw-hunter": 1
+    "abyss-claw-hunter": 1, "corpse-slime": 1
   });
   function measure(image) {
     const canvas = root.document.createElement("canvas");

@@ -12,6 +12,7 @@
     plague: "poison", "plague-doctor": "poison",
     worm: "toxicLiquid", "grave-worm": "toxicLiquid",
     abyssClawHunter: "toxicLiquid", "abyss-claw-hunter": "toxicLiquid",
+    corpseSlime: "toxicLiquid", "corpse-slime": "toxicLiquid",
     boneHound: "bite", "bone-hound": "bite", "undead-hound": "bite",
     hydra: "bite",
     spiderling: "bite", "giant-spider": "bite",

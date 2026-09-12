@@ -63,6 +63,14 @@ var UNIT_TYPES = {
     dice: [0, 1, 1, 2, 2, 2],
     image: "assets/ghoul.jpg",
   },
+  corpseSlime: {
+    label: "시체 슬라임",
+    legion: "corpse",
+    grade: "normal",
+    hp: 3,
+    dice: [0, 1, 1, 1, 2, 2],
+    image: "assets/corpse-slime.jpg",
+  },
   ogre: {
     label: "오우거",
     legion: "beast",
@@ -419,6 +427,15 @@ var ENCOUNTER_UNIT_META = {
   },
   ghoul: {
     cost: 2.5,
+    minStage: 1,
+    roles: ["frontline"],
+    themes: ["corpse"],
+    maxCopies: 2,
+    weight: 100,
+    directSpawn: true,
+  },
+  corpseSlime: {
+    cost: 2.0,
     minStage: 1,
     roles: ["frontline"],
     themes: ["corpse"],

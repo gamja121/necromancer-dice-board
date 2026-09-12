@@ -25,6 +25,7 @@ const graveWormProcessor = fs.readFileSync(path.join(root, "scripts/process-grav
 const sirenProcessor = fs.readFileSync(path.join(root, "scripts/process-siren-sheet.ps1"), "utf8");
 const mimicProcessor = fs.readFileSync(path.join(root, "scripts/process-mimic-sheet.ps1"), "utf8");
 const abyssClawHunterProcessor = fs.readFileSync(path.join(root, "scripts/process-abyss-claw-hunter-sheet.ps1"), "utf8");
+const corpseSlimeProcessor = fs.readFileSync(path.join(root, "scripts/process-corpse-slime-sheet.ps1"), "utf8");
 
 assert(indexHtml.includes('href="v2-animation-practice.html">모션 테스트</a>'), "Start screen motion test link is missing.");
 assert(battleHtml.includes('href="v2-animation-practice.html" class="secondary-action">모션 테스트</a>'), "V2 motion test link is missing.");
@@ -444,7 +445,7 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/cr
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/grave-worm-animation-sheet.jpg")), "New raw Grave Worm sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/siren-animation-sheet.jpg")), "New raw Siren sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/mimic-animation-sheet.jpg")), "New raw Mimic sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v213"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v214"), "Service worker cache version was not bumped.");
 for (const slug of ['ancient-treant','skeleton-spear','stone-golem','goblin-rider']) {
   for (const [motion,count] of Object.entries({attack:5,hit:4,death:slug === 'ancient-treant' ? 6 : 5})) {
     for(let i=1;i<=count;i++) {
@@ -517,4 +518,21 @@ for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 5 })) {
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/abyss-claw-hunter-attack-03-generated.png")), "Repaired attack frame source is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/abyss-claw-hunter-attack-03-original-target.png")), "Original third-frame edit target is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/processed/192/abyss-claw-hunter.png")), "Abyss Claw Hunter portrait is missing.");
-console.log("SUCCESS: 36 unit motion test integrations, including Abyss Claw Hunter, passed.");
+assert(practiceHtml.includes('data-unit="corpse-slime"'), "Corpse Slime picker is missing.");
+assert(practiceSource.includes('"corpse-slime": { name: "시체 슬라임", root: "art/v2-style/animation-test-frames/corpse-slime/", counts: { attack: 7, hit: 4, death: 5 } }'), "Corpse Slime frame counts are incorrect.");
+assert(serviceWorker.includes("animation-test-frames/corpse-slime/${motion}-"), "Corpse Slime cache generator is missing.");
+assert(corpseSlimeProcessor.includes("Rectangle[] attack = { row1col2, row2col2, row2col3, row1col4, row1col5, row2col3, row1col2 }"), "Corpse Slime attack sequence must match the requested cells.");
+assert(corpseSlimeProcessor.includes("Rectangle[] hit = { row2col1, row1col3, row2col4, row1col3 }"), "Corpse Slime hit sequence must match the requested cells.");
+for (const [motion, count] of Object.entries({ attack: 7, hit: 4, death: 5 })) {
+  for (let index = 1; index <= count; index += 1) {
+    const relative = `art/v2-style/animation-test-frames/corpse-slime/${motion}-${String(index).padStart(2, "0")}.png`;
+    const png = fs.readFileSync(path.join(root, relative));
+    assert(png.readUInt32BE(16) === 280 && png.readUInt32BE(20) === 270, `Wrong Corpse Slime canvas: ${relative}`);
+    assert(png[25] === 6, `Expected Corpse Slime RGBA transparency: ${relative}`);
+  }
+}
+assert(fs.readFileSync(path.join(root, "art/v2-style/animation-test-frames/corpse-slime/attack-01.png")).equals(fs.readFileSync(path.join(root, "art/v2-style/animation-test-frames/corpse-slime/attack-07.png"))), "Corpse Slime attack must return to row 1 frame 2.");
+assert(fs.readFileSync(path.join(root, "art/v2-style/animation-test-frames/corpse-slime/attack-03.png")).equals(fs.readFileSync(path.join(root, "art/v2-style/animation-test-frames/corpse-slime/attack-06.png"))), "Corpse Slime attack must repeat row 2 frame 3.");
+assert(fs.readFileSync(path.join(root, "art/v2-style/animation-test-frames/corpse-slime/hit-02.png")).equals(fs.readFileSync(path.join(root, "art/v2-style/animation-test-frames/corpse-slime/hit-04.png"))), "Corpse Slime hit must repeat row 1 frame 3.");
+assert(fs.existsSync(path.join(root, "art/v2-style/processed/192/corpse-slime.png")), "Corpse Slime portrait is missing.");
+console.log("SUCCESS: 37 unit motion test integrations, including Corpse Slime, passed.");
