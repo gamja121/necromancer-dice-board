@@ -46,6 +46,8 @@
   let heroIndex = 0;
   let rolling = false;
   let diceFrameIndex = 0;
+  let activeMapId = "default";
+  let enteringBattle = false;
 
   [...rollingFrames, ...resultFrames].forEach((src) => { const image = new Image(); image.src = src; });
 
@@ -82,6 +84,17 @@
     el.tileName.textContent = `${step}번 · ${tile.name}`;
   }
 
+  function enterMonsterBattle(tile, step) {
+    if (tile?.id !== "monster" || enteringBattle) return false;
+    enteringBattle = true;
+    el.diceButton.disabled = true;
+    el.regenerate.disabled = true;
+    el.tileName.textContent = `${step}번 · 마물 출현 · 전장으로 이동`;
+    const params = new URLSearchParams({ from: "map", map: activeMapId, tile: String(step) });
+    window.location.assign(`v2-auto-battle-practice.html?${params}`);
+    return true;
+  }
+
   function placeHero(animate = false) {
     const position = positions[heroIndex];
     el.hero.style.left = `${position.x}%`;
@@ -114,7 +127,11 @@
       step.className = "step";
       step.textContent = String(index + 1);
       button.append(image, step);
-      button.addEventListener("click", () => selectTile(button, tile, index + 1));
+      button.addEventListener("click", () => {
+        if (rolling) return;
+        selectTile(button, tile, index + 1);
+        enterMonsterBattle(tile, index + 1);
+      });
       return button;
     });
     el.ring.replaceChildren(...currentButtons);
@@ -151,6 +168,11 @@
       await wait(230);
     }
     el.diceResult.textContent = `${result} · 이동 완료`;
+    if (currentTiles[heroIndex]?.id === "monster") {
+      el.diceResult.textContent = `${result} · 마물 조우`;
+      await wait(320);
+      if (enterMonsterBattle(currentTiles[heroIndex], heroIndex + 1)) return;
+    }
     el.diceButton.disabled = false;
     el.regenerate.disabled = false;
     rolling = false;
@@ -159,6 +181,7 @@
   document.querySelectorAll("[data-map]").forEach((button) => {
     button.addEventListener("click", () => {
       const map = maps[button.dataset.map];
+      activeMapId = button.dataset.map;
       document.querySelectorAll("[data-map]").forEach((item) => item.classList.toggle("is-active", item === button));
       el.board.style.backgroundImage = `url("${map.image}")`;
       el.mapName.textContent = map.name;

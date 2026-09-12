@@ -68,6 +68,14 @@ assert(css.includes("hit-red-flash"), "Hit feedback must use a red flash.");
 assert(!css.includes("#ffdfae"), "White hit outline must be removed.");
 assert(source.includes("TEAM_DATA.ally.map"), "Four ally states are not created.");
 assert(source.includes("TEAM_DATA.enemy.map"), "Four enemy states are not created.");
+assert(source.includes("MAP_BATTLEFIELDS") && source.includes('battleQuery.get("from") === "map"') && source.includes("mapBattlefield || BATTLEFIELDS"), "Map monster battles must select the matching battlefield background.");
+for (const [map, expected] of [["default", "dark-forest.jpg"], ["winter", "snow-forest.jpg"], ["hell", "lava-forest.jpg"]]) {
+  const arenaContext = { location: { search: `?from=map&map=${map}` }, URLSearchParams };
+  vm.createContext(arenaContext);
+  const arenaSource = source.slice(source.indexOf("  const BATTLEFIELDS"), source.indexOf("  const FRAME_ROOT")) + "\nthis.selectedArena = mapBattlefield;";
+  vm.runInContext(arenaSource, arenaContext);
+  assert(arenaContext.selectedArena.endsWith(expected), `${map} map must select ${expected}.`);
+}
 assert(source.includes('enemyTeam.append(makeSummonSlot("적군"))'), "Enemy summon cell must be closest to the center.");
 assert(source.includes('allyTeam.append(makeSummonSlot("아군"))'), "Ally summon cell must be closest to the center.");
 assert(!source.includes("summon-mark"), "Reserved summon cells must remain visually empty.");
@@ -119,10 +127,10 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v202'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v203'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
 assert(worker.includes("v2-auto-battle-practice.css?v=43"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=50") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=51") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
 assert(source.includes('serviceWorker.register("./service-worker.js", { updateViaCache: "none" })'), "The standalone battle page must request service-worker updates directly.");
 assert(worker.includes('new Request(event.request, { cache: "reload" })'), "Navigation must bypass stale browser HTTP cache before updating the offline copy.");
 assert(worker.includes("art/v2-style/ui/freeze-status-label.png"), "Persistent freeze label is not cached.");

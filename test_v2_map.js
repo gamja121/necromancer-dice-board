@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const vm = require("vm");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -25,6 +26,9 @@ assert(source.includes("for (let index = 0; index < 4"), "Side perimeter positio
 assert(source.includes("Math.floor(Math.random() * 6) + 1"), "Random dice result is missing.");
 assert(source.includes("heroIndex = (heroIndex + 1) % positions.length"), "Clockwise wraparound movement is missing.");
 assert(source.includes("await wait(230)"), "Step-by-step movement timing is missing.");
+assert(source.includes('tile?.id !== "monster"') && source.includes('v2-auto-battle-practice.html?${params}'), "Monster tiles must open the battlefield test.");
+assert(source.includes('currentTiles[heroIndex]?.id === "monster"') && source.includes("enterMonsterBattle(currentTiles[heroIndex], heroIndex + 1)"), "Landing on a monster tile must open battle after dice movement.");
+assert(source.includes('from: "map", map: activeMapId, tile: String(step)'), "Monster battles must receive the selected map and tile context.");
 assert(tileCount(source) === 24, "Tile distribution must total 24.");
 
 function tileCount(text) {
@@ -47,9 +51,22 @@ for (const tile of ["home", "village", "fortune-teller-camp", "boss"]) {
 }
 assert(source.includes("[fixedTiles.home") && source.includes("fixedTiles.boss]"), "Home and boss tiles must bookend the route.");
 assert(source.includes("fixedTiles.village") && source.includes("fixedTiles.fortune"), "Village and fortune-teller tiles must be connected to the route.");
-assert(html.includes("v2-map-practice.js?v=3"), "The map page must load the connected tile version.");
+assert(html.includes("v2-map-practice.js?v=4"), "The map page must load the monster-battle connection version.");
 assert(worker.includes("v2-map-practice.html"), "Map test page is not cached.");
 assert(worker.includes("v2-landscape.js?v=1"), "Landscape helper is not cached.");
+assert(worker.includes("v2-map-practice.js?v=4"), "The connected monster-tile map logic is not cached.");
+const navigation = [];
+const battleLinkContext = {
+  activeMapId: "winter", enteringBattle: false, URLSearchParams,
+  el: { diceButton: {}, regenerate: {}, tileName: {} },
+  window: { location: { assign: url => navigation.push(url) } }
+};
+const battleLinkSource = source.slice(source.indexOf("  function enterMonsterBattle("), source.indexOf("  function placeHero("));
+vm.createContext(battleLinkContext);
+vm.runInContext(battleLinkSource, battleLinkContext);
+assert(vm.runInContext('enterMonsterBattle({ id: "monster" }, 7)', battleLinkContext) === true, "A monster tile must start navigation.");
+assert(navigation[0] === "v2-auto-battle-practice.html?from=map&map=winter&tile=7", "Monster navigation must preserve map and tile context.");
+assert(vm.runInContext('enterMonsterBattle({ id: "rest" }, 8)', battleLinkContext) === false && navigation.length === 1, "Non-monster tiles must stay on the map.");
 const hero = "art/v2-style/map-test/hero/necromancer-hero.png";
 assert(fs.existsSync(path.join(root, hero)), "Processed hero token is missing.");
 assert(worker.includes(hero), "Hero token is not cached.");

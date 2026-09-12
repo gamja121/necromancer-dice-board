@@ -4,6 +4,13 @@
     "art/v2-style/battle-backgrounds/uploaded-raw/snow-forest.jpg",
     "art/v2-style/battle-backgrounds/uploaded-raw/dark-forest.jpg"
   ];
+  const MAP_BATTLEFIELDS = Object.freeze({
+    default: BATTLEFIELDS[2],
+    winter: BATTLEFIELDS[1],
+    hell: BATTLEFIELDS[0]
+  });
+  const battleQuery = typeof location === "undefined" ? new URLSearchParams() : new URLSearchParams(location.search);
+  const mapBattlefield = battleQuery.get("from") === "map" ? MAP_BATTLEFIELDS[battleQuery.get("map")] : null;
   const FRAME_ROOT = "art/v2-style/animation-test-frames/";
   const UNIT_TYPE_KEYS = {
     "guardian-seed": "guardianSeed",
@@ -247,7 +254,7 @@
     turnDiceImage.src = DICE_ROLL_FRAMES[0];
     unitInfoOverlay.hidden = true;
     battlefield.classList.remove("is-between-turns");
-    battlefield.style.backgroundImage = `url("${BATTLEFIELDS[Math.floor(Math.random() * BATTLEFIELDS.length)]}")`;
+    battlefield.style.backgroundImage = `url("${mapBattlefield || BATTLEFIELDS[Math.floor(Math.random() * BATTLEFIELDS.length)]}")`;
     units = [
       ...selectedAllyTeam.map((data, slot) => makeState(data, "ally", slot)),
       ...selectedEnemyTeam.map((data, slot) => makeState(data, "enemy", slot))
