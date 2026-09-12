@@ -46,7 +46,8 @@
   let heroIndex = 0;
   let rolling = false;
   let diceFrameIndex = 0;
-  let activeMapId = "default";
+  const requestedMapId = new URLSearchParams(window.location.search).get("map");
+  let activeMapId = maps[requestedMapId] ? requestedMapId : "default";
   let enteringBattle = false;
 
   [...rollingFrames, ...resultFrames].forEach((src) => { const image = new Image(); image.src = src; });
@@ -187,6 +188,8 @@
       el.mapName.textContent = map.name;
     });
   });
+  const initialMapButton = document.querySelector(`[data-map="${activeMapId}"]`);
+  if (initialMapButton && activeMapId !== "default") initialMapButton.click();
   el.regenerate.addEventListener("click", generateTiles);
   el.diceButton.addEventListener("click", rollAndMove);
   generateTiles();

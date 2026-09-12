@@ -51,10 +51,11 @@ for (const tile of ["home", "village", "fortune-teller-camp", "boss"]) {
 }
 assert(source.includes("[fixedTiles.home") && source.includes("fixedTiles.boss]"), "Home and boss tiles must bookend the route.");
 assert(source.includes("fixedTiles.village") && source.includes("fixedTiles.fortune"), "Village and fortune-teller tiles must be connected to the route.");
-assert(html.includes("v2-map-practice.js?v=4"), "The map page must load the monster-battle connection version.");
+assert(html.includes("v2-map-practice.js?v=5"), "The map page must load the monster-battle connection version.");
 assert(worker.includes("v2-map-practice.html"), "Map test page is not cached.");
 assert(worker.includes("v2-landscape.js?v=1"), "Landscape helper is not cached.");
-assert(worker.includes("v2-map-practice.js?v=4"), "The connected monster-tile map logic is not cached.");
+assert(worker.includes("v2-map-practice.js?v=5"), "The connected monster-tile map logic is not cached.");
+assert(source.includes("requestedMapId") && source.includes('document.querySelector(`[data-map="${activeMapId}"]`)'), "Returning from battle must restore the selected map region.");
 const navigation = [];
 const battleLinkContext = {
   activeMapId: "winter", enteringBattle: false, URLSearchParams,

@@ -10,7 +10,8 @@
     hell: BATTLEFIELDS[0]
   });
   const battleQuery = typeof location === "undefined" ? new URLSearchParams() : new URLSearchParams(location.search);
-  const mapBattlefield = battleQuery.get("from") === "map" ? MAP_BATTLEFIELDS[battleQuery.get("map")] : null;
+  const fromMap = battleQuery.get("from") === "map";
+  const mapBattlefield = fromMap ? MAP_BATTLEFIELDS[battleQuery.get("map")] : null;
   const FRAME_ROOT = "art/v2-style/animation-test-frames/";
   const UNIT_TYPE_KEYS = {
     "guardian-seed": "guardianSeed",
@@ -988,6 +989,12 @@
     }
   }
 
+  function returnToMap() {
+    const map = battleQuery.get("map");
+    const suffix = MAP_BATTLEFIELDS[map] ? `?map=${encodeURIComponent(map)}` : "";
+    window.location.assign(`v2-map-practice.html${suffix}`);
+  }
+
   async function animateSoulHarvest(corpse) {
     const card = corpse?.infoCard;
     if (!card || !card.isConnected) return;
@@ -1067,6 +1074,11 @@
     } else {
       captureStatus.textContent = `주사위 ${roll} · 영혼 수확 실패`;
       captureRollButton.disabled = true;
+      if (fromMap) {
+        captureStatus.textContent += " · 맵으로 돌아갑니다";
+        await wait(900);
+        returnToMap();
+      }
     }
   }
 

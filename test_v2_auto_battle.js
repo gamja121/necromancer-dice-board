@@ -127,10 +127,10 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v203'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v204'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=43"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=51") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=44"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=52") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
 assert(source.includes('serviceWorker.register("./service-worker.js", { updateViaCache: "none" })'), "The standalone battle page must request service-worker updates directly.");
 assert(worker.includes('new Request(event.request, { cache: "reload" })'), "Navigation must bypass stale browser HTTP cache before updating the offline copy.");
 assert(worker.includes("art/v2-style/ui/freeze-status-label.png"), "Persistent freeze label is not cached.");
@@ -142,6 +142,9 @@ assert(fs.existsSync(path.join(root, "art/v2-style/ui/corpse-selection-arrow.png
 assert(html.includes('class="legion-info-panel"') && html.includes('id="legionInfoContent"'), "Legion effects need a separate one-cell window beside unit information.");
 assert(css.includes('.legion-info-panel') && css.includes('background: url("art/v2-style/ui/corpse-selection-arrow.png")'), "Separate legion window and corpse-selection arrow styling are missing.");
 assert(html.includes('id="capturePanel"') && html.includes('id="captureRollButton"'), "Post-battle corpse capture controls are missing.");
+assert(html.match(/id="capturePanel"[\s\S]*?legion-info-window-hd\.png[\s\S]*?class="legion-info-inner"/), "Soul-harvest guidance must reuse the legion-effect information window.");
+assert(css.includes("mix-blend-mode: screen") && css.includes("saturate(2.2) brightness(1.28)"), "The corpse selection arrow must screen out black pixels and remain vivid red.");
+assert(source.includes("function returnToMap()") && source.includes('captureStatus.textContent += " · 맵으로 돌아갑니다"') && source.includes("await wait(900)") && source.includes("returnToMap();"), "A final soul-harvest failure from the map must return to the map.");
 assert(!html.includes('id="captureChoices"') && source.includes('resultOverlay.hidden = captureReady'), "Victory must keep corpse selection on the battlefield instead of opening a separate choice list.");
 assert(source.includes('corpse.element.classList.add("is-capture-candidate")') && source.includes('corpse.element.addEventListener("click", () => selectCorpse(corpse))') && source.includes('corpse.infoCard.addEventListener("click", () => selectCorpse(corpse))'), "Dead enemy bodies and cards must both select the capture target.");
 assert(source.includes("captureTargetLocked") && source.includes("lockCorpseSelection()"), "The selected corpse must lock after the first capture roll.");
