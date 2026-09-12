@@ -127,7 +127,7 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v209'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v210'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
 assert(worker.includes("v2-auto-battle-practice.css?v=45"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
 assert(worker.includes("v2-auto-battle-practice.js?v=54") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");

@@ -444,7 +444,7 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/cr
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/grave-worm-animation-sheet.jpg")), "New raw Grave Worm sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/siren-animation-sheet.jpg")), "New raw Siren sheet is missing.");
 assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/mimic-animation-sheet.jpg")), "New raw Mimic sheet is missing.");
-assert(serviceWorker.includes("necromancer-expedition-v209"), "Service worker cache version was not bumped.");
+assert(serviceWorker.includes("necromancer-expedition-v210"), "Service worker cache version was not bumped.");
 for (const slug of ['ancient-treant','skeleton-spear','stone-golem','goblin-rider']) {
   for (const [motion,count] of Object.entries({attack:5,hit:4,death:slug === 'ancient-treant' ? 6 : 5})) {
     for(let i=1;i<=count;i++) {
@@ -503,7 +503,7 @@ for (const [motion, count] of Object.entries({ attack: 5, hit: 5, death: 6 })) {
 assert(practiceHtml.includes('data-unit="abyss-claw-hunter"'), "Abyss Claw Hunter picker is missing.");
 assert(practiceSource.includes('"abyss-claw-hunter": { name: "심연 집게사냥꾼", root: "art/v2-style/animation-test-frames/abyss-claw-hunter/", counts: { attack: 5, hit: 4, death: 5 } }'), "Abyss Claw Hunter frame counts are incorrect.");
 assert(serviceWorker.includes("animation-test-frames/abyss-claw-hunter/${motion}-"), "Abyss Claw Hunter cache generator is missing.");
-assert(abyssClawHunterProcessor.includes("BuildAttackThree") && abyssClawHunterProcessor.includes('graphics.DrawImageUnscaled(originalBody, 0, 0);') && abyssClawHunterProcessor.includes('SaveFrame(attackThree, new Rectangle(0, 0, attackThree.Width, attackThree.Height), outputDirectory, "attack", 3, true);'), "Attack frame 3 must preserve the uploaded body and add only the repaired raised pincer.");
+assert(abyssClawHunterProcessor.includes("BuildAttackThree") && abyssClawHunterProcessor.includes('graphics.DrawImageUnscaled(originalBody, 0, 0);') && abyssClawHunterProcessor.includes('SaveFrame(attackThree, new Rectangle(0, 0, attackThree.Width, attackThree.Height), outputDirectory, "attack", 3, false);'), "Attack frame 3 must preserve the uploaded body, add only the repaired raised pincer, and use the requested flipped direction.");
 assert(abyssClawHunterProcessor.includes('SaveFrame(sheet, attack[0], outputDirectory, "attack", 1, true);') && abyssClawHunterProcessor.includes('SaveFrame(sheet, hit[0], outputDirectory, "hit", 1, true);'), "Mirrored source poses must be normalized to one direction.");
 assert(abyssClawHunterProcessor.includes('SaveFrame(sheet, attack[4], outputDirectory, "attack", 5, true);'), "Attack frame 5 must be mirrored to the canonical direction.");
 for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 5 })) {

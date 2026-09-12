@@ -202,7 +202,7 @@ public static class AbyssClawHunterProcessor
             // Canonical battle art faces right. The first two source attacks and the repaired third attack face left, so mirror them.
             SaveFrame(sheet, attack[0], outputDirectory, "attack", 1, true);
             SaveFrame(sheet, attack[1], outputDirectory, "attack", 2, true);
-            SaveFrame(attackThree, new Rectangle(0, 0, attackThree.Width, attackThree.Height), outputDirectory, "attack", 3, true);
+            SaveFrame(attackThree, new Rectangle(0, 0, attackThree.Width, attackThree.Height), outputDirectory, "attack", 3, false);
             SaveFrame(sheet, attack[3], outputDirectory, "attack", 4, false);
             SaveFrame(sheet, attack[4], outputDirectory, "attack", 5, true);
             SaveFrame(sheet, hit[0], outputDirectory, "hit", 1, true);
