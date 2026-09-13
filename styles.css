@@ -3432,16 +3432,15 @@ dialog::backdrop {
 }
 
 .reward-card {
-  width: min(460px, calc(100vw - 24px));
+  width: min(720px, calc(100vw - 24px));
   max-height: min(760px, calc(100dvh - 24px));
   overflow: auto;
-  padding: 18px;
-  border: 2px solid #d7b46a;
-  border-radius: 8px;
-  color: #f8f3ea;
-  background:
-    linear-gradient(90deg, transparent 49.5%, rgba(215, 180, 106, .14) 50%, transparent 50.5%),
-    #171616;
+  padding: 20px 24px;
+  border: 22px solid transparent;
+  border-image: url("art/v2-style/ui/legion-info-window-hd.png?v=2") 54 38 54 fill / 1;
+  border-radius: 0;
+  color: #332820;
+  background: #c9aa94;
   box-shadow: 0 0 0 5px #080808, 0 20px 70px rgba(0, 0, 0, .75);
   animation: rewardEnter .55s cubic-bezier(.16, .84, .25, 1) both;
 }
@@ -3470,7 +3469,7 @@ dialog::backdrop {
 .reward-header::after { right: 0; }
 
 .reward-header > span {
-  color: #d7b46a;
+  color: #674b36;
   font-size: 11px;
   font-weight: 900;
   letter-spacing: 0;
@@ -3478,15 +3477,15 @@ dialog::backdrop {
 
 .reward-header h2 {
   margin: 0;
-  color: #fff;
+  color: #35271f;
   font-size: 34px;
   line-height: 1;
-  text-shadow: 0 3px 0 #7c2926, 0 0 20px rgba(215, 180, 106, .35);
+  text-shadow: none;
 }
 
 .reward-header p {
   margin: 6px 0 0;
-  color: #c9c2b8;
+  color: #574438;
   font-size: 12px;
   line-height: 1.35;
 }
@@ -3503,7 +3502,7 @@ dialog::backdrop {
 .reward-captures > strong {
   display: block;
   margin-bottom: 7px;
-  color: #d7b46a;
+  color: #5b402e;
   font-size: 12px;
 }
 
@@ -3540,8 +3539,8 @@ dialog::backdrop {
   text-align: center;
 }
 
-.reward-survivors b { font-size: 10px; }
-.reward-survivors small { color: #bcb4aa; font-size: 9px; }
+.reward-survivors b { color: #352820; font-size: 10px; }
+.reward-survivors small { color: #655044; font-size: 9px; }
 .reward-survivors em {
   color: #79d59a;
   font-size: 8px;
@@ -3590,13 +3589,14 @@ dialog::backdrop {
 
 .reward-captures p {
   margin: 0;
-  color: #d4cdc3;
+  color: #4f3d32;
   font-size: 12px;
   line-height: 1.35;
 }
 
 .reward-options {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 7px;
   padding-top: 8px;
 }
@@ -3870,6 +3870,7 @@ dialog::backdrop {
     width: calc(100vw - 14px);
     max-height: calc(100dvh - 14px);
     padding: 11px;
+    border-width: 15px;
   }
 
   .reward-header { padding: 4px 4px 9px; }
