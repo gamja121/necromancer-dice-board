@@ -344,7 +344,7 @@ var UNIT_TYPES = {
     image: "assets/forest-fairy.jpg",
   },
   mummyGuardian: {
-    label: "미라 수호병",
+    label: "미이라",
     legion: "corpse",
     grade: "normal",
     hp: 4,
@@ -352,7 +352,7 @@ var UNIT_TYPES = {
     image: "assets/mummy-guardian.jpg",
   },
   soulReaper: {
-    label: "영혼 수확자",
+    label: "리치",
     legion: "corpse",
     grade: "hero",
     hp: 5,

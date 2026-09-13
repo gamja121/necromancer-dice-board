@@ -38,6 +38,8 @@ for (const type of ["guardianSeed", "plague", "ghoul", "goblinChief", "goblinSol
 assert.strictEqual(unitData.UNIT_TYPES.worm.label, "역병 벌레");
 assert.strictEqual(unitData.UNIT_TYPES.seaWolf.label, "바다 늑대");
 assert.strictEqual(unitData.UNIT_TYPES.icePrincess.label, "얼음 공주");
+assert.strictEqual(unitData.UNIT_TYPES.soulReaper.label, "리치");
+assert.strictEqual(unitData.UNIT_TYPES.mummyGuardian.label, "미이라");
 assert.strictEqual(unitData.UNIT_TYPES.siren.label, "세이렌");
 unitData.validateUnitRegistry();
 
