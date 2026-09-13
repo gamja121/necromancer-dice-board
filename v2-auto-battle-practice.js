@@ -32,6 +32,14 @@
   };
   const GRADE_LABELS = { normal: "일반", advanced: "희귀", hero: "영웅", special: "소환물" };
   const LEGION_LABELS = { skeleton: "언데드", corpse: "시체", beast: "야수", plague: "역병", ice: "얼음", summon: "소환", demon: "악마", insect: "벌래", plant: "식물", element: "원소" };
+  const INFO_PORTRAIT_ROOT = "art/v2-style/ui/info-portraits/";
+  const INFO_PORTRAIT_ART = Object.freeze({
+    "abyss-claw-hunter": `${INFO_PORTRAIT_ROOT}abyss-claw-hunter.png?v=1`,
+    "corpse-slime": `${INFO_PORTRAIT_ROOT}corpse-slime.png?v=1`,
+    medusa: `${INFO_PORTRAIT_ROOT}medusa.png?v=1`,
+    siren: `${INFO_PORTRAIT_ROOT}siren.png?v=1`,
+    "abyss-harpy": `${INFO_PORTRAIT_ROOT}abyss-harpy.png?v=1`
+  });
   // Viewports into the unmodified uploaded icon sheet: top row, then bottom row.
   const BRAND_ICON_VIEWS = Object.freeze({
     critical: [216, 48, 228, 228], vampire: [526, 48, 234, 228], guard: [841, 48, 228, 228],
@@ -196,7 +204,7 @@
     const definition = typeof UNIT_TYPES !== "undefined" ? UNIT_TYPES[UNIT_TYPE_KEYS[slug]] : null;
     const grade = definition?.grade;
     const legions = definition?.legion == null ? [] : [].concat(definition.legion);
-    return { slug, name, maxHp, attack, speed, grade, legions, portrait: `art/v2-style/processed/192/${portraitSlug}.png`, portraitBounds: PORTRAIT_BOUNDS[portraitSlug] || [0, 0, 192, 192], frames: { attack: attackFrames, hit: hitFrames, death: deathFrames } };
+    return { slug, name, maxHp, attack, speed, grade, legions, portrait: `art/v2-style/processed/192/${portraitSlug}.png`, infoPortrait: INFO_PORTRAIT_ART[slug] || null, portraitBounds: PORTRAIT_BOUNDS[portraitSlug] || [0, 0, 192, 192], frames: { attack: attackFrames, hit: hitFrames, death: deathFrames } };
   }
 
   function frame(unitState, motion, index) {
@@ -719,10 +727,22 @@
   function openUnitInfo(unitState) {
     if (!awaitingRoll || diceRolling) return;
     unitInfoName.textContent = unitState.name;
-    unitInfoImage.setAttribute("href", unitState.portrait);
-    const [x, y, width, height] = unitState.portraitBounds;
-    const padding = Math.max(width, height) * 0.06;
-    unitInfoPortrait.setAttribute("viewBox", `${x - padding} ${y - padding} ${width + padding * 2} ${height + padding * 2}`);
+    unitInfoImage.setAttribute("href", unitState.infoPortrait || unitState.portrait);
+    if (unitState.infoPortrait) {
+      unitInfoImage.setAttribute("x", "0");
+      unitInfoImage.setAttribute("y", "0");
+      unitInfoImage.setAttribute("width", "192");
+      unitInfoImage.setAttribute("height", "288");
+      unitInfoPortrait.setAttribute("viewBox", "0 0 192 288");
+    } else {
+      unitInfoImage.setAttribute("x", "0");
+      unitInfoImage.setAttribute("y", "0");
+      unitInfoImage.setAttribute("width", "192");
+      unitInfoImage.setAttribute("height", "192");
+      const [x, y, width, height] = unitState.portraitBounds;
+      const padding = Math.max(width, height) * 0.06;
+      unitInfoPortrait.setAttribute("viewBox", `${x - padding} ${y - padding} ${width + padding * 2} ${height + padding * 2}`);
+    }
     unitInfoPortrait.setAttribute("aria-label", unitState.name);
     unitInfoGrade.textContent = GRADE_LABELS[unitState.grade] || "미지정";
     unitInfoLegion.textContent = unitState.legions.map((key) => LEGION_LABELS[key] || key).join(" · ") || "미지정";
