@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-expedition-v227";
+const CACHE_NAME = "necromancer-expedition-v228";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -46,7 +46,7 @@ const APP_SHELL = [
   "./v2-map-practice.js?v=5",
   "./v2-landscape.js?v=1",
   "./v2-auto-battle-practice.html",
-  "./v2-auto-battle-practice.css?v=49",
+  "./v2-auto-battle-practice.css?v=50",
   "./v2-battle-brands.js?v=3",
   "./v2-legions.js?v=3",
   "./v2-auto-battle-practice.js?v=57",
@@ -197,7 +197,7 @@ const APP_SHELL = [
   "./art/v2-style/battle-backgrounds/uploaded-raw/wasteland-chasm-battlefield.jpg",
   "./art/v2-style/battle-backgrounds/uploaded-raw/haunted-forest-ruins-battlefield.jpg",
   "./art/v2-style/battle-backgrounds/uploaded-raw/necropolis-pyramids-battlefield.jpg",
-  "./art/v2-style/ui/unit-info-window.png?v=2",
+  "./art/v2-style/ui/unit-info-window.png?v=3",
   "./art/v2-style/processed/192/ghoul.png",
   "./art/v2-style/processed/192/goblin-rider.png",
   "./art/v2-style/processed/192/ogre.png",

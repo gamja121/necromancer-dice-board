@@ -32,7 +32,7 @@ assert(html.includes('id="turnDiceButton"'), "Between-turn dice control is missi
 assert(html.includes('id="unitInfoOverlay"'), "Unit information window is missing.");
 assert(html.includes('id="unitInfoImage"'), "Unit information portrait is missing.");
 assert(html.includes('class="unit-info-frame-art"') && html.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit information window art is missing.");
-assert(html.includes("unit-info-window.png?v=2"), "Unit information window cache version is stale.");
+assert(html.includes("unit-info-window.png?v=3"), "Unit information window cache version is stale.");
 assert(html.includes("legion-info-window-hd.png?v=2"), "Legion information window cache version is stale.");
 assert(html.includes('id="unitInfoHp"') && html.includes('id="unitInfoAttack"') && html.includes('id="unitInfoSpeed"'), "Basic unit stats are missing.");
 const basicPanel = html.match(/<section class="unit-info-basic"[\s\S]*?<\/section>/)?.[0] || "";
@@ -134,9 +134,9 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v227'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v228'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=49"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=50"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
 assert(worker.includes("v2-auto-battle-practice.js?v=57") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
 assert(source.includes('serviceWorker.register("./service-worker.js", { updateViaCache: "none" })'), "The standalone battle page must request service-worker updates directly.");
 assert(worker.includes('new Request(event.request, { cache: "reload" })'), "Navigation must bypass stale browser HTTP cache before updating the offline copy.");
