@@ -130,7 +130,7 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v220'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v221'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
 assert(worker.includes("v2-auto-battle-practice.css?v=48"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
 assert(worker.includes("v2-auto-battle-practice.js?v=57") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
@@ -138,8 +138,8 @@ assert(source.includes('serviceWorker.register("./service-worker.js", { updateVi
 assert(worker.includes('new Request(event.request, { cache: "reload" })'), "Navigation must bypass stale browser HTTP cache before updating the offline copy.");
 assert(worker.includes("art/v2-style/ui/freeze-status-label.png"), "Persistent freeze label is not cached.");
 assert(worker.includes("v2-damage-digits.js?v=4") && worker.includes("art/v2-style/ui/healing-digits-sheet.jpg"), "Healing digit art is not cached.");
-assert(worker.includes("v2-unit-cards.js?v=17"), "Summoned-unit card mapping is not cached.");
-for (const slug of ["goblin-commoner","sea-wolf","grave-priest","abyss-eye","doom-executor","death-knight","hell-mantis","scorpion-knight","ancient-treant","stone-golem"]) assert(worker.includes(`art/v2-style/ui/unit-card-${slug}.png?v=13`), `Replacement ${slug} card art is not cached.`);
+assert(worker.includes("v2-unit-cards.js?v=18"), "Summoned-unit card mapping is not cached.");
+for (const slug of ["goblin-commoner","sea-wolf","grave-priest","abyss-eye","doom-executor","death-knight","hell-mantis","scorpion-knight","ancient-treant","stone-golem","kraken","crystal-devourer","skeleton-spear","skeleton-archer","spider-knight"]) assert(worker.includes(`art/v2-style/ui/unit-card-${slug}.png?v=14`), `Replacement ${slug} card art is not cached.`);
 for (const slug of ["guardian-seed","spiderling"]) assert(worker.includes(`art/v2-style/ui/unit-card-${slug}.jpg`), `Summoned ${slug} card art is not cached.`);
 assert(worker.includes("art/v2-style/ui/legion-slot-frame.png"), "The cropped one-cell legion frame is not cached.");
 assert(fs.existsSync(path.join(root, "art/v2-style/ui/corpse-selection-arrow.png")) && worker.includes("art/v2-style/ui/corpse-selection-arrow.png"), "The corpse-selection arrow asset must be stored and cached.");
