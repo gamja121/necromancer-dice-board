@@ -729,10 +729,13 @@
     unitInfoName.textContent = unitState.name;
     unitInfoImage.setAttribute("href", unitState.infoPortrait || unitState.portrait);
     if (unitState.infoPortrait) {
-      unitInfoImage.setAttribute("x", "0");
-      unitInfoImage.setAttribute("y", "0");
-      unitInfoImage.setAttribute("width", "192");
-      unitInfoImage.setAttribute("height", "288");
+      // The uploaded portrait includes its own wooden card border. Enlarge it
+      // uniformly so that border is clipped by the information-window slot and
+      // the character art fills the slot without distortion.
+      unitInfoImage.setAttribute("x", "-24");
+      unitInfoImage.setAttribute("y", "-36");
+      unitInfoImage.setAttribute("width", "240");
+      unitInfoImage.setAttribute("height", "360");
       unitInfoPortrait.setAttribute("viewBox", "0 0 192 288");
     } else {
       unitInfoImage.setAttribute("x", "0");

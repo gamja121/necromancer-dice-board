@@ -134,10 +134,10 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v229'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v230'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
 assert(worker.includes("v2-auto-battle-practice.css?v=50"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=58") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=59") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
 assert(source.includes('serviceWorker.register("./service-worker.js", { updateViaCache: "none" })'), "The standalone battle page must request service-worker updates directly.");
 assert(worker.includes('new Request(event.request, { cache: "reload" })'), "Navigation must bypass stale browser HTTP cache before updating the offline copy.");
 assert(worker.includes("art/v2-style/ui/freeze-status-label.png"), "Persistent freeze label is not cached.");
@@ -291,7 +291,7 @@ assert(vm.runInContext("INFO_PORTRAIT_ART.medusa", infoContext) === "art/v2-styl
 infoContext.selected = { ...vm.runInContext("ROSTER_BY_SLUG.get('abyss-claw-hunter')", infoContext), hp: 10, alive: true, team: "ally" };
 vm.runInContext("openUnitInfo(selected)", infoContext);
 assert(infoContext.unitInfoImage.attrs.href === "art/v2-style/ui/info-portraits/abyss-claw-hunter.png?v=1", "The information window must show the dedicated framed portrait.");
-assert(infoContext.unitInfoPortrait.attrs.viewBox === "0 0 192 288" && infoContext.unitInfoImage.attrs.height === "288", "The vertical information portrait must fit the portrait slot without cropping.");
+assert(infoContext.unitInfoPortrait.attrs.viewBox === "0 0 192 288" && infoContext.unitInfoImage.attrs.x === "-24" && infoContext.unitInfoImage.attrs.y === "-36" && infoContext.unitInfoImage.attrs.width === "240" && infoContext.unitInfoImage.attrs.height === "360", "The framed portrait must be uniformly enlarged to fill the information-window slot.");
 vm.runInContext("closeUnitInfo()", infoContext);
 assert(!vm.runInContext("ROSTER.some(unit => unit.slug === 'guardian-seed')", infoContext), "The non-attacking Guardian Seed must stay out of the battle picker.");
 const selectableRoster = vm.runInContext("ROSTER.map(unit => ({ slug: unit.slug, portrait: unit.portrait, frames: unit.frames, frameNumbers: unit.frameNumbers }))", infoContext);
