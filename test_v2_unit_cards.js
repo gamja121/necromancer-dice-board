@@ -2,7 +2,7 @@ const assert = require('assert');
 function node() { return { children:[],dataset:{},style:{},classList:{add(){},toggle(){}},setAttribute(){},append(...v){this.children.push(...v)},replaceChildren(){this.children=[]},addEventListener(t,f){this[t]=f},querySelector(){return this.children[0]} }; }
 global.document = {createElement:node};
 const api = require('./v2-unit-cards');
-for (const slug of ['corpse-slime','minotaur','plague-frog','ice-lord','yeti','goblin-commoner','sea-wolf','grave-priest','abyss-eye','doom-executor']) {
+for (const slug of ['corpse-slime','minotaur','plague-frog','ice-lord','yeti','goblin-commoner','sea-wolf','grave-priest','abyss-eye','doom-executor','death-knight','hell-mantis','scorpion-knight','ancient-treant','stone-golem']) {
   assert(api.ART.includes(slug));
   assert(api.CUTOUT_ART.has(slug));
   const cutout = require('path').join(__dirname, 'art/v2-style/ui/unit-card-' + slug + '.png');
@@ -61,7 +61,7 @@ for (const slug of ['goblin-commoner','guardian-seed','spiderling']) {
 units[0]={...units[0],slug:'guardian-seed'};
 api.sync(field,units,u=>selected=u);
 assert.equal(field.children.length,1);
-assert(units[0].infoCard.children[0].style.backgroundImage.includes('unit-card-guardian-seed.png?v=12'));
+assert(units[0].infoCard.children[0].style.backgroundImage.includes('unit-card-guardian-seed.png?v=13'));
 assert.equal(units[0].infoCard.children[0].children.length,0);
 units[0].infoCard.click(); assert.equal(selected,units[0]);
 api.setPhase('acting'); assert(units.every(u=>u.infoCard.disabled));
