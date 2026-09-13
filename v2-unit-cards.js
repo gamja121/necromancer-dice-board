@@ -1,7 +1,7 @@
 (function(root) {
   const ART = ['corpse-slime','minotaur','ice-lord','plague-frog','orc-warrior','plague-doctor','ghoul','goblin-chief','goblin-soldier','sea-wolf','grave-priest','abyss-eye','doom-executor','death-knight','hell-mantis','scorpion-knight','ancient-treant','stone-golem','kraken','crystal-devourer','skeleton-spear','skeleton-archer','skeleton-cavalry','spider-knight','raging-treant','cerberus','mushroom-soldier','goblin-rider','abyss-harpy','boulder-ogre','bone-golem','forest-fairy','flesh-golem','hydra','ice-princess'];
   ART.push('mimic','bone-hound','soul-reaper','mummy-guardian','siren','grave-worm','yeti','goblin-commoner','guardian-seed','spiderling');
-  const CUTOUT_ART = new Set(['corpse-slime','minotaur','plague-frog','ice-lord','yeti','guardian-seed','plague-doctor','ghoul','goblin-chief','goblin-soldier','goblin-commoner','sea-wolf','grave-priest','abyss-eye','doom-executor','death-knight','hell-mantis','scorpion-knight','ancient-treant','stone-golem','kraken','crystal-devourer','skeleton-spear','skeleton-archer','spider-knight','raging-treant','cerberus','mushroom-soldier','goblin-rider','orc-warrior','boulder-ogre','bone-golem','forest-fairy','flesh-golem','hydra','ice-princess','mimic','bone-hound','soul-reaper','mummy-guardian']);
+  const CUTOUT_ART = new Set(['corpse-slime','minotaur','plague-frog','ice-lord','yeti','guardian-seed','plague-doctor','ghoul','goblin-chief','goblin-soldier','goblin-commoner','sea-wolf','grave-priest','abyss-eye','doom-executor','death-knight','hell-mantis','scorpion-knight','ancient-treant','stone-golem','kraken','crystal-devourer','skeleton-spear','skeleton-archer','spider-knight','raging-treant','cerberus','mushroom-soldier','goblin-rider','orc-warrior','boulder-ogre','bone-golem','forest-fairy','flesh-golem','hydra','ice-princess','mimic','bone-hound','soul-reaper','mummy-guardian','skeleton-cavalry','spiderling','grave-worm','abyss-harpy']);
   let selected;
   let phase = 'locked', currentUnits = [], currentDock;
   function setPhase(value) {
@@ -42,7 +42,7 @@
           art.classList.add('has-card-art');
           if (CUTOUT_ART.has(unit.slug)) {
             art.classList.add('has-cutout-card');
-            art.style.backgroundImage = 'url("art/v2-style/ui/unit-card-' + unit.slug + '.png?v=17")';
+            art.style.backgroundImage = 'url("art/v2-style/ui/unit-card-' + unit.slug + '.png?v=18")';
           } else {
             // Crop the supplied 1280x575 photo to the card only, without changing the original.
             art.style.backgroundImage = 'url("art/v2-style/ui/unit-card-' + unit.slug + '.jpg?v=9")';
