@@ -31,8 +31,8 @@ assert(html.includes('id="turnDice"'), "Between-turn dice panel is missing.");
 assert(html.includes('id="turnDiceButton"'), "Between-turn dice control is missing.");
 assert(html.includes('id="unitInfoOverlay"'), "Unit information window is missing.");
 assert(html.includes('id="unitInfoImage"'), "Unit information portrait is missing.");
-assert(html.includes('class="unit-info-frame-art"') && html.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit information window art is missing.");
-assert(html.includes("unit-info-window.png?v=3"), "Unit information window cache version is stale.");
+assert(html.includes('class="unit-info-frame-art"') && html.includes("art/v2-style/ui/unit-info-window-no-portrait.png"), "Portrait-box-free unit information window art is missing.");
+assert(html.includes("unit-info-window-no-portrait.png?v=1"), "Unit information window cache version is stale.");
 assert(html.includes("legion-info-window-hd.png?v=2"), "Legion information window cache version is stale.");
 assert(html.includes('id="unitInfoHp"') && html.includes('id="unitInfoAttack"') && html.includes('id="unitInfoSpeed"'), "Basic unit stats are missing.");
 const basicPanel = html.match(/<section class="unit-info-basic"[\s\S]*?<\/section>/)?.[0] || "";
@@ -134,10 +134,10 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v230'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v231'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
 assert(worker.includes("v2-auto-battle-practice.css?v=50"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=59") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=60") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
 assert(source.includes('serviceWorker.register("./service-worker.js", { updateViaCache: "none" })'), "The standalone battle page must request service-worker updates directly.");
 assert(worker.includes('new Request(event.request, { cache: "reload" })'), "Navigation must bypass stale browser HTTP cache before updating the offline copy.");
 assert(worker.includes("art/v2-style/ui/freeze-status-label.png"), "Persistent freeze label is not cached.");
@@ -217,7 +217,7 @@ assert(source.includes("baseMaxHp: data.maxHp") && source.includes("baseAttack: 
 assert(css.includes(".healing-number {") && css.includes("#7cff83"), "Healing feedback must be visibly distinct from damage.");
 assert(source.includes('insect: "벌래"'), "The unit info legion label must use 벌래 instead of 곤충.");
 assert(source.includes('V2Legions.suppressed(legionState, team)') && source.includes("상대 군단 효과 억제 중"), "Element suppression must be visible in the battle UI and unit info.");
-assert(worker.includes("art/v2-style/ui/unit-info-window.png"), "Cropped unit info frame is not cached.");
+assert(fs.existsSync(path.join(root, "art/v2-style/ui/unit-info-window-no-portrait.png")) && worker.includes("art/v2-style/ui/unit-info-window-no-portrait.png?v=1"), "Portrait-box-free unit info frame must exist and be cached.");
 // Exercise the real information-window functions without a rendering engine.
 const infoContext = { awaitingRoll: true, diceRolling: false, lastDiceRoll: null, legionState:{}, V2Legions:{active:()=>false,suppressed:()=>false,RULES:{}}, V2BattleBrands: require("./v2-battle-brands.js"), document: { getElementById: () => ({ focus() {} }) } };
 for (const name of ["unitInfoName", "unitInfoImage", "unitInfoPortrait", "unitInfoGrade", "unitInfoLegion", "unitInfoHp", "unitInfoAttack", "unitInfoSpeed", "unitInfoBrands", "legionInfoContent", "unitInfoOverlay"]) infoContext[name] = { textContent: "", hidden: true, attrs: {}, setAttribute(key, value) { this.attrs[key] = value; } };
@@ -291,7 +291,7 @@ assert(vm.runInContext("INFO_PORTRAIT_ART.medusa", infoContext) === "art/v2-styl
 infoContext.selected = { ...vm.runInContext("ROSTER_BY_SLUG.get('abyss-claw-hunter')", infoContext), hp: 10, alive: true, team: "ally" };
 vm.runInContext("openUnitInfo(selected)", infoContext);
 assert(infoContext.unitInfoImage.attrs.href === "art/v2-style/ui/info-portraits/abyss-claw-hunter.png?v=1", "The information window must show the dedicated framed portrait.");
-assert(infoContext.unitInfoPortrait.attrs.viewBox === "0 0 192 288" && infoContext.unitInfoImage.attrs.x === "-24" && infoContext.unitInfoImage.attrs.y === "-36" && infoContext.unitInfoImage.attrs.width === "240" && infoContext.unitInfoImage.attrs.height === "360", "The framed portrait must be uniformly enlarged to fill the information-window slot.");
+assert(infoContext.unitInfoPortrait.attrs.viewBox === "0 0 192 288" && infoContext.unitInfoImage.attrs.x === "0" && infoContext.unitInfoImage.attrs.y === "0" && infoContext.unitInfoImage.attrs.width === "192" && infoContext.unitInfoImage.attrs.height === "288", "The complete framed portrait must overlay the blank information-window area without cropping.");
 vm.runInContext("closeUnitInfo()", infoContext);
 assert(!vm.runInContext("ROSTER.some(unit => unit.slug === 'guardian-seed')", infoContext), "The non-attacking Guardian Seed must stay out of the battle picker.");
 const selectableRoster = vm.runInContext("ROSTER.map(unit => ({ slug: unit.slug, portrait: unit.portrait, frames: unit.frames, frameNumbers: unit.frameNumbers }))", infoContext);

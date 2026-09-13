@@ -729,13 +729,12 @@
     unitInfoName.textContent = unitState.name;
     unitInfoImage.setAttribute("href", unitState.infoPortrait || unitState.portrait);
     if (unitState.infoPortrait) {
-      // The uploaded portrait includes its own wooden card border. Enlarge it
-      // uniformly so that border is clipped by the information-window slot and
-      // the character art fills the slot without distortion.
-      unitInfoImage.setAttribute("x", "-24");
-      unitInfoImage.setAttribute("y", "-36");
-      unitInfoImage.setAttribute("width", "240");
-      unitInfoImage.setAttribute("height", "360");
+      // Dedicated portrait cards sit over the frame artwork's blank upper-left
+      // parchment area, so their own wooden border remains fully visible.
+      unitInfoImage.setAttribute("x", "0");
+      unitInfoImage.setAttribute("y", "0");
+      unitInfoImage.setAttribute("width", "192");
+      unitInfoImage.setAttribute("height", "288");
       unitInfoPortrait.setAttribute("viewBox", "0 0 192 288");
     } else {
       unitInfoImage.setAttribute("x", "0");

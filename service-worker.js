@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-expedition-v230";
+const CACHE_NAME = "necromancer-expedition-v231";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -49,7 +49,7 @@ const APP_SHELL = [
   "./v2-auto-battle-practice.css?v=50",
   "./v2-battle-brands.js?v=3",
   "./v2-legions.js?v=3",
-  "./v2-auto-battle-practice.js?v=59",
+  "./v2-auto-battle-practice.js?v=60",
   "./art/v2-style/ui/freeze-status-label.png",
   "./art/v2-style/ui/legion-slot-frame.png",
   "./art/v2-style/ui/legion-info-window-hd.png?v=2",
@@ -197,7 +197,7 @@ const APP_SHELL = [
   "./art/v2-style/battle-backgrounds/uploaded-raw/wasteland-chasm-battlefield.jpg",
   "./art/v2-style/battle-backgrounds/uploaded-raw/haunted-forest-ruins-battlefield.jpg",
   "./art/v2-style/battle-backgrounds/uploaded-raw/necropolis-pyramids-battlefield.jpg",
-  "./art/v2-style/ui/unit-info-window.png?v=3",
+  "./art/v2-style/ui/unit-info-window-no-portrait.png?v=1",
   "./art/v2-style/ui/info-portraits/abyss-claw-hunter.png?v=1",
   "./art/v2-style/ui/info-portraits/corpse-slime.png?v=1",
   "./art/v2-style/ui/info-portraits/medusa.png?v=1",
