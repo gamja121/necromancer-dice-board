@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-expedition-v242";
+const CACHE_NAME = "necromancer-expedition-v243";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -197,7 +197,7 @@ const APP_SHELL = [
   "./art/v2-style/battle-backgrounds/uploaded-raw/wasteland-chasm-battlefield.jpg",
   "./art/v2-style/battle-backgrounds/uploaded-raw/haunted-forest-ruins-battlefield.jpg",
   "./art/v2-style/battle-backgrounds/uploaded-raw/necropolis-pyramids-battlefield.jpg",
-  "./art/v2-style/ui/unit-info-window-no-portrait.png?v=2",
+  "./art/v2-style/ui/unit-info-window-no-portrait.png?v=3",
   "./art/v2-style/ui/info-portraits/abyss-claw-hunter.png?v=1",
   "./art/v2-style/ui/info-portraits/corpse-slime.png?v=1",
   "./art/v2-style/ui/info-portraits/medusa.png?v=1",
