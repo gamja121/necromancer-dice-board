@@ -134,10 +134,10 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v240'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v241'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
 assert(worker.includes("v2-auto-battle-practice.css?v=50"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=69") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=70") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
 assert(source.includes('serviceWorker.register("./service-worker.js", { updateViaCache: "none" })'), "The standalone battle page must request service-worker updates directly.");
 assert(worker.includes('new Request(event.request, { cache: "reload" })'), "Navigation must bypass stale browser HTTP cache before updating the offline copy.");
 assert(worker.includes("art/v2-style/ui/freeze-status-label.png"), "Persistent freeze label is not cached.");
@@ -147,9 +147,9 @@ for (const slug of ["goblin-commoner","sea-wolf","grave-priest","abyss-eye","doo
 for (const slug of ["abyss-claw-hunter", "corpse-slime", "medusa", "siren", "abyss-harpy", "grave-worm", "goblin-commoner", "spiderling", "skeleton-cavalry", "mummy-guardian", "soul-reaper", "bone-hound", "mimic", "ice-princess", "hydra", "flesh-golem", "forest-fairy", "bone-golem", "boulder-ogre", "orc-warrior", "goblin-rider", "mushroom-soldier", "cerberus", "raging-treant", "spider-knight", "skeleton-archer", "skeleton-spear", "crystal-devourer", "kraken", "stone-golem", "ancient-treant", "scorpion-knight", "hell-mantis", "death-knight", "doom-executor", "abyss-eye", "grave-priest", "sea-wolf", "goblin-soldier", "goblin-chief", "ghoul", "plague-doctor", "yeti", "ice-lord", "plague-frog", "minotaur"]) {
   const portrait = `art/v2-style/ui/info-portraits/${slug}.png`;
   assert(fs.existsSync(path.join(root, portrait)), `Information portrait is missing: ${slug}`);
-  assert(worker.includes(`${portrait}?v=${slug === "siren" ? 2 : 1}`), `Information portrait is not cached: ${slug}`);
+  assert(worker.includes(`${portrait}?v=${slug === "siren" ? 3 : slug === "minotaur" ? 2 : 1}`), `Information portrait is not cached: ${slug}`);
 }
-assert(fs.existsSync(path.join(root, "art/v2-style/ui/info-portraits/guardian-seed.png")) && worker.includes("art/v2-style/ui/info-portraits/guardian-seed.png?v=1"), "Guardian Seed information portrait must be stored and cached.");
+assert(fs.existsSync(path.join(root, "art/v2-style/ui/info-portraits/guardian-seed.png")) && worker.includes("art/v2-style/ui/info-portraits/guardian-seed.png?v=2"), "Guardian Seed information portrait must be stored and cached.");
 for (const slug of ["guardian-seed","spiderling"]) assert(worker.includes(`art/v2-style/ui/unit-card-${slug}.jpg`), `Summoned ${slug} card art is not cached.`);
 assert(worker.includes("art/v2-style/ui/legion-slot-frame.png"), "The cropped one-cell legion frame is not cached.");
 assert(fs.existsSync(path.join(root, "art/v2-style/ui/corpse-selection-arrow.png")) && worker.includes("art/v2-style/ui/corpse-selection-arrow.png"), "The corpse-selection arrow asset must be stored and cached.");
@@ -286,9 +286,9 @@ assert(vm.runInContext("new Set(ROSTER.map(unit => unit.slug)).size", infoContex
 assert(vm.runInContext("ROSTER_BY_SLUG.get('abyss-claw-hunter').name", infoContext) === "심연 집게사냥꾼", "The new monster must be selectable by its assigned name.");
 assert(vm.runInContext("ROSTER_BY_SLUG.get('corpse-slime').name", infoContext) === "시체 슬라임", "Corpse Slime must be selectable by its assigned name.");
 for (const slug of ["abyss-claw-hunter", "corpse-slime", "siren", "abyss-harpy", "grave-worm", "goblin-commoner", "spiderling", "skeleton-cavalry", "mummy-guardian", "soul-reaper", "bone-hound", "mimic", "ice-princess", "hydra", "flesh-golem", "forest-fairy", "bone-golem", "boulder-ogre", "orc-warrior", "goblin-rider", "mushroom-soldier", "cerberus", "raging-treant", "spider-knight", "skeleton-archer", "skeleton-spear", "crystal-devourer", "kraken", "stone-golem", "ancient-treant", "scorpion-knight", "hell-mantis", "death-knight", "doom-executor", "abyss-eye", "grave-priest", "sea-wolf", "goblin-soldier", "goblin-chief", "ghoul", "plague-doctor", "yeti", "ice-lord", "plague-frog", "minotaur"]) {
-  assert(vm.runInContext(`ROSTER_BY_SLUG.get('${slug}').infoPortrait`, infoContext) === `art/v2-style/ui/info-portraits/${slug}.png?v=${slug === "siren" ? 2 : 1}`, `Dedicated information portrait is not connected: ${slug}`);
+  assert(vm.runInContext(`ROSTER_BY_SLUG.get('${slug}').infoPortrait`, infoContext) === `art/v2-style/ui/info-portraits/${slug}.png?v=${slug === "siren" ? 3 : slug === "minotaur" ? 2 : 1}`, `Dedicated information portrait is not connected: ${slug}`);
 }
-assert(vm.runInContext("INFO_PORTRAIT_ART['guardian-seed']", infoContext) === "art/v2-style/ui/info-portraits/guardian-seed.png?v=1", "Guardian Seed information portrait must be connected to summoned unit data.");
+assert(vm.runInContext("INFO_PORTRAIT_ART['guardian-seed']", infoContext) === "art/v2-style/ui/info-portraits/guardian-seed.png?v=2", "Guardian Seed information portrait must be connected to summoned unit data.");
 assert(vm.runInContext("INFO_PORTRAIT_ART.medusa", infoContext) === "art/v2-style/ui/info-portraits/medusa.png?v=1", "Medusa information portrait must remain registered for its roster connection.");
 infoContext.selected = { ...vm.runInContext("ROSTER_BY_SLUG.get('abyss-claw-hunter')", infoContext), hp: 10, alive: true, team: "ally" };
 vm.runInContext("openUnitInfo(selected)", infoContext);

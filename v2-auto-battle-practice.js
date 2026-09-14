@@ -37,7 +37,7 @@
     "abyss-claw-hunter": `${INFO_PORTRAIT_ROOT}abyss-claw-hunter.png?v=1`,
     "corpse-slime": `${INFO_PORTRAIT_ROOT}corpse-slime.png?v=1`,
     medusa: `${INFO_PORTRAIT_ROOT}medusa.png?v=1`,
-    siren: `${INFO_PORTRAIT_ROOT}siren.png?v=2`,
+    siren: `${INFO_PORTRAIT_ROOT}siren.png?v=3`,
     "abyss-harpy": `${INFO_PORTRAIT_ROOT}abyss-harpy.png?v=1`,
     "grave-worm": `${INFO_PORTRAIT_ROOT}grave-worm.png?v=1`,
     "goblin-commoner": `${INFO_PORTRAIT_ROOT}goblin-commoner.png?v=1`,
@@ -79,8 +79,8 @@
     yeti: `${INFO_PORTRAIT_ROOT}yeti.png?v=1`,
     "ice-lord": `${INFO_PORTRAIT_ROOT}ice-lord.png?v=1`,
     "plague-frog": `${INFO_PORTRAIT_ROOT}plague-frog.png?v=1`,
-    minotaur: `${INFO_PORTRAIT_ROOT}minotaur.png?v=1`,
-    "guardian-seed": `${INFO_PORTRAIT_ROOT}guardian-seed.png?v=1`
+    minotaur: `${INFO_PORTRAIT_ROOT}minotaur.png?v=2`,
+    "guardian-seed": `${INFO_PORTRAIT_ROOT}guardian-seed.png?v=2`
   });
   // Viewports into the unmodified uploaded icon sheet: top row, then bottom row.
   const BRAND_ICON_VIEWS = Object.freeze({
