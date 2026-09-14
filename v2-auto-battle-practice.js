@@ -58,7 +58,12 @@
     "mushroom-soldier": `${INFO_PORTRAIT_ROOT}mushroom-soldier.png?v=1`,
     cerberus: `${INFO_PORTRAIT_ROOT}cerberus.png?v=1`,
     "raging-treant": `${INFO_PORTRAIT_ROOT}raging-treant.png?v=1`,
-    "spider-knight": `${INFO_PORTRAIT_ROOT}spider-knight.png?v=1`
+    "spider-knight": `${INFO_PORTRAIT_ROOT}spider-knight.png?v=1`,
+    "skeleton-archer": `${INFO_PORTRAIT_ROOT}skeleton-archer.png?v=1`,
+    "skeleton-spear": `${INFO_PORTRAIT_ROOT}skeleton-spear.png?v=1`,
+    "crystal-devourer": `${INFO_PORTRAIT_ROOT}crystal-devourer.png?v=1`,
+    kraken: `${INFO_PORTRAIT_ROOT}kraken.png?v=1`,
+    "stone-golem": `${INFO_PORTRAIT_ROOT}stone-golem.png?v=1`
   });
   // Viewports into the unmodified uploaded icon sheet: top row, then bottom row.
   const BRAND_ICON_VIEWS = Object.freeze({
