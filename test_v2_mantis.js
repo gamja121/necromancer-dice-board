@@ -13,7 +13,7 @@ const sourceHeight = goblin ? 575 : blood ? 1280 : hydra || princess ? 576 : 698
 const scorpion = process.argv.includes("--scorpion");
 const hound = process.argv.includes("--hound");
 const slug = goblin ? "goblin-soldier" : princess ? "ice-princess" : blood ? "bone-golem" : seed ? "guardian-seed" : harpy ? "abyss-harpy" : hydra ? "hydra" : hound ? "bone-hound" : scorpion ? "scorpion-knight" : "hell-mantis";
-const label = goblin ? "고블린 병사" : princess ? "얼음 공주" : blood ? "핏빛 해골" : seed ? "수호 씨앗" : harpy ? "심연 하피" : hydra ? "히드라" : hound ? "뼈 사냥개" : scorpion ? "전갈 기사" : "지옥 사마귀";
+const label = goblin ? "고블린 병사" : princess ? "얼음 여왕" : blood ? "핏빛 해골" : seed ? "수호 씨앗" : harpy ? "심연 하피" : hydra ? "히드라" : hound ? "뼈 사냥개" : scorpion ? "전갈 기사" : "지옥 사마귀";
 const canvasWidth = blood ? 320 : scorpion ? 340 : 280;
 const api = require(goblin ? "./v2-goblin-frames.js" : princess ? "./v2-princess-frames.js" : blood ? "./v2-blood-frames.js" : seed ? "./v2-seed-frames.js" : harpy ? "./v2-harpy-frames.js" : hydra ? "./v2-hydra-frames.js" : hound ? "./v2-hound-frames.js" : scorpion ? "./v2-scorpion-frames.js" : "./v2-mantis-frames.js");
 function decode(relative) {

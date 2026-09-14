@@ -377,7 +377,7 @@ var UNIT_TYPES = {
   },
   icePrincess: {
     ultimateStyle: "magic",
-    label: "얼음 공주",
+    label: "얼음 여왕",
     legion: ["ice", "element"],
     grade: "advanced",
     hp: 4,

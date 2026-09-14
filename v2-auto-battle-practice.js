@@ -38,7 +38,17 @@
     "corpse-slime": `${INFO_PORTRAIT_ROOT}corpse-slime.png?v=1`,
     medusa: `${INFO_PORTRAIT_ROOT}medusa.png?v=1`,
     siren: `${INFO_PORTRAIT_ROOT}siren.png?v=1`,
-    "abyss-harpy": `${INFO_PORTRAIT_ROOT}abyss-harpy.png?v=1`
+    "abyss-harpy": `${INFO_PORTRAIT_ROOT}abyss-harpy.png?v=1`,
+    "grave-worm": `${INFO_PORTRAIT_ROOT}grave-worm.png?v=1`,
+    "goblin-commoner": `${INFO_PORTRAIT_ROOT}goblin-commoner.png?v=1`,
+    spiderling: `${INFO_PORTRAIT_ROOT}spiderling.png?v=1`,
+    "skeleton-cavalry": `${INFO_PORTRAIT_ROOT}skeleton-cavalry.png?v=1`,
+    "mummy-guardian": `${INFO_PORTRAIT_ROOT}mummy-guardian.png?v=1`,
+    "soul-reaper": `${INFO_PORTRAIT_ROOT}soul-reaper.png?v=1`,
+    "bone-hound": `${INFO_PORTRAIT_ROOT}bone-hound.png?v=1`,
+    mimic: `${INFO_PORTRAIT_ROOT}mimic.png?v=1`,
+    "ice-princess": `${INFO_PORTRAIT_ROOT}ice-princess.png?v=1`,
+    hydra: `${INFO_PORTRAIT_ROOT}hydra.png?v=1`
   });
   // Viewports into the unmodified uploaded icon sheet: top row, then bottom row.
   const BRAND_ICON_VIEWS = Object.freeze({
