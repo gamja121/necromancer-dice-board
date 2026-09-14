@@ -63,7 +63,12 @@
     "skeleton-spear": `${INFO_PORTRAIT_ROOT}skeleton-spear.png?v=1`,
     "crystal-devourer": `${INFO_PORTRAIT_ROOT}crystal-devourer.png?v=1`,
     kraken: `${INFO_PORTRAIT_ROOT}kraken.png?v=1`,
-    "stone-golem": `${INFO_PORTRAIT_ROOT}stone-golem.png?v=1`
+    "stone-golem": `${INFO_PORTRAIT_ROOT}stone-golem.png?v=1`,
+    "ancient-treant": `${INFO_PORTRAIT_ROOT}ancient-treant.png?v=1`,
+    "scorpion-knight": `${INFO_PORTRAIT_ROOT}scorpion-knight.png?v=1`,
+    "hell-mantis": `${INFO_PORTRAIT_ROOT}hell-mantis.png?v=1`,
+    "death-knight": `${INFO_PORTRAIT_ROOT}death-knight.png?v=1`,
+    "doom-executor": `${INFO_PORTRAIT_ROOT}doom-executor.png?v=1`
   });
   // Viewports into the unmodified uploaded icon sheet: top row, then bottom row.
   const BRAND_ICON_VIEWS = Object.freeze({
