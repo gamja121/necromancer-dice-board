@@ -68,7 +68,12 @@
     "scorpion-knight": `${INFO_PORTRAIT_ROOT}scorpion-knight.png?v=1`,
     "hell-mantis": `${INFO_PORTRAIT_ROOT}hell-mantis.png?v=1`,
     "death-knight": `${INFO_PORTRAIT_ROOT}death-knight.png?v=1`,
-    "doom-executor": `${INFO_PORTRAIT_ROOT}doom-executor.png?v=1`
+    "doom-executor": `${INFO_PORTRAIT_ROOT}doom-executor.png?v=1`,
+    "abyss-eye": `${INFO_PORTRAIT_ROOT}abyss-eye.png?v=1`,
+    "grave-priest": `${INFO_PORTRAIT_ROOT}grave-priest.png?v=1`,
+    "sea-wolf": `${INFO_PORTRAIT_ROOT}sea-wolf.png?v=1`,
+    "goblin-soldier": `${INFO_PORTRAIT_ROOT}goblin-soldier.png?v=1`,
+    "goblin-chief": `${INFO_PORTRAIT_ROOT}goblin-chief.png?v=1`
   });
   // Viewports into the unmodified uploaded icon sheet: top row, then bottom row.
   const BRAND_ICON_VIEWS = Object.freeze({

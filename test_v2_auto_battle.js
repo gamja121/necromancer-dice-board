@@ -134,17 +134,17 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v237'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v238'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
 assert(worker.includes("v2-auto-battle-practice.css?v=50"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
-assert(worker.includes("v2-auto-battle-practice.js?v=66") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
+assert(worker.includes("v2-auto-battle-practice.js?v=67") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
 assert(source.includes('serviceWorker.register("./service-worker.js", { updateViaCache: "none" })'), "The standalone battle page must request service-worker updates directly.");
 assert(worker.includes('new Request(event.request, { cache: "reload" })'), "Navigation must bypass stale browser HTTP cache before updating the offline copy.");
 assert(worker.includes("art/v2-style/ui/freeze-status-label.png"), "Persistent freeze label is not cached.");
 assert(worker.includes("v2-damage-digits.js?v=4") && worker.includes("art/v2-style/ui/healing-digits-sheet.jpg"), "Healing digit art is not cached.");
 assert(worker.includes("v2-unit-cards.js?v=23"), "Summoned-unit card mapping is not cached.");
 for (const slug of ["goblin-commoner","sea-wolf","grave-priest","abyss-eye","doom-executor","death-knight","hell-mantis","scorpion-knight","ancient-treant","stone-golem","kraken","crystal-devourer","skeleton-spear","skeleton-archer","spider-knight","raging-treant","cerberus","mushroom-soldier","goblin-rider","orc-warrior","boulder-ogre","bone-golem","forest-fairy","flesh-golem","hydra","ice-princess","mimic","bone-hound","soul-reaper","mummy-guardian","skeleton-cavalry","spiderling","grave-worm","abyss-harpy","siren","abyss-claw-hunter"]) assert(worker.includes(`art/v2-style/ui/unit-card-${slug}.png?v=19`), `Replacement ${slug} card art is not cached.`);
-for (const slug of ["abyss-claw-hunter", "corpse-slime", "medusa", "siren", "abyss-harpy", "grave-worm", "goblin-commoner", "spiderling", "skeleton-cavalry", "mummy-guardian", "soul-reaper", "bone-hound", "mimic", "ice-princess", "hydra", "flesh-golem", "forest-fairy", "bone-golem", "boulder-ogre", "orc-warrior", "goblin-rider", "mushroom-soldier", "cerberus", "raging-treant", "spider-knight", "skeleton-archer", "skeleton-spear", "crystal-devourer", "kraken", "stone-golem", "ancient-treant", "scorpion-knight", "hell-mantis", "death-knight", "doom-executor"]) {
+for (const slug of ["abyss-claw-hunter", "corpse-slime", "medusa", "siren", "abyss-harpy", "grave-worm", "goblin-commoner", "spiderling", "skeleton-cavalry", "mummy-guardian", "soul-reaper", "bone-hound", "mimic", "ice-princess", "hydra", "flesh-golem", "forest-fairy", "bone-golem", "boulder-ogre", "orc-warrior", "goblin-rider", "mushroom-soldier", "cerberus", "raging-treant", "spider-knight", "skeleton-archer", "skeleton-spear", "crystal-devourer", "kraken", "stone-golem", "ancient-treant", "scorpion-knight", "hell-mantis", "death-knight", "doom-executor", "abyss-eye", "grave-priest", "sea-wolf", "goblin-soldier", "goblin-chief"]) {
   const portrait = `art/v2-style/ui/info-portraits/${slug}.png`;
   assert(fs.existsSync(path.join(root, portrait)), `Information portrait is missing: ${slug}`);
   assert(worker.includes(`${portrait}?v=1`), `Information portrait is not cached: ${slug}`);
@@ -284,7 +284,7 @@ assert(vm.runInContext("ROSTER.length", infoContext) === 45, "Every attack-capab
 assert(vm.runInContext("new Set(ROSTER.map(unit => unit.slug)).size", infoContext) === 45, "The ally picker must not contain duplicate units.");
 assert(vm.runInContext("ROSTER_BY_SLUG.get('abyss-claw-hunter').name", infoContext) === "심연 집게사냥꾼", "The new monster must be selectable by its assigned name.");
 assert(vm.runInContext("ROSTER_BY_SLUG.get('corpse-slime').name", infoContext) === "시체 슬라임", "Corpse Slime must be selectable by its assigned name.");
-for (const slug of ["abyss-claw-hunter", "corpse-slime", "siren", "abyss-harpy", "grave-worm", "goblin-commoner", "spiderling", "skeleton-cavalry", "mummy-guardian", "soul-reaper", "bone-hound", "mimic", "ice-princess", "hydra", "flesh-golem", "forest-fairy", "bone-golem", "boulder-ogre", "orc-warrior", "goblin-rider", "mushroom-soldier", "cerberus", "raging-treant", "spider-knight", "skeleton-archer", "skeleton-spear", "crystal-devourer", "kraken", "stone-golem", "ancient-treant", "scorpion-knight", "hell-mantis", "death-knight", "doom-executor"]) {
+for (const slug of ["abyss-claw-hunter", "corpse-slime", "siren", "abyss-harpy", "grave-worm", "goblin-commoner", "spiderling", "skeleton-cavalry", "mummy-guardian", "soul-reaper", "bone-hound", "mimic", "ice-princess", "hydra", "flesh-golem", "forest-fairy", "bone-golem", "boulder-ogre", "orc-warrior", "goblin-rider", "mushroom-soldier", "cerberus", "raging-treant", "spider-knight", "skeleton-archer", "skeleton-spear", "crystal-devourer", "kraken", "stone-golem", "ancient-treant", "scorpion-knight", "hell-mantis", "death-knight", "doom-executor", "abyss-eye", "grave-priest", "sea-wolf", "goblin-soldier", "goblin-chief"]) {
   assert(vm.runInContext(`ROSTER_BY_SLUG.get('${slug}').infoPortrait`, infoContext) === `art/v2-style/ui/info-portraits/${slug}.png?v=1`, `Dedicated information portrait is not connected: ${slug}`);
 }
 assert(vm.runInContext("INFO_PORTRAIT_ART.medusa", infoContext) === "art/v2-style/ui/info-portraits/medusa.png?v=1", "Medusa information portrait must remain registered for its roster connection.");
