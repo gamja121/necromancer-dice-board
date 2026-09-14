@@ -48,7 +48,12 @@
     "bone-hound": `${INFO_PORTRAIT_ROOT}bone-hound.png?v=1`,
     mimic: `${INFO_PORTRAIT_ROOT}mimic.png?v=1`,
     "ice-princess": `${INFO_PORTRAIT_ROOT}ice-princess.png?v=1`,
-    hydra: `${INFO_PORTRAIT_ROOT}hydra.png?v=1`
+    hydra: `${INFO_PORTRAIT_ROOT}hydra.png?v=1`,
+    "flesh-golem": `${INFO_PORTRAIT_ROOT}flesh-golem.png?v=1`,
+    "forest-fairy": `${INFO_PORTRAIT_ROOT}forest-fairy.png?v=1`,
+    "bone-golem": `${INFO_PORTRAIT_ROOT}bone-golem.png?v=1`,
+    "boulder-ogre": `${INFO_PORTRAIT_ROOT}boulder-ogre.png?v=1`,
+    "orc-warrior": `${INFO_PORTRAIT_ROOT}orc-warrior.png?v=1`
   });
   // Viewports into the unmodified uploaded icon sheet: top row, then bottom row.
   const BRAND_ICON_VIEWS = Object.freeze({
