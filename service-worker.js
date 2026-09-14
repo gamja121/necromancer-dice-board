@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-expedition-v239";
+const CACHE_NAME = "necromancer-expedition-v240";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -49,7 +49,7 @@ const APP_SHELL = [
   "./v2-auto-battle-practice.css?v=50",
   "./v2-battle-brands.js?v=3",
   "./v2-legions.js?v=3",
-  "./v2-auto-battle-practice.js?v=68",
+  "./v2-auto-battle-practice.js?v=69",
   "./art/v2-style/ui/freeze-status-label.png",
   "./art/v2-style/ui/legion-slot-frame.png",
   "./art/v2-style/ui/legion-info-window-hd.png?v=2",
@@ -201,7 +201,7 @@ const APP_SHELL = [
   "./art/v2-style/ui/info-portraits/abyss-claw-hunter.png?v=1",
   "./art/v2-style/ui/info-portraits/corpse-slime.png?v=1",
   "./art/v2-style/ui/info-portraits/medusa.png?v=1",
-  "./art/v2-style/ui/info-portraits/siren.png?v=1",
+  "./art/v2-style/ui/info-portraits/siren.png?v=2",
   "./art/v2-style/ui/info-portraits/abyss-harpy.png?v=1",
   "./art/v2-style/ui/info-portraits/grave-worm.png?v=1",
   "./art/v2-style/ui/info-portraits/goblin-commoner.png?v=1",
@@ -243,6 +243,8 @@ const APP_SHELL = [
   "./art/v2-style/ui/info-portraits/yeti.png?v=1",
   "./art/v2-style/ui/info-portraits/ice-lord.png?v=1",
   "./art/v2-style/ui/info-portraits/plague-frog.png?v=1",
+  "./art/v2-style/ui/info-portraits/minotaur.png?v=1",
+  "./art/v2-style/ui/info-portraits/guardian-seed.png?v=1",
   "./art/v2-style/processed/192/ghoul.png",
   "./art/v2-style/processed/192/goblin-rider.png",
   "./art/v2-style/processed/192/ogre.png",
