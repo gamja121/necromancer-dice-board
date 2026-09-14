@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-expedition-v238";
+const CACHE_NAME = "necromancer-expedition-v239";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -49,7 +49,7 @@ const APP_SHELL = [
   "./v2-auto-battle-practice.css?v=50",
   "./v2-battle-brands.js?v=3",
   "./v2-legions.js?v=3",
-  "./v2-auto-battle-practice.js?v=67",
+  "./v2-auto-battle-practice.js?v=68",
   "./art/v2-style/ui/freeze-status-label.png",
   "./art/v2-style/ui/legion-slot-frame.png",
   "./art/v2-style/ui/legion-info-window-hd.png?v=2",
@@ -238,6 +238,11 @@ const APP_SHELL = [
   "./art/v2-style/ui/info-portraits/sea-wolf.png?v=1",
   "./art/v2-style/ui/info-portraits/goblin-soldier.png?v=1",
   "./art/v2-style/ui/info-portraits/goblin-chief.png?v=1",
+  "./art/v2-style/ui/info-portraits/ghoul.png?v=1",
+  "./art/v2-style/ui/info-portraits/plague-doctor.png?v=1",
+  "./art/v2-style/ui/info-portraits/yeti.png?v=1",
+  "./art/v2-style/ui/info-portraits/ice-lord.png?v=1",
+  "./art/v2-style/ui/info-portraits/plague-frog.png?v=1",
   "./art/v2-style/processed/192/ghoul.png",
   "./art/v2-style/processed/192/goblin-rider.png",
   "./art/v2-style/processed/192/ogre.png",

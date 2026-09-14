@@ -73,7 +73,12 @@
     "grave-priest": `${INFO_PORTRAIT_ROOT}grave-priest.png?v=1`,
     "sea-wolf": `${INFO_PORTRAIT_ROOT}sea-wolf.png?v=1`,
     "goblin-soldier": `${INFO_PORTRAIT_ROOT}goblin-soldier.png?v=1`,
-    "goblin-chief": `${INFO_PORTRAIT_ROOT}goblin-chief.png?v=1`
+    "goblin-chief": `${INFO_PORTRAIT_ROOT}goblin-chief.png?v=1`,
+    ghoul: `${INFO_PORTRAIT_ROOT}ghoul.png?v=1`,
+    "plague-doctor": `${INFO_PORTRAIT_ROOT}plague-doctor.png?v=1`,
+    yeti: `${INFO_PORTRAIT_ROOT}yeti.png?v=1`,
+    "ice-lord": `${INFO_PORTRAIT_ROOT}ice-lord.png?v=1`,
+    "plague-frog": `${INFO_PORTRAIT_ROOT}plague-frog.png?v=1`
   });
   // Viewports into the unmodified uploaded icon sheet: top row, then bottom row.
   const BRAND_ICON_VIEWS = Object.freeze({
