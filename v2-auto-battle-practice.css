@@ -155,7 +155,7 @@ button, a { font: inherit; }
 .unit-info-overlay { position: absolute; z-index: 90; inset: 0; display: flex; align-items: center; justify-content: flex-start; gap: 1.8%; padding: 3.5% 5%; }
 .unit-info-overlay[hidden] { display: none; }
 .unit-info-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #030201c4; backdrop-filter: blur(2px); }
-.unit-info-panel { position: relative; z-index: 1; height: min(90%, 650px); aspect-ratio: 430 / 514; overflow: hidden; border: 0; background: #c9aaa0; box-shadow: 0 18px 42px #000e; }
+.unit-info-panel { position: relative; z-index: 1; height: min(90%, 650px); aspect-ratio: 430 / 514; overflow: hidden; border: 0; background: transparent; box-shadow: none; }
 .unit-info-frame-art { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; pointer-events: none; user-select: none; }
 .legion-info-panel { position: relative; z-index: 1; flex-shrink: 0; width: min(42%, 520px); aspect-ratio: 643 / 470; overflow: hidden; background: transparent; clip-path: polygon(2% 0, 98% 0, 100% 4%, 100% 96%, 98% 100%, 2% 100%, 0 96%, 0 4%); }
 .legion-info-frame-art { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; pointer-events: none; user-select: none; }
