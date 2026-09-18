@@ -135,9 +135,9 @@ for (const slug of ["death-knight", "skeleton-spear", "ghoul", "ancient-treant",
   }
 }
 
-assert(worker.includes('necromancer-expedition-v244'), "Service worker cache version was not advanced.");
+assert(worker.includes('necromancer-expedition-v245'), "Service worker cache version was not advanced.");
 assert(worker.includes("v2-auto-battle-practice.html"), "Auto battle page is not cached.");
-assert(worker.includes("v2-auto-battle-practice.css?v=51"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
+assert(worker.includes("v2-auto-battle-practice.css?v=52"), "Turn dice, lineup picker and illustrated unit info styling is not cached.");
 assert(worker.includes("v2-auto-battle-practice.js?v=70") && worker.includes("v2-legions.js?v=3") && worker.includes("v2-battle-brands.js?v=3"), "Turn-based status battle logic is not cached.");
 assert(source.includes('serviceWorker.register("./service-worker.js", { updateViaCache: "none" })'), "The standalone battle page must request service-worker updates directly.");
 assert(worker.includes('new Request(event.request, { cache: "reload" })'), "Navigation must bypass stale browser HTTP cache before updating the offline copy.");
@@ -158,7 +158,8 @@ assert(html.includes('class="legion-info-panel"') && html.includes('id="legionIn
 assert(css.includes('.legion-info-panel') && css.includes('background: url("art/v2-style/ui/corpse-selection-arrow.png")'), "Separate legion window and corpse-selection arrow styling are missing.");
 assert(html.includes('id="capturePanel"') && !html.includes('id="captureRollButton"'), "Soul harvest must use the central dice without a separate button.");
 assert(html.match(/id="capturePanel"[\s\S]*?legion-info-window-hd\.png[\s\S]*?class="legion-info-inner"/), "Soul-harvest guidance must reuse the legion-effect information window.");
-assert(css.includes("mix-blend-mode: screen") && css.includes("saturate(2.2) brightness(1.28)"), "The corpse selection arrow must screen out black pixels and remain vivid red.");
+assert(css.includes("mix-blend-mode: screen") && css.includes("saturate(3) brightness(1.18)"), "The corpse selection arrow must screen out black pixels and remain vivid red.");
+assert(css.includes(".unit-info-card.is-dead { filter: none; opacity: 1; }") && css.includes(".unit-info-card.is-dead > .unit-card-art { filter: grayscale(1); opacity: .6; }"), "Dead-card grayscale must not desaturate the red corpse-selection arrow.");
 assert(source.includes("function returnToMap()") && (source.match(/returnToMap\(\);/g) || []).length >= 2, "Both successful and failed soul harvests must return to the map.");
 assert(source.includes('classList.contains("is-corpse-capture")') && source.includes("rollCorpseCapture()"), "The central dice must perform soul harvest during corpse selection.");
 assert(css.includes("height: clamp(86px, 12vw, 142px)") && css.includes("border-image:") && !css.includes(".battlefield-capture button"), "The soul-harvest guidance window must tightly fit its text and remain button-free.");

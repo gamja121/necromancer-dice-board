@@ -12,7 +12,8 @@
 @media (prefers-reduced-motion: reduce) { .unit-info-card { transition: none; } }
 .unit-info-card:hover, .unit-info-card:focus-visible { z-index: 5; }
 .unit-info-card:focus-visible { outline: 3px solid #ffd875; outline-offset: -2px; }
-.unit-info-card.is-dead { filter: grayscale(1); opacity: .6; }
+.unit-info-card.is-dead { filter: none; opacity: 1; }
+.unit-info-card.is-dead > .unit-card-art { filter: grayscale(1); opacity: .6; }
 .unit-card-art { display: block; margin: auto; height: min(clamp(80px, 18dvh, 160px), 29cqw); aspect-ratio: 370 / 540; overflow: hidden; background: #ccb990; border-radius: 4px; }
 .unit-card-art.has-card-art { background-size: 346% 106.5%; background-position: 51.7% 44%; background-repeat: no-repeat; }
 .unit-card-art.has-cutout-card { background-color: transparent; background-size: contain; background-position: center; }
@@ -42,7 +43,7 @@
 .unit.is-capture-selected .sprite-wrap { filter: drop-shadow(0 0 11px #75f08b) brightness(1.15); }
 .unit-info-card.is-capture-candidate { cursor: pointer; opacity: .82; outline: 1px solid #cf9d54; outline-offset: -2px; }
 .unit-info-card.is-capture-selected { z-index: 7; opacity: 1; outline: 3px solid #76e58a; translate: 0 -8px; }
-.unit-info-card.is-capture-selected::before { content: ""; position: absolute; z-index: 12; left: 50%; bottom: calc(100% + 3px); width: clamp(35px, 5.2vw, 67px); aspect-ratio: 1; background: url("art/v2-style/ui/corpse-selection-arrow.png") center / contain no-repeat; pointer-events: none; mix-blend-mode: screen; filter: saturate(2.2) brightness(1.28) drop-shadow(0 3px 3px #000c); transform: translateX(-50%) rotate(180deg); transform-origin: center; animation: corpse-selection-arrow 650ms ease-in-out infinite alternate; }
+.unit-info-card.is-capture-selected::before { content: ""; position: absolute; z-index: 12; left: 50%; bottom: calc(100% + 3px); width: clamp(35px, 5.2vw, 67px); aspect-ratio: 1; background: url("art/v2-style/ui/corpse-selection-arrow.png") center / contain no-repeat; pointer-events: none; opacity: 1; mix-blend-mode: screen; filter: saturate(3) brightness(1.18) drop-shadow(0 3px 3px #000c); transform: translateX(-50%) rotate(180deg); transform-origin: center; animation: corpse-selection-arrow 650ms ease-in-out infinite alternate; }
 .unit-info-card.is-soul-harvested { visibility: hidden; }
 .soul-harvest-card { position: absolute; z-index: 96; margin: 0; translate: 0 0; pointer-events: none; outline: 0; }
 .soul-harvest-card::before { display: none; }
