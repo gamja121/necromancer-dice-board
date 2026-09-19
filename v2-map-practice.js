@@ -10,6 +10,13 @@
     winter: { name: "겨울 지역", image: `${ROOT}maps/winter-map.jpg` },
     hell: { name: "지옥 지역", image: `${ROOT}maps/hell-map.jpg` }
   };
+  const tileEventScenes = Object.freeze({
+    graveyard: Object.freeze({ title: "묘지", image: `${ROOT}events/graveyard.jpg` }),
+    home: Object.freeze({ title: "집", image: `${ROOT}events/home.jpg` }),
+    "fortune-teller-camp": Object.freeze({ title: "예언자", image: `${ROOT}events/fortune-teller.jpg` }),
+    village: Object.freeze({ title: "마을", image: `${ROOT}events/village.jpg` }),
+    rest: Object.freeze({ title: "숙영", image: `${ROOT}events/camp.jpg` })
+  });
   const tileTypes = [
     { id: "basic", name: "기본 타일", count: 2 },
     { id: "graveyard", name: "공동묘지 타일", count: 2 },
@@ -38,7 +45,11 @@
     diceButton: document.getElementById("mapDiceButton"),
     diceImage: document.getElementById("mapDiceImage"),
     diceResult: document.getElementById("diceResult"),
-    moveState: document.getElementById("moveState")
+    moveState: document.getElementById("moveState"),
+    eventOverlay: document.getElementById("tileEventOverlay"),
+    eventImage: document.getElementById("tileEventImage"),
+    eventTitle: document.getElementById("tileEventTitle"),
+    eventClose: document.getElementById("tileEventClose")
   };
   let positions = [];
   let currentTiles = [];
@@ -49,8 +60,9 @@
   const requestedMapId = new URLSearchParams(window.location.search).get("map");
   let activeMapId = maps[requestedMapId] ? requestedMapId : "default";
   let enteringBattle = false;
+  let eventOpen = false;
 
-  [...rollingFrames, ...resultFrames].forEach((src) => { const image = new Image(); image.src = src; });
+  [...rollingFrames, ...resultFrames, ...Object.values(tileEventScenes).map((scene) => scene.image)].forEach((src) => { const image = new Image(); image.src = src; });
 
   function wait(milliseconds) {
     return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
@@ -96,6 +108,31 @@
     return true;
   }
 
+  function openTileEvent(tile, step) {
+    const scene = tileEventScenes[tile?.id];
+    if (!scene || enteringBattle) return false;
+    eventOpen = true;
+    el.diceButton.disabled = true;
+    el.regenerate.disabled = true;
+    el.eventImage.src = scene.image;
+    el.eventImage.alt = `${scene.title} 풍경`;
+    el.eventTitle.textContent = `${step}번 · ${scene.title}`;
+    el.eventOverlay.hidden = false;
+    el.eventClose.focus();
+    return true;
+  }
+
+  function closeTileEvent() {
+    if (!eventOpen) return;
+    eventOpen = false;
+    rolling = false;
+    el.eventOverlay.hidden = true;
+    el.eventImage.removeAttribute("src");
+    el.diceButton.disabled = false;
+    el.regenerate.disabled = false;
+    el.diceButton.focus();
+  }
+
   function placeHero(animate = false) {
     const position = positions[heroIndex];
     el.hero.style.left = `${position.x}%`;
@@ -129,8 +166,9 @@
       step.textContent = String(index + 1);
       button.append(image, step);
       button.addEventListener("click", () => {
-        if (rolling) return;
+        if (rolling || eventOpen) return;
         selectTile(button, tile, index + 1);
+        if (openTileEvent(tile, index + 1)) return;
         enterMonsterBattle(tile, index + 1);
       });
       return button;
@@ -174,6 +212,10 @@
       await wait(320);
       if (enterMonsterBattle(currentTiles[heroIndex], heroIndex + 1)) return;
     }
+    if (openTileEvent(currentTiles[heroIndex], heroIndex + 1)) {
+      rolling = false;
+      return;
+    }
     el.diceButton.disabled = false;
     el.regenerate.disabled = false;
     rolling = false;
@@ -192,5 +234,9 @@
   if (initialMapButton && activeMapId !== "default") initialMapButton.click();
   el.regenerate.addEventListener("click", generateTiles);
   el.diceButton.addEventListener("click", rollAndMove);
+  el.eventClose.addEventListener("click", closeTileEvent);
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && eventOpen) closeTileEvent();
+  });
   generateTiles();
 })();

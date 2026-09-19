@@ -17,6 +17,7 @@ assert(html.includes('id="tileRing"'), "Map tile ring is missing.");
 assert(html.includes('id="regenerateButton"'), "Tile regeneration button is missing.");
 assert(html.includes('id="heroToken"'), "Hero token is missing.");
 assert(html.includes('id="mapDiceButton"'), "Map dice control is missing.");
+assert(html.includes('id="tileEventOverlay"') && html.includes('id="tileEventImage"') && html.includes('id="tileEventClose"'), "Centered tile event overlay is missing.");
 assert(css.includes("@media (orientation: portrait)"), "Portrait landscape fallback is missing.");
 assert(css.includes("rotate(90deg)"), "Map must rotate itself in portrait mode.");
 assert(html.includes("v2-landscape.js?v=1"), "Landscape orientation helper is missing.");
@@ -29,6 +30,8 @@ assert(source.includes("await wait(230)"), "Step-by-step movement timing is miss
 assert(source.includes('tile?.id !== "monster"') && source.includes('v2-auto-battle-practice.html?${params}'), "Monster tiles must open the battlefield test.");
 assert(source.includes('currentTiles[heroIndex]?.id === "monster"') && source.includes("enterMonsterBattle(currentTiles[heroIndex], heroIndex + 1)"), "Landing on a monster tile must open battle after dice movement.");
 assert(source.includes('from: "map", map: activeMapId, tile: String(step)'), "Monster battles must receive the selected map and tile context.");
+assert(source.includes("const tileEventScenes") && source.includes("openTileEvent(currentTiles[heroIndex], heroIndex + 1)"), "Landing on a supported tile must open its centered event scene.");
+assert(css.includes(".tile-event-overlay") && css.includes("place-items: center"), "Tile event scene must be centered over the map.");
 assert(tileCount(source) === 24, "Tile distribution must total 24.");
 
 function tileCount(text) {
@@ -51,10 +54,20 @@ for (const tile of ["home", "village", "fortune-teller-camp", "boss"]) {
 }
 assert(source.includes("[fixedTiles.home") && source.includes("fixedTiles.boss]"), "Home and boss tiles must bookend the route.");
 assert(source.includes("fixedTiles.village") && source.includes("fixedTiles.fortune"), "Village and fortune-teller tiles must be connected to the route.");
-assert(html.includes("v2-map-practice.js?v=5"), "The map page must load the monster-battle connection version.");
+const eventScenes = {
+  graveyard: "graveyard.jpg", home: "home.jpg", "fortune-teller-camp": "fortune-teller.jpg",
+  village: "village.jpg", rest: "camp.jpg"
+};
+for (const [tile, file] of Object.entries(eventScenes)) {
+  const relative = `art/v2-style/map-test/events/${file}`;
+  assert(fs.existsSync(path.join(root, relative)), `Event scene is missing for ${tile}: ${relative}`);
+  assert(worker.includes(relative), `Event scene is not cached: ${relative}`);
+  assert(source.includes(`${tile.includes("-") ? `"${tile}"` : tile}: Object.freeze`), `Event scene mapping is missing: ${tile}`);
+}
+assert(html.includes("v2-map-practice.js?v=6") && html.includes("v2-map-practice.css?v=4"), "The map page must load the tile-event connection version.");
 assert(worker.includes("v2-map-practice.html"), "Map test page is not cached.");
 assert(worker.includes("v2-landscape.js?v=1"), "Landscape helper is not cached.");
-assert(worker.includes("v2-map-practice.js?v=5"), "The connected monster-tile map logic is not cached.");
+assert(worker.includes("v2-map-practice.js?v=6") && worker.includes("v2-map-practice.css?v=4"), "The connected tile-event map logic is not cached.");
 assert(source.includes("requestedMapId") && source.includes('document.querySelector(`[data-map="${activeMapId}"]`)'), "Returning from battle must restore the selected map region.");
 const navigation = [];
 const battleLinkContext = {
