@@ -936,7 +936,7 @@
     if (token !== battleToken || !running) return;
     let signalImpact;
     const impactReady = new Promise(resolve => { signalImpact = resolve; });
-    const attackPlayback = playMotion(actor, "attack", actor.frames.attack, token, false, signalImpact);
+    let attackPlayback = playMotion(actor, "attack", actor.frames.attack, token, false, signalImpact);
     attackPlayback.then(signalImpact, signalImpact);
     await impactReady;
     if (token !== battleToken || !running) return;
@@ -961,17 +961,33 @@
     message.textContent = outcome.miss ? `${actor.name} 공격 빗나감` : outcome.cancelled ? `${actor.name} 공격 취소`
       : outcome.immune ? `${target.name} 수호 · 피해 무시`
       : `${actor.name} → ${target.name} · 피해 ${outcome.damage}${outcome.recovered ? ` · 흡혈 +${outcome.recovered}` : ""}`;
-    if (outcome.damage > 0) {
-      showDamage(target, outcome.damage);
-      target.element.classList.add("is-hit");
-      await Promise.all([
-        playMotion(target, "hit", target.frames.hit, token),
-        typeof V2CombatEffects !== "undefined" ? V2CombatEffects.play(target.element.querySelector(".sprite-wrap"), hitFrames,
-          {guard: () => token === battleToken && running, wait, speed: speedMultiplier}) : Promise.resolve()
-      ]);
+    const hitAmounts = outcome.hits.length ? outcome.hits : outcome.damage > 0 ? [outcome.damage] : [];
+    if (hitAmounts.length) {
+      for (let hitIndex = 0; hitIndex < hitAmounts.length; hitIndex += 1) {
+        if (hitIndex > 0) {
+          await attackPlayback;
+          if (token !== battleToken || !running) return;
+          let signalNextImpact;
+          const nextImpactReady = new Promise(resolve => { signalNextImpact = resolve; });
+          attackPlayback = playMotion(actor, "attack", actor.frames.attack, token, false, signalNextImpact);
+          attackPlayback.then(signalNextImpact, signalNextImpact);
+          await nextImpactReady;
+          if (token !== battleToken || !running) return;
+        }
+        const hitAmount = hitAmounts[hitIndex];
+        if (hitAmount > 0) showDamage(target, hitAmount);
+        else if (typeof V2DamageDigits !== "undefined") V2DamageDigits.showLabel(target, "immune");
+        target.element.classList.add("is-hit");
+        await Promise.all([
+          playMotion(target, "hit", target.frames.hit, token),
+          hitAmount > 0 && typeof V2CombatEffects !== "undefined" ? V2CombatEffects.play(target.element.querySelector(".sprite-wrap"), hitFrames,
+            {guard: () => token === battleToken && running, wait, speed: speedMultiplier}) : Promise.resolve()
+        ]);
+        if (token !== battleToken || !running) return;
+        target.element.classList.remove("is-hit");
+      }
     } else await wait(250 / speedMultiplier);
     if (token !== battleToken || !running) return;
-    target.element.classList.remove("is-hit");
     updateUnit(target);
 
     if (target.hp <= 0) {

@@ -10,6 +10,9 @@ let source=fs.readFileSync('v2-auto-battle-practice.js','utf8');
 assert(source.includes('if (outcome.miss) V2DamageDigits.showLabel(target, "miss")'));
 assert(source.includes('event.type === "heal" && event.source === "skeleton"'));
 assert(source.includes('undeadHealing.forEach(event => showHealing(event.unit, event.amount))'));
+assert(source.includes('const hitAmounts = outcome.hits.length ? outcome.hits'));
+assert(source.includes('for (let hitIndex = 0; hitIndex < hitAmounts.length; hitIndex += 1)'));
+assert(source.includes('showDamage(target, hitAmount)'));
 // Test-only access to the actual controller; no debug hook is shipped.
 source=source.replace('  resetBattle(true);','  globalThis.testUI={resetBattle,openUnitInfo,startTurn,performAttack,finishBattle, makeState, roster:ROSTER, get units(){return units;}, get state(){return rulesState;}, get token(){return battleToken;}, ready(){running=true; awaitingRoll=true;}, setRoll(n){lastDiceRoll=n;}, get queue(){return turnQueue;}};\n  resetBattle(true);');
 vm.createContext(context);vm.runInContext(source,context);
@@ -29,8 +32,13 @@ const a=ui.units[0];a.brands=[{type:'critical',bless:[4],curse:[1]},{type:'criti
 ui.openUnitInfo(a);assert.equal((nodes.get('unitInfoBrands').innerHTML.match(/class="brand-heading"/g)||[]).length,3);assert(nodes.get('legionInfoContent').innerHTML.includes('저주 [6]'));
 assert(nodes.get('unitInfoBrands').innerHTML.includes('brand-icons-extra-sheet.jpg'));
 (async()=>{
+ a.brands=[{type:'combo',bless:[4],curse:[1]}];
  ui.ready();ui.setRoll(4);await ui.startTurn();assert.equal(ui.state.round,1);assert(ui.queue.length>=8);
- for(const actor of [...ui.queue]){if(actor.alive)await ui.performAttack(actor,ui.token);}
+ await ui.performAttack(a,ui.token);
+ const comboDigits=ui.units.filter(unitState=>unitState.team==='enemy').flatMap(unitState=>unitState.element.querySelector('.sprite-wrap').children).filter(child=>child.className==='damage-number');
+ assert.equal(comboDigits.length,2,'Combo blessing must render one damage number for each strike');
+ a.brands=[{type:'critical',bless:[4],curse:[1]},{type:'critical',bless:[4],curse:[6]},{type:'counter',bless:[2],curse:[3]}];
+ for(const actor of [...ui.queue]){if(actor!==a&&actor.alive)await ui.performAttack(actor,ui.token);}
  assert(ui.units.every(u=>u.hp>=0&&u.alive===(u.hp>0)));
  const saved=JSON.parse(savedValues.get('necromancer-v2-battle-v1'));assert.equal(saved.state.round,1);assert(saved.state.units.every(u=>u.alive===(u.hp>0)));assert(saved.state.units[0].brands.length===3);
  const html=fs.readFileSync('v2-auto-battle-practice.html','utf8');assert(html.includes('>효과 정보</h2>'));assert(!html.includes('>기본 정보</h3>'));

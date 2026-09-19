@@ -22,6 +22,9 @@ for(const type of Object.keys(R.definitions))for(let i=0;i<1000;i++)assert(R.val
  const a=unit('hydra','ally',0,null,[b('combo')]),t=unit('skeleton-spear','enemy',0,'undying');const s=R.create([a,t]);R.begin(s);R.roll(s,4);t.hp=1;R.attack(s,a,t);assert(!t.alive);assert(t.undyingUsed);
 }
 {
+ const a=unit('hydra','ally',0,null,[b('combo',[4],[1])]),t=unit('hydra','enemy');t.maxHp=100;const s=R.create([a,t]);R.begin(s);R.roll(s,4);const out=R.attack(s,a,t);assert.equal(out.hits.length,2);assert.deepEqual(out.hits,[3,3]);assert.equal(out.damage,6);
+}
+{
  const a=unit('hydra','ally',0,null,[b('combo',[4],[1])]),t=unit('skeleton-spear','enemy');const s=R.create([a,t]);R.begin(s);R.roll(s,1);const hp=t.hp;const out=R.attack(s,a,t);assert(out.cancelled);assert(out.miss);assert.equal(out.damage,0);assert.equal(t.hp,hp);
 }
 {
@@ -29,6 +32,9 @@ for(const type of Object.keys(R.definitions))for(let i=0;i<1000;i++)assert(R.val
 }
 {
  const a=unit('hydra','ally',0,null,[b('poison')]),t=unit('skeleton-spear','enemy');const s=R.create([a,t]);R.begin(s);R.roll(s,4);R.attack(s,a,t);assert.equal(t.poison,1);assert.equal(R.before(s,t),1);assert.equal(R.before(s,t),1);assert.equal(R.before(s,t),0);
+}
+{
+ const a=unit('hydra','ally',0,null,[b('poison'),b('poison')]),t=unit('hydra','enemy');const s=R.create([a,t]);R.begin(s);R.roll(s,4);R.attack(s,a,t);assert.equal(t.poison,2);const hp=t.hp;assert.equal(R.before(s,t),2);assert.equal(t.hp,hp-2);assert.equal(R.before(s,t),2);assert.equal(R.before(s,t),0);
 }
 {
  const a=unit('skeleton-spear','ally',0,'initiative',[b('lightspeed',[2,3],[1])]),t=unit('siren','enemy');const s=R.create([a,t]);R.begin(s);assert.equal(R.roll(s,1)[0],a);R.begin(s);assert.equal(R.roll(s,1).at(-1),a);
