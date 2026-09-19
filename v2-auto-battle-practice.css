@@ -175,7 +175,7 @@ button, a { font: inherit; }
 .unit-info-portrait { min-width: 0; min-height: 0; overflow: hidden; border: 0; background: transparent; }
 .unit-info-portrait svg { display: block; width: 100%; height: 100%; }
 .unit-info-fields { display: grid; grid-template-rows: 42% minmax(0, 1fr); gap: 3%; min-width: 0; min-height: 0; }
-.unit-info-basic, .unit-info-stats { display: flex; flex-direction: column; justify-content: center; min-height: 0; padding: 3% 8%; overflow: auto; border: 0; background: transparent; }
+.unit-info-basic, .unit-info-stats { display: flex; flex-direction: column; justify-content: center; min-height: 0; padding: 3% 8%; overflow: hidden; border: 0; background: transparent; }
 .unit-info-fields h3 { margin: 0 0 4%; color: #291d17; font-size: clamp(12px, 1.2vw, 16px); font-weight: 1000; line-height: 1.2; text-align: center; text-shadow: 0 1px 0 #f3d8c3; }
 .unit-info-values { display: grid; gap: 3px; margin: 0; }
 .unit-info-values > div { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; min-width: 0; border: 0; background: transparent; }
@@ -185,7 +185,7 @@ button, a { font: inherit; }
 .unit-info-detail { position: absolute; z-index: 2; top: 47.2%; right: 5%; bottom: 4.8%; left: 5%; margin: 0; padding: 6% 6.5%; border: 0; background: transparent; }
 .unit-info-detail h3 { margin: 0 0 4%; color: #291d17; font: 1000 clamp(12px, 1.2vw, 16px)/1 Georgia, "Malgun Gothic", serif; text-align: center; text-shadow: 0 1px 0 #f3d8c3; }
 .unit-info-detail p { margin: 0; color: #2b201a; font-size: clamp(11px, 1vw, 15px); font-weight: 750; line-height: 1.5; }
-.unit-info-brands { max-height: 85%; overflow: auto; }
+.unit-info-brands { height: 100%; display: grid; grid-template-rows: repeat(4, minmax(0, 1fr)); align-items: center; gap: 3%; }
 .unit-info-empty { padding-top: 8%; text-align: center; }
 .battle-overlay { position: absolute; z-index: 80; inset: 0; display: grid; place-items: center; padding: 16px; background: #040302b8; backdrop-filter: blur(3px); }
 .battle-overlay[hidden] { display: none; }
@@ -284,3 +284,17 @@ button, a { font: inherit; }
 .unit-info-brands .brand-blessing { color: #1f5a2d; font-weight: 900; }
 .unit-info-brands .brand-curse { color: #792c27; font-weight: 900; }
 .unit-info-brands .brand-example, .unit-info-brands .brand-note { color: #49372d; font-size: clamp(10px, .95vw, 14px); font-weight: 700; }
+.unit-info-brands .brand-heading { height: 100%; min-height: 0; margin: 0; gap: 8px; }
+.unit-info-brands .brand-icon { height: 90%; width: auto; aspect-ratio: 1; max-height: 44px; border-radius: 10%; }
+.unit-info-brands .brand-heading h4, .passive-heading { font-size: clamp(10px, 1.15vw, 16px); line-height: 1.2; color: #211712; }
+.passive-heading { display: flex; align-items: center; gap: 8px; font-weight: 900; }
+.passive-symbol { display: grid; place-items: center; width: clamp(24px, 3vw, 40px); color: #49382e; }
+.legion-info-content > h3 { margin: 9px 0 4px; padding-bottom: 3px; border-bottom: 1px solid #6c504866; color: #34251c; font-size: clamp(10px, 1.1vw, 14px); }
+.legion-info-content > h3:first-child { margin-top: 0; }
+.legion-info-content > p, .effect-entry p { margin: 3px 0; text-align: left; color: #34251c; font-size: clamp(9px, 1vw, 13px); line-height: 1.45; }
+.effect-entry { margin: 7px 0; }
+.effect-entry h4 { margin: 0 0 3px; color: #281a12; font-size: clamp(10px, 1.05vw, 14px); }
+.effect-entry .effect-blessing { color: #244e2c; }
+.effect-entry .effect-curse { color: #782622; }
+#resumeBattleButton { position: absolute; bottom: 3%; right: 4%; z-index: 3; min-width: 0; height: 28px; font-size: 11px; }
+#resumeBattleButton[hidden] { display: none; }

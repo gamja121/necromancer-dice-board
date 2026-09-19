@@ -30,7 +30,7 @@
     "forest-fairy": "forestFairy", "mummy-guardian": "mummyGuardian", "soul-reaper": "soulReaper",
     "bone-hound": "boneHound", mimic: "mimic", "ice-princess": "icePrincess", siren: "siren"
   };
-  const GRADE_LABELS = { normal: "일반", advanced: "희귀", hero: "영웅", special: "소환물" };
+  const GRADE_LABELS = { normal: "일반", advanced: "고급", hero: "영웅", special: "소환물" };
   const LEGION_LABELS = { skeleton: "언데드", corpse: "시체", beast: "야수", plague: "역병", ice: "얼음", summon: "소환", demon: "악마", insect: "벌래", plant: "식물", element: "원소" };
   const INFO_PORTRAIT_ROOT = "art/v2-style/ui/info-portraits/";
   const INFO_PORTRAIT_ART = Object.freeze({
@@ -85,7 +85,9 @@
   // Viewports into the unmodified uploaded icon sheet: top row, then bottom row.
   const BRAND_ICON_VIEWS = Object.freeze({
     critical: [216, 48, 228, 228], vampire: [526, 48, 234, 228], guard: [841, 48, 228, 228],
-    poison: [216, 310, 228, 228], summon: [526, 310, 234, 228], healing: [843, 310, 228, 228]
+    poison: [216, 310, 228, 228], summon: [526, 310, 234, 228], healing: [843, 310, 228, 228],
+    combo: [222, 50, 220, 220], freeze: [850, 50, 220, 220],
+    lightspeed: [222, 316, 220, 220], counter: [852, 316, 220, 220]
   });
   // Visible alpha bounds in the existing 192px cutouts; bitmap files stay untouched.
   const PORTRAIT_BOUNDS = {
@@ -229,6 +231,34 @@
   let introRunning = false;
   let loadingLineup = false;
   let legionState = null;
+  let rulesState = null;
+  const BATTLE_SAVE_KEY = 'necromancer-v2-battle-v1';
+  function saveBattle(phase) {
+    if (typeof localStorage === 'undefined' || !rulesState) return;
+    try { localStorage.setItem(BATTLE_SAVE_KEY, JSON.stringify({state:V2Rules.snapshot(rulesState),phase,roll:lastDiceRoll,actions:actionCount,queue:turnQueue.map(u=>units.indexOf(u))})); }
+    catch(error) { console.warn('전투 저장 실패',error); message.textContent += ' · 저장 실패'; }
+  }
+  async function resumeBattle() {
+    try {
+      const saved=JSON.parse(localStorage.getItem(BATTLE_SAVE_KEY));
+      if (!saved || saved.phase==='complete') return;
+      const restored=V2Rules.restore(saved.state);
+      for (const u of restored.units) {
+        const data=u.slug==='guardian-seed'?unit('guardian-seed','씨앗',6,0,1,5,3,4):{...ROSTER_BY_SLUG.get(u.slug)};
+        await prepareSelectedMotion(data);
+        for(const k of ['portrait','infoPortrait','portraitBounds','frames','frameNumbers','motionFrames'])u[k]=data[k];
+        u.gauge=u.alive?100:0;u.brandDisplayMode=V2Rules.mode(u.brands[0],saved.roll);
+      }
+      battleToken++;rulesState=restored;units=restored.units;legionState=restored.legions;turnNumber=restored.round;
+      lastDiceRoll=saved.roll;actionCount=saved.actions||0;turnQueue=(saved.queue||[]).map(i=>units[i]).filter(Boolean);
+      running=true;paused=false;actionBusy=false;awaitingRoll=false;diceRolling=false;introRunning=false;
+      startOverlay.hidden=true;resultOverlay.hidden=true;renderTeams();
+      for(const u of units){revealUnit(u);if(!u.alive)u.image.src=frame(u,'death',u.frames.death);}
+      updateHud();speedButton.disabled=false;
+      if(saved.phase==='ready')beginTurnIntermission(false);
+      else {turnDice.hidden=true;pauseButton.disabled=false;message.textContent=`${turnNumber}턴 전투 재개`;}
+    } catch(error) { console.error(error);lineupStatus.textContent='저장된 전투를 불러오지 못했습니다. 원본 저장은 유지됩니다.'; }
+  }
   let selectedCorpse = null;
   let captureAttemptsLeft = 0;
   let captureTargetLocked = false;
@@ -246,7 +276,8 @@
     const definition = typeof UNIT_TYPES !== "undefined" ? UNIT_TYPES[UNIT_TYPE_KEYS[slug]] : null;
     const grade = definition?.grade;
     const legions = definition?.legion == null ? [] : [].concat(definition.legion);
-    return { slug, name, maxHp, attack, speed, grade, legions, portrait: `art/v2-style/processed/192/${portraitSlug}.png`, infoPortrait: INFO_PORTRAIT_ART[slug] || null, portraitBounds: PORTRAIT_BOUNDS[portraitSlug] || [0, 0, 192, 192], frames: { attack: attackFrames, hit: hitFrames, death: deathFrames } };
+    const design = V2DesignData.units[slug];
+    return { slug, name: design?.name || name, maxHp: design?.hp ?? maxHp, attack: design?.attack ?? attack, speed: design?.speed ?? speed, grade: design?.grade || grade, legions: design?.legions || legions, portrait: `art/v2-style/processed/192/${portraitSlug}.png`, infoPortrait: INFO_PORTRAIT_ART[slug] || null, portraitBounds: PORTRAIT_BOUNDS[portraitSlug] || [0, 0, 192, 192], frames: { attack: attackFrames, hit: hitFrames, death: deathFrames } };
   }
 
   function frame(unitState, motion, index) {
@@ -311,8 +342,8 @@
       ...selectedAllyTeam.map((data, slot) => makeState(data, "ally", slot)),
       ...selectedEnemyTeam.map((data, slot) => makeState(data, "enemy", slot))
     ];
-    legionState = V2Legions.create(units);
-    V2Legions.applyOpening(legionState, units);
+    rulesState = V2Rules.create(units);
+    legionState = rulesState.legions;
     renderTeams();
     if (typeof V2UnitCards !== "undefined") V2UnitCards.setPhase("locked");
     message.textContent = "전투 시작을 눌러주세요";
@@ -320,10 +351,8 @@
   }
 
   function makeState(data, team, slot) {
-    const brandIds = Object.keys(V2BattleBrands.definitions);
-    const fallbackBrand = brandIds[(slot + (team === "enemy" ? 4 : 0)) % brandIds.length];
-    const isSummon = UNIT_TYPES[UNIT_TYPE_KEYS[data.slug]]?.grade === "special";
-    return { ...data, isSummon, team, slot, baseMaxHp: data.maxHp, baseAttack: data.attack, baseSpeed: data.speed, hp: data.maxHp, gauge: 0, alive: true, brand: V2BattleBrands.samples[data.slug] || fallbackBrand, brandMode: "normal", brandDisplayMode: "normal", poison: 0, poisonAppliedTurn: null, element: null, image: null };
+    const generated = V2Rules.individual(data.slug);
+    return V2Rules.init({ ...data, ...generated, team, slot, gauge: 0, brand: generated.brands[0]?.type, brandMode: "normal", brandDisplayMode: "normal", element: null, image: null });
   }
 
   function renderTeams() {
@@ -342,18 +371,18 @@
   function renderActiveLegions() {
     for (const [team, host] of [["ally", allyActiveLegions], ["enemy", enemyActiveLegions]]) {
       host.replaceChildren();
-      const keys = Object.keys(V2Legions.RULES).filter(key => {
-        return V2Legions.active(legionState, team, key);
+      const keys = Object.keys(V2Rules.RULES).filter(key => {
+        return V2Rules.active(legionState, team, key);
       });
       if (!keys.length) {
         const empty = document.createElement("em");
         empty.className = "team-legion-empty";
-        empty.textContent = V2Legions.suppressed(legionState, team) ? "상대 원소로 억제" : "없음";
+        empty.textContent = V2Rules.suppressed(legionState, team) ? "상대 원소로 억제" : "없음";
         host.append(empty);
         continue;
       }
       for (const key of keys) {
-        const rule = V2Legions.RULES[key];
+        const rule = V2Rules.RULES[key];
         const count = legionState.teams[team].counts[key] || 0;
         const slot = document.createElement("div");
         slot.className = "active-legion-slot";
@@ -440,17 +469,19 @@
   function updateBrandIndicator(unitState) {
     if (!unitState.element) return;
     const label = unitState.element.querySelector(".brand-indicator");
-    const brand = V2BattleBrands.definitions[unitState.brand];
-    const mode = unitState.brandDisplayMode;
-    const visible = unitState.alive && brand && (mode === "blessing" || mode === "curse");
+    const previewRoll = 'brandPreviewRoll' in unitState ? unitState.brandPreviewRoll : lastDiceRoll;
+    const effects = (unitState.brands || []).map(b=>({brand:V2Rules.definitions[b.type],mode:V2Rules.mode(b,previewRoll)})).filter(x=>x.mode!=='normal');
+    const mode = effects.some(x=>x.mode==='curse')?'curse':'blessing';
+    const visible = unitState.alive && effects.length;
     label.hidden = !visible;
     label.className = visible ? `brand-indicator is-${mode}` : "brand-indicator";
-    label.textContent = visible ? `${brand.name.replace("의 낙인", "")} ${mode === "blessing" ? "축복" : "저주"}` : "";
+    label.textContent = visible ? effects.map(x=>`${x.brand.name.replace('의 낙인','')} ${x.mode==='blessing'?'축복':'저주'}`).join(' · ') : '';
   }
 
   function showRolledBrands(roll) {
     for (const unitState of units) {
-      unitState.brandDisplayMode = V2BattleBrands.mode(unitState.brand, roll);
+      unitState.brandPreviewRoll = roll;
+      unitState.brandDisplayMode = V2Rules.mode(unitState.brands[0], roll);
       updateBrandIndicator(unitState);
     }
   }
@@ -659,30 +690,35 @@
     turnNumber += 1;
     actionBusy = true;
     const token = battleToken;
-    for (const seed of units.filter(u => V2SummonRules.canBloom(u, turnNumber))) {
+    const plans = V2Rules.begin(rulesState);
+    for (const plan of plans) await summonFromPlan(plan, token);
+    if (token !== battleToken || !running) return;
+    for (const seed of units.filter(u => u.alive && u.slug === "guardian-seed" && turnNumber >= u.bornTurn + 2)) {
       await playMotion(seed, "attack", seed.frames.attack, token, true);
       if (token !== battleToken || !running) return;
       const plant = makeState({ ...ROSTER_BY_SLUG.get("crystal-devourer") }, seed.team, seed.slot);
-      plant.isSummon = false;
+      const plantDesign = V2DesignData.units['crystal-devourer'];
+      Object.assign(plant, {maxHp:plantDesign.hp, attack:plantDesign.attack, speed:plantDesign.speed});
+      V2Rules.init(plant);
+      plant.isSummon = true;
+      plant.brands = []; plant.passive = null;
       replaceFighter(seed, plant);
     }
-    const fallen = V2BattleBrands.startRound(units, lastDiceRoll);
-    V2Legions.startTurn(legionState, units);
+    turnQueue = V2Rules.roll(rulesState, lastDiceRoll);
+    saveBattle('acting');
+    const fallen = rulesState.events.filter(e => e.type === "death").map(e => e.unit);
     units.forEach(updateUnit);
     await Promise.all(fallen.map(unitState => playMotion(unitState, "death", unitState.frames.death, token, true)));
     if (token !== battleToken || !running) return;
     updateHud();
     if (!aliveUnits("ally").length || !aliveUnits("enemy").length) return finishBattle();
-    turnQueue = units.filter((unitState) => unitState.alive && unitState.slug !== "guardian-seed")
-      .map((unitState) => ({ unitState, tie: Math.random() }))
-      .sort((left, right) => right.unitState.speed - left.unitState.speed || left.tie - right.tie)
-      .map((entry) => entry.unitState);
     for (const unitState of units) {
       unitState.gauge = unitState.alive ? 100 : 0;
       updateUnit(unitState);
     }
-    message.textContent = `${turnNumber}턴 · 주사위 ${lastDiceRoll} · 속도 높은 순서로 전원 1회 행동`;
+    message.textContent = `${turnNumber}턴 · 주사위 ${lastDiceRoll}${turnNumber >= 15 ? ` · 광폭화 공격력 +${turnNumber - 14}` : ""}`;
     actionBusy = false;
+    saveBattle('acting');
   }
 
   function beginTurnIntermission(initial) {
@@ -702,6 +738,7 @@
     turnDiceButton.setAttribute("aria-label", `${turnNumber + 1}턴 주사위 굴리기`);
     battlefield.classList.add("is-between-turns");
     message.textContent = initial ? "주사위를 굴리면 1턴이 시작됩니다" : `${turnNumber}턴 종료 · 유닛 정보 확인 또는 주사위 굴리기`;
+    saveBattle('ready');
   }
 
   async function rollTurnDice() {
@@ -738,33 +775,10 @@
   }
 
   function legionDetails(unitState) {
-    const team = unitState.team;
-    const enemyTeamKey = team === "ally" ? "enemy" : "ally";
-    const ownLegions = unitState.legions || [];
-    const active = key => V2Legions.active(legionState, team, key);
-    const baseMaxHp = unitState.baseMaxHp ?? unitState.maxHp;
-    const baseAttack = unitState.baseAttack ?? unitState.attack;
-    const baseSpeed = unitState.baseSpeed ?? unitState.speed;
-    const applied = [];
-    if (active("plant") && unitState.maxHp !== baseMaxHp) applied.push(`식물 · 최대 체력 ${baseMaxHp} → ${unitState.maxHp}`);
-    if (active("insect") && unitState.attack !== baseAttack) applied.push(`벌래 · 공격력 ${baseAttack} → ${unitState.attack}`);
-    if (V2Legions.active(legionState, enemyTeamKey, "demon") && unitState.speed !== baseSpeed) applied.push(`상대 악마 · 속도 ${baseSpeed} → ${unitState.speed}`);
-    if (active("summon") && unitState.isSummon) applied.push(`소환 · 최대 체력 +3, 공격력 +1`);
-    if (active("skeleton") && ownLegions.includes("skeleton")) applied.push("언데드 · 행동 후 체력 1 회복");
-    if (active("beast") && ownLegions.includes("beast")) applied.push("야수 · 공격 시 치명타 확률 25%");
-    if (active("plague") && ownLegions.includes("plague")) applied.push("역병 · 공격 대상에게 다음 턴 중독 피해 1");
-    if (active("ice") && ownLegions.includes("ice")) applied.push("얼음 · 공격 시 결빙 확률 30%");
-    if (active("element")) applied.push("원소 · 상대 군단 효과 억제 중");
-    if (V2Legions.suppressed(legionState, team)) applied.push("상대 원소 · 우리 군단 효과 억제됨");
-    const activeKeys = Object.keys(V2Legions.RULES).filter(key => active(key));
-    const current = applied.length ? applied.map(text => `<li>${text}</li>`).join("") : "<li>이 유닛에 직접 적용된 효과 없음</li>";
-    const teamEffects = activeKeys.length ? activeKeys.map(key => {
-      const rule = V2Legions.RULES[key];
-      const count = legionState.teams[team].counts[key] || 0;
-      return `<li><b>${rule.name} ${count}/${rule.need}</b><span>${rule.effect}</span></li>`;
-    }).join("") : "<li>활성 군단 없음</li>";
-    return `<section class="legion-overview"><h4>현재 이 유닛에 적용</h4><ul class="legion-current-effects">${current}</ul><h4>${team === "ally" ? "아군" : "적군"} 활성 군단 · 간략 효과</h4><ul class="legion-team-effects">${teamEffects}</ul></section>`;
+    const keys = Object.keys(V2Rules.RULES).filter(key => V2Rules.active(legionState, unitState.team, key));
+    return `<ul class="legion-team-effects">${keys.map(key => `<li><b>${V2Rules.RULES[key].name} ${legionState.teams[unitState.team].counts[key]}/${V2Rules.RULES[key].need}</b><span>${V2Rules.RULES[key].effect}</span></li>`).join("") || "<li>활성 군단 없음</li>"}</ul>${V2Rules.suppressed(legionState,unitState.team) ? "<p>상대 원소: 군단 효과 억제</p>" : ""}<p>군단 활성은 전투 시작 시 고정</p>`;
   }
+
 
   function openUnitInfo(unitState) {
     if (!awaitingRoll || diceRolling) return;
@@ -793,28 +807,31 @@
     const baseMaxHp = unitState.baseMaxHp ?? unitState.maxHp;
     const baseAttack = unitState.baseAttack ?? unitState.attack;
     const baseSpeed = unitState.baseSpeed ?? unitState.speed;
-    unitInfoHp.textContent = `${Math.max(0, unitState.hp)} / ${unitState.maxHp}${baseMaxHp !== unitState.maxHp ? ` · 최대 ${baseMaxHp} → ${unitState.maxHp}` : ""}`;
-    unitInfoAttack.textContent = baseAttack === unitState.attack ? String(unitState.attack) : `${baseAttack} → ${unitState.attack}`;
-    unitInfoSpeed.textContent = baseSpeed === unitState.speed ? String(unitState.speed) : `${baseSpeed} → ${unitState.speed}`;
-    const brand = V2BattleBrands.definitions[unitState.brand];
-    if (brand) {
-      const stateText = lastDiceRoll == null ? "주사위를 굴리면 효과가 결정됩니다."
-        : `지난 턴 눈금 ${lastDiceRoll} · ${{ blessing: "축복", curse: "저주", normal: "일반" }[unitState.brandMode] || "일반"}`;
-      unitInfoBrands.innerHTML = `<div class="brand-heading">
-        <svg class="brand-icon" viewBox="${BRAND_ICON_VIEWS[unitState.brand].join(" ")}" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
-          <image href="art/v2-style/ui/brand-icons-sheet.jpg" width="1280" height="575" />
-        </svg><h4>${brand.name}</h4></div>
-        <p class="brand-example">예시 배정 · 축복 + 저주 1세트</p>
-        <p class="brand-blessing">축복 [${brand.bless.join(", ")}]<br>${brand.blessing}</p>
-        <p class="brand-curse">저주 [${brand.curse.join(", ")}]<br>${brand.penalty}</p>
-        <p>일반 [${brand.normal}]: 통상 진행</p>
-        <p class="brand-note">공통 주사위로 시작하는 턴에 적용 · 다음 굴림 때 갱신</p>
-        <p class="brand-note">${stateText}${unitState.poison ? " · 중독: 다음 턴 공격 전 피해 1" : ""}</p>
-        ${unitState.brand === "summon" ? '<p class="brand-note">아군 소환물에게 적용 · 개화한 식인식물은 제외</p>' : ""}`;
-    } else unitInfoBrands.textContent = "낙인 미지정";
-    legionInfoContent.innerHTML = legionDetails(unitState);
-    if (V2SummonRules.choices[unitState.slug]) unitInfoBrands.innerHTML += `<p>주사위 6: 자기 차례에 소환 후 공격 · 전투당 소환 성공 1회 (${unitState.summonUsed ? "사용 완료" : "미사용"})</p><p>${unitState.slug === "crystal-devourer" ? "중앙이 차면 사망한 아군 자리에도 씨앗 소환" : "중앙이 차면 소환을 건너뜀"}</p>`;
-    if (unitState.slug === "guardian-seed") unitInfoBrands.innerHTML += `<p>공격 불가 · 피격 ${unitState.receivedHits || 0}/2 · 2회 피격 후 다음 턴에 식인식물로 개화 (생존 시)</p>`;
+    unitInfoHp.textContent = `${Math.max(0, unitState.hp)} / ${unitState.maxHp}`;
+    unitInfoAttack.textContent = String(unitState.attack);
+    unitInfoSpeed.textContent = String(unitState.speed);
+    const escapeInfo = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"}[c]));
+    const slots = Array.isArray(unitState.brands) ? unitState.brands : (unitState.brand ? [unitState.brand] : []);
+    const brands = slots.map(slot => {
+      const key = typeof slot === "string" ? slot : slot.type || slot.id;
+      const definition = V2Rules.definitions[key];
+      return definition ? { ...definition, ...(typeof slot === "object" ? slot : {}), key } : null;
+    }).filter(Boolean);
+    const passive = unitState.passive;
+    const passiveName = typeof passive === "object" && passive ? passive.name : passive;
+    const passiveEffect = typeof passive === "object" && passive ? passive.description || passive.effect : "";
+    const icon = key => {
+      const view = BRAND_ICON_VIEWS[key];
+      if (!view) return '<span class="brand-icon brand-icon-empty" aria-hidden="true">◇</span>';
+      const sheet = ["combo", "freeze", "lightspeed", "counter"].includes(key) ? "brand-icons-extra-sheet.jpg" : "brand-icons-sheet.jpg";
+      return `<svg class="brand-icon" viewBox="${view.join(" ")}" aria-hidden="true"><image href="art/v2-style/ui/${sheet}" width="1280" height="575" /></svg>`;
+    };
+    unitInfoBrands.innerHTML = `<div class="passive-heading"><span class="passive-symbol" aria-hidden="true">◇</span><span>${escapeInfo(passiveName || "패시브 없음")}</span></div>` +
+      (brands.map(brand => `<div class="brand-heading">${icon(brand.key)}<h4>${escapeInfo(brand.name)}</h4></div>`).join("") || '<p class="unit-info-empty">낙인 없음</p>');
+    const brandEffects = brands.map(brand => `<section class="effect-entry"><h4>${escapeInfo(brand.name)}</h4><p class="effect-blessing">축복 [${escapeInfo((brand.bless || []).join(", "))}] · ${escapeInfo(brand.blessing)}</p><p class="effect-curse">저주 [${escapeInfo((brand.curse || []).join(", "))}] · ${escapeInfo(brand.penalty)}</p></section>`).join("");
+    legionInfoContent.innerHTML = `<h3>군단 효과</h3>${legionDetails(unitState)}<h3>패시브 효과</h3><p>${escapeInfo(passiveName || "패시브 없음")}${passiveEffect ? ` · ${escapeInfo(passiveEffect)}` : ""}</p><h3>낙인 눈금과 효과</h3>${brandEffects || '<p>낙인 없음</p>'}`;
+    if (baseMaxHp !== unitState.maxHp || baseAttack !== unitState.attack || baseSpeed !== unitState.speed) legionInfoContent.innerHTML += `<section class="effect-entry"><h4>능력치 변화</h4><p>최대 체력 ${baseMaxHp} → ${unitState.maxHp} · 공격력 ${baseAttack} → ${unitState.attack} · 속도 ${baseSpeed} → ${unitState.speed}</p></section>`;
+    if (unitState.slug === "guardian-seed") legionInfoContent.innerHTML += `<section class="effect-entry"><h4>개화</h4><p>공격 불가 · 생성 다음 라운드를 마치면 자동 개화</p></section>`;
     unitInfoOverlay.hidden = false;
     document.getElementById("unitInfoClose").focus();
   }
@@ -827,49 +844,42 @@
   function replaceFighter(old, next) {
     const host = next.team === "ally" ? allyTeam : enemyTeam;
     const node = old?.element || host.querySelector(".summon-slot");
-    V2Legions.applyUnit(legionState, next);
+    V2Rules.applyUnit(legionState, next);
     const element = createUnitElement(next);
     node.replaceWith(element);
     if (old) units.splice(units.indexOf(old), 1, next);
     else units.push(next);
+    V2Rules.refresh(rulesState);
     revealUnit(next);
     if (typeof V2UnitCards !== "undefined") V2UnitCards.sync(battlefield, units, openUnitInfo);
     return next;
   }
 
-  async function summonBeforeAttack(actor, token) {
-    const plan = V2SummonRules.plan(actor, units, lastDiceRoll);
-    if (!plan) return;
-    const data = plan.slug === "guardian-seed"
-      ? unit("guardian-seed", "수호 씨앗", 6, 0, 1, 5, 3, 4)
-      : { ...ROSTER_BY_SLUG.get(plan.slug) };
-    try { await prepareSelectedMotion(data); }
-    catch (error) { console.warn("Summon preparation failed", error); return; }
+  async function summonFromPlan(plan, token) {
+    const data = plan.slug === "guardian-seed" ? unit("guardian-seed", "씨앗", 6, 0, 1, 5, 3, 4) : {...ROSTER_BY_SLUG.get(plan.slug)};
+    await prepareSelectedMotion(data);
     if (token !== battleToken || !running) return;
-    const summoned = makeState(data, actor.team, plan.slot);
-    summoned.isSummon = true;
-    summoned.bornTurn = turnNumber;
-    const old = units.find(u => u.team === actor.team && u.slot === plan.slot);
-    replaceFighter(old, summoned);
-    actor.summonUsed = true;
-    summoned.element.classList.add("is-pending");
-    message.textContent = `${actor.name} → ${summoned.name} 소환`;
-    try {
-      const frames = await V2SummonEffect.prepare();
-      if (token !== battleToken || !running) return;
-      await V2SummonEffect.play(summoned, frames, { isCurrent: () => token === battleToken && running, reveal: revealUnit, wait });
-    } catch (error) { console.warn("Summon effect unavailable", error); }
-    if (token !== battleToken || !running) return;
+    const summoned = makeState(data, plan.team, 4);
+    // Summons use species base stats, without an individual no-passive bonus.
+    const design = V2DesignData.units[plan.slug];
+    summoned.maxHp = design.hp; summoned.attack = design.attack; summoned.speed = design.speed;
+    const old = units.find(u => u.team === plan.team && u.slot === 4);
+    if (!V2Rules.addSummon(rulesState, plan, summoned)) return;
+    const host = summoned.team === "ally" ? allyTeam : enemyTeam;
+    const node = old?.element || host.querySelector(".summon-slot");
+    node.replaceWith(createUnitElement(summoned));
     revealUnit(summoned);
-    updateHud();
+    if (typeof V2UnitCards !== "undefined") V2UnitCards.sync(battlefield, units, openUnitInfo);
   }
+
 
   async function performAttack(actor, token) {
     actionBusy = true;
     actor.gauge = 0;
     updateUnit(actor);
-    const poisonDamage = V2BattleBrands.beforeAction(actor, turnNumber);
+    const poisonDamage = V2Rules.before(rulesState, actor);
     if (poisonDamage) {
+      if (!actor.alive) saveBattle('acting');
       updateUnit(actor);
       showDamage(actor, poisonDamage);
       message.textContent = `${actor.name} 중독 피해 ${poisonDamage}`;
@@ -884,20 +894,22 @@
         return;
       }
     }
-    if (V2Legions.consumeFreeze(actor)) {
+    if (actor.frozen) {
+      actor.frozen = false;
       message.textContent = `${actor.name} 빙결 · 이번 턴 공격 불가`;
       actor.element.classList.remove("is-frozen");
-      const healed = V2Legions.afterAction(legionState, actor);
+      const healed = 0;
       updateUnit(actor);
       showHealing(actor, healed);
       await wait(Math.max(250, 420 / speedMultiplier));
       if (token !== battleToken || !running) return;
       actionCount += 1;
       actionBusy = false;
+      saveBattle('acting');
       message.textContent = `${turnNumber}턴 · ${actor.name} 빙결${healed ? ` · 회복 +${healed}` : ""}`;
       return;
     }
-    await summonBeforeAttack(actor, token);
+    if (actor.slug === "guardian-seed") { actionBusy = false; saveBattle('acting'); return; }
     if (token !== battleToken || !running) return;
     const targets = aliveUnits(actor.team === "ally" ? "enemy" : "ally");
     const target = targets[Math.floor(Math.random() * targets.length)];
@@ -922,9 +934,10 @@
     if (token !== battleToken || !running) return;
 
     const hadPoison = Boolean(target.poison);
-    const legionAttack = V2Legions.beforeAttack(legionState, actor, target);
-    const outcome = V2BattleBrands.attack(actor, target, legionAttack);
-    const legionApplied = V2Legions.afterAttack(legionState, actor, target, outcome);
+    const legionAttack = { legionCritical: false };
+    const outcome = V2Rules.attack(rulesState, actor, target);
+    saveBattle('acting');
+    const legionApplied = { poison: Boolean(target.poison), frozen: Boolean(target.frozen) };
     if (!hadPoison && target.poison) target.poisonAppliedTurn = turnNumber;
     if (typeof V2DamageDigits !== "undefined") {
       if (outcome.miss) V2DamageDigits.showLabel(target, "miss");
@@ -932,11 +945,12 @@
       else if (outcome.damage > 0 && (legionAttack.legionCritical || actor.brand === "critical" && actor.brandMode === "blessing")) V2DamageDigits.showLabel(target, "critical");
       if (outcome.damage > 0 && target.hp > 0 && (legionApplied.poison || actor.brand === "poison" && actor.brandMode === "blessing")) V2DamageDigits.showLabel(target, "poison");
     }
-    V2SummonRules.registerHit(target, outcome, turnNumber);
     updateUnit(actor);
     updateUnit(target);
+    if (outcome.counterDamage) showDamage(actor, outcome.counterDamage);
+    if (outcome.recovered) showHealing(actor, outcome.recovered);
     if (legionApplied.frozen) target.element.classList.add("is-frozen");
-    message.textContent = outcome.miss ? `${actor.name} 공격 빗나감`
+    message.textContent = outcome.cancelled ? `${actor.name} 공격 취소` : outcome.miss ? `${actor.name} 공격 빗나감`
       : outcome.immune ? `${target.name} 수호 · 피해 무시`
       : `${actor.name} → ${target.name} · 피해 ${outcome.damage}${outcome.recovered ? ` · 흡혈 +${outcome.recovered}` : ""}`;
     if (outcome.damage > 0) {
@@ -967,17 +981,19 @@
     if (token !== battleToken || !running) return;
     actor.element.classList.remove("is-attacking");
     target.element.classList.remove("is-targeted");
-    actor.image.src = frame(actor, "attack", 1);
+    if (!actor.alive) await playMotion(actor, "death", actor.frames.death, token, true);
+    else actor.image.src = frame(actor, "attack", 1);
     if (cinematic) {
       await wait(Math.max(160, 240 / speedMultiplier));
       if (token !== battleToken || !running) return;
       battlefield.classList.remove("is-cinematic");
     }
     actionCount += 1;
-    const legionHealing = V2Legions.afterAction(legionState, actor);
+    const legionHealing = 0;
     updateUnit(actor);
     showHealing(actor, legionHealing);
     updateHud();
+    saveBattle('acting');
     if (!aliveUnits("ally").length || !aliveUnits("enemy").length) return finishBattle();
     actionBusy = false;
     message.textContent = `${turnNumber}턴 · 남은 행동 ${turnQueue.filter((unitState) => unitState.alive).length}명${legionHealing ? ` · ${actor.name} 회복 +${legionHealing}` : ""}`;
@@ -1010,6 +1026,7 @@
     pauseButton.disabled = true;
     speedButton.disabled = true;
     const won = aliveUnits("ally").length > 0;
+    saveBattle('complete');
     resultTitle.textContent = won ? "아군 승리" : aliveUnits("enemy").length ? "적군 승리" : "무승부";
     resultBody.textContent = `${actionCount}번의 공격 후 전투가 끝났습니다. 매 턴 속도가 높은 순서로 생존 유닛 모두가 한 번씩 행동했습니다.`;
     const captureReady = setupCorpseCapture(won);
@@ -1055,7 +1072,7 @@
   function selectCorpse(corpse) {
     if (captureTargetLocked || !corpse || corpse.team !== "enemy" || corpse.alive || corpse.isSummon) return;
     selectedCorpse = corpse;
-    captureAttemptsLeft = V2Legions.captureAttempts(legionState, "ally");
+    captureAttemptsLeft = V2Rules.active(legionState, "ally", "corpse") ? 2 : 1;
     for (const unitState of units) {
       unitState.element?.classList.toggle("is-capture-selected", unitState === corpse);
       unitState.infoCard?.classList.toggle("is-capture-selected", unitState === corpse);
@@ -1174,6 +1191,8 @@
   }
 
   startButton.addEventListener("click", startSelectedBattle);
+  document.getElementById('resumeBattleButton').addEventListener('click',resumeBattle);
+  try { document.getElementById('resumeBattleButton').hidden = typeof localStorage==='undefined' || !localStorage.getItem(BATTLE_SAVE_KEY) || JSON.parse(localStorage.getItem(BATTLE_SAVE_KEY)).phase==='complete'; } catch(error) { console.warn(error); }
   unitRoster.addEventListener("touchstart", beginRosterTouchScroll, { passive: true });
   unitRoster.addEventListener("touchmove", moveRosterTouchScroll, { passive: false });
   unitRoster.addEventListener("touchend", endRosterTouchScroll, { passive: true });
