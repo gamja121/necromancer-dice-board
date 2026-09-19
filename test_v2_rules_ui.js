@@ -7,6 +7,9 @@ const context={console,URLSearchParams,location:{search:''},navigator:{},localSt
 context.UNIT_TYPES=require('./unit-data').UNIT_TYPES;context.V2DesignData=require('./v2-design-data');context.V2Rules=require('./v2-rules');context.V2Legions=require('./v2-legions');context.V2SummonRules=require('./v2-summon-rules');
 context.V2SummonEffect={prepare:async()=>null};
 let source=fs.readFileSync('v2-auto-battle-practice.js','utf8');
+assert(source.includes('if (outcome.miss) V2DamageDigits.showLabel(target, "miss")'));
+assert(source.includes('event.type === "heal" && event.source === "skeleton"'));
+assert(source.includes('undeadHealing.forEach(event => showHealing(event.unit, event.amount))'));
 // Test-only access to the actual controller; no debug hook is shipped.
 source=source.replace('  resetBattle(true);','  globalThis.testUI={resetBattle,openUnitInfo,startTurn,performAttack,finishBattle, makeState, roster:ROSTER, get units(){return units;}, get state(){return rulesState;}, get token(){return battleToken;}, ready(){running=true; awaitingRoll=true;}, setRoll(n){lastDiceRoll=n;}, get queue(){return turnQueue;}};\n  resetBattle(true);');
 vm.createContext(context);vm.runInContext(source,context);

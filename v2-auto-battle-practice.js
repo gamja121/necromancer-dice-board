@@ -691,6 +691,14 @@
     actionBusy = true;
     const token = battleToken;
     const plans = V2Rules.begin(rulesState);
+    const undeadHealing = rulesState.events.filter(event => event.type === "heal" && event.source === "skeleton");
+    if (undeadHealing.length) {
+      units.forEach(updateUnit);
+      undeadHealing.forEach(event => showHealing(event.unit, event.amount));
+      message.textContent = `언데드 군단 · 체력 ${undeadHealing.reduce((sum, event) => sum + event.amount, 0)} 회복`;
+      await wait(Math.max(220, 380 / speedMultiplier));
+      if (token !== battleToken || !running) return;
+    }
     for (const plan of plans) await summonFromPlan(plan, token);
     if (token !== battleToken || !running) return;
     for (const seed of units.filter(u => u.alive && u.slug === "guardian-seed" && turnNumber >= u.bornTurn + 2)) {
@@ -950,7 +958,7 @@
     if (outcome.counterDamage) showDamage(actor, outcome.counterDamage);
     if (outcome.recovered) showHealing(actor, outcome.recovered);
     if (legionApplied.frozen) target.element.classList.add("is-frozen");
-    message.textContent = outcome.cancelled ? `${actor.name} 공격 취소` : outcome.miss ? `${actor.name} 공격 빗나감`
+    message.textContent = outcome.miss ? `${actor.name} 공격 빗나감` : outcome.cancelled ? `${actor.name} 공격 취소`
       : outcome.immune ? `${target.name} 수호 · 피해 무시`
       : `${actor.name} → ${target.name} · 피해 ${outcome.damage}${outcome.recovered ? ` · 흡혈 +${outcome.recovered}` : ""}`;
     if (outcome.damage > 0) {

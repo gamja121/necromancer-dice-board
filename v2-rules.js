@@ -59,16 +59,21 @@
     refresh(s);return dealt;
   }
   function poison(s,u,count,source){if(has(s,u,'plague')||!u.alive)return;for(let i=0;i<count&&u.poisonStacks.length<3;i++)u.poisonStacks.push({remaining:2,source});u.poison=u.poisonStacks.length;}
+  const summonPools={'spider-knight':['spiderling'],'goblin-chief':['goblin-commoner'],'grave-priest':['skeleton-spear','skeleton-archer','skeleton-cavalry'],'crystal-devourer':['guardian-seed']};
   function summonPlans(s){const plans=[];for(const team of ['ally','enemy']){if(s.units.some(u=>u.alive&&u.team===team&&u.slot===4))continue;
-    if(active(s.legions,team,'summon')){plans.push({team,slot:4,slug:choose(['skeleton-spear','spiderling','goblin-commoner'],s.rng)});continue;}
+    if(active(s.legions,team,'summon')){
+      const summoners=s.units.filter(u=>u.alive&&u.team===team&&u.slot<4&&summonPools[u.slug]).sort((a,b)=>a.slot-b.slot);
+      if(summoners.length){const summoner=choose(summoners,s.rng);plans.push({team,slot:4,slug:choose(summonPools[summoner.slug],s.rng),summonerSlug:summoner.slug});}
+      continue;
+    }
     const owner=s.units.filter(u=>u.alive&&u.team===team&&passive(u,'soul')&&u.hp>1).sort((a,b)=>a.slot-b.slot)[0];
-    if(owner){const pool={'spider-knight':['spiderling'],'goblin-chief':['goblin-commoner'],'grave-priest':['skeleton-spear','skeleton-archer','skeleton-cavalry'],'crystal-devourer':['guardian-seed']};plans.push({team,slot:4,slug:choose(pool[owner.slug]||['spiderling'],s.rng),owner});}
+    if(owner&&summonPools[owner.slug])plans.push({team,slot:4,slug:choose(summonPools[owner.slug],s.rng),owner});
     }return plans;}
   function addSummon(s,plan,u){if(plan.owner){if(!plan.owner.alive||plan.owner.hp<=1)return false;plan.owner.hp--;}
     const species=D.units[plan.slug];Object.assign(u,{maxHp:species.hp,attack:species.attack,speed:species.speed});
     init(u);u.team=plan.team;u.slot=4;u.isSummon=true;u.bornTurn=s.round;u.brands=[];u.passive=null;applyUnit(s.legions,u);
     const old=s.units.findIndex(a=>a.team===u.team&&a.slot===4);if(old>=0)s.units.splice(old,1,u);else s.units.push(u);refresh(s);return true;}
-  function begin(s){s.round++;s.events=[];for(const u of s.units){u.bless={};u.curse={};u.shields=0;if(u.alive&&has(s,u,'skeleton'))heal(u,1);}refresh(s);return summonPlans(s);}
+  function begin(s){s.round++;s.events=[];for(const u of s.units){u.bless={};u.curse={};u.shields=0;if(u.alive&&has(s,u,'skeleton')){const amount=heal(u,1);if(amount)s.events.push({type:'heal',unit:u,amount,source:'skeleton'});}}refresh(s);return summonPlans(s);}
   function roll(s,face){
     for(const u of s.units){u.bless={};u.curse={};if(!u.alive)continue;for(const b of u.brands||[]){if(b.bless.includes(face))u.bless[b.type]=(u.bless[b.type]||0)+1;if(b.curse.includes(face))u.curse[b.type]=(u.curse[b.type]||0)+1;}u.shields=u.curse.guard?0:u.bless.guard||0;u.brand=u.brands[0]?.type;u.brandMode=mode(u.brands[0],face);}
     refresh(s);
@@ -90,7 +95,7 @@
   function attack(s,a,t){const out={damage:0,recovered:0,miss:false,immune:false,hits:[],counterDamage:0};
     if(!a.alive||!t?.alive||a.slug==='guardian-seed')return out;
     if(a.frozen){a.frozen=false;out.cancelled=true;return out;}
-    if(a.curse.combo){out.cancelled=true;return out;}
+    if(a.curse.combo){out.cancelled=true;out.miss=true;return out;}
     if(a.curse.critical){out.miss=true;return out;}
     const strikes=1+(a.bless.combo||0);
     for(let i=0;i<strikes&&a.alive&&t.alive;i++){

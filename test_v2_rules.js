@@ -22,6 +22,9 @@ for(const type of Object.keys(R.definitions))for(let i=0;i<1000;i++)assert(R.val
  const a=unit('hydra','ally',0,null,[b('combo')]),t=unit('skeleton-spear','enemy',0,'undying');const s=R.create([a,t]);R.begin(s);R.roll(s,4);t.hp=1;R.attack(s,a,t);assert(!t.alive);assert(t.undyingUsed);
 }
 {
+ const a=unit('hydra','ally',0,null,[b('combo',[4],[1])]),t=unit('skeleton-spear','enemy');const s=R.create([a,t]);R.begin(s);R.roll(s,1);const hp=t.hp;const out=R.attack(s,a,t);assert(out.cancelled);assert(out.miss);assert.equal(out.damage,0);assert.equal(t.hp,hp);
+}
+{
  const a=unit('hydra','ally',0,'grudge',[b('counter')]),t=unit('hydra','enemy',0,'grudge',[b('counter')]);const s=R.create([a,t]);R.begin(s);R.roll(s,4);const hit=R.attack(s,a,t);assert.equal(hit.counterDamage,2);assert.equal(a.grudge,1);assert.equal(t.grudge,1);
 }
 {
@@ -32,6 +35,14 @@ for(const type of Object.keys(R.definitions))for(let i=0;i<1000;i++)assert(R.val
 }
 {
  const a=unit('hydra','ally',0,'pack'),b1=unit('plague-doctor','ally',1),c=unit('doom-executor','ally',2);const s=R.create([a,b1,c]);R.begin(s);assert.equal(a.attack,a.baseAttack+1);c.alive=false;R.refresh(s);assert.equal(a.attack,a.baseAttack);
+}
+{
+ const a=unit('skeleton-spear','ally',0),b1=unit('skeleton-archer','ally',1),c=unit('skeleton-cavalry','ally',2),e=unit('hydra','enemy');const s=R.create([a,b1,c,e]);a.hp-=2;const before=a.hp;R.begin(s);assert.equal(a.hp,before+1);assert(s.events.some(event=>event.type==='heal'&&event.source==='skeleton'&&event.unit===a&&event.amount===1));
+ const inactive=R.create([unit('skeleton-spear','ally',0),unit('skeleton-archer','ally',1),unit('hydra','enemy')]);inactive.units[0].hp-=2;const inactiveHp=inactive.units[0].hp;R.begin(inactive);assert.equal(inactive.units[0].hp,inactiveHp);assert(!inactive.events.some(event=>event.source==='skeleton'));
+}
+{
+ const spider=unit('spider-knight','ally',0),chief=unit('goblin-chief','ally',1),enemy=unit('hydra','enemy');let s=R.create([spider,chief,enemy],()=>0);let plan=R.begin(s)[0];assert.equal(plan.summonerSlug,'spider-knight');assert.equal(plan.slug,'spiderling');
+ const chiefFirst=unit('goblin-chief','ally',0),spiderSecond=unit('spider-knight','ally',1);s=R.create([chiefFirst,spiderSecond,unit('hydra','enemy')],()=>0);plan=R.begin(s)[0];assert.equal(plan.summonerSlug,'goblin-chief');assert.equal(plan.slug,'goblin-commoner');
 }
 {
  const a=unit('stone-golem','enemy',0),c=unit('forest-fairy','enemy',1),u=unit('spider-knight','ally',0,'soul'),v=unit('goblin-chief','ally',1);const s=R.create([a,c,u,v]);assert(R.suppressed(s.legions,'ally'));a.alive=false;c.alive=false;assert(R.suppressed(s.legions,'ally'));const plans=R.begin(s);assert.equal(plans[0].owner,u);
