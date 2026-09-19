@@ -56,7 +56,8 @@ assert(source.includes("[fixedTiles.home") && source.includes("fixedTiles.boss]"
 assert(source.includes("fixedTiles.village") && source.includes("fixedTiles.fortune"), "Village and fortune-teller tiles must be connected to the route.");
 const eventScenes = {
   graveyard: "graveyard.jpg", home: "home.jpg", "fortune-teller-camp": "fortune-teller.jpg",
-  village: "village.jpg", rest: "camp.jpg"
+  village: "village.jpg", rest: "camp.jpg", altar: "altar.jpg", forest: "forest.jpg",
+  gem: "treasure-chest-sprite.png"
 };
 for (const [tile, file] of Object.entries(eventScenes)) {
   const relative = `art/v2-style/map-test/events/${file}`;
@@ -64,10 +65,14 @@ for (const [tile, file] of Object.entries(eventScenes)) {
   assert(worker.includes(relative), `Event scene is not cached: ${relative}`);
   assert(source.includes(`${tile.includes("-") ? `"${tile}"` : tile}: Object.freeze`), `Event scene mapping is missing: ${tile}`);
 }
-assert(html.includes("v2-map-practice.js?v=6") && html.includes("v2-map-practice.css?v=4"), "The map page must load the tile-event connection version.");
+assert(html.includes('id="treasureChestSprite"') && css.includes("@keyframes treasure-chest-open"), "Treasure tile must use the transparent four-frame opening animation.");
+assert(source.includes('scene.animation === "treasure"') && source.includes('eventTreasure.classList.add("is-playing")'), "Treasure animation must restart when the tile is reached.");
+assert(source.includes("async function warpToOtherWarp()") && source.includes('tile.id === "warp" && index !== heroIndex'), "Warp must move to the other warp tile.");
+assert(source.includes('currentTiles[heroIndex]?.id === "warp"') && source.includes("await warpToOtherWarp()"), "Landing on a warp tile must trigger teleportation.");
+assert(html.includes("v2-map-practice.js?v=7") && html.includes("v2-map-practice.css?v=5"), "The map page must load the tile-event connection version.");
 assert(worker.includes("v2-map-practice.html"), "Map test page is not cached.");
 assert(worker.includes("v2-landscape.js?v=1"), "Landscape helper is not cached.");
-assert(worker.includes("v2-map-practice.js?v=6") && worker.includes("v2-map-practice.css?v=4"), "The connected tile-event map logic is not cached.");
+assert(worker.includes("v2-map-practice.js?v=7") && worker.includes("v2-map-practice.css?v=5"), "The connected tile-event map logic is not cached.");
 assert(source.includes("requestedMapId") && source.includes('document.querySelector(`[data-map="${activeMapId}"]`)'), "Returning from battle must restore the selected map region.");
 const navigation = [];
 const battleLinkContext = {

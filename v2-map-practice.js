@@ -15,7 +15,10 @@
     home: Object.freeze({ title: "집", image: `${ROOT}events/home.jpg` }),
     "fortune-teller-camp": Object.freeze({ title: "예언자", image: `${ROOT}events/fortune-teller.jpg` }),
     village: Object.freeze({ title: "마을", image: `${ROOT}events/village.jpg` }),
-    rest: Object.freeze({ title: "숙영", image: `${ROOT}events/camp.jpg` })
+    rest: Object.freeze({ title: "숙영", image: `${ROOT}events/camp.jpg` }),
+    altar: Object.freeze({ title: "제단", image: `${ROOT}events/altar.jpg` }),
+    forest: Object.freeze({ title: "숲", image: `${ROOT}events/forest.jpg` }),
+    gem: Object.freeze({ title: "보물상자", animation: "treasure" })
   });
   const tileTypes = [
     { id: "basic", name: "기본 타일", count: 2 },
@@ -48,6 +51,7 @@
     moveState: document.getElementById("moveState"),
     eventOverlay: document.getElementById("tileEventOverlay"),
     eventImage: document.getElementById("tileEventImage"),
+    eventTreasure: document.getElementById("treasureChestSprite"),
     eventTitle: document.getElementById("tileEventTitle"),
     eventClose: document.getElementById("tileEventClose")
   };
@@ -62,7 +66,7 @@
   let enteringBattle = false;
   let eventOpen = false;
 
-  [...rollingFrames, ...resultFrames, ...Object.values(tileEventScenes).map((scene) => scene.image)].forEach((src) => { const image = new Image(); image.src = src; });
+  [...rollingFrames, ...resultFrames, ...Object.values(tileEventScenes).map((scene) => scene.image).filter(Boolean)].forEach((src) => { const image = new Image(); image.src = src; });
 
   function wait(milliseconds) {
     return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
@@ -114,11 +118,40 @@
     eventOpen = true;
     el.diceButton.disabled = true;
     el.regenerate.disabled = true;
-    el.eventImage.src = scene.image;
-    el.eventImage.alt = `${scene.title} 풍경`;
+    const treasure = scene.animation === "treasure";
+    el.eventImage.hidden = treasure;
+    el.eventTreasure.hidden = !treasure;
+    if (treasure) {
+      el.eventImage.removeAttribute("src");
+      el.eventTreasure.classList.remove("is-playing");
+      void el.eventTreasure.offsetWidth;
+      el.eventTreasure.classList.add("is-playing");
+    } else {
+      el.eventImage.src = scene.image;
+      el.eventImage.alt = `${scene.title} 풍경`;
+    }
     el.eventTitle.textContent = `${step}번 · ${scene.title}`;
     el.eventOverlay.hidden = false;
     el.eventClose.focus();
+    return true;
+  }
+
+  async function warpToOtherWarp() {
+    const destinations = currentTiles.map((tile, index) => ({ tile, index }))
+      .filter(({ tile, index }) => tile.id === "warp" && index !== heroIndex);
+    if (!destinations.length) return false;
+    const origin = heroIndex;
+    const destination = destinations[Math.floor(Math.random() * destinations.length)].index;
+    el.diceButton.disabled = true;
+    el.regenerate.disabled = true;
+    el.diceResult.textContent = "워프 발동";
+    el.tileName.textContent = `${origin + 1}번 워프 → ${destination + 1}번 워프`;
+    await wait(360);
+    heroIndex = destination;
+    placeHero(true);
+    selectTile(currentButtons[heroIndex], currentTiles[heroIndex], heroIndex + 1);
+    el.diceResult.textContent = `${heroIndex + 1}번 워프로 이동 완료`;
+    await wait(420);
     return true;
   }
 
@@ -128,6 +161,7 @@
     rolling = false;
     el.eventOverlay.hidden = true;
     el.eventImage.removeAttribute("src");
+    el.eventTreasure.classList.remove("is-playing");
     el.diceButton.disabled = false;
     el.regenerate.disabled = false;
     el.diceButton.focus();
@@ -165,9 +199,19 @@
       step.className = "step";
       step.textContent = String(index + 1);
       button.append(image, step);
-      button.addEventListener("click", () => {
+      button.addEventListener("click", async () => {
         if (rolling || eventOpen) return;
         selectTile(button, tile, index + 1);
+        if (tile.id === "warp") {
+          rolling = true;
+          heroIndex = index;
+          placeHero(true);
+          await warpToOtherWarp();
+          rolling = false;
+          el.diceButton.disabled = false;
+          el.regenerate.disabled = false;
+          return;
+        }
         if (openTileEvent(tile, index + 1)) return;
         enterMonsterBattle(tile, index + 1);
       });
@@ -211,6 +255,13 @@
       el.diceResult.textContent = `${result} · 마물 조우`;
       await wait(320);
       if (enterMonsterBattle(currentTiles[heroIndex], heroIndex + 1)) return;
+    }
+    if (currentTiles[heroIndex]?.id === "warp") {
+      await warpToOtherWarp();
+      rolling = false;
+      el.diceButton.disabled = false;
+      el.regenerate.disabled = false;
+      return;
     }
     if (openTileEvent(currentTiles[heroIndex], heroIndex + 1)) {
       rolling = false;
