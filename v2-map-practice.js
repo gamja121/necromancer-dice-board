@@ -38,6 +38,11 @@
     fortune: Object.freeze({ id: "fortune-teller-camp", name: "점술가의 막사 타일", count: 1 }),
     boss: Object.freeze({ id: "boss", name: "보스 타일", count: 1 })
   });
+  const TEST_DECK = Object.freeze([
+    ["death-knight", "데스 나이트"], ["skeleton-spear", "해골 병사"], ["ghoul", "구울"],
+    ["ancient-treant", "숲의 장로"], ["goblin-rider", "고블린 라이더"], ["minotaur", "미노타우로스"],
+    ["plague-doctor", "역병술사"], ["spider-knight", "거미여왕"], ["hydra", "히드라"], ["siren", "세이렌"]
+  ].map(([slug, name]) => Object.freeze({ slug, name })));
   const el = {
     board: document.getElementById("mapBoard"),
     ring: document.getElementById("tileRing"),
@@ -53,7 +58,12 @@
     eventImage: document.getElementById("tileEventImage"),
     eventTreasure: document.getElementById("treasureChestSprite"),
     eventTitle: document.getElementById("tileEventTitle"),
-    eventClose: document.getElementById("tileEventClose")
+    eventClose: document.getElementById("tileEventClose"),
+    deckOverlay: document.getElementById("mapDeckOverlay"),
+    deckSelected: document.getElementById("mapSelectedLineup"),
+    deckRoster: document.getElementById("mapDeckRoster"),
+    deckStatus: document.getElementById("mapDeckStatus"),
+    deckConfirm: document.getElementById("mapDeckConfirm")
   };
   let positions = [];
   let currentTiles = [];
@@ -65,6 +75,8 @@
   let activeMapId = maps[requestedMapId] ? requestedMapId : "default";
   let enteringBattle = false;
   let eventOpen = false;
+  let battleStep = 0;
+  let selectedDeck = [];
 
   [...rollingFrames, ...resultFrames, ...Object.values(tileEventScenes).map((scene) => scene.image).filter(Boolean)].forEach((src) => { const image = new Image(); image.src = src; });
 
@@ -104,12 +116,72 @@
   function enterMonsterBattle(tile, step) {
     if (tile?.id !== "monster" || enteringBattle) return false;
     enteringBattle = true;
+    battleStep = step;
+    selectedDeck = [];
     el.diceButton.disabled = true;
     el.regenerate.disabled = true;
-    el.tileName.textContent = `${step}번 · 마물 출현 · 전장으로 이동`;
-    const params = new URLSearchParams({ from: "map", map: activeMapId, tile: String(step) });
-    window.location.assign(`v2-auto-battle-practice.html?${params}`);
+    el.tileName.textContent = `${step}번 · 마물 출현 · 출전 마물 선택`;
+    renderDeckSelection();
+    el.deckOverlay.hidden = false;
+    el.deckOverlay.classList.remove("is-open");
+    void el.deckOverlay.offsetWidth;
+    el.deckOverlay.classList.add("is-open");
     return true;
+  }
+
+  function toggleDeckUnit(slug) {
+    const selectedIndex = selectedDeck.indexOf(slug);
+    if (selectedIndex >= 0) selectedDeck.splice(selectedIndex, 1);
+    else if (selectedDeck.length < 4) selectedDeck.push(slug);
+    renderDeckSelection();
+  }
+
+  function renderDeckSelection() {
+    el.deckSelected.replaceChildren();
+    for (let index = 0; index < 4; index += 1) {
+      const slug = selectedDeck[index];
+      const entry = TEST_DECK.find((unit) => unit.slug === slug);
+      const slot = document.createElement("button");
+      slot.type = "button";
+      slot.className = entry ? "selected-slot" : "selected-slot is-empty";
+      if (entry) {
+        const image = document.createElement("img");
+        image.src = `art/v2-style/ui/unit-card-${entry.slug}.png?v=19`;
+        image.alt = `${index + 1}번째 ${entry.name}`;
+        slot.title = `${entry.name} 선택 해제`;
+        slot.addEventListener("click", () => toggleDeckUnit(entry.slug));
+        slot.append(image);
+      } else slot.disabled = true;
+      el.deckSelected.append(slot);
+    }
+    el.deckRoster.replaceChildren();
+    for (const entry of TEST_DECK) {
+      const selectedIndex = selectedDeck.indexOf(entry.slug);
+      const button = document.createElement("button");
+      button.type = "button";
+      button.classList.toggle("is-selected", selectedIndex >= 0);
+      button.setAttribute("aria-pressed", selectedIndex >= 0 ? "true" : "false");
+      const order = document.createElement("b");
+      order.textContent = selectedIndex >= 0 ? String(selectedIndex + 1) : "";
+      const image = document.createElement("img");
+      image.src = `art/v2-style/ui/unit-card-${entry.slug}.png?v=19`;
+      image.alt = "";
+      const name = document.createElement("span");
+      name.textContent = entry.name;
+      button.append(image, name, order);
+      button.addEventListener("click", () => toggleDeckUnit(entry.slug));
+      el.deckRoster.append(button);
+    }
+    el.deckStatus.textContent = `마물 카드 ${selectedDeck.length} / 4`;
+    el.deckConfirm.disabled = selectedDeck.length !== 4;
+  }
+
+  function confirmMonsterBattle() {
+    if (selectedDeck.length !== 4) return;
+    el.deckConfirm.disabled = true;
+    el.deckStatus.textContent = "전장으로 이동 중…";
+    const params = new URLSearchParams({ from: "map", map: activeMapId, tile: String(battleStep), allies: selectedDeck.join(",") });
+    window.location.assign(`v2-auto-battle-practice.html?${params}`);
   }
 
   function openTileEvent(tile, step) {
@@ -286,6 +358,7 @@
   el.regenerate.addEventListener("click", generateTiles);
   el.diceButton.addEventListener("click", rollAndMove);
   el.eventClose.addEventListener("click", closeTileEvent);
+  el.deckConfirm.addEventListener("click", confirmMonsterBattle);
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && eventOpen) closeTileEvent();
   });

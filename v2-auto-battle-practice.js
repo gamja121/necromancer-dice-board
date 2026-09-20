@@ -172,6 +172,7 @@
     "death-knight", "skeleton-spear", "ghoul", "ancient-treant", "goblin-rider",
     "minotaur", "plague-doctor", "spider-knight", "hydra", "siren"
   ]);
+  const requestedAllySlugs = (battleQuery.get("allies") || "").split(",").filter((slug) => TEST_DECK_SLUGS.includes(slug));
 
   const battlefield = document.getElementById("battlefield");
   // Optional demonstration lineup; the normal 4v4 lineup stays unchanged.
@@ -268,7 +269,7 @@
   let captureTargetLocked = false;
   let lineupRequest = 0;
   let lineupSide = "ally";
-  let selectedAllySlugs = [];
+  let selectedAllySlugs = requestedAllySlugs.length === 4 && new Set(requestedAllySlugs).size === 4 ? requestedAllySlugs : [];
   let selectedEnemySlugs = TEAM_DATA.enemy.map(entry => entry.slug);
   let rosterTouchScroll = null;
   let selectedAllyTeam = TEAM_DATA.ally.map(entry => ({ ...entry }));
@@ -1254,7 +1255,11 @@
     speedButton.textContent = `속도 ×${speedMultiplier}`;
   });
 
-  resetBattle(true);
+  const mapLineupReady = fromMap && selectedAllySlugs.length === 4;
+  if (mapLineupReady) { resetBattle(false); startSelectedBattle(); }
+  else {
+    resetBattle(true);
+  }
   if (typeof V2DamageDigits !== "undefined") V2DamageDigits.prepare().catch(error => console.warn(error));
   if (typeof V2DamageDigits !== "undefined") V2DamageDigits.prepareLabels().catch(error => console.warn(error));
   if (typeof V2DamageDigits !== "undefined") V2DamageDigits.prepareStatusLabels().catch(error => console.warn(error));

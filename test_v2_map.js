@@ -18,6 +18,7 @@ assert(html.includes('id="regenerateButton"'), "Tile regeneration button is miss
 assert(html.includes('id="heroToken"'), "Hero token is missing.");
 assert(html.includes('id="mapDiceButton"'), "Map dice control is missing.");
 assert(html.includes('id="tileEventOverlay"') && html.includes('id="tileEventImage"') && html.includes('id="tileEventClose"'), "Centered tile event overlay is missing.");
+assert(html.includes('id="mapDeckOverlay"') && html.includes('id="mapSelectedLineup"') && html.includes('id="mapDeckRoster"'), "Map battle deck selection overlay is missing.");
 assert(css.includes("@media (orientation: portrait)"), "Portrait landscape fallback is missing.");
 assert(css.includes("rotate(90deg)"), "Map must rotate itself in portrait mode.");
 assert(html.includes("v2-landscape.js?v=1"), "Landscape orientation helper is missing.");
@@ -27,9 +28,11 @@ assert(source.includes("for (let index = 0; index < 4"), "Side perimeter positio
 assert(source.includes("Math.floor(Math.random() * 6) + 1"), "Random dice result is missing.");
 assert(source.includes("heroIndex = (heroIndex + 1) % positions.length"), "Clockwise wraparound movement is missing.");
 assert(source.includes("await wait(230)"), "Step-by-step movement timing is missing.");
-assert(source.includes('tile?.id !== "monster"') && source.includes('v2-auto-battle-practice.html?${params}'), "Monster tiles must open the battlefield test.");
+assert(source.includes('tile?.id !== "monster"') && source.includes('el.deckOverlay.classList.add("is-open")'), "Monster tiles must open deck selection over the map.");
 assert(source.includes('currentTiles[heroIndex]?.id === "monster"') && source.includes("enterMonsterBattle(currentTiles[heroIndex], heroIndex + 1)"), "Landing on a monster tile must open battle after dice movement.");
-assert(source.includes('from: "map", map: activeMapId, tile: String(step)'), "Monster battles must receive the selected map and tile context.");
+assert(source.includes('from: "map", map: activeMapId, tile: String(battleStep), allies: selectedDeck.join(",")'), "Monster battles must receive map, tile, and selected deck context.");
+assert(css.includes("@keyframes map-deck-window-drop") && css.includes("@keyframes map-deck-roster-rise"), "Deck board and roster entrance animations are missing.");
+assert(css.includes(".map-deck-overlay") && css.includes("background: transparent"), "The board map must remain visible behind deck selection.");
 assert(source.includes("const tileEventScenes") && source.includes("openTileEvent(currentTiles[heroIndex], heroIndex + 1)"), "Landing on a supported tile must open its centered event scene.");
 assert(css.includes(".tile-event-overlay") && css.includes("place-items: center"), "Tile event scene must be centered over the map.");
 assert(tileCount(source) === 24, "Tile distribution must total 24.");
@@ -69,23 +72,22 @@ assert(html.includes('id="treasureChestSprite"') && css.includes("@keyframes tre
 assert(source.includes('scene.animation === "treasure"') && source.includes('eventTreasure.classList.add("is-playing")'), "Treasure animation must restart when the tile is reached.");
 assert(source.includes("async function warpToOtherWarp()") && source.includes('tile.id === "warp" && index !== heroIndex'), "Warp must move to the other warp tile.");
 assert(source.includes('currentTiles[heroIndex]?.id === "warp"') && source.includes("await warpToOtherWarp()"), "Landing on a warp tile must trigger teleportation.");
-assert(html.includes("v2-map-practice.js?v=7") && html.includes("v2-map-practice.css?v=5"), "The map page must load the tile-event connection version.");
+assert(html.includes("v2-map-practice.js?v=8") && html.includes("v2-map-practice.css?v=6"), "The map page must load the map deck-selection version.");
 assert(worker.includes("v2-map-practice.html"), "Map test page is not cached.");
 assert(worker.includes("v2-landscape.js?v=1"), "Landscape helper is not cached.");
-assert(worker.includes("v2-map-practice.js?v=7") && worker.includes("v2-map-practice.css?v=5"), "The connected tile-event map logic is not cached.");
+assert(worker.includes("v2-map-practice.js?v=8") && worker.includes("v2-map-practice.css?v=6"), "The map deck-selection logic is not cached.");
 assert(source.includes("requestedMapId") && source.includes('document.querySelector(`[data-map="${activeMapId}"]`)'), "Returning from battle must restore the selected map region.");
 const navigation = [];
 const battleLinkContext = {
-  activeMapId: "winter", enteringBattle: false, URLSearchParams,
-  el: { diceButton: {}, regenerate: {}, tileName: {} },
+  activeMapId: "winter", battleStep: 7, selectedDeck: ["death-knight", "ghoul", "hydra", "siren"], URLSearchParams,
+  el: { deckConfirm: {}, deckStatus: {} },
   window: { location: { assign: url => navigation.push(url) } }
 };
-const battleLinkSource = source.slice(source.indexOf("  function enterMonsterBattle("), source.indexOf("  function placeHero("));
+const battleLinkSource = source.slice(source.indexOf("  function confirmMonsterBattle("), source.indexOf("  function openTileEvent("));
 vm.createContext(battleLinkContext);
 vm.runInContext(battleLinkSource, battleLinkContext);
-assert(vm.runInContext('enterMonsterBattle({ id: "monster" }, 7)', battleLinkContext) === true, "A monster tile must start navigation.");
-assert(navigation[0] === "v2-auto-battle-practice.html?from=map&map=winter&tile=7", "Monster navigation must preserve map and tile context.");
-assert(vm.runInContext('enterMonsterBattle({ id: "rest" }, 8)', battleLinkContext) === false && navigation.length === 1, "Non-monster tiles must stay on the map.");
+vm.runInContext("confirmMonsterBattle()", battleLinkContext);
+assert(navigation[0] === "v2-auto-battle-practice.html?from=map&map=winter&tile=7&allies=death-knight%2Cghoul%2Chydra%2Csiren", "Battle navigation must preserve the ordered four-card deck.");
 const hero = "art/v2-style/map-test/hero/necromancer-hero.png";
 assert(fs.existsSync(path.join(root, hero)), "Processed hero token is missing.");
 assert(worker.includes(hero), "Hero token is not cached.");

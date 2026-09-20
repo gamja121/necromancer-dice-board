@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
   <title>외곽 타일 맵 테스트</title>
-  <link rel="stylesheet" href="v2-map-practice.css?v=5">
+  <link rel="stylesheet" href="v2-map-practice.css?v=6">
 </head>
 <body>
   <main class="map-lab">
@@ -44,10 +44,19 @@
           </footer>
         </div>
       </section>
+      <section id="mapDeckOverlay" class="map-deck-overlay" role="dialog" aria-modal="true" aria-label="전장 덱 선택" hidden>
+        <div class="map-deck-window">
+          <img class="map-deck-board" src="art/v2-style/ui/battle-deck-selection-board.png" alt="전장 덱 선택 보드, 카드 자리 4칸">
+          <div id="mapSelectedLineup" class="map-selected-lineup" aria-label="선택한 마물 카드 4장"></div>
+        </div>
+        <div id="mapDeckRoster" class="map-deck-roster" aria-label="선택 가능한 마물 카드 10장"></div>
+        <p id="mapDeckStatus" aria-live="polite">마물 카드 0 / 4</p>
+        <button id="mapDeckConfirm" class="map-deck-confirm" type="button" disabled>확인</button>
+      </section>
     </section>
   </main>
   <aside class="portrait-warning" aria-hidden="true"></aside>
   <script src="v2-landscape.js?v=1"></script>
-  <script src="v2-map-practice.js?v=7"></script>
+  <script src="v2-map-practice.js?v=8"></script>
 </body>
 </html>
