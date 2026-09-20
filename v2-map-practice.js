@@ -185,6 +185,7 @@
     el.deckConfirm.disabled = true;
     el.deckStatus.textContent = "전장으로 이동 중…";
     const params = new URLSearchParams({ from: "map", map: activeMapId, tile: String(battleStep), allies: selectedDeck.join(",") });
+    if (typeof V2Music !== "undefined") V2Music.handoff("battle");
     window.location.assign(`v2-auto-battle-practice.html?${params}`);
   }
 

@@ -1,0 +1,21 @@
+'use strict';
+const assert = require('node:assert/strict');
+const fs = require('fs');
+const source = fs.readFileSync('v2-music.js', 'utf8');
+const mapHtml = fs.readFileSync('v2-map-practice.html', 'utf8');
+const battleHtml = fs.readFileSync('v2-auto-battle-practice.html', 'utf8');
+const mapJs = fs.readFileSync('v2-map-practice.js', 'utf8');
+const battleJs = fs.readFileSync('v2-auto-battle-practice.js', 'utf8');
+const worker = fs.readFileSync('service-worker.js', 'utf8');
+
+assert(fs.statSync('assets/music/map-board.mp3').size > 1000000);
+assert(fs.statSync('assets/music/battle.mp3').size > 1000000);
+assert(source.includes('map-board.mp3') && source.includes('battle.mp3'));
+assert(source.includes('music.loop = true') && source.includes('requestStart()'));
+assert(source.includes('pointerdown') && source.includes('touchstart') && source.includes('pagehide'));
+assert(mapHtml.includes('data-v2-music="map"') && mapHtml.includes('v2-music.js?v=1'));
+assert(battleHtml.includes('data-v2-music="battle"') && battleHtml.includes('v2-music.js?v=1'));
+assert(mapJs.includes('V2Music.handoff("battle")'));
+assert(battleJs.includes('V2Music.handoff("map")'));
+assert(worker.includes('assets/music/map-board.mp3') && worker.includes('assets/music/battle.mp3'));
+console.log('PASS: map and battle BGM files, mobile unlock, looping, and page handoff');

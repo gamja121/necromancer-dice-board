@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-expedition-v263";
+const CACHE_NAME = "necromancer-expedition-v264";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -43,15 +43,16 @@ const APP_SHELL = [
   "./v2-dice-practice.js?v=1",
   "./v2-map-practice.html",
   "./v2-map-practice.css?v=9",
+  "./v2-music.js?v=1",
   "./v2-sfx.js?v=3",
-  "./v2-map-practice.js?v=12",
+  "./v2-map-practice.js?v=13",
   "./v2-landscape.js?v=1",
   "./v2-auto-battle-practice.html",
   "./v2-sfx-sampler.html",
   "./v2-auto-battle-practice.css?v=54",
   "./v2-battle-brands.js?v=3",
   "./v2-legions.js?v=3",
-  "./v2-auto-battle-practice.js?v=80",
+  "./v2-auto-battle-practice.js?v=81",
   "./assets/sfx/dice-tick.ogg",
   "./assets/sfx/dice-land.ogg",
   "./assets/sfx/move.ogg",
@@ -63,6 +64,8 @@ const APP_SHELL = [
   "./assets/sfx/freeze.ogg",
   "./assets/sfx/heavy.ogg",
   "./assets/sfx/magic.ogg",
+  "./assets/music/map-board.mp3",
+  "./assets/music/battle.mp3",
   "./art/v2-style/ui/battle-deck-selection-board.png",
   "./v2-design-data.js?v=1",
   "./v2-rules.js?v=4",

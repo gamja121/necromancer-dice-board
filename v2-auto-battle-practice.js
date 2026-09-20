@@ -1145,6 +1145,7 @@
   function returnToMap() {
     const map = battleQuery.get("map");
     const suffix = MAP_BATTLEFIELDS[map] ? `?map=${encodeURIComponent(map)}` : "";
+    if (typeof V2Music !== "undefined") V2Music.handoff("map");
     window.location.assign(`v2-map-practice.html${suffix}`);
   }
 
