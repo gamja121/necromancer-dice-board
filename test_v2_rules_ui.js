@@ -14,10 +14,15 @@ assert(source.includes('const hitAmounts = outcome.hits.length ? outcome.hits'))
 assert(source.includes('for (let hitIndex = 0; hitIndex < hitAmounts.length; hitIndex += 1)'));
 assert(source.includes('showDamage(target, hitAmount)'));
 // Test-only access to the actual controller; no debug hook is shipped.
-source=source.replace('  resetBattle(true);','  globalThis.testUI={resetBattle,openUnitInfo,startTurn,performAttack,finishBattle, makeState, roster:ROSTER, get units(){return units;}, get state(){return rulesState;}, get token(){return battleToken;}, ready(){running=true; awaitingRoll=true;}, setRoll(n){lastDiceRoll=n;}, get queue(){return turnQueue;}};\n  resetBattle(true);');
+source=source.replace('  resetBattle(true);','  globalThis.testUI={resetBattle,openUnitInfo,startTurn,performAttack,finishBattle,makeState,toggleRosterUnit,renderRosterSelection,roster:ROSTER,get selectedDeck(){return [...selectedAllySlugs];},get units(){return units;},get state(){return rulesState;},get token(){return battleToken;},ready(){running=true; awaitingRoll=true;},setRoll(n){lastDiceRoll=n;},get queue(){return turnQueue;}};\n  resetBattle(true);');
 vm.createContext(context);vm.runInContext(source,context);
 const ui=context.testUI;
 assert.equal(ui.roster.length,45);
+assert.equal(nodes.get('unitRoster').children.length,10);
+for(const slug of ['death-knight','skeleton-spear','ghoul','ancient-treant'])ui.toggleRosterUnit(slug);
+assert.equal(JSON.stringify(ui.selectedDeck),JSON.stringify(['death-knight','skeleton-spear','ghoul','ancient-treant']));
+assert.equal(nodes.get('selectedLineup').children.length,4);assert(nodes.get('selectedLineup').children.every(slot=>slot.children[0]?.src?.includes('unit-card-')));
+assert.equal(nodes.get('startButton').disabled,false);
 for(const data of ui.roster){
  const u=ui.makeState(data,'ally',0);assert.equal(u.name,context.V2DesignData.units[u.slug].name);assert(u.brands.every(context.V2Rules.validateBrand));
  ui.ready();ui.openUnitInfo(u);assert.equal(nodes.get('unitInfoHp').textContent,`${u.hp} / ${u.maxHp}`);
@@ -42,6 +47,9 @@ assert(nodes.get('unitInfoBrands').innerHTML.includes('brand-icons-extra-sheet.j
  assert(ui.units.every(u=>u.hp>=0&&u.alive===(u.hp>0)));
  const saved=JSON.parse(savedValues.get('necromancer-v2-battle-v1'));assert.equal(saved.state.round,1);assert(saved.state.units.every(u=>u.alive===(u.hp>0)));assert(saved.state.units[0].brands.length===3);
  const html=fs.readFileSync('v2-auto-battle-practice.html','utf8');assert(html.includes('>효과 정보</h2>'));assert(!html.includes('>기본 정보</h3>'));
+ assert(html.includes('battle-deck-selection-board.png'));assert(html.includes('선택 가능한 마물 카드 10장'));
+ assert(source.includes('const TEST_DECK_SLUGS = Object.freeze(['));assert(source.includes('selectedAllySlugs.length === 4'));
+ assert(source.includes('unit-card-${entry.slug}.png?v=19'));assert.equal((source.match(/"death-knight", "skeleton-spear", "ghoul", "ancient-treant", "goblin-rider"/g)||[]).length,1);
  assert(html.indexOf('v2-rules.js')<html.indexOf('v2-auto-battle-practice.js'));
  console.log('PASS: actual UI controller, 45 roster entries, 3-slot info, new icons, real round/attack handlers');
 })().catch(e=>{console.error(e);process.exitCode=1;});

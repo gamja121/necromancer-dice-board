@@ -168,6 +168,10 @@
     return result;
   });
   const ROSTER_BY_SLUG = new Map(ROSTER.map(entry => [entry.slug, entry]));
+  const TEST_DECK_SLUGS = Object.freeze([
+    "death-knight", "skeleton-spear", "ghoul", "ancient-treant", "goblin-rider",
+    "minotaur", "plague-doctor", "spider-knight", "hydra", "siren"
+  ]);
 
   const battlefield = document.getElementById("battlefield");
   // Optional demonstration lineup; the normal 4v4 lineup stays unchanged.
@@ -264,7 +268,7 @@
   let captureTargetLocked = false;
   let lineupRequest = 0;
   let lineupSide = "ally";
-  let selectedAllySlugs = TEAM_DATA.ally.map(entry => entry.slug);
+  let selectedAllySlugs = [];
   let selectedEnemySlugs = TEAM_DATA.enemy.map(entry => entry.slug);
   let rosterTouchScroll = null;
   let selectedAllyTeam = TEAM_DATA.ally.map(entry => ({ ...entry }));
@@ -303,7 +307,7 @@
       lineupRequest += 1;
       loadingLineup = false;
       lineupSide = "ally";
-      startButton.textContent = "이 편성으로 전투 시작";
+      startButton.textContent = "확인";
     }
     battleToken += 1;
     running = false;
@@ -505,7 +509,7 @@
   }
 
   function isLineupReady() {
-    return selectedAllySlugs.length >= 1 && selectedEnemySlugs.length >= 1;
+    return selectedAllySlugs.length === 4 && selectedEnemySlugs.length === 4;
   }
 
   function renderRosterSelection(notice = "") {
@@ -516,7 +520,14 @@
         const slot = document.createElement("div");
         const selected = ROSTER_BY_SLUG.get(slugs[index]);
         slot.className = selected ? "selected-slot" : "selected-slot is-empty";
-        slot.textContent = selected ? `${index + 1}. ${selected.name}` : `${index + 1}. 빈 자리`;
+        if (selected) {
+          const card = document.createElement("img");
+          card.src = `art/v2-style/ui/unit-card-${selected.slug}.png?v=19`;
+          card.alt = `${index + 1}번째 ${selected.name}`;
+          slot.title = `${selected.name} 선택 해제`;
+          slot.addEventListener("click", () => toggleRosterUnit(selected.slug));
+          slot.append(card);
+        } else slot.setAttribute("aria-label", `${index + 1}번째 빈 자리`);
         host.append(slot);
       }
     };
@@ -530,7 +541,8 @@
     enemyLineupSummary.classList.toggle("is-active", lineupSide === "enemy");
     const activeSlugs = lineupSide === "ally" ? selectedAllySlugs : selectedEnemySlugs;
     unitRoster.replaceChildren();
-    for (const entry of ROSTER) {
+    for (const slug of TEST_DECK_SLUGS) {
+      const entry = ROSTER_BY_SLUG.get(slug);
       const selectedIndex = activeSlugs.indexOf(entry.slug);
       const button = document.createElement("button");
       button.type = "button";
@@ -542,7 +554,7 @@
       const order = document.createElement("b");
       order.textContent = selectedIndex >= 0 ? String(selectedIndex + 1) : "";
       const image = document.createElement("img");
-      image.src = entry.portrait;
+      image.src = `art/v2-style/ui/unit-card-${entry.slug}.png?v=19`;
       image.alt = "";
       const name = document.createElement("span");
       name.textContent = entry.name;
@@ -550,9 +562,8 @@
       button.addEventListener("click", () => toggleRosterUnit(entry.slug));
       unitRoster.append(button);
     }
-    const activeName = lineupSide === "ally" ? "아군" : "적군";
     unitRoster.scrollTop = scrollTop;
-    lineupStatus.textContent = notice || `${activeName} 편집 중 · 아군 ${selectedAllySlugs.length}/4 · 적군 ${selectedEnemySlugs.length}/4`;
+    lineupStatus.textContent = notice || `마물 카드 ${selectedAllySlugs.length} / 4`;
     startButton.disabled = loadingLineup || !isLineupReady();
   }
 
@@ -599,8 +610,8 @@
     loadingLineup = true;
     renderRosterSelection();
     startButton.disabled = true;
-    startButton.textContent = "유닛 모션 불러오는 중…";
-    lineupStatus.textContent = "선택한 유닛을 전장에 준비하고 있습니다.";
+    startButton.textContent = "준비 중…";
+    lineupStatus.textContent = "선택한 마물을 전장에 준비하고 있습니다.";
     try {
       const preparedAllyTeam = selectedAllySlugs.map(slug => ({ ...ROSTER_BY_SLUG.get(slug) }));
       const preparedEnemyTeam = selectedEnemySlugs.map(slug => ({ ...ROSTER_BY_SLUG.get(slug) }));
@@ -619,7 +630,7 @@
     } finally {
       if (request !== lineupRequest) return;
       loadingLineup = false;
-      startButton.textContent = "이 편성으로 전투 시작";
+      startButton.textContent = "확인";
       startButton.disabled = !isLineupReady();
     }
   }
