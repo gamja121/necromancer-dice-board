@@ -72,10 +72,12 @@ assert(html.includes('id="treasureChestSprite"') && css.includes("@keyframes tre
 assert(source.includes('scene.animation === "treasure"') && source.includes('eventTreasure.classList.add("is-playing")'), "Treasure animation must restart when the tile is reached.");
 assert(source.includes("async function warpToOtherWarp()") && source.includes('tile.id === "warp" && index !== heroIndex'), "Warp must move to the other warp tile.");
 assert(source.includes('currentTiles[heroIndex]?.id === "warp"') && source.includes("await warpToOtherWarp()"), "Landing on a warp tile must trigger teleportation.");
-assert(html.includes("v2-map-practice.js?v=8") && html.includes("v2-map-practice.css?v=6"), "The map page must load the map deck-selection version.");
+assert(html.includes("v2-map-practice.js?v=9") && html.includes("v2-map-practice.css?v=7"), "The map page must load the aligned deck-selection version.");
 assert(worker.includes("v2-map-practice.html"), "Map test page is not cached.");
 assert(worker.includes("v2-landscape.js?v=1"), "Landscape helper is not cached.");
-assert(worker.includes("v2-map-practice.js?v=8") && worker.includes("v2-map-practice.css?v=6"), "The map deck-selection logic is not cached.");
+assert(worker.includes("v2-map-practice.js?v=9") && worker.includes("v2-map-practice.css?v=7"), "The aligned map deck-selection logic is not cached.");
+assert(!source.includes('document.createElement("b")'), "Selected roster cards must not show numbered badges.");
+assert(css.includes("translateY(-22%)") && css.includes("width: 68%"), "Selected cards must rise and the roster must cluster on the left.");
 assert(source.includes("requestedMapId") && source.includes('document.querySelector(`[data-map="${activeMapId}"]`)'), "Returning from battle must restore the selected map region.");
 const navigation = [];
 const battleLinkContext = {

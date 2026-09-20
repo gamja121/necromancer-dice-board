@@ -161,14 +161,12 @@
       button.type = "button";
       button.classList.toggle("is-selected", selectedIndex >= 0);
       button.setAttribute("aria-pressed", selectedIndex >= 0 ? "true" : "false");
-      const order = document.createElement("b");
-      order.textContent = selectedIndex >= 0 ? String(selectedIndex + 1) : "";
       const image = document.createElement("img");
       image.src = `art/v2-style/ui/unit-card-${entry.slug}.png?v=19`;
       image.alt = "";
       const name = document.createElement("span");
       name.textContent = entry.name;
-      button.append(image, name, order);
+      button.append(image, name);
       button.addEventListener("click", () => toggleDeckUnit(entry.slug));
       el.deckRoster.append(button);
     }
