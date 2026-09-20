@@ -713,16 +713,18 @@
     }
     for (const plan of plans) await summonFromPlan(plan, token);
     if (token !== battleToken || !running) return;
-    for (const seed of units.filter(u => u.alive && u.slug === "guardian-seed" && turnNumber >= u.bornTurn + 2)) {
+    for (const bloom of V2Rules.bloomPlans(rulesState)) {
+      const seed = bloom.seed;
       await playMotion(seed, "attack", seed.frames.attack, token, true);
       if (token !== battleToken || !running) return;
       const plant = makeState({ ...ROSTER_BY_SLUG.get("crystal-devourer") }, seed.team, seed.slot);
       const plantDesign = V2DesignData.units['crystal-devourer'];
       Object.assign(plant, {maxHp:plantDesign.hp, attack:plantDesign.attack, speed:plantDesign.speed});
-      V2Rules.init(plant);
-      plant.isSummon = true;
-      plant.brands = []; plant.passive = null;
-      replaceFighter(seed, plant);
+      if (!V2Rules.bloomSeed(rulesState, seed, plant)) continue;
+      const node = seed.element || (plant.team === "ally" ? allyTeam : enemyTeam).querySelector(".summon-slot");
+      node.replaceWith(createUnitElement(plant));
+      revealUnit(plant);
+      if (typeof V2UnitCards !== "undefined") V2UnitCards.sync(battlefield, units, openUnitInfo);
     }
     turnQueue = V2Rules.roll(rulesState, lastDiceRoll);
     saveBattle('acting');
@@ -859,20 +861,6 @@
   function closeUnitInfo() {
     unitInfoOverlay.hidden = true;
     if (typeof V2UnitCards !== "undefined") V2UnitCards.clearSelection();
-  }
-
-  function replaceFighter(old, next) {
-    const host = next.team === "ally" ? allyTeam : enemyTeam;
-    const node = old?.element || host.querySelector(".summon-slot");
-    V2Rules.applyUnit(legionState, next);
-    const element = createUnitElement(next);
-    node.replaceWith(element);
-    if (old) units.splice(units.indexOf(old), 1, next);
-    else units.push(next);
-    V2Rules.refresh(rulesState);
-    revealUnit(next);
-    if (typeof V2UnitCards !== "undefined") V2UnitCards.sync(battlefield, units, openUnitInfo);
-    return next;
   }
 
   async function summonFromPlan(plan, token) {

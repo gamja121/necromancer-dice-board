@@ -69,7 +69,8 @@
       if(ownerIndex>=0)formation.splice(ownerIndex,1,replacement);else formation.push(replacement);
       formation.sort((a,b)=>a.slot-b.slot);
     }
-    const rates=TARGET_RATES[formation.length]||[];
+    const baseRates=TARGET_RATES[formation.length]||[];
+    const rates=team==='enemy'?[...baseRates].reverse():baseRates;
     return formation.map((entry,index)=>({unit:entry.unit,chance:rates[index]||0}));
   }
   function pickTarget(s,team,rng=s.rng){
@@ -93,6 +94,13 @@
     const species=D.units[plan.slug];Object.assign(u,{maxHp:species.hp,attack:species.attack,speed:species.speed});
     init(u);u.team=plan.team;u.slot=4;u.isSummon=true;u.ownerSlot=plan.owner?.slot??plan.summonerSlot;u.bornTurn=s.round;u.brands=[];u.passive=null;applyUnit(s.legions,u);
     const old=s.units.findIndex(a=>a.team===u.team&&a.slot===4);if(old>=0)s.units.splice(old,1,u);else s.units.push(u);refresh(s);return true;}
+  function bloomPlans(s){return s.units.filter(u=>u.alive&&u.slug==='guardian-seed'&&s.round>=u.bornTurn+2).map(seed=>({seed,team:seed.team,slot:seed.slot,ownerSlot:seed.ownerSlot,slug:'crystal-devourer'}));}
+  function bloomSeed(s,seed,u){
+    const index=s.units.indexOf(seed);if(index<0||!seed.alive||seed.slug!=='guardian-seed')return false;
+    const species=D.units['crystal-devourer'];Object.assign(u,{slug:'crystal-devourer',name:species.name,grade:species.grade,legions:[...species.legions],maxHp:species.hp,attack:species.attack,speed:species.speed});
+    init(u);u.team=seed.team;u.slot=seed.slot;u.isSummon=true;u.ownerSlot=seed.ownerSlot;u.bornTurn=s.round;u.brands=[];u.passive=null;applyUnit(s.legions,u);
+    s.units.splice(index,1,u);refresh(s);return true;
+  }
   function begin(s){s.round++;s.events=[];for(const u of s.units){u.bless={};u.curse={};u.shields=0;if(u.alive&&has(s,u,'skeleton')){const amount=heal(u,1);if(amount)s.events.push({type:'heal',unit:u,amount,source:'skeleton'});}}refresh(s);return summonPlans(s);}
   function roll(s,face){
     for(const u of s.units){u.bless={};u.curse={};if(!u.alive)continue;for(const b of u.brands||[]){if(b.bless.includes(face))u.bless[b.type]=(u.bless[b.type]||0)+1;if(b.curse.includes(face))u.curse[b.type]=(u.curse[b.type]||0)+1;}u.shields=u.curse.guard?0:u.bless.guard||0;u.brand=u.brands[0]?.type;u.brandMode=mode(u.brands[0],face);}
@@ -140,6 +148,6 @@
     for(const u of s.units){u.poisonStacks=(u.poisonStacks||[]).map(p=>({remaining:p.remaining,source:s.units[p.source]||null}));u.poison=u.poisonStacks.length;}
     refresh(s);return s;
   }
-  const api={definitions,RULES,TARGET_RATES,individual,brand,validateBrand,inherit,create,init,applyUnit,active,suppressed,begin,roll,before,attack,addSummon,targetWeights,pickTarget,refresh,mode,heal,damage,snapshot,restore};
+  const api={definitions,RULES,TARGET_RATES,individual,brand,validateBrand,inherit,create,init,applyUnit,active,suppressed,begin,roll,before,attack,addSummon,bloomPlans,bloomSeed,targetWeights,pickTarget,refresh,mode,heal,damage,snapshot,restore};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.V2Rules=api;
 })(globalThis);
