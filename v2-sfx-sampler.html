@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#160f0b">
+  <title>전투 효과음 샘플</title>
+  <style>
+    :root { color-scheme: dark; font-family: "Noto Sans KR", system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: #f5ead4; background: radial-gradient(circle at 50% 0, #4b3020, #17100c 55%, #090706); }
+    main { width: min(760px, 100%); margin: 0 auto; padding: max(24px, env(safe-area-inset-top)) 18px max(34px, env(safe-area-inset-bottom)); }
+    header { text-align: center; margin-bottom: 24px; }
+    h1 { margin: 0 0 8px; color: #f1c77d; font-size: clamp(25px, 7vw, 38px); }
+    header p { margin: 0; color: #cdbda6; line-height: 1.55; font-size: 14px; }
+    section { margin: 16px 0; padding: 17px; border: 1px solid #76583e; border-radius: 15px; background: rgba(27, 19, 14, .88); box-shadow: 0 12px 30px #0008, inset 0 0 25px #aa6d2511; }
+    h2 { margin: 0 0 4px; color: #e7bd78; font-size: 21px; }
+    .hint { margin: 0 0 14px; color: #9f8c76; font-size: 13px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    button { min-height: 68px; padding: 11px; border: 1px solid #846444; border-radius: 11px; color: #f7ead5; background: linear-gradient(#553921, #2c1d14); box-shadow: inset 0 1px #d8a95d55, 0 4px 10px #0007; font: inherit; text-align: left; touch-action: manipulation; }
+    button:active, button.is-playing { transform: translateY(2px); color: white; border-color: #efb95d; background: linear-gradient(#8a5627, #422616); box-shadow: 0 0 18px #ff9d3555; }
+    button strong { display: block; color: #ffd58d; font-size: 17px; }
+    button span { display: block; margin-top: 3px; color: #c9b9a3; font-size: 12px; }
+    .pair { width: 100%; margin-top: 12px; text-align: center; background: linear-gradient(#7b2722, #3f1714); }
+    .pair strong { font-size: 18px; }
+    footer { margin-top: 20px; text-align: center; color: #ad9b84; font-size: 13px; line-height: 1.6; }
+    @media (min-width: 620px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>전투 효과음 샘플</h1>
+      <p>버튼을 눌러 직접 비교하세요.<br>현재 전투 효과음은 A로 표시했습니다.</p>
+    </header>
+
+    <section>
+      <h2>공격 모션</h2>
+      <p class="hint">공격자가 앞으로 나갈 때 재생되는 소리</p>
+      <div class="grid">
+        <button data-file="attack.ogg" data-rate="1" data-synth="attack"><strong>A · 현재</strong><span>현재 전투에 적용된 합성 포함</span></button>
+        <button data-file="claw.ogg" data-rate="1"><strong>B · 발톱</strong><span>거칠고 짧은 할퀴기</span></button>
+        <button data-file="heavy.ogg" data-rate="1.14"><strong>C · 강타</strong><span>묵직한 무기 휘두르기</span></button>
+        <button data-file="arrow.ogg" data-rate=".88"><strong>D · 질주</strong><span>빠르게 파고드는 바람 소리</span></button>
+        <button data-file="magic.ogg" data-rate="1.2"><strong>E · 마력</strong><span>짧은 마력 방출</span></button>
+        <button data-file="attack.ogg" data-rate=".72"><strong>F · 대형</strong><span>낮고 느린 대형 마물 공격</span></button>
+      </div>
+    </section>
+
+    <section>
+      <h2>피격 순간</h2>
+      <p class="hint">피해 숫자가 나타나는 순간 재생되는 소리</p>
+      <div class="grid">
+        <button data-file="hit.ogg" data-rate="1" data-synth="hit"><strong>A · 현재</strong><span>현재 전투에 적용된 합성 포함</span></button>
+        <button data-file="heavy.ogg" data-rate="1.45"><strong>B · 육중</strong><span>무게감 있는 둔탁한 충격</span></button>
+        <button data-file="claw.ogg" data-rate=".76"><strong>C · 살점</strong><span>거친 생물형 피격</span></button>
+        <button data-file="hit.ogg" data-rate="1.45"><strong>D · 경쾌</strong><span>짧고 선명한 타격 확인음</span></button>
+        <button data-file="death.ogg" data-rate="1.55"><strong>E · 파열</strong><span>크고 강한 파괴 충격</span></button>
+        <button data-file="heavy.ogg" data-rate=".78"><strong>F · 대형</strong><span>낮게 울리는 거대 충격</span></button>
+      </div>
+    </section>
+
+    <section>
+      <h2>공격 → 피격 조합</h2>
+      <p class="hint">위에서 마지막으로 누른 공격음과 피격음을 실제 간격으로 재생합니다.</p>
+      <button id="pairButton" class="pair"><strong>선택한 조합 듣기</strong><span id="pairLabel">공격 A + 피격 A</span></button>
+    </section>
+
+    <footer>마음에 드는 문자를 알려주세요.<br>예: “공격 C, 피격 D로 해줘.”</footer>
+  </main>
+  <script>
+    (() => {
+      const groups = [...document.querySelectorAll("section")].slice(0, 2);
+      const selected = [groups[0].querySelector("button"), groups[1].querySelector("button")];
+      const label = document.getElementById("pairLabel");
+      const pool = new Map();
+      let context;
+
+      function tone(frequency, duration, volume, endFrequency, type) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        context ||= new AudioContextClass();
+        if (context.state === "suspended") context.resume().catch(() => {});
+        const now = context.currentTime;
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        oscillator.type = type;
+        oscillator.frequency.setValueAtTime(frequency, now);
+        oscillator.frequency.exponentialRampToValueAtTime(endFrequency, now + duration);
+        gain.gain.setValueAtTime(volume, now);
+        gain.gain.exponentialRampToValueAtTime(.0001, now + duration);
+        oscillator.connect(gain).connect(context.destination);
+        oscillator.start(now);
+        oscillator.stop(now + duration + .02);
+      }
+
+      function playCurrentSynth(kind) {
+        if (kind === "attack") tone(900, .13, .036, 170, "sawtooth");
+        if (kind === "hit") {
+          tone(105, .15, .045, 45, "square");
+          tone(340, .06, .023, 95, "sawtooth");
+        }
+      }
+
+      function audioFor(button) {
+        const key = button.dataset.file;
+        if (!pool.has(key)) {
+          const audio = new Audio(`assets/sfx/${key}`);
+          audio.preload = "auto";
+          pool.set(key, audio);
+        }
+        const audio = pool.get(key).cloneNode();
+        audio.volume = .9;
+        audio.playbackRate = Number(button.dataset.rate || 1);
+        return audio;
+      }
+
+      function play(button) {
+        document.querySelectorAll("button.is-playing").forEach(item => item.classList.remove("is-playing"));
+        button.classList.add("is-playing");
+        const audio = audioFor(button);
+        if (button.dataset.synth) playCurrentSynth(button.dataset.synth);
+        audio.play().catch(() => {});
+        window.setTimeout(() => button.classList.remove("is-playing"), 350);
+      }
+
+      groups.forEach((group, groupIndex) => {
+        [...group.querySelectorAll("button")].forEach(button => button.addEventListener("click", () => {
+          selected[groupIndex] = button;
+          play(button);
+          label.textContent = `공격 ${selected[0].querySelector("strong").textContent[0]} + 피격 ${selected[1].querySelector("strong").textContent[0]}`;
+        }));
+      });
+
+      document.getElementById("pairButton").addEventListener("click", () => {
+        play(selected[0]);
+        window.setTimeout(() => play(selected[1]), 280);
+      });
+    })();
+  </script>
+</body>
+</html>
