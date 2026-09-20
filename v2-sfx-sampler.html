@@ -86,6 +86,7 @@
       const selected = [groups[0].querySelector("button"), groups[1].querySelector("button")];
       const label = document.getElementById("pairLabel");
       const pool = new Map();
+      const proceduralPool = new Map();
       let context;
 
       function audioContext() {
@@ -111,39 +112,63 @@
         oscillator.stop(now + duration + .02);
       }
 
-      function noise(duration, volume, cutoff, type = "lowpass", q = .7) {
-        if (!audioContext()) return;
-        const length = Math.ceil(context.sampleRate * duration);
-        const buffer = context.createBuffer(1, length, context.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < length; i += 1) data[i] = (Math.random() * 2 - 1) * (1 - i / length);
-        const source = context.createBufferSource();
-        const filter = context.createBiquadFilter();
-        const gain = context.createGain();
-        const now = context.currentTime;
-        source.buffer = buffer;
-        filter.type = type;
-        filter.frequency.value = cutoff;
-        filter.Q.value = q;
-        gain.gain.setValueAtTime(volume, now);
-        gain.gain.exponentialRampToValueAtTime(.0001, now + duration);
-        source.connect(filter).connect(gain).connect(context.destination);
-        source.start(now);
+      const proceduralProfiles = {
+        "blunt-swing": [.24, .024, 132, .72, .34, 0],
+        "body-rush": [.34, .012, 88, .74, .58, 0],
+        "club-swing": [.19, .052, 158, .66, .4, 1],
+        "bite-snap": [.11, .16, 205, .52, .4, 2],
+        "tail-sweep": [.38, .018, 102, .78, .33, 0],
+        "ground-smash": [.34, .01, 61, .58, .82, 1],
+        "flesh-hit": [.17, .036, 96, .82, .52, 1],
+        "soft-body": [.24, .012, 69, .9, .48, 0],
+        "bone-crack": [.13, .2, 172, .66, .3, 2],
+        "deep-thud": [.21, .026, 81, .68, .72, 1],
+        "giant-body": [.4, .008, 49, .62, .95, 1],
+        "wood-crack": [.18, .1, 126, .72, .38, 2]
+      };
+
+      function proceduralWav(kind) {
+        const [duration, smooth, base, noiseMix, bassMix, crack] = proceduralProfiles[kind];
+        const sampleRate = 22050;
+        const count = Math.ceil(duration * sampleRate);
+        const samples = new Float32Array(count);
+        let seed = [...kind].reduce((value, char) => value + char.charCodeAt(0), 71);
+        let low = 0;
+        for (let i = 0; i < count; i += 1) {
+          seed = (seed * 1664525 + 1013904223) >>> 0;
+          const random = seed / 2147483648 - 1;
+          low += (random - low) * smooth;
+          const progress = i / count;
+          const envelope = Math.pow(1 - progress, crack ? 3.6 : 2.1);
+          const swing = kind.includes("swing") || kind.includes("rush") || kind.includes("sweep")
+            ? Math.sin(Math.PI * progress)
+            : envelope;
+          const frequency = base * (1 - progress * .42);
+          let value = low * noiseMix * (swing + envelope * .35);
+          value += Math.sin(Math.PI * 2 * frequency * (i / sampleRate)) * bassMix * envelope;
+          if (crack && (i < sampleRate * .012 || (crack > 1 && i > sampleRate * .047 && i < sampleRate * .057))) {
+            value += (random - low) * .58;
+          }
+          samples[i] = Math.max(-1, Math.min(1, value * .78));
+        }
+        const buffer = new ArrayBuffer(44 + count * 2);
+        const view = new DataView(buffer);
+        const text = (offset, value) => [...value].forEach((char, index) => view.setUint8(offset + index, char.charCodeAt(0)));
+        text(0, "RIFF"); view.setUint32(4, 36 + count * 2, true); text(8, "WAVE"); text(12, "fmt ");
+        view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+        view.setUint32(24, sampleRate, true); view.setUint32(28, sampleRate * 2, true);
+        view.setUint16(32, 2, true); view.setUint16(34, 16, true); text(36, "data"); view.setUint32(40, count * 2, true);
+        samples.forEach((sample, index) => view.setInt16(44 + index * 2, sample * 32767, true));
+        return URL.createObjectURL(new Blob([buffer], { type: "audio/wav" }));
       }
 
-      function playProcedural(kind) {
-        if (kind === "blunt-swing") { noise(.22, .2, 520); tone(135, .2, .035, 62, "sine"); }
-        else if (kind === "body-rush") { noise(.3, .22, 330); tone(105, .28, .05, 48, "sine"); }
-        else if (kind === "club-swing") { noise(.16, .18, 720, "bandpass", 1.1); tone(190, .14, .03, 82, "triangle"); }
-        else if (kind === "bite-snap") { noise(.07, .23, 1250, "bandpass", 1.8); tone(210, .06, .035, 75, "square"); }
-        else if (kind === "tail-sweep") { noise(.34, .2, 430); tone(115, .3, .035, 55, "sine"); }
-        else if (kind === "ground-smash") { noise(.22, .25, 250); tone(72, .34, .075, 31, "sine"); }
-        else if (kind === "flesh-hit") { noise(.13, .27, 520); tone(105, .14, .055, 48, "sine"); }
-        else if (kind === "soft-body") { noise(.2, .3, 260); tone(78, .2, .05, 39, "sine"); }
-        else if (kind === "bone-crack") { noise(.065, .26, 1450, "bandpass", 2.2); tone(175, .08, .035, 70, "square"); }
-        else if (kind === "deep-thud") { noise(.14, .24, 340); tone(88, .2, .07, 38, "sine"); }
-        else if (kind === "giant-body") { noise(.28, .28, 210); tone(58, .38, .1, 27, "sine"); }
-        else if (kind === "wood-crack") { noise(.11, .26, 820, "bandpass", 1.4); tone(125, .16, .045, 52, "triangle"); }
+      function proceduralAudio(kind) {
+        if (!proceduralPool.has(kind)) {
+          const audio = new Audio(proceduralWav(kind));
+          audio.preload = "auto";
+          proceduralPool.set(kind, audio);
+        }
+        return proceduralPool.get(kind).cloneNode();
       }
 
       function playCurrentSynth(kind) {
@@ -156,7 +181,11 @@
 
       function audioFor(button) {
         const key = button.dataset.file;
-        if (!key) return null;
+        if (!key) {
+          const audio = proceduralAudio(button.dataset.proc);
+          audio.volume = 1;
+          return audio;
+        }
         if (!pool.has(key)) {
           const audio = new Audio(`assets/sfx/${key}`);
           audio.preload = "auto";
@@ -173,10 +202,11 @@
         button.classList.add("is-playing");
         const audio = audioFor(button);
         if (button.dataset.synth) playCurrentSynth(button.dataset.synth);
-        if (button.dataset.proc) playProcedural(button.dataset.proc);
         if (audio) audio.play().catch(() => {});
         window.setTimeout(() => button.classList.remove("is-playing"), 350);
       }
+
+      document.querySelectorAll("[data-proc]").forEach(button => proceduralAudio(button.dataset.proc));
 
       groups.forEach((group, groupIndex) => {
         [...group.querySelectorAll("button")].forEach(button => button.addEventListener("click", () => {
