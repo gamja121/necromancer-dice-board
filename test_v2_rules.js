@@ -58,6 +58,20 @@ for(const type of Object.keys(R.definitions))for(let i=0;i<1000;i++)assert(R.val
  s.round=14;R.begin(s);assert.equal(a.attack,a.baseAttack+1);s.round=17;R.refresh(s);const plan={slug:'spiderling',team:'ally',slot:4};R.addSummon(s,plan,R.individual('spiderling',rng));assert.equal(s.units.find(u=>u.slot===4).attack,4);
 }
 {
+ const attacker=unit('hydra','ally',0),defenders=[0,1,2,3].map(slot=>unit('skeleton-spear','enemy',slot));const s=R.create([attacker,...defenders]);
+ assert.deepEqual(R.targetWeights(s,'enemy').map(entry=>entry.chance),[15,20,27,38]);
+ assert.equal(R.pickTarget(s,'enemy',()=>.14),defenders[0]);assert.equal(R.pickTarget(s,'enemy',()=>.15),defenders[1]);assert.equal(R.pickTarget(s,'enemy',()=>.99),defenders[3]);
+ defenders[1].hp=0;defenders[1].alive=false;assert.deepEqual(R.targetWeights(s,'enemy').map(entry=>entry.chance),[20,33,47]);
+ defenders[2].hp=0;defenders[2].alive=false;assert.deepEqual(R.targetWeights(s,'enemy').map(entry=>entry.chance),[35,65]);
+ defenders[3].hp=0;defenders[3].alive=false;assert.deepEqual(R.targetWeights(s,'enemy').map(entry=>entry.chance),[100]);
+}
+{
+ const attacker=unit('hydra','ally',0),defenders=[0,1,2,3].map(slot=>unit('skeleton-spear','enemy',slot));const s=R.create([attacker,...defenders]);
+ const pet=R.individual('spiderling',rng);R.addSummon(s,{slug:'spiderling',team:'enemy',slot:4,summonerSlot:2},pet);
+ let weighted=R.targetWeights(s,'enemy');assert.deepEqual(weighted.map(entry=>entry.chance),[15,20,27,38]);assert(!weighted.some(entry=>entry.unit===defenders[2]));assert.equal(weighted[2].unit,pet);
+ defenders[2].hp=0;defenders[2].alive=false;weighted=R.targetWeights(s,'enemy');assert.equal(weighted[2].unit,pet);assert.equal(weighted[2].chance,27);
+}
+{
  const a=unit('hydra','ally',0,'undying',[b('poison')]),t=unit('skeleton-spear','enemy');const s=R.create([a,t],rng);R.begin(s);R.roll(s,4);R.attack(s,a,t);a.undyingUsed=true;t.hp=0;t.alive=false;
  const restored=R.restore(R.snapshot(s),rng);assert.deepEqual(R.snapshot(restored),R.snapshot(s));assert.equal(restored.units[1].alive,false);assert.equal(restored.units[0].undyingUsed,true);assert.equal(restored.units[1].poisonStacks[0].source,restored.units[0]);
  const invalid=R.snapshot(s);invalid.units[1].alive=true;assert.throws(()=>R.restore(invalid));
@@ -71,7 +85,7 @@ for(let trial=0;trial<2000;trial++){
  const live=team=>s.units.some(u=>u.alive&&u.team===team);
  while(live('ally')&&live('enemy')&&s.round<250){
    for(const p of R.begin(s))R.addSummon(s,p,R.individual(p.slug,rng));
-   for(const a of R.roll(s,1+Math.floor(rng()*6))){if(!a.alive)continue;R.before(s,a);const targets=s.units.filter(t=>t.alive&&t.team!==a.team);if(!targets.length)break;R.attack(s,a,targets[Math.floor(rng()*targets.length)]);}
+   for(const a of R.roll(s,1+Math.floor(rng()*6))){if(!a.alive)continue;R.before(s,a);const target=R.pickTarget(s,a.team==='ally'?'enemy':'ally',rng);if(!target)break;R.attack(s,a,target);}
    for(const u of s.units){assert(Number.isFinite(u.hp)&&u.hp>=0&&u.hp<=u.maxHp);assert.equal(u.alive,u.hp>0);assert(u.poisonStacks.length<=3);}
  }
  maxRound=Math.max(maxRound,s.round);if(s.round===250)timeouts++;

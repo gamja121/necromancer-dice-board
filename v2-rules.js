@@ -12,6 +12,7 @@
   const definitions=Object.fromEntries(Object.entries(brandRows).map(([key,[name,count,blessing,penalty]])=>[key,{name:name+'의 낙인',count,blessing,penalty}]));
   const legionRows={skeleton:['언데드',3,'라운드 시작 체력 1 회복'],beast:['야수',3,'공격력 +1'],corpse:['시체',2,'영입 실패 시 재도전 1회'],plague:['역병',3,'중독 면역'],ice:['얼음',3,'빙결 대상 타격 피해 +1'],summon:['소환',2,'빈 5번 슬롯에 무작위 자동 소환'],demon:['악마',3,'속도 +2'],plant:['식물',2,'최대·현재 체력 +3'],insect:['벌레',2,'공격 피해 -1, 최소 1'],element:['원소',2,'상대 군단 효과 억제']};
   const RULES=Object.fromEntries(Object.entries(legionRows).map(([key,[name,need,effect]])=>[key,{name,need,effect}]));
+  const TARGET_RATES=Object.freeze({1:Object.freeze([100]),2:Object.freeze([35,65]),3:Object.freeze([20,33,47]),4:Object.freeze([15,20,27,38])});
   const choose=(items,rng)=>items[Math.floor(rng()*items.length)];
   function brand(type,rng=Math.random){
     if(!definitions[type])throw Error('Unknown brand');
@@ -58,12 +59,31 @@
     if(dealt>0&&source&&source.team!==target.team&&['attack','counter'].includes(kind)&&passive(target,'grudge'))target.grudge++;
     refresh(s);return dealt;
   }
+  function targetWeights(s,team){
+    const formation=s.units.filter(u=>u.alive&&u.team===team&&!u.isSummon&&u.slot<4).map(u=>({unit:u,slot:u.slot})).sort((a,b)=>a.slot-b.slot);
+    const summon=s.units.find(u=>u.alive&&u.team===team&&u.isSummon&&u.slot===4);
+    if(summon){
+      const ownerSlot=Number.isInteger(summon.ownerSlot)?summon.ownerSlot:(formation[0]?.slot??0);
+      const ownerIndex=formation.findIndex(entry=>entry.slot===ownerSlot);
+      const replacement={unit:summon,slot:ownerSlot};
+      if(ownerIndex>=0)formation.splice(ownerIndex,1,replacement);else formation.push(replacement);
+      formation.sort((a,b)=>a.slot-b.slot);
+    }
+    const rates=TARGET_RATES[formation.length]||[];
+    return formation.map((entry,index)=>({unit:entry.unit,chance:rates[index]||0}));
+  }
+  function pickTarget(s,team,rng=s.rng){
+    const weighted=targetWeights(s,team);if(!weighted.length)return null;
+    let roll=rng()*100;
+    for(const entry of weighted){roll-=entry.chance;if(roll<0)return entry.unit;}
+    return weighted.at(-1).unit;
+  }
   function poison(s,u,count,source){if(has(s,u,'plague')||!u.alive)return;for(let i=0;i<count&&u.poisonStacks.length<3;i++)u.poisonStacks.push({remaining:2,source});u.poison=u.poisonStacks.length;}
   const summonPools={'spider-knight':['spiderling'],'goblin-chief':['goblin-commoner'],'grave-priest':['skeleton-spear','skeleton-archer','skeleton-cavalry'],'crystal-devourer':['guardian-seed']};
   function summonPlans(s){const plans=[];for(const team of ['ally','enemy']){if(s.units.some(u=>u.alive&&u.team===team&&u.slot===4))continue;
     if(active(s.legions,team,'summon')){
       const summoners=s.units.filter(u=>u.alive&&u.team===team&&u.slot<4&&summonPools[u.slug]).sort((a,b)=>a.slot-b.slot);
-      if(summoners.length){const summoner=choose(summoners,s.rng);plans.push({team,slot:4,slug:choose(summonPools[summoner.slug],s.rng),summonerSlug:summoner.slug});}
+      if(summoners.length){const summoner=choose(summoners,s.rng);plans.push({team,slot:4,slug:choose(summonPools[summoner.slug],s.rng),summonerSlug:summoner.slug,summonerSlot:summoner.slot});}
       continue;
     }
     const owner=s.units.filter(u=>u.alive&&u.team===team&&passive(u,'soul')&&u.hp>1).sort((a,b)=>a.slot-b.slot)[0];
@@ -71,7 +91,7 @@
     }return plans;}
   function addSummon(s,plan,u){if(plan.owner){if(!plan.owner.alive||plan.owner.hp<=1)return false;plan.owner.hp--;}
     const species=D.units[plan.slug];Object.assign(u,{maxHp:species.hp,attack:species.attack,speed:species.speed});
-    init(u);u.team=plan.team;u.slot=4;u.isSummon=true;u.bornTurn=s.round;u.brands=[];u.passive=null;applyUnit(s.legions,u);
+    init(u);u.team=plan.team;u.slot=4;u.isSummon=true;u.ownerSlot=plan.owner?.slot??plan.summonerSlot;u.bornTurn=s.round;u.brands=[];u.passive=null;applyUnit(s.legions,u);
     const old=s.units.findIndex(a=>a.team===u.team&&a.slot===4);if(old>=0)s.units.splice(old,1,u);else s.units.push(u);refresh(s);return true;}
   function begin(s){s.round++;s.events=[];for(const u of s.units){u.bless={};u.curse={};u.shields=0;if(u.alive&&has(s,u,'skeleton')){const amount=heal(u,1);if(amount)s.events.push({type:'heal',unit:u,amount,source:'skeleton'});}}refresh(s);return summonPlans(s);}
   function roll(s,face){
@@ -109,7 +129,7 @@
   }
   function mode(b,face){if(typeof b==='string')return 'normal';return !b?'normal':b.curse.includes(face)?'curse':b.bless.includes(face)?'blessing':'normal';}
   function snapshot(s){
-    const fields=['slug','name','grade','legions','team','slot','maxHp','baseMaxHp','baseAttack','baseSpeed','hp','alive','passive','brands','isSummon','bornTurn','grudge','summonPower','frozen','undyingUsed','shields','bless','curse','legionStatsApplied','brand','brandMode'];
+    const fields=['slug','name','grade','legions','team','slot','ownerSlot','maxHp','baseMaxHp','baseAttack','baseSpeed','hp','alive','passive','brands','isSummon','bornTurn','grudge','summonPower','frozen','undyingUsed','shields','bless','curse','legionStatsApplied','brand','brandMode'];
     return JSON.parse(JSON.stringify({version:1,round:s.round,last:s.units.indexOf(s.last),legions:Object.fromEntries(Object.entries(s.legions.teams).map(([k,v])=>[k,{counts:v.counts,active:[...v.active]}])),units:s.units.map(u=>({...Object.fromEntries(fields.map(k=>[k,u[k]])),poisonStacks:u.poisonStacks.map(p=>({remaining:p.remaining,source:s.units.indexOf(p.source)}))}))}));
   }
   function restore(data,rng=Math.random){
@@ -120,6 +140,6 @@
     for(const u of s.units){u.poisonStacks=(u.poisonStacks||[]).map(p=>({remaining:p.remaining,source:s.units[p.source]||null}));u.poison=u.poisonStacks.length;}
     refresh(s);return s;
   }
-  const api={definitions,RULES,individual,brand,validateBrand,inherit,create,init,applyUnit,active,suppressed,begin,roll,before,attack,addSummon,refresh,mode,heal,damage,snapshot,restore};
+  const api={definitions,RULES,TARGET_RATES,individual,brand,validateBrand,inherit,create,init,applyUnit,active,suppressed,begin,roll,before,attack,addSummon,targetWeights,pickTarget,refresh,mode,heal,damage,snapshot,restore};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.V2Rules=api;
 })(globalThis);

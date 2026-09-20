@@ -49,13 +49,14 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .map-deck-overlay.is-open .map-deck-window { animation: map-deck-window-drop 640ms cubic-bezier(.16,.86,.24,1.08) forwards; }
 .map-deck-board { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 14px 18px #000c); pointer-events: none; user-select: none; }
 .map-selected-lineup { position: absolute; top: 27.2%; left: 20.4%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2.8%; width: 61.1%; height: 47.2%; }
-.map-selected-lineup .selected-slot { height: 100%; padding: 0; overflow: visible; border: 0; background: transparent; cursor: pointer; }
+.map-selected-lineup .selected-slot { position: relative; height: 100%; padding: 0; overflow: visible; border: 0; background: transparent; cursor: pointer; }
 .map-selected-lineup .selected-slot:nth-child(1) { transform: rotate(-7deg); }
 .map-selected-lineup .selected-slot:nth-child(2) { transform: rotate(-1deg); }
 .map-selected-lineup .selected-slot:nth-child(3) { transform: rotate(1deg); }
 .map-selected-lineup .selected-slot:nth-child(4) { transform: rotate(7deg); }
 .map-selected-lineup .selected-slot img { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 5px 4px #0009); }
 .map-selected-lineup .selected-slot.is-empty { cursor: default; }
+.map-target-rate { position: absolute; z-index: 2; right: 3%; bottom: 2%; left: 3%; padding: 3px 2px; border: 1px solid #d7ae6a; border-radius: 3px; background: #190d08e8; color: #ffe3a6; font-size: clamp(8px, 1vw, 13px); font-weight: 900; line-height: 1.2; text-align: center; text-shadow: 0 1px 2px #000; box-shadow: 0 2px 5px #0009; }
 .map-deck-roster { position: absolute; z-index: 5; bottom: -3%; left: 1%; display: flex; align-items: flex-end; width: 68%; height: 34%; transform: translateY(125%); opacity: 0; }
 .map-deck-overlay.is-open .map-deck-roster { animation: map-deck-roster-rise 600ms 180ms cubic-bezier(.18,.84,.25,1.08) forwards; }
 .map-deck-roster button { position: relative; display: block; flex: 0 0 14%; width: 14%; height: 92%; margin-right: -4%; padding: 0; overflow: visible; border: 0; background: transparent; transform: translateY(10%) rotate(var(--card-tilt, 0deg)); transition: transform 150ms ease, filter 150ms ease; cursor: pointer; }

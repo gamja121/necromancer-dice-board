@@ -43,6 +43,7 @@
     ["ancient-treant", "숲의 장로"], ["goblin-rider", "고블린 라이더"], ["minotaur", "미노타우로스"],
     ["plague-doctor", "역병술사"], ["spider-knight", "거미여왕"], ["hydra", "히드라"], ["siren", "세이렌"]
   ].map(([slug, name]) => Object.freeze({ slug, name })));
+  const TARGET_RATES = Object.freeze({ 1: [100], 2: [35, 65], 3: [20, 33, 47], 4: [15, 20, 27, 38] });
   const el = {
     board: document.getElementById("mapBoard"),
     ring: document.getElementById("tileRing"),
@@ -147,11 +148,14 @@
       slot.className = entry ? "selected-slot" : "selected-slot is-empty";
       if (entry) {
         const image = document.createElement("img");
+        const rate = document.createElement("span");
         image.src = `art/v2-style/ui/unit-card-${entry.slug}.png?v=19`;
         image.alt = `${index + 1}번째 ${entry.name}`;
+        rate.className = "map-target-rate";
+        rate.textContent = `피격 ${TARGET_RATES[selectedDeck.length][index]}%`;
         slot.title = `${entry.name} 선택 해제`;
         slot.addEventListener("click", () => toggleDeckUnit(entry.slug));
-        slot.append(image);
+        slot.append(image, rate);
       } else slot.disabled = true;
       el.deckSelected.append(slot);
     }
@@ -171,7 +175,8 @@
       button.addEventListener("click", () => toggleDeckUnit(entry.slug));
       el.deckRoster.append(button);
     }
-    el.deckStatus.textContent = `마물 카드 ${selectedDeck.length} / 4`;
+    const rates = TARGET_RATES[selectedDeck.length] || [];
+    el.deckStatus.textContent = rates.length ? `마물 카드 ${selectedDeck.length} / 4 · 왼쪽부터 피격 ${rates.join(" · ")}%` : "마물 카드 0 / 4";
     el.deckConfirm.disabled = selectedDeck.length !== 4;
   }
 

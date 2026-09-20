@@ -931,8 +931,7 @@
     }
     if (actor.slug === "guardian-seed") { actionBusy = false; saveBattle('acting'); return; }
     if (token !== battleToken || !running) return;
-    const targets = aliveUnits(actor.team === "ally" ? "enemy" : "ally");
-    const target = targets[Math.floor(Math.random() * targets.length)];
+    const target = V2Rules.pickTarget(rulesState, actor.team === "ally" ? "enemy" : "ally");
     if (!target) return finishBattle();
 
     message.textContent = `${turnNumber}턴 · ${actor.name}(속도 ${actor.speed}) → ${target.name}`;

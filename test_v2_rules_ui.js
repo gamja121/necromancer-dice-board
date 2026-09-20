@@ -13,6 +13,7 @@ assert(source.includes('undeadHealing.forEach(event => showHealing(event.unit, e
 assert(source.includes('const hitAmounts = outcome.hits.length ? outcome.hits'));
 assert(source.includes('for (let hitIndex = 0; hitIndex < hitAmounts.length; hitIndex += 1)'));
 assert(source.includes('showDamage(target, hitAmount)'));
+assert(source.includes('V2Rules.pickTarget(rulesState, actor.team === "ally" ? "enemy" : "ally")'));
 // Test-only access to the actual controller; no debug hook is shipped.
 source=source.replace('  resetBattle(true);','  globalThis.testUI={resetBattle,openUnitInfo,startTurn,performAttack,finishBattle,makeState,toggleRosterUnit,renderRosterSelection,roster:ROSTER,get selectedDeck(){return [...selectedAllySlugs];},get units(){return units;},get state(){return rulesState;},get token(){return battleToken;},ready(){running=true; awaitingRoll=true;},setRoll(n){lastDiceRoll=n;},get queue(){return turnQueue;}};\n  resetBattle(true);');
 vm.createContext(context);vm.runInContext(source,context);
