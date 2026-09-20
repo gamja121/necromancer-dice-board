@@ -31,7 +31,7 @@
   <main>
     <header>
       <h1>전투 효과음 샘플</h1>
-      <p>버튼을 눌러 직접 비교하세요.<br>현재 전투 효과음은 A로 표시했습니다.</p>
+      <p>버튼을 눌러 직접 비교하세요.<br>A~F는 기존 후보, G~L은 비금속·육체형 신규 후보입니다.</p>
     </header>
 
     <section>
@@ -44,6 +44,12 @@
         <button data-file="arrow.ogg" data-rate=".88"><strong>D · 질주</strong><span>빠르게 파고드는 바람 소리</span></button>
         <button data-file="magic.ogg" data-rate="1.2"><strong>E · 마력</strong><span>짧은 마력 방출</span></button>
         <button data-file="attack.ogg" data-rate=".72"><strong>F · 대형</strong><span>낮고 느린 대형 마물 공격</span></button>
+        <button data-proc="blunt-swing"><strong>G · 둔기</strong><span>몽둥이를 크게 휘두르는 바람</span></button>
+        <button data-proc="body-rush"><strong>H · 몸통</strong><span>육중한 몸이 밀고 들어오는 소리</span></button>
+        <button data-proc="club-swing"><strong>I · 곤봉</strong><span>짧고 굵은 나무 곤봉 휘두르기</span></button>
+        <button data-proc="bite-snap"><strong>J · 물기</strong><span>턱이 빠르게 닫히는 생물형 공격</span></button>
+        <button data-proc="tail-sweep"><strong>K · 꼬리</strong><span>넓고 낮게 훑는 꼬리 휘두르기</span></button>
+        <button data-proc="ground-smash"><strong>L · 내려찍기</strong><span>땅을 향해 무겁게 내리치는 공격</span></button>
       </div>
     </section>
 
@@ -57,6 +63,12 @@
         <button data-file="hit.ogg" data-rate="1.45"><strong>D · 경쾌</strong><span>짧고 선명한 타격 확인음</span></button>
         <button data-file="death.ogg" data-rate="1.55"><strong>E · 파열</strong><span>크고 강한 파괴 충격</span></button>
         <button data-file="heavy.ogg" data-rate=".78"><strong>F · 대형</strong><span>낮게 울리는 거대 충격</span></button>
+        <button data-proc="flesh-hit"><strong>G · 살점</strong><span>금속음 없는 단단한 육체 타격</span></button>
+        <button data-proc="soft-body"><strong>H · 물렁</strong><span>부드럽고 젖은 몸체에 박히는 충격</span></button>
+        <button data-proc="bone-crack"><strong>I · 뼈</strong><span>짧게 부러지는 마른 충격</span></button>
+        <button data-proc="deep-thud"><strong>J · 둔탁</strong><span>주먹이나 몽둥이가 박히는 소리</span></button>
+        <button data-proc="giant-body"><strong>K · 거체</strong><span>큰 몸 전체가 울리는 저음 충격</span></button>
+        <button data-proc="wood-crack"><strong>L · 목질</strong><span>나무·식물형 몸체가 갈라지는 소리</span></button>
       </div>
     </section>
 
@@ -76,11 +88,16 @@
       const pool = new Map();
       let context;
 
-      function tone(frequency, duration, volume, endFrequency, type) {
+      function audioContext() {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContextClass) return;
+        if (!AudioContextClass) return null;
         context ||= new AudioContextClass();
         if (context.state === "suspended") context.resume().catch(() => {});
+        return context;
+      }
+
+      function tone(frequency, duration, volume, endFrequency, type) {
+        if (!audioContext()) return;
         const now = context.currentTime;
         const oscillator = context.createOscillator();
         const gain = context.createGain();
@@ -94,6 +111,41 @@
         oscillator.stop(now + duration + .02);
       }
 
+      function noise(duration, volume, cutoff, type = "lowpass", q = .7) {
+        if (!audioContext()) return;
+        const length = Math.ceil(context.sampleRate * duration);
+        const buffer = context.createBuffer(1, length, context.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < length; i += 1) data[i] = (Math.random() * 2 - 1) * (1 - i / length);
+        const source = context.createBufferSource();
+        const filter = context.createBiquadFilter();
+        const gain = context.createGain();
+        const now = context.currentTime;
+        source.buffer = buffer;
+        filter.type = type;
+        filter.frequency.value = cutoff;
+        filter.Q.value = q;
+        gain.gain.setValueAtTime(volume, now);
+        gain.gain.exponentialRampToValueAtTime(.0001, now + duration);
+        source.connect(filter).connect(gain).connect(context.destination);
+        source.start(now);
+      }
+
+      function playProcedural(kind) {
+        if (kind === "blunt-swing") { noise(.22, .2, 520); tone(135, .2, .035, 62, "sine"); }
+        else if (kind === "body-rush") { noise(.3, .22, 330); tone(105, .28, .05, 48, "sine"); }
+        else if (kind === "club-swing") { noise(.16, .18, 720, "bandpass", 1.1); tone(190, .14, .03, 82, "triangle"); }
+        else if (kind === "bite-snap") { noise(.07, .23, 1250, "bandpass", 1.8); tone(210, .06, .035, 75, "square"); }
+        else if (kind === "tail-sweep") { noise(.34, .2, 430); tone(115, .3, .035, 55, "sine"); }
+        else if (kind === "ground-smash") { noise(.22, .25, 250); tone(72, .34, .075, 31, "sine"); }
+        else if (kind === "flesh-hit") { noise(.13, .27, 520); tone(105, .14, .055, 48, "sine"); }
+        else if (kind === "soft-body") { noise(.2, .3, 260); tone(78, .2, .05, 39, "sine"); }
+        else if (kind === "bone-crack") { noise(.065, .26, 1450, "bandpass", 2.2); tone(175, .08, .035, 70, "square"); }
+        else if (kind === "deep-thud") { noise(.14, .24, 340); tone(88, .2, .07, 38, "sine"); }
+        else if (kind === "giant-body") { noise(.28, .28, 210); tone(58, .38, .1, 27, "sine"); }
+        else if (kind === "wood-crack") { noise(.11, .26, 820, "bandpass", 1.4); tone(125, .16, .045, 52, "triangle"); }
+      }
+
       function playCurrentSynth(kind) {
         if (kind === "attack") tone(900, .13, .036, 170, "sawtooth");
         if (kind === "hit") {
@@ -104,6 +156,7 @@
 
       function audioFor(button) {
         const key = button.dataset.file;
+        if (!key) return null;
         if (!pool.has(key)) {
           const audio = new Audio(`assets/sfx/${key}`);
           audio.preload = "auto";
@@ -120,7 +173,8 @@
         button.classList.add("is-playing");
         const audio = audioFor(button);
         if (button.dataset.synth) playCurrentSynth(button.dataset.synth);
-        audio.play().catch(() => {});
+        if (button.dataset.proc) playProcedural(button.dataset.proc);
+        if (audio) audio.play().catch(() => {});
         window.setTimeout(() => button.classList.remove("is-playing"), 350);
       }
 
