@@ -11,4 +11,5 @@ context.V2Sfx.preload();
 assert.equal(Object.keys(context.V2Sfx.sources).length,5);
 assert(context.V2Sfx.play('diceTick',{rate:1.2}));assert(context.V2Sfx.play('move',{rate:.9}));assert(context.V2Sfx.play('attack'));assert(context.V2Sfx.play('hit',{volume:1.2}));
 assert.equal(played.length,4);assert(played[0].src.endsWith('dice-tick.ogg'));assert.equal(played[0].rate,1.2);assert(played.every(event=>event.volume>0&&event.volume<=1));
+const source=fs.readFileSync('v2-sfx.js','utf8');assert(source.includes('document.addEventListener("pointerdown", unlock'));assert(!source.includes('current.muted'));
 console.log('PASS: V2 map and battle sound effects preload, settings volume, pitch, and playback');
