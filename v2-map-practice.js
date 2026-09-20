@@ -121,6 +121,7 @@
     el.diceButton.disabled = true;
     el.regenerate.disabled = true;
     el.tileName.textContent = `${step}번 · 마물 출현 · 출전 마물 선택`;
+    el.board.classList.add("is-deck-selecting");
     renderDeckSelection();
     el.deckOverlay.hidden = false;
     el.deckOverlay.classList.remove("is-open");
