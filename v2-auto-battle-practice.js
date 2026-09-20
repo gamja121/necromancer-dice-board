@@ -172,6 +172,23 @@
     "death-knight", "skeleton-spear", "ghoul", "ancient-treant", "goblin-rider",
     "minotaur", "plague-doctor", "spider-knight", "hydra", "siren"
   ]);
+  const COMBAT_SOUND_PROFILES = Object.freeze({
+    physical: Object.freeze({ attack: "G", hit: "G" }),
+    poison: Object.freeze({ attack: "B", hit: "E" }),
+    toxicLiquid: Object.freeze({ attack: "B", hit: "E" }),
+    magic: Object.freeze({ attack: "B", hit: "E" }),
+    music: Object.freeze({ attack: "B", hit: "E" }),
+    slash: Object.freeze({ attack: "D", hit: "K" }),
+    bite: Object.freeze({ attack: "E", hit: "K" }),
+    claw: Object.freeze({ attack: "E", hit: "K" }),
+    wind: Object.freeze({ attack: "G", hit: "K" }),
+    arrow: Object.freeze({ attack: "K", hit: "J" })
+  });
+  function combatSoundProfile(actor) {
+    if (actor.slug === "skeleton-archer") return COMBAT_SOUND_PROFILES.arrow;
+    const effect = typeof V2CombatEffects !== "undefined" ? V2CombatEffects.ATTACK_EFFECTS[actor.slug] : null;
+    return COMBAT_SOUND_PROFILES[effect] || COMBAT_SOUND_PROFILES.physical;
+  }
   const requestedAllySlugs = (battleQuery.get("allies") || "").split(",").filter((slug) => TEST_DECK_SLUGS.includes(slug));
 
   const battlefield = document.getElementById("battlefield");
@@ -934,10 +951,11 @@
       if (token !== battleToken || !running) return;
     }
     const hitFrames = typeof V2CombatEffects !== "undefined" ? await V2CombatEffects.prepare(actor.slug) : null;
+    const soundProfile = combatSoundProfile(actor);
     if (token !== battleToken || !running) return;
     let signalImpact;
     const impactReady = new Promise(resolve => { signalImpact = resolve; });
-    if (typeof V2Sfx !== "undefined") V2Sfx.play("attack", { rate: .92 + Math.min(6, actor.speed) * .025 });
+    if (typeof V2Sfx !== "undefined") V2Sfx.play("attack", { variant: soundProfile.attack, rate: .92 + Math.min(6, actor.speed) * .025 });
     let attackPlayback = playMotion(actor, "attack", actor.frames.attack, token, false, signalImpact);
     attackPlayback.then(signalImpact, signalImpact);
     await impactReady;
@@ -971,14 +989,14 @@
           if (token !== battleToken || !running) return;
           let signalNextImpact;
           const nextImpactReady = new Promise(resolve => { signalNextImpact = resolve; });
-          if (typeof V2Sfx !== "undefined") V2Sfx.play("attack", { rate: .96 + Math.min(6, actor.speed) * .02 });
+          if (typeof V2Sfx !== "undefined") V2Sfx.play("attack", { variant: soundProfile.attack, rate: .96 + Math.min(6, actor.speed) * .02 });
           attackPlayback = playMotion(actor, "attack", actor.frames.attack, token, false, signalNextImpact);
           attackPlayback.then(signalNextImpact, signalNextImpact);
           await nextImpactReady;
           if (token !== battleToken || !running) return;
         }
         const hitAmount = hitAmounts[hitIndex];
-        if (hitAmount > 0 && typeof V2Sfx !== "undefined") V2Sfx.play("hit", { rate: Math.max(.72, 1.08 - hitAmount * .045), volume: Math.min(1.25, .82 + hitAmount * .07) });
+        if (hitAmount > 0 && typeof V2Sfx !== "undefined") V2Sfx.play("hit", { variant: soundProfile.hit, rate: Math.max(.72, 1.08 - hitAmount * .045), volume: Math.min(1.25, .82 + hitAmount * .07) });
         if (hitAmount > 0) showDamage(target, hitAmount);
         else if (typeof V2DamageDigits !== "undefined") V2DamageDigits.showLabel(target, "immune");
         target.element.classList.add("is-hit");
