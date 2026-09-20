@@ -309,18 +309,21 @@
     el.diceResult.textContent = "굴리는 중…";
     const animationSteps = 17 + Math.floor(Math.random() * 6);
     for (let step = 0; step < animationSteps; step += 1) {
+      if (step % 2 === 0 && typeof V2Sfx !== "undefined") V2Sfx.play("diceTick", { rate: .9 + Math.random() * .24 });
       diceFrameIndex = (diceFrameIndex + 1) % rollingFrames.length;
       el.diceImage.src = rollingFrames[diceFrameIndex];
       await wait(52 + Math.round((step / animationSteps) * 38));
     }
 
     const result = Math.floor(Math.random() * 6) + 1;
+    if (typeof V2Sfx !== "undefined") V2Sfx.play("diceLand", { rate: .94 + result * .015 });
     el.diceImage.src = resultFrames[result - 1];
     el.diceImage.alt = `주사위 결과 ${result}`;
     el.diceResult.textContent = `${result} · 이동 시작`;
     el.diceButton.classList.remove("is-rolling");
     await wait(220);
     for (let step = 0; step < result; step += 1) {
+      if (typeof V2Sfx !== "undefined") V2Sfx.play("move", { rate: step % 2 ? 1.08 : .92 });
       heroIndex = (heroIndex + 1) % positions.length;
       placeHero(true);
       selectTile(currentButtons[heroIndex], currentTiles[heroIndex], heroIndex + 1);
@@ -367,4 +370,5 @@
     if (event.key === "Escape" && eventOpen) closeTileEvent();
   });
   generateTiles();
+  if (typeof V2Sfx !== "undefined") V2Sfx.preload();
 })();

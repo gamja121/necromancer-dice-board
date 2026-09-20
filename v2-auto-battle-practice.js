@@ -776,6 +776,7 @@
     const steps = 18 + Math.floor(Math.random() * 5);
     for (let step = 0; step < steps; step += 1) {
       if (token !== battleToken || !running || !awaitingRoll) return;
+      if (step % 2 === 0 && typeof V2Sfx !== "undefined") V2Sfx.play("diceTick", { rate: .92 + Math.random() * .2 });
       diceFrameIndex = (diceFrameIndex + 1) % DICE_ROLL_FRAMES.length;
       turnDiceImage.src = DICE_ROLL_FRAMES[diceFrameIndex];
       const progress = step / Math.max(1, steps - 1);
@@ -783,6 +784,7 @@
     }
     if (token !== battleToken || !running || !awaitingRoll) return;
     lastDiceRoll = Math.floor(Math.random() * 6) + 1;
+    if (typeof V2Sfx !== "undefined") V2Sfx.play("diceLand", { rate: .94 + lastDiceRoll * .015 });
     showRolledBrands(lastDiceRoll);
     turnDiceImage.src = DICE_RESULT_FRAMES[lastDiceRoll - 1];
     turnDiceImage.alt = `주사위 결과 ${lastDiceRoll}`;
@@ -935,6 +937,7 @@
     if (token !== battleToken || !running) return;
     let signalImpact;
     const impactReady = new Promise(resolve => { signalImpact = resolve; });
+    if (typeof V2Sfx !== "undefined") V2Sfx.play("attack", { rate: .92 + Math.min(6, actor.speed) * .025 });
     let attackPlayback = playMotion(actor, "attack", actor.frames.attack, token, false, signalImpact);
     attackPlayback.then(signalImpact, signalImpact);
     await impactReady;
@@ -968,12 +971,14 @@
           if (token !== battleToken || !running) return;
           let signalNextImpact;
           const nextImpactReady = new Promise(resolve => { signalNextImpact = resolve; });
+          if (typeof V2Sfx !== "undefined") V2Sfx.play("attack", { rate: .96 + Math.min(6, actor.speed) * .02 });
           attackPlayback = playMotion(actor, "attack", actor.frames.attack, token, false, signalNextImpact);
           attackPlayback.then(signalNextImpact, signalNextImpact);
           await nextImpactReady;
           if (token !== battleToken || !running) return;
         }
         const hitAmount = hitAmounts[hitIndex];
+        if (hitAmount > 0 && typeof V2Sfx !== "undefined") V2Sfx.play("hit", { rate: Math.max(.72, 1.08 - hitAmount * .045), volume: Math.min(1.25, .82 + hitAmount * .07) });
         if (hitAmount > 0) showDamage(target, hitAmount);
         else if (typeof V2DamageDigits !== "undefined") V2DamageDigits.showLabel(target, "immune");
         target.element.classList.add("is-hit");
@@ -1245,7 +1250,7 @@
   const mapLineupReady = fromMap && selectedAllySlugs.length === 4;
   if (mapLineupReady) { resetBattle(false); startSelectedBattle(); }
   else {
-    resetBattle(true);
+  resetBattle(true);
   }
   if (typeof V2DamageDigits !== "undefined") V2DamageDigits.prepare().catch(error => console.warn(error));
   if (typeof V2DamageDigits !== "undefined") V2DamageDigits.prepareLabels().catch(error => console.warn(error));
