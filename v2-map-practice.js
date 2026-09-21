@@ -20,6 +20,11 @@
     forest: Object.freeze({ title: "숲", image: `${ROOT}events/forest.jpg` }),
     gem: Object.freeze({ title: "보물상자", animation: "treasure" })
   });
+  const tileEventRatios = Object.freeze({
+    graveyard: 1280 / 714, home: 1280 / 714, "fortune-teller-camp": 1280 / 575,
+    village: 1280 / 956, rest: 1280 / 714, altar: 1280 / 575,
+    forest: 1280 / 714, gem: 1280 / 714
+  });
   const tileTypes = [
     { id: "basic", name: "기본 타일", count: 2 },
     { id: "graveyard", name: "공동묘지 타일", count: 2 },
@@ -56,6 +61,7 @@
     diceResult: document.getElementById("diceResult"),
     moveState: document.getElementById("moveState"),
     eventOverlay: document.getElementById("tileEventOverlay"),
+    eventScene: document.querySelector(".tile-event-scene"),
     eventImage: document.getElementById("tileEventImage"),
     eventTreasure: document.getElementById("treasureChestSprite"),
     eventClose: document.getElementById("tileEventClose"),
@@ -75,6 +81,7 @@
   let activeMapId = maps[requestedMapId] ? requestedMapId : "default";
   let enteringBattle = false;
   let eventOpen = false;
+  let activeEventRatio = 1280 / 714;
   let battleStep = 0;
   let selectedDeck = [];
 
@@ -188,10 +195,18 @@
     window.location.assign(`v2-auto-battle-practice.html?${params}`);
   }
 
+  function fitTileEventScene() {
+    const width = Math.min(el.board.clientWidth * .62, el.board.clientHeight * .65 * activeEventRatio);
+    el.eventScene.style.width = `${width}px`;
+    el.eventScene.style.height = `${width / activeEventRatio}px`;
+  }
+
   function openTileEvent(tile, step) {
     const scene = tileEventScenes[tile?.id];
     if (!scene || enteringBattle) return false;
     eventOpen = true;
+    activeEventRatio = tileEventRatios[tile.id] || 1280 / 714;
+    fitTileEventScene();
     el.board.classList.add("is-tile-event-open");
     el.diceButton.disabled = true;
     el.regenerate.disabled = true;
@@ -366,6 +381,7 @@
   el.regenerate.addEventListener("click", generateTiles);
   el.diceButton.addEventListener("click", rollAndMove);
   el.eventClose.addEventListener("click", closeTileEvent);
+  window.addEventListener("resize", () => { if (eventOpen) fitTileEventScene(); });
   el.deckConfirm.addEventListener("click", confirmMonsterBattle);
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && eventOpen) closeTileEvent();

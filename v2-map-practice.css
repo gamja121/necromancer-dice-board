@@ -35,12 +35,12 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .map-board.is-tile-event-open .dice-controller, .map-board.is-tile-event-open .tile-info, .map-board.is-tile-event-open .map-toolbar { visibility: hidden; }
 .tile-event-overlay { position: absolute; z-index: 40; inset: 0; background: transparent; }
 .tile-event-overlay[hidden] { display: none; }
-.tile-event-scene { position: absolute; left: 50%; top: 50%; display: grid; place-items: center; width: 62%; height: 65%; transform: translate(-50%, -50%); pointer-events: none; }
-.tile-event-scene > img { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 8px 10px #0007); }
+.tile-event-scene { position: absolute; left: 50%; top: 50%; width: 62%; height: 65%; transform: translate(-50%, -50%); pointer-events: none; }
+.tile-event-scene > img { display: block; width: 100%; height: 100%; min-width: 0; max-width: 100%; max-height: 100%; object-fit: fill; filter: drop-shadow(0 8px 10px #0007); }
 .tile-event-scene > img[hidden], .treasure-chest-sprite[hidden] { display: none; }
-.treasure-chest-sprite { width: 48%; height: 100%; background: url("art/v2-style/map-test/events/treasure-chest-sprite.png") 0% 48% / 400% auto no-repeat; filter: drop-shadow(0 12px 12px #000c); }
+.treasure-chest-sprite { position: absolute; left: 50%; top: 50%; width: 48%; height: 100%; transform: translate(-50%, -50%); background: url("art/v2-style/map-test/events/treasure-chest-sprite.png") 0% 48% / 400% auto no-repeat; filter: drop-shadow(0 12px 12px #000c); }
 .treasure-chest-sprite.is-playing { animation: treasure-chest-open 1.45s linear forwards; }
-.tile-event-exit { position: absolute; left: 82%; top: 50%; width: 14%; min-height: 36px; aspect-ratio: 2.25; transform: translateY(-50%); padding: 0 8px; border: 0; background: url("art/v2-style/map-test/events/exit-parchment.png") center / 100% 100% no-repeat; color: #49301d; font-size: clamp(12px, 1.7vw, 22px); font-weight: 900; text-shadow: 0 1px #fff7df; cursor: pointer; filter: drop-shadow(0 5px 5px #0009); }
+.tile-event-exit { position: absolute; right: 1%; bottom: 7%; width: 18%; min-width: 66px; min-height: 36px; aspect-ratio: 2.25; padding: 0 8px; border: 0; background: url("art/v2-style/map-test/events/exit-parchment.png") center / 100% 100% no-repeat; color: #49301d; font-size: clamp(12px, 1.5vw, 20px); font-weight: 900; text-shadow: 0 1px #fff7df; cursor: pointer; filter: drop-shadow(0 5px 5px #0009); pointer-events: auto; }
 .tile-event-exit:focus-visible { outline: 2px solid #ffd77e; outline-offset: 2px; }
 .map-deck-overlay { position: absolute; z-index: 45; inset: 0; display: block; overflow: hidden; background: transparent; pointer-events: auto; }
 .map-deck-overlay[hidden] { display: none; }
