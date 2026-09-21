@@ -61,7 +61,10 @@ for (const tile of ["home", "village", "fortune-teller-camp", "boss"]) {
   assert(fs.existsSync(path.join(root, relative)), `New tile is missing: ${relative}`);
   assert(worker.includes(relative), `New tile is not cached: ${relative}`);
 }
-assert(source.includes("[fixedTiles.home") && source.includes("fixedTiles.boss]"), "Home and boss tiles must bookend the route.");
+assert(source.includes("const HOME_INDEX = 15") && source.includes("pool[HOME_INDEX] = fixedTiles.home") && source.includes("pool[23] = fixedTiles.boss"), "Home must sit on the central bottom tile and boss on the last tile.");
+assert(source.includes("heroIndex = HOME_INDEX") && source.includes("selectTile(currentButtons[HOME_INDEX]"), "The hero must start on the home tile.");
+assert(source.includes("if (heroIndex === HOME_INDEX) { reachedHome = true; break; }") && source.includes("집 도착 (${stepsMoved}칸 이동)"), "Dice movement must stop at home even when pips remain.");
+assert(source.includes('el.hero.style.setProperty("--hero-facing", heroIndex >= 12 ? -1 : 1)') && css.includes('scaleX(var(--hero-facing, 1))'), "The hero must face the direction of travel on the bottom and left sides.");
 assert(source.includes("fixedTiles.village") && source.includes("fixedTiles.fortune"), "Village and fortune-teller tiles must be connected to the route.");
 const eventScenes = {
   graveyard: "graveyard.jpg", home: "home.jpg", "fortune-teller-camp": "fortune-teller.jpg",
@@ -78,10 +81,10 @@ assert(html.includes('id="treasureChestSprite"') && css.includes("@keyframes tre
 assert(source.includes('scene.animation === "treasure"') && source.includes('eventTreasure.classList.add("is-playing")'), "Treasure animation must restart when the tile is reached.");
 assert(source.includes("async function warpToOtherWarp()") && source.includes('tile.id === "warp" && index !== heroIndex'), "Warp must move to the other warp tile.");
 assert(source.includes('currentTiles[heroIndex]?.id === "warp"') && source.includes("await warpToOtherWarp()"), "Landing on a warp tile must trigger teleportation.");
-assert(html.includes("v2-map-practice.js?v=20") && html.includes("v2-map-practice.css?v=15") && html.includes("v2-sfx.js?v=3"), "The map page must load targeting, music, and mobile sound effects.");
+assert(html.includes("v2-map-practice.js?v=21") && html.includes("v2-map-practice.css?v=16") && html.includes("v2-sfx.js?v=3"), "The map page must load targeting, music, and mobile sound effects.");
 assert(worker.includes("v2-map-practice.html"), "Map test page is not cached.");
 assert(worker.includes("v2-landscape.js?v=1"), "Landscape helper is not cached.");
-assert(worker.includes("v2-map-practice.js?v=20") && worker.includes("v2-map-practice.css?v=15") && worker.includes("v2-sfx.js?v=3"), "The targeting, music, and mobile sound logic is not cached.");
+assert(worker.includes("v2-map-practice.js?v=21") && worker.includes("v2-map-practice.css?v=16") && worker.includes("v2-sfx.js?v=3"), "The targeting, music, and mobile sound logic is not cached.");
 assert(html.includes('class="tile-event-scene"') && html.includes('class="tile-event-exit"') && !html.includes('id="tileEventTitle"'), "Tile events must be image-only on the board with an exit button.");
 assert(css.includes('.tile-event-overlay { position: absolute; z-index: 40; inset: 0; background: transparent; }') && css.includes('exit-parchment.png'), "Tile events must not dim the map and must use the cropped exit parchment.");
 assert(source.includes('village: 1280 / 956') && source.includes('fitTileEventScene()') && css.includes('right: 1%; bottom: 7%'), "All tile scenes must fit their source aspect ratio and place exit over the bottom-right watermark.");

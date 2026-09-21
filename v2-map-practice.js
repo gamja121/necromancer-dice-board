@@ -58,6 +58,7 @@
     lightspeed: [222, 316, 220, 220], counter: [852, 316, 220, 220]
   });
   const TARGET_RATES = Object.freeze({ 1: [100], 2: [35, 65], 3: [20, 33, 47], 4: [15, 20, 27, 38] });
+  const HOME_INDEX = 15; // 16번 타일: 하단 일곱 칸의 정중앙.
   const el = {
     board: document.getElementById("mapBoard"),
     ring: document.getElementById("tileRing"),
@@ -148,8 +149,15 @@
 
   function createPool() {
     const randomTiles = shuffle(tileTypes.flatMap((tile) => Array.from({ length: tile.count }, () => tile)));
-    return [fixedTiles.home, ...randomTiles.slice(0, 7), fixedTiles.village,
-      ...randomTiles.slice(7, 14), fixedTiles.fortune, ...randomTiles.slice(14), fixedTiles.boss];
+    const pool = Array(24);
+    pool[0] = fixedTiles.fortune;
+    pool[8] = fixedTiles.village;
+    pool[HOME_INDEX] = fixedTiles.home;
+    pool[23] = fixedTiles.boss;
+    for (let index = 0, randomIndex = 0; index < pool.length; index += 1) {
+      if (!pool[index]) pool[index] = randomTiles[randomIndex++];
+    }
+    return pool;
   }
 
   function selectTile(button, tile, step) {
@@ -427,6 +435,9 @@
     const position = positions[heroIndex];
     el.hero.style.left = `${position.x}%`;
     el.hero.style.top = `${position.y}%`;
+    // On the lower and left edges the route heads left, then upward; keep the
+    // figure facing the direction of travel until it turns right at the top.
+    el.hero.style.setProperty("--hero-facing", heroIndex >= 12 ? -1 : 1);
     el.hero.setAttribute("aria-label", `주인공 말, 현재 ${heroIndex + 1}번 타일`);
     el.moveState.textContent = `현재 ${heroIndex + 1}번 타일`;
     if (animate) {
@@ -474,9 +485,9 @@
       return button;
     });
     el.ring.replaceChildren(...currentButtons);
-    heroIndex = 0;
+    heroIndex = HOME_INDEX;
     placeHero();
-    selectTile(currentButtons[0], currentTiles[0], 1);
+    selectTile(currentButtons[HOME_INDEX], currentTiles[HOME_INDEX], HOME_INDEX + 1);
     el.diceResult.textContent = "주사위 굴리기";
   }
 
@@ -502,14 +513,20 @@
     el.diceResult.textContent = `${result} · 이동 시작`;
     el.diceButton.classList.remove("is-rolling");
     await wait(220);
+    let stepsMoved = 0;
+    let reachedHome = false;
     for (let step = 0; step < result; step += 1) {
       if (typeof V2Sfx !== "undefined") V2Sfx.play("move", { rate: step % 2 ? 1.08 : .92 });
       heroIndex = (heroIndex + 1) % positions.length;
+      stepsMoved += 1;
       placeHero(true);
       selectTile(currentButtons[heroIndex], currentTiles[heroIndex], heroIndex + 1);
       await wait(230);
+      if (heroIndex === HOME_INDEX) { reachedHome = true; break; }
     }
-    el.diceResult.textContent = `${result} · 이동 완료`;
+    el.diceResult.textContent = reachedHome
+      ? `${result} · 집 도착 (${stepsMoved}칸 이동)`
+      : `${result} · 이동 완료`;
     if (currentTiles[heroIndex]?.id === "monster") {
       el.diceResult.textContent = `${result} · 마물 조우`;
       await wait(320);
