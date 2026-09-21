@@ -58,7 +58,6 @@
     eventOverlay: document.getElementById("tileEventOverlay"),
     eventImage: document.getElementById("tileEventImage"),
     eventTreasure: document.getElementById("treasureChestSprite"),
-    eventTitle: document.getElementById("tileEventTitle"),
     eventClose: document.getElementById("tileEventClose"),
     deckOverlay: document.getElementById("mapDeckOverlay"),
     deckSelected: document.getElementById("mapSelectedLineup"),
@@ -193,6 +192,7 @@
     const scene = tileEventScenes[tile?.id];
     if (!scene || enteringBattle) return false;
     eventOpen = true;
+    el.board.classList.add("is-tile-event-open");
     el.diceButton.disabled = true;
     el.regenerate.disabled = true;
     const treasure = scene.animation === "treasure";
@@ -207,7 +207,6 @@
       el.eventImage.src = scene.image;
       el.eventImage.alt = `${scene.title} 풍경`;
     }
-    el.eventTitle.textContent = `${step}번 · ${scene.title}`;
     el.eventOverlay.hidden = false;
     el.eventClose.focus();
     return true;
@@ -236,6 +235,7 @@
     if (!eventOpen) return;
     eventOpen = false;
     rolling = false;
+    el.board.classList.remove("is-tile-event-open");
     el.eventOverlay.hidden = true;
     el.eventImage.removeAttribute("src");
     el.eventTreasure.classList.remove("is-playing");

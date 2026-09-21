@@ -32,17 +32,16 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .tile-info { position: absolute; z-index: 18; left: 50%; bottom: 19%; display: flex; align-items: center; gap: 8px; transform: translateX(-50%); padding: 5px 10px; border: 1px solid #735538; background: #110c09e8; font-size: clamp(9px, 1.25vw, 12px); white-space: nowrap; }
 .tile-info span { color: #c0a987; }
 .tile-info strong { color: #ffe0a0; }
-.tile-event-overlay { position: absolute; z-index: 40; inset: 0; display: grid; place-items: center; padding: 5.5% 8%; background: #050302b8; backdrop-filter: blur(2px); }
+.map-board.is-tile-event-open .dice-controller, .map-board.is-tile-event-open .tile-info, .map-board.is-tile-event-open .map-toolbar { visibility: hidden; }
+.tile-event-overlay { position: absolute; z-index: 40; inset: 0; background: transparent; }
 .tile-event-overlay[hidden] { display: none; }
-.tile-event-card { display: grid; grid-template-rows: minmax(0, 1fr) auto; width: min(82%, 1080px); height: 82%; overflow: hidden; border: 2px solid #9d7a4e; border-radius: 5px; background: #120d09; box-shadow: 0 12px 34px #000e, 0 0 0 2px #291b10; }
-.tile-event-card > img { display: block; width: 100%; height: 100%; min-height: 0; object-fit: contain; background: #090705; }
-.tile-event-card > img[hidden], .treasure-chest-sprite[hidden] { display: none; }
-.treasure-chest-sprite { place-self: center; width: 36%; min-width: 150px; height: 94%; background: url("art/v2-style/map-test/events/treasure-chest-sprite.png") 0% 48% / 400% auto no-repeat; filter: drop-shadow(0 12px 12px #000c); }
+.tile-event-scene { position: absolute; left: 50%; top: 50%; display: grid; place-items: center; width: 62%; height: 65%; transform: translate(-50%, -50%); pointer-events: none; }
+.tile-event-scene > img { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 8px 10px #0007); }
+.tile-event-scene > img[hidden], .treasure-chest-sprite[hidden] { display: none; }
+.treasure-chest-sprite { width: 48%; height: 100%; background: url("art/v2-style/map-test/events/treasure-chest-sprite.png") 0% 48% / 400% auto no-repeat; filter: drop-shadow(0 12px 12px #000c); }
 .treasure-chest-sprite.is-playing { animation: treasure-chest-open 1.45s linear forwards; }
-.tile-event-card footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 42px; padding: 6px 10px 6px 15px; border-top: 1px solid #6d5033; background: linear-gradient(#291c12, #140e09); }
-.tile-event-card strong { color: #f0d4a4; font-family: Georgia, "Malgun Gothic", serif; font-size: clamp(12px, 1.8vw, 20px); letter-spacing: .08em; }
-.tile-event-card button { min-width: 74px; height: 30px; border: 1px solid #a17b4c; border-radius: 3px; background: #51301c; color: #ffe3ad; font-size: clamp(10px, 1.25vw, 13px); font-weight: 900; cursor: pointer; }
-.tile-event-card button:focus-visible { outline: 2px solid #ffd77e; outline-offset: 2px; }
+.tile-event-exit { position: absolute; left: 82%; top: 50%; width: 14%; min-height: 36px; aspect-ratio: 2.25; transform: translateY(-50%); padding: 0 8px; border: 0; background: url("art/v2-style/map-test/events/exit-parchment.png") center / 100% 100% no-repeat; color: #49301d; font-size: clamp(12px, 1.7vw, 22px); font-weight: 900; text-shadow: 0 1px #fff7df; cursor: pointer; filter: drop-shadow(0 5px 5px #0009); }
+.tile-event-exit:focus-visible { outline: 2px solid #ffd77e; outline-offset: 2px; }
 .map-deck-overlay { position: absolute; z-index: 45; inset: 0; display: block; overflow: hidden; background: transparent; pointer-events: auto; }
 .map-deck-overlay[hidden] { display: none; }
 .map-deck-window { position: absolute; z-index: 2; top: 2%; left: 50%; width: 91%; aspect-ratio: 1871 / 840; transform: translate(-50%, -118%); opacity: 0; }
