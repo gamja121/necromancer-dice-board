@@ -74,6 +74,7 @@
     eventScene: document.querySelector(".tile-event-scene"),
     eventImage: document.getElementById("tileEventImage"),
     eventTreasure: document.getElementById("treasureChestSprite"),
+    eventEnter: document.getElementById("tileEventEnter"),
     eventClose: document.getElementById("tileEventClose"),
     bookButton: document.getElementById("mapBookButton"),
     bookImage: document.getElementById("mapBookImage"),
@@ -105,6 +106,7 @@
   let activeMapId = maps[requestedMapId] ? requestedMapId : "default";
   let enteringBattle = false;
   let eventOpen = false;
+  let activeEventTileId = null;
   let activeEventRatio = 1280 / 714;
   let battleStep = 0;
   let selectedDeck = [];
@@ -113,7 +115,7 @@
   let bookMotions = [];
   const ownedUnits = loadOwnedRoster();
 
-  [...rollingFrames, ...resultFrames, ...Object.values(tileEventScenes).map((scene) => scene.image).filter(Boolean)].forEach((src) => { const image = new Image(); image.src = src; });
+  [...rollingFrames, ...resultFrames, ...Object.values(tileEventScenes).map((scene) => scene.image).filter(Boolean), `${ROOT}events/home-interior.jpg`].forEach((src) => { const image = new Image(); image.src = src; });
 
   function wait(milliseconds) {
     return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
@@ -377,6 +379,7 @@
     const scene = tileEventScenes[tile?.id];
     if (!scene || enteringBattle) return false;
     eventOpen = true;
+    activeEventTileId = tile.id;
     activeEventRatio = tileEventRatios[tile.id] || 1280 / 714;
     fitTileEventScene();
     el.board.classList.add("is-tile-event-open");
@@ -385,6 +388,7 @@
     const treasure = scene.animation === "treasure";
     el.eventImage.hidden = treasure;
     el.eventTreasure.hidden = !treasure;
+    el.eventEnter.hidden = tile.id !== "home";
     if (treasure) {
       el.eventImage.removeAttribute("src");
       el.eventTreasure.classList.remove("is-playing");
@@ -397,6 +401,14 @@
     el.eventOverlay.hidden = false;
     el.eventClose.focus();
     return true;
+  }
+
+  function enterHome() {
+    if (!eventOpen || activeEventTileId !== "home") return;
+    el.eventImage.src = `${ROOT}events/home-interior.jpg`;
+    el.eventImage.alt = "우리집 실내 풍경";
+    el.eventEnter.hidden = true;
+    el.eventClose.focus();
   }
 
   async function warpToOtherWarp() {
@@ -421,10 +433,12 @@
   function closeTileEvent() {
     if (!eventOpen) return;
     eventOpen = false;
+    activeEventTileId = null;
     rolling = false;
     el.board.classList.remove("is-tile-event-open");
     el.eventOverlay.hidden = true;
     el.eventImage.removeAttribute("src");
+    el.eventEnter.hidden = true;
     el.eventTreasure.classList.remove("is-playing");
     el.diceButton.disabled = false;
     el.regenerate.disabled = false;
@@ -562,6 +576,7 @@
   el.regenerate.addEventListener("click", generateTiles);
   el.diceButton.addEventListener("click", rollAndMove);
   el.eventClose.addEventListener("click", closeTileEvent);
+  el.eventEnter.addEventListener("click", enterHome);
   el.bookButton.addEventListener("click", toggleBookRoster);
   el.infoClose.addEventListener("click", closeBookUnitInfo);
   el.infoBackdrop.addEventListener("click", closeBookUnitInfo);

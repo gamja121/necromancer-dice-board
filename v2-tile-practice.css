@@ -1,0 +1,4 @@
+.tile-test-nav { position: absolute; z-index: 50; top: 3%; left: 3%; display: flex; align-items: center; gap: 12px; padding: 5px 10px; border: 1px solid #876341; border-radius: 4px; background: #1a100cdd; color: #f5deb5; font-size: clamp(10px, 1.25vw, 15px); box-shadow: 0 4px 10px #0009; }
+.tile-event-scene { width: 62%; height: auto; aspect-ratio: 1280 / 714; }
+.tile-test-nav a { color: #ffe0a2; font-weight: 900; text-decoration: none; }
+.tile-test-nav a:focus-visible { outline: 2px solid #ffd77e; outline-offset: 2px; }

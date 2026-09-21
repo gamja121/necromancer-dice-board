@@ -74,7 +74,10 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .treasure-chest-sprite { position: absolute; left: 50%; top: 50%; width: 48%; height: 100%; transform: translate(-50%, -50%); background: url("art/v2-style/map-test/events/treasure-chest-sprite.png") 0% 48% / 400% auto no-repeat; filter: drop-shadow(0 12px 12px #000c); }
 .treasure-chest-sprite.is-playing { animation: treasure-chest-open 1.45s linear forwards; }
 .tile-event-exit { position: absolute; right: 1%; bottom: 7%; width: 18%; min-width: 66px; min-height: 36px; aspect-ratio: 2.25; padding: 0 8px; border: 0; background: url("art/v2-style/map-test/events/exit-parchment.png") center / 100% 100% no-repeat; color: #49301d; font-size: clamp(12px, 1.5vw, 20px); font-weight: 900; text-shadow: 0 1px #fff7df; cursor: pointer; filter: drop-shadow(0 5px 5px #0009); pointer-events: auto; }
-.tile-event-exit:focus-visible { outline: 2px solid #ffd77e; outline-offset: 2px; }
+.tile-event-enter { position: absolute; right: 1%; bottom: 29%; width: 18%; min-width: 66px; min-height: 36px; aspect-ratio: 2.25; padding: 0 8px; border: 2px solid #c99e61; border-radius: 8px 16px 8px 16px; background: linear-gradient(135deg, #2b1c15, #704329 52%, #21130d); box-shadow: inset 0 0 0 2px #1c110d, inset 0 2px 8px #ffdb8e44, 0 6px 8px #000a; color: #ffe6ae; font-size: clamp(12px, 1.45vw, 19px); font-weight: 900; text-shadow: 0 2px 2px #000; cursor: pointer; pointer-events: auto; }
+.tile-event-enter[hidden] { display: none; }
+.tile-event-enter:hover { filter: brightness(1.15); }
+.tile-event-exit:focus-visible, .tile-event-enter:focus-visible { outline: 2px solid #ffd77e; outline-offset: 2px; }
 .map-deck-overlay { position: absolute; z-index: 45; inset: 0; display: block; overflow: hidden; background: transparent; pointer-events: auto; }
 .map-deck-overlay[hidden] { display: none; }
 .map-deck-window { position: absolute; z-index: 2; top: 2%; left: 50%; width: 91%; aspect-ratio: 1871 / 840; transform: translate(-50%, -118%); opacity: 0; }
