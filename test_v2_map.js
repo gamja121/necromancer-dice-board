@@ -81,14 +81,14 @@ assert(html.includes('id="treasureChestSprite"') && css.includes("@keyframes tre
 assert(source.includes('scene.animation === "treasure"') && source.includes('eventTreasure.classList.add("is-playing")'), "Treasure animation must restart when the tile is reached.");
 assert(source.includes("async function warpToOtherWarp()") && source.includes('tile.id === "warp" && index !== heroIndex'), "Warp must move to the other warp tile.");
 assert(source.includes('currentTiles[heroIndex]?.id === "warp"') && source.includes("await warpToOtherWarp()"), "Landing on a warp tile must trigger teleportation.");
-assert(html.includes("v2-map-practice.js?v=22") && html.includes("v2-map-practice.css?v=17") && html.includes("v2-sfx.js?v=3"), "The map page must load targeting, music, and mobile sound effects.");
+assert(html.includes("v2-map-practice.js?v=22") && html.includes("v2-map-practice.css?v=18") && html.includes("v2-sfx.js?v=3"), "The map page must load targeting, music, and mobile sound effects.");
 assert(worker.includes("v2-map-practice.html"), "Map test page is not cached.");
 assert(worker.includes("v2-landscape.js?v=1"), "Landscape helper is not cached.");
-assert(worker.includes("v2-map-practice.js?v=22") && worker.includes("v2-map-practice.css?v=17") && worker.includes("v2-sfx.js?v=3"), "The targeting, music, and mobile sound logic is not cached.");
+assert(worker.includes("v2-map-practice.js?v=22") && worker.includes("v2-map-practice.css?v=18") && worker.includes("v2-sfx.js?v=3"), "The targeting, music, and mobile sound logic is not cached.");
 assert(html.includes('class="tile-event-scene"') && html.includes('class="tile-event-exit"') && !html.includes('id="tileEventTitle"'), "Tile events must be image-only on the board with an exit button.");
 assert(html.includes('id="tileEventEnter"') && source.includes('el.eventEnter.addEventListener("click", enterHome)') && source.includes('el.eventEnter.hidden = tile.id !== "home"'), "Only the home tile must show an enter button above exit.");
 assert(source.includes('events/home-interior.jpg') && worker.includes('art/v2-style/map-test/events/home-interior.jpg'), "Entering home must show the supplied interior art, including offline cache.");
-assert(css.includes('.tile-event-enter {') && css.includes('bottom: 29%') && css.includes('.tile-event-enter[hidden]'), "Home enter must have its own style and sit above the exit button.");
+assert(css.includes('enter-parchment.png') && css.includes('bottom: 29%') && css.includes('.tile-event-enter[hidden]'), "Home enter must use a different supplied parchment button above exit.");
 assert(html.includes('href="v2-tile-practice.html"') && worker.includes('v2-tile-practice.html'), "The dedicated tile test must be reachable from the map.");
 assert(css.includes('.tile-event-overlay { position: absolute; z-index: 40; inset: 0; background: transparent; }') && css.includes('exit-parchment.png'), "Tile events must not dim the map and must use the cropped exit parchment.");
 assert(source.includes('village: 1280 / 956') && source.includes('fitTileEventScene()') && css.includes('right: 1%; bottom: 7%'), "All tile scenes must fit their source aspect ratio and place exit over the bottom-right watermark.");
