@@ -72,14 +72,22 @@ assert(html.includes('id="treasureChestSprite"') && css.includes("@keyframes tre
 assert(source.includes('scene.animation === "treasure"') && source.includes('eventTreasure.classList.add("is-playing")'), "Treasure animation must restart when the tile is reached.");
 assert(source.includes("async function warpToOtherWarp()") && source.includes('tile.id === "warp" && index !== heroIndex'), "Warp must move to the other warp tile.");
 assert(source.includes('currentTiles[heroIndex]?.id === "warp"') && source.includes("await warpToOtherWarp()"), "Landing on a warp tile must trigger teleportation.");
-assert(html.includes("v2-map-practice.js?v=15") && html.includes("v2-map-practice.css?v=11") && html.includes("v2-sfx.js?v=3"), "The map page must load targeting, music, and mobile sound effects.");
+assert(html.includes("v2-map-practice.js?v=16") && html.includes("v2-map-practice.css?v=12") && html.includes("v2-sfx.js?v=3"), "The map page must load targeting, music, and mobile sound effects.");
 assert(worker.includes("v2-map-practice.html"), "Map test page is not cached.");
 assert(worker.includes("v2-landscape.js?v=1"), "Landscape helper is not cached.");
-assert(worker.includes("v2-map-practice.js?v=15") && worker.includes("v2-map-practice.css?v=11") && worker.includes("v2-sfx.js?v=3"), "The targeting, music, and mobile sound logic is not cached.");
+assert(worker.includes("v2-map-practice.js?v=16") && worker.includes("v2-map-practice.css?v=12") && worker.includes("v2-sfx.js?v=3"), "The targeting, music, and mobile sound logic is not cached.");
 assert(html.includes('class="tile-event-scene"') && html.includes('class="tile-event-exit"') && !html.includes('id="tileEventTitle"'), "Tile events must be image-only on the board with an exit button.");
 assert(css.includes('.tile-event-overlay { position: absolute; z-index: 40; inset: 0; background: transparent; }') && css.includes('exit-parchment.png'), "Tile events must not dim the map and must use the cropped exit parchment.");
 assert(source.includes('village: 1280 / 956') && source.includes('fitTileEventScene()') && css.includes('right: 1%; bottom: 7%'), "All tile scenes must fit their source aspect ratio and place exit over the bottom-right watermark.");
 assert(worker.includes('art/v2-style/map-test/events/exit-parchment.png'), "The parchment exit button must be cached.");
+assert(html.includes('id="mapBookButton"') && html.includes('id="mapBookImage"'), "The lower-right book button must be present on the board.");
+assert(source.includes('el.bookButton.classList.toggle("is-open")') && source.includes('map-book-${isOpen ? "open" : "closed"}.png'), "The book button must toggle between the first and second images.");
+assert(source.includes('x: 79 - index * (58 / 7), y: 85') && css.includes('.map-tile.is-bottom-row { width: 10.6%; }'), "Bottom tiles must leave room in both corners for UI buttons.");
+for (const file of ['map-book-closed.png', 'map-book-open.png']) {
+  const relative = `art/v2-style/ui/${file}`;
+  assert(fs.existsSync(path.join(root, relative)), `Book button asset is missing: ${relative}`);
+  assert(worker.includes(relative), `Book button asset is not cached: ${relative}`);
+}
 assert(!source.includes('document.createElement("b")'), "Selected roster cards must not show numbered badges.");
 assert(css.includes("translateY(-22%)") && css.includes("width: 68%"), "Selected cards must rise and the roster must cluster on the left.");
 assert(source.includes('el.board.classList.add("is-deck-selecting")') && css.includes('.map-board.is-deck-selecting .map-tile .step { opacity: 0; }'), "Map tile step badges must be hidden behind deck cards.");

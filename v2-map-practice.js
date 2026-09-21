@@ -65,6 +65,8 @@
     eventImage: document.getElementById("tileEventImage"),
     eventTreasure: document.getElementById("treasureChestSprite"),
     eventClose: document.getElementById("tileEventClose"),
+    bookButton: document.getElementById("mapBookButton"),
+    bookImage: document.getElementById("mapBookImage"),
     deckOverlay: document.getElementById("mapDeckOverlay"),
     deckSelected: document.getElementById("mapSelectedLineup"),
     deckRoster: document.getElementById("mapDeckRoster"),
@@ -95,8 +97,8 @@
     const positions = [];
     for (let index = 0; index < 8; index += 1) positions.push({ x: 12 + index * (76 / 7), y: 12 });
     for (let index = 0; index < 4; index += 1) positions.push({ x: 94, y: 29 + index * (42 / 3) });
-    for (let index = 0; index < 8; index += 1) positions.push({ x: 88 - index * (76 / 7), y: 88 });
-    for (let index = 0; index < 4; index += 1) positions.push({ x: 6, y: 71 - index * (42 / 3) });
+    for (let index = 0; index < 8; index += 1) positions.push({ x: 79 - index * (58 / 7), y: 85 });
+    for (let index = 0; index < 4; index += 1) positions.push({ x: 6, y: 69 - index * (40 / 3) });
     return positions;
   }
 
@@ -282,7 +284,7 @@
       const image = document.createElement("img");
       const step = document.createElement("span");
       button.type = "button";
-      button.className = "map-tile";
+      button.className = index >= 12 && index < 20 ? "map-tile is-bottom-row" : "map-tile";
       button.style.setProperty("--x", `${position.x}%`);
       button.style.setProperty("--y", `${position.y}%`);
       button.setAttribute("aria-label", `${index + 1}번 ${tile.name}`);
@@ -381,6 +383,12 @@
   el.regenerate.addEventListener("click", generateTiles);
   el.diceButton.addEventListener("click", rollAndMove);
   el.eventClose.addEventListener("click", closeTileEvent);
+  el.bookButton.addEventListener("click", () => {
+    const isOpen = el.bookButton.classList.toggle("is-open");
+    el.bookImage.src = `art/v2-style/ui/map-book-${isOpen ? "open" : "closed"}.png`;
+    el.bookButton.setAttribute("aria-label", isOpen ? "책 닫기" : "책 열기");
+    el.bookButton.setAttribute("aria-pressed", String(isOpen));
+  });
   window.addEventListener("resize", () => { if (eventOpen) fitTileEventScene(); });
   el.deckConfirm.addEventListener("click", confirmMonsterBattle);
   document.addEventListener("keydown", (event) => {
