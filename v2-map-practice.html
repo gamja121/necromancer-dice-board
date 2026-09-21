@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
   <title>외곽 타일 맵 테스트</title>
-  <link rel="stylesheet" href="v2-map-practice.css?v=14">
+  <link rel="stylesheet" href="v2-map-practice.css?v=15">
 </head>
 <body data-v2-music="map">
   <main class="map-lab">
@@ -38,6 +38,37 @@
         <img id="mapBookImage" src="art/v2-style/ui/map-book-closed.png" alt="">
       </button>
       <div id="mapBookRoster" class="map-book-roster map-deck-roster" aria-label="보유 마물 카드 10장" hidden></div>
+      <section id="mapUnitInfoOverlay" class="map-unit-info-overlay" hidden>
+        <button id="mapUnitInfoBackdrop" class="map-unit-info-backdrop" type="button" aria-label="마물 정보 닫기"></button>
+        <article class="map-unit-info-panel" role="dialog" aria-modal="true" aria-labelledby="mapUnitInfoName">
+          <img class="map-unit-info-frame" src="art/v2-style/ui/unit-info-window-no-portrait.png?v=3" alt="" aria-hidden="true">
+          <header>
+            <h2 id="mapUnitInfoName">마물 정보</h2>
+          </header>
+          <button id="mapUnitInfoClose" type="button" aria-label="마물 정보 닫기">×</button>
+          <div class="map-unit-info-summary">
+            <div class="map-unit-info-portrait"><img id="mapUnitInfoPortrait" alt=""></div>
+            <div class="map-unit-info-fields">
+              <section class="map-unit-info-basic" aria-label="등급과 군단">
+                <dl class="map-unit-info-values">
+                  <div><dt>등급</dt><dd id="mapUnitInfoGrade">-</dd></div>
+                  <div><dt>군단</dt><dd id="mapUnitInfoLegion">-</dd></div>
+                </dl>
+              </section>
+              <section class="map-unit-info-stats" aria-label="능력치">
+                <dl class="map-unit-info-values">
+                  <div><dt>체력</dt><dd id="mapUnitInfoHp">-</dd></div>
+                  <div><dt>공격력</dt><dd id="mapUnitInfoAttack">-</dd></div>
+                  <div><dt>속도</dt><dd id="mapUnitInfoSpeed">-</dd></div>
+                </dl>
+              </section>
+            </div>
+          </div>
+          <section class="map-unit-info-detail" aria-label="패시브와 낙인">
+            <div id="mapUnitInfoBrands" class="map-unit-info-brands"></div>
+          </section>
+        </article>
+      </section>
       <section id="tileEventOverlay" class="tile-event-overlay" role="dialog" aria-modal="true" aria-label="타일 장면" hidden>
         <div class="tile-event-scene">
           <img id="tileEventImage" alt="">
@@ -60,6 +91,8 @@
   <script src="v2-landscape.js?v=1"></script>
   <script src="v2-music.js?v=1"></script>
   <script src="v2-sfx.js?v=3"></script>
-  <script src="v2-map-practice.js?v=18"></script>
+  <script src="v2-design-data.js?v=1"></script>
+  <script src="v2-rules.js?v=4"></script>
+  <script src="v2-map-practice.js?v=19"></script>
 </body>
 </html>

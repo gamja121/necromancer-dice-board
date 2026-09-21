@@ -190,6 +190,17 @@
     return COMBAT_SOUND_PROFILES[effect] || COMBAT_SOUND_PROFILES.physical;
   }
   const requestedAllySlugs = (battleQuery.get("allies") || "").split(",").filter((slug) => TEST_DECK_SLUGS.includes(slug));
+  const mapOwnedRoster = (() => {
+    if (!fromMap || typeof sessionStorage === "undefined") return new Map();
+    try {
+      const saved = JSON.parse(sessionStorage.getItem("necromancer-map-test-roster-v1"));
+      if (!Array.isArray(saved)) return new Map();
+      return new Map(saved.filter((unit) => TEST_DECK_SLUGS.includes(unit?.slug) &&
+        Number.isFinite(unit.maxHp) && Number.isFinite(unit.attack) && Number.isFinite(unit.speed) &&
+        Array.isArray(unit.brands) && unit.brands.every(V2Rules.validateBrand))
+        .map((unit) => [unit.slug, unit]));
+    } catch (_) { return new Map(); }
+  })();
 
   const battlefield = document.getElementById("battlefield");
   // Optional demonstration lineup; the normal 4v4 lineup stays unchanged.
@@ -373,7 +384,8 @@
   }
 
   function makeState(data, team, slot) {
-    const generated = V2Rules.individual(data.slug);
+    const owned = team === "ally" && slot < 4 ? mapOwnedRoster.get(data.slug) : null;
+    const generated = owned ? JSON.parse(JSON.stringify(owned)) : V2Rules.individual(data.slug);
     return V2Rules.init({ ...data, ...generated, team, slot, gauge: 0, brand: generated.brands[0]?.type, brandMode: "normal", brandDisplayMode: "normal", element: null, image: null });
   }
 

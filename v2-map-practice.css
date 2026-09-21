@@ -32,15 +32,39 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .tile-info { position: absolute; z-index: 18; left: 50%; bottom: 19%; display: flex; align-items: center; gap: 8px; transform: translateX(-50%); padding: 5px 10px; border: 1px solid #735538; background: #110c09e8; font-size: clamp(9px, 1.25vw, 12px); white-space: nowrap; }
 .tile-info span { color: #c0a987; }
 .tile-info strong { color: #ffe0a0; }
-.map-book-button { position: absolute; z-index: 50; left: 1%; bottom: 5%; display: grid; place-items: center; width: 10%; aspect-ratio: 1; min-width: 56px; padding: 0; border: 0; background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; filter: drop-shadow(0 6px 5px #000b); transition: width 160ms ease, transform 160ms ease; }
-.map-book-button.is-open { width: 14%; aspect-ratio: 1.5; }
+.map-book-button { position: absolute; z-index: 50; left: 1%; bottom: 5%; display: grid; place-items: center; width: 11.5%; aspect-ratio: 1; min-width: 62px; padding: 0; border: 0; background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; filter: drop-shadow(0 6px 5px #000b); transition: width 160ms ease, transform 160ms ease; }
+.map-book-button.is-open { width: 15%; aspect-ratio: 1.5; }
 .map-book-button img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .map-book-button:hover, .map-book-button:focus-visible { transform: translateY(-3%) scale(1.04); }
 .map-book-button:focus-visible { outline: 2px solid #ffd77e; outline-offset: 2px; }
-.map-deck-roster.map-book-roster { z-index: 49; left: 10%; }
+.map-deck-roster.map-book-roster { z-index: 49; left: 16%; transform: none; opacity: 1; }
 .map-book-roster[hidden] { display: none; }
-.map-book-roster.is-open { animation: map-deck-roster-rise 600ms cubic-bezier(.18,.84,.25,1.08) forwards; }
-.map-deck-roster.map-book-roster button.is-inspecting { z-index: 10; transform: translateY(-40%) rotate(0deg) scale(1.55); filter: drop-shadow(0 0 9px #ffd071); }
+.map-deck-roster.map-book-roster button.is-inspecting { z-index: 10; transform: translateY(-22%) rotate(var(--card-tilt, 0deg)) scale(1.05); filter: drop-shadow(0 0 8px #ffd071); }
+.map-board.is-deck-selecting .map-book-button, .map-board.is-deck-selecting .map-book-roster { visibility: hidden; pointer-events: none; }
+.map-unit-info-overlay { position: absolute; z-index: 60; inset: 0; display: grid; place-items: center; }
+.map-unit-info-overlay[hidden] { display: none; }
+.map-unit-info-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; background: #030201c4; backdrop-filter: blur(2px); cursor: pointer; }
+.map-unit-info-panel { position: relative; z-index: 1; height: min(90%, 650px); aspect-ratio: 430 / 514; overflow: hidden; background: transparent; }
+.map-unit-info-frame { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; user-select: none; }
+.map-unit-info-panel > header { position: absolute; z-index: 2; top: .5%; left: 19%; display: grid; place-items: center; width: 62%; height: 7.6%; }
+.map-unit-info-panel > header h2 { max-width: 100%; margin: 0; overflow: hidden; color: #211712; font: 1000 clamp(14px, 1.7vw, 22px)/1 Georgia, "Malgun Gothic", serif; text-overflow: ellipsis; text-shadow: 0 1px #f5ddc8; white-space: nowrap; }
+#mapUnitInfoClose { position: absolute; z-index: 4; top: 1%; right: .5%; width: 7.7%; aspect-ratio: 1; padding: 0; border: 0; background: transparent; color: transparent; font-size: 0; cursor: pointer; }
+.map-unit-info-summary { position: absolute; z-index: 2; top: 9.6%; left: 5%; display: grid; grid-template-columns: 31.5% 1fr; gap: 2%; width: 90%; height: 35.2%; min-height: 0; }
+.map-unit-info-portrait { min-width: 0; min-height: 0; overflow: hidden; }
+.map-unit-info-portrait img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.map-unit-info-fields { display: grid; grid-template-rows: 42% minmax(0, 1fr); gap: 3%; min-width: 0; min-height: 0; }
+.map-unit-info-basic, .map-unit-info-stats { display: flex; flex-direction: column; justify-content: center; min-height: 0; padding: 3% 8%; overflow: hidden; }
+.map-unit-info-values { display: grid; gap: 3px; margin: 0; }
+.map-unit-info-values > div { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; min-width: 0; }
+.map-unit-info-values dt { color: #3e2d24; font-size: clamp(11px, 1.05vw, 15px); font-weight: 800; line-height: 1.3; }
+.map-unit-info-values dd { margin: 0; color: #17100d; font-size: clamp(12px, 1.2vw, 17px); font-weight: 1000; line-height: 1.3; text-shadow: 0 1px #f3d8c3; white-space: nowrap; }
+#mapUnitInfoLegion { white-space: normal; text-align: right; overflow-wrap: anywhere; }
+.map-unit-info-detail { position: absolute; z-index: 2; top: 47.2%; right: 5%; bottom: 4.8%; left: 5%; padding: 6% 6.5%; }
+.map-unit-info-brands { height: 100%; display: grid; grid-template-rows: repeat(4, minmax(0, 1fr)); align-items: center; gap: 3%; }
+.map-unit-info-brands .map-passive-heading, .map-unit-info-brands .map-brand-heading { display: flex; align-items: center; gap: 8px; min-height: 0; color: #211712; font-size: clamp(10px, 1.15vw, 16px); font-weight: 1000; line-height: 1.2; }
+.map-unit-info-brands .map-passive-symbol { display: grid; place-items: center; width: 36px; height: 36px; flex: 0 0 auto; font-size: 26px; }
+.map-unit-info-brands .map-brand-icon { width: auto; height: 90%; max-height: 44px; aspect-ratio: 1; flex: 0 0 auto; border-radius: 10%; }
+.map-unit-info-brands h4 { margin: 0; font: inherit; }
 .map-board.is-tile-event-open .dice-controller, .map-board.is-tile-event-open .tile-info, .map-board.is-tile-event-open .map-toolbar { visibility: hidden; }
 .tile-event-overlay { position: absolute; z-index: 40; inset: 0; background: transparent; }
 .tile-event-overlay[hidden] { display: none; }
