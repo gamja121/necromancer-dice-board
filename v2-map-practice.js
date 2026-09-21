@@ -96,10 +96,10 @@
 
   function perimeterPositions() {
     const positions = [];
-    for (let index = 0; index < 8; index += 1) positions.push({ x: 12 + index * (76 / 7), y: 12 });
+    for (let index = 0; index < 8; index += 1) positions.push({ x: 20 + index * (70 / 7), y: 12 });
     for (let index = 0; index < 4; index += 1) positions.push({ x: 94, y: 29 + index * (42 / 3) });
-    for (let index = 0; index < 8; index += 1) positions.push({ x: 79 - index * (58 / 7), y: 85 });
-    for (let index = 0; index < 4; index += 1) positions.push({ x: 6, y: 69 - index * (40 / 3) });
+    for (let index = 0; index < 7; index += 1) positions.push({ x: 79 - index * (58 / 6), y: 85 });
+    for (let index = 0; index < 5; index += 1) positions.push({ x: 6, y: 69 - index * (54 / 4) });
     return positions;
   }
 
@@ -326,7 +326,7 @@
       const image = document.createElement("img");
       const step = document.createElement("span");
       button.type = "button";
-      button.className = index >= 12 && index < 20 ? "map-tile is-bottom-row" : "map-tile";
+      button.className = "map-tile";
       button.style.setProperty("--x", `${position.x}%`);
       button.style.setProperty("--y", `${position.y}%`);
       button.setAttribute("aria-label", `${index + 1}번 ${tile.name}`);
