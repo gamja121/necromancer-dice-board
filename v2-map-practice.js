@@ -67,6 +67,7 @@
     eventClose: document.getElementById("tileEventClose"),
     bookButton: document.getElementById("mapBookButton"),
     bookImage: document.getElementById("mapBookImage"),
+    bookRoster: document.getElementById("mapBookRoster"),
     deckOverlay: document.getElementById("mapDeckOverlay"),
     deckSelected: document.getElementById("mapSelectedLineup"),
     deckRoster: document.getElementById("mapDeckRoster"),
@@ -186,6 +187,47 @@
     const rates = TARGET_RATES[selectedDeck.length] || [];
     el.deckStatus.textContent = rates.length ? `마물 카드 ${selectedDeck.length} / 4 · 왼쪽부터 피격 ${rates.join(" · ")}%` : "마물 카드 0 / 4";
     el.deckConfirm.disabled = selectedDeck.length !== 4;
+  }
+
+  function renderBookRoster() {
+    el.bookRoster.replaceChildren();
+    for (const entry of TEST_DECK) {
+      const button = document.createElement("button");
+      const image = document.createElement("img");
+      const name = document.createElement("span");
+      button.type = "button";
+      button.setAttribute("aria-label", `${entry.name} 카드 확인`);
+      button.setAttribute("aria-pressed", "false");
+      image.src = `art/v2-style/ui/unit-card-${entry.slug}.png?v=19`;
+      image.alt = "";
+      name.textContent = entry.name;
+      button.append(image, name);
+      button.addEventListener("click", () => {
+        const inspecting = button.classList.contains("is-inspecting");
+        el.bookRoster.querySelectorAll("button.is-inspecting").forEach((card) => {
+          card.classList.remove("is-inspecting");
+          card.setAttribute("aria-pressed", "false");
+        });
+        if (!inspecting) {
+          button.classList.add("is-inspecting");
+          button.setAttribute("aria-pressed", "true");
+        }
+      });
+      el.bookRoster.append(button);
+    }
+  }
+
+  function toggleBookRoster() {
+    const isOpen = el.bookButton.classList.toggle("is-open");
+    el.bookImage.src = `art/v2-style/ui/map-book-${isOpen ? "open" : "closed"}.png`;
+    el.bookButton.setAttribute("aria-label", isOpen ? "보유 마물 카드 닫기" : "보유 마물 카드 열기");
+    el.bookButton.setAttribute("aria-pressed", String(isOpen));
+    el.bookRoster.hidden = !isOpen;
+    el.bookRoster.classList.toggle("is-open", isOpen);
+    if (!isOpen) el.bookRoster.querySelectorAll("button.is-inspecting").forEach((card) => {
+      card.classList.remove("is-inspecting");
+      card.setAttribute("aria-pressed", "false");
+    });
   }
 
   function confirmMonsterBattle() {
@@ -383,17 +425,14 @@
   el.regenerate.addEventListener("click", generateTiles);
   el.diceButton.addEventListener("click", rollAndMove);
   el.eventClose.addEventListener("click", closeTileEvent);
-  el.bookButton.addEventListener("click", () => {
-    const isOpen = el.bookButton.classList.toggle("is-open");
-    el.bookImage.src = `art/v2-style/ui/map-book-${isOpen ? "open" : "closed"}.png`;
-    el.bookButton.setAttribute("aria-label", isOpen ? "책 닫기" : "책 열기");
-    el.bookButton.setAttribute("aria-pressed", String(isOpen));
-  });
+  el.bookButton.addEventListener("click", toggleBookRoster);
   window.addEventListener("resize", () => { if (eventOpen) fitTileEventScene(); });
   el.deckConfirm.addEventListener("click", confirmMonsterBattle);
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && eventOpen) closeTileEvent();
+    if (event.key === "Escape" && !el.bookRoster.hidden) toggleBookRoster();
+    else if (event.key === "Escape" && eventOpen) closeTileEvent();
   });
+  renderBookRoster();
   generateTiles();
   if (typeof V2Sfx !== "undefined") V2Sfx.preload();
 })();

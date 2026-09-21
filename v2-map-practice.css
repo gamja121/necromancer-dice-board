@@ -33,12 +33,15 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .tile-info { position: absolute; z-index: 18; left: 50%; bottom: 19%; display: flex; align-items: center; gap: 8px; transform: translateX(-50%); padding: 5px 10px; border: 1px solid #735538; background: #110c09e8; font-size: clamp(9px, 1.25vw, 12px); white-space: nowrap; }
 .tile-info span { color: #c0a987; }
 .tile-info strong { color: #ffe0a0; }
-.map-book-button { position: absolute; z-index: 21; right: 1%; bottom: 1%; display: grid; place-items: center; width: 10%; aspect-ratio: 1; min-width: 56px; padding: 0; border: 0; background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; filter: drop-shadow(0 6px 5px #000b); transition: width 160ms ease, transform 160ms ease; }
+.map-book-button { position: absolute; z-index: 50; left: 1%; bottom: 1%; display: grid; place-items: center; width: 10%; aspect-ratio: 1; min-width: 56px; padding: 0; border: 0; background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; filter: drop-shadow(0 6px 5px #000b); transition: width 160ms ease, transform 160ms ease; }
 .map-book-button.is-open { width: 14%; aspect-ratio: 1.5; }
 .map-book-button img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .map-book-button:hover, .map-book-button:focus-visible { transform: translateY(-3%) scale(1.04); }
 .map-book-button:focus-visible { outline: 2px solid #ffd77e; outline-offset: 2px; }
-.map-board.is-tile-event-open .map-book-button, .map-board.is-deck-selecting .map-book-button { visibility: hidden; }
+.map-deck-roster.map-book-roster { z-index: 49; left: 10%; }
+.map-book-roster[hidden] { display: none; }
+.map-book-roster.is-open { animation: map-deck-roster-rise 600ms cubic-bezier(.18,.84,.25,1.08) forwards; }
+.map-deck-roster.map-book-roster button.is-inspecting { z-index: 10; transform: translateY(-40%) rotate(0deg) scale(1.55); filter: drop-shadow(0 0 9px #ffd071); }
 .map-board.is-tile-event-open .dice-controller, .map-board.is-tile-event-open .tile-info, .map-board.is-tile-event-open .map-toolbar { visibility: hidden; }
 .tile-event-overlay { position: absolute; z-index: 40; inset: 0; background: transparent; }
 .tile-event-overlay[hidden] { display: none; }
