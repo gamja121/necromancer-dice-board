@@ -302,14 +302,12 @@
   async function animateBookCards(outward) {
     const cards = [...el.bookRoster.querySelectorAll("button")];
     if (!cards.length || typeof cards[0].animate !== "function" || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-    const book = el.bookButton.getBoundingClientRect();
-    const bookX = book.left + book.width / 2;
-    const bookY = book.top + book.height / 2;
+    // Use board-local coordinates: the whole board rotates on portrait phones,
+    // so viewport rectangles would turn a sideways slide into an up/down flight.
+    const bookExitX = el.bookButton.offsetLeft + el.bookButton.offsetWidth * .9;
     const animations = cards.map((card, index) => {
-      const cardRect = card.getBoundingClientRect();
-      const offsetX = bookX - cardRect.left - cardRect.width / 2;
-      const offsetY = bookY - cardRect.top - cardRect.height / 2;
-      const tucked = `translate(${offsetX}px, ${offsetY}px) scale(.18) rotate(-18deg)`;
+      const cardX = el.bookRoster.offsetLeft + card.offsetLeft + card.offsetWidth / 2;
+      const tucked = `translateX(${bookExitX - cardX}px) translateY(10%) rotate(var(--card-tilt, 0deg)) scale(.35)`;
       const settled = window.getComputedStyle(card).transform;
       return card.animate(outward
         ? [{ transform: tucked, opacity: 0 }, { transform: settled, opacity: 1 }]

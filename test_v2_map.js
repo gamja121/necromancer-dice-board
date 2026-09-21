@@ -78,10 +78,10 @@ assert(html.includes('id="treasureChestSprite"') && css.includes("@keyframes tre
 assert(source.includes('scene.animation === "treasure"') && source.includes('eventTreasure.classList.add("is-playing")'), "Treasure animation must restart when the tile is reached.");
 assert(source.includes("async function warpToOtherWarp()") && source.includes('tile.id === "warp" && index !== heroIndex'), "Warp must move to the other warp tile.");
 assert(source.includes('currentTiles[heroIndex]?.id === "warp"') && source.includes("await warpToOtherWarp()"), "Landing on a warp tile must trigger teleportation.");
-assert(html.includes("v2-map-practice.js?v=19") && html.includes("v2-map-practice.css?v=15") && html.includes("v2-sfx.js?v=3"), "The map page must load targeting, music, and mobile sound effects.");
+assert(html.includes("v2-map-practice.js?v=20") && html.includes("v2-map-practice.css?v=15") && html.includes("v2-sfx.js?v=3"), "The map page must load targeting, music, and mobile sound effects.");
 assert(worker.includes("v2-map-practice.html"), "Map test page is not cached.");
 assert(worker.includes("v2-landscape.js?v=1"), "Landscape helper is not cached.");
-assert(worker.includes("v2-map-practice.js?v=19") && worker.includes("v2-map-practice.css?v=15") && worker.includes("v2-sfx.js?v=3"), "The targeting, music, and mobile sound logic is not cached.");
+assert(worker.includes("v2-map-practice.js?v=20") && worker.includes("v2-map-practice.css?v=15") && worker.includes("v2-sfx.js?v=3"), "The targeting, music, and mobile sound logic is not cached.");
 assert(html.includes('class="tile-event-scene"') && html.includes('class="tile-event-exit"') && !html.includes('id="tileEventTitle"'), "Tile events must be image-only on the board with an exit button.");
 assert(css.includes('.tile-event-overlay { position: absolute; z-index: 40; inset: 0; background: transparent; }') && css.includes('exit-parchment.png'), "Tile events must not dim the map and must use the cropped exit parchment.");
 assert(source.includes('village: 1280 / 956') && source.includes('fitTileEventScene()') && css.includes('right: 1%; bottom: 7%'), "All tile scenes must fit their source aspect ratio and place exit over the bottom-right watermark.");
@@ -91,6 +91,7 @@ assert(html.includes('id="mapBookRoster"') && source.includes('setBookVisual(tru
 assert(css.includes('z-index: 50; left: 1%; bottom: 5%') && !css.includes('.map-board.is-tile-event-open .map-book-button'), "The book button must sit slightly raised in the lower-left above other tile scenes.");
 assert(css.includes('width: 11.5%; aspect-ratio: 1') && css.includes('.map-board.is-deck-selecting .map-book-button'), "The book must be larger but inaccessible during monster deck selection.");
 assert(source.includes('forceCloseBookRoster();') && source.includes('async function animateBookCards(outward)') && source.includes('delay: (outward ? index : cards.length - 1 - index) * 55'), "Cards must leave and return to the book one by one.");
+assert(source.includes('el.bookButton.offsetLeft') && source.includes('translateX(${bookExitX - cardX}px)') && !source.includes('const book = el.bookButton.getBoundingClientRect()'), "Book cards must slide sideways from the book in board-local coordinates.");
 assert(css.includes('.map-deck-roster.map-book-roster button.is-inspecting') && css.includes('translateY(-22%)') && source.includes('clearBookSelection()'), "Book cards must rise slightly on selection and lower on deselection.");
 assert(html.includes('id="mapUnitInfoOverlay"') && html.includes('class="map-unit-info-panel"') && !html.includes('class="legion-info-panel"'), "Only the basic unit information window should appear in the map center.");
 assert(css.includes('.map-unit-info-overlay { position: absolute; z-index: 60; inset: 0; display: grid; place-items: center; }') && source.includes('openBookUnitInfo(ownedUnits.get(entry.slug))'), "Selecting an owned card must open centered basic information.");
