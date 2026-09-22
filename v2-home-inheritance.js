@@ -11,12 +11,16 @@
   const resultHint = document.getElementById("homeInheritanceResultHint");
   const brandHint = document.getElementById("homeInheritanceBrandHint");
   const brandList = document.getElementById("homeInheritanceBrandList");
+  const partChoices = document.getElementById("homeInheritanceParts");
   const inheritButton = document.getElementById("homeInheritanceConfirm");
   const backdrop = overlay?.querySelector(".home-inheritance-backdrop");
   let ownedUnits;
   let materialSlug = null;
   let resultSlug = null;
   let completed = false;
+  let selectedBrandIndex = 0;
+  let selectedPart = null;
+  let notice = "";
 
   function loadOwnedUnits() {
     if (ownedUnits) return ownedUnits;
@@ -43,16 +47,27 @@
     hint.textContent = unit?.name || (role === "재료" ? "아래에서 마물을 선택" : "계승 결과 대기");
   }
 
-  function appendBrands(unit, origin) {
-    for (const brand of unit.brands) {
+  function appendBrands(unit, origin, selectable = false) {
+    unit.brands.forEach((brand, index) => {
       const row = document.createElement("li");
+      const content = selectable ? document.createElement("button") : row;
       const name = document.createElement("strong");
       const marks = document.createElement("small");
-      name.textContent = `${origin} · ${V2Rules.definitions[brand.type]?.name || brand.type}`;
-      marks.textContent = `축복 ${brand.bless.join(", ")} · 저주 ${brand.curse.join(", ")}`;
-      row.append(name, marks);
+      const preview = selectable && index === selectedBrandIndex && selectedPart;
+      const bless = preview && selectedPart === "curse" ? [] : brand.bless;
+      const curse = preview && selectedPart === "bless" ? [] : brand.curse;
+      name.textContent = `${preview ? "계승 예정" : origin} · ${V2Rules.definitions[brand.type]?.name || brand.type}`;
+      marks.textContent = `축복 ${bless.join(", ") || "없음"} · 저주 ${curse.join(", ") || "없음"}`;
+      content.append(name, marks);
+      if (selectable) {
+        content.type = "button";
+        content.classList.toggle("is-selected", index === selectedBrandIndex);
+        content.setAttribute("aria-pressed", String(index === selectedBrandIndex));
+        content.addEventListener("click", () => { selectedBrandIndex = index; selectedPart = null; notice = ""; renderSelection(); });
+        row.append(content);
+      }
       brandList.append(row);
-    }
+    });
   }
 
   function renderSelection() {
@@ -68,23 +83,32 @@
     });
     brandList.replaceChildren();
     if (result) appendBrands(result, completed ? "계승 결과" : "기존");
-    if (material) appendBrands(material, "계승");
+    if (material) appendBrands(material, "재료", true);
     brandList.hidden = !brandList.childElementCount;
-    brandHint.hidden = !!brandList.childElementCount;
-    const count = (material?.brands.length || 0) + (result?.brands.length || 0);
-    if (completed) brandHint.textContent = "계승 완료";
+    brandHint.hidden = false;
+    const chosen = material?.brands[selectedBrandIndex];
+    if (notice) brandHint.textContent = notice;
+    else if (completed) brandHint.textContent = "계승 완료 · 기존 낙인과 함께 표시";
     else if (!material) brandHint.textContent = "재료 카드를 선택하세요";
-    else if (!result) brandHint.textContent = material.brands.length ? "다음으로 결과 카드를 선택하세요" : "계승할 낙인이 없습니다";
-    else brandHint.textContent = count > 3 ? `낙인 ${count}개 · 최대 3칸까지 계승 가능` : "계승 후 낙인";
-    if (count > 3) brandHint.hidden = false;
-    inheritButton.disabled = !material || !result || !material.brands.length || count > 3;
+    else if (!result) brandHint.textContent = "다음으로 결과 카드를 선택하세요";
+    else brandHint.textContent = chosen ? (selectedPart ? "기존 + 계승 예정 낙인" : "재료 낙인과 옮길 효과를 선택하세요") : "계승할 낙인이 없습니다";
+    partChoices.hidden = !chosen || completed;
+    partChoices.querySelectorAll("button").forEach((button) => {
+      const part = button.dataset.inheritPart;
+      button.disabled = part === "bless" ? !chosen?.bless.length : part === "curse" ? !chosen?.curse.length : !chosen?.bless.length || !chosen?.curse.length;
+      button.classList.toggle("is-selected", part === selectedPart);
+      button.setAttribute("aria-pressed", String(part === selectedPart));
+    });
+    inheritButton.disabled = !material || !result || !chosen || !selectedPart || result.brands.length >= 3;
   }
 
   function selectCard(slug) {
     if (completed) { materialSlug = null; resultSlug = null; completed = false; }
-    if (slug === materialSlug) { materialSlug = null; resultSlug = null; }
+    notice = "";
+    if (slug === materialSlug) { materialSlug = null; resultSlug = null; selectedPart = null; }
     else if (slug === resultSlug) resultSlug = null;
-    else if (!materialSlug) materialSlug = slug;
+    else if (!materialSlug) { materialSlug = slug; selectedBrandIndex = 0; selectedPart = null; }
+    else if (loadOwnedUnits().get(slug)?.brands.length >= 3) notice = "낙인 3칸이 찬 마물은 결과 카드가 될 수 없습니다";
     else resultSlug = slug;
     renderSelection();
   }
@@ -116,6 +140,9 @@
     materialSlug = null;
     resultSlug = null;
     completed = false;
+    selectedBrandIndex = 0;
+    selectedPart = null;
+    notice = "";
     renderCards();
     renderSelection();
     overlay.hidden = false;
@@ -132,6 +159,8 @@
     materialSlug = null;
     resultSlug = null;
     completed = false;
+    selectedPart = null;
+    notice = "";
     renderSelection();
   }
 
@@ -139,8 +168,8 @@
     const owned = loadOwnedUnits();
     const material = owned.get(materialSlug);
     const result = owned.get(resultSlug);
-    if (!material || !result || !material.brands.length || result.brands.length + material.brands.length > 3) return;
-    while (material.brands.length) V2Rules.inherit(result, material, 0);
+    if (!material || !result || !material.brands[selectedBrandIndex] || !selectedPart || result.brands.length >= 3) return;
+    V2Rules.inherit(result, material, selectedBrandIndex, selectedPart);
     owned.delete(materialSlug);
     try {
       if (typeof sessionStorage !== "undefined") sessionStorage.setItem("necromancer-map-test-roster-v1",
@@ -154,6 +183,12 @@
     window.dispatchEvent?.(new CustomEvent("v2-roster-changed", { detail: { donorSlug, recipient: JSON.parse(JSON.stringify(result)) } }));
   }
 
+  partChoices?.querySelectorAll("button").forEach((button) => button.addEventListener("click", () => {
+    if (button.disabled) return;
+    selectedPart = button.dataset.inheritPart;
+    notice = "";
+    renderSelection();
+  }));
   inheritButton?.addEventListener("click", inherit);
   closeButton?.addEventListener("click", close);
   backdrop?.addEventListener("click", close);

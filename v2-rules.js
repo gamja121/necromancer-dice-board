@@ -21,10 +21,14 @@
     while(bless.length<count)bless.push(available.splice(Math.floor(rng()*available.length),1)[0]);
     return {type,bless:bless.sort(),curse};
   }
-  function validateBrand(b){return b&&definitions[b.type]&&Array.isArray(b.bless)&&Array.isArray(b.curse)&&b.curse.length===1&&b.bless.length>=1&&b.bless.length<=2&&(!definitions[b.type].count||b.bless.length===definitions[b.type].count)&&new Set([...b.bless,...b.curse]).size===b.bless.length+1&&[...b.bless,...b.curse].every(n=>Number.isInteger(n)&&n>=1&&n<=6);}
-  function inherit(receiver,donor,index){
-    if(receiver.brands.length>=3||!validateBrand(donor.brands[index]))throw Error('Invalid inheritance');
-    receiver.brands.push(JSON.parse(JSON.stringify(donor.brands.splice(index,1)[0])));
+  function validateBrand(b){return b&&definitions[b.type]&&Array.isArray(b.bless)&&Array.isArray(b.curse)&&b.curse.length<=1&&b.bless.length<=2&&(b.bless.length+b.curse.length)>0&&(!b.bless.length||!definitions[b.type].count||b.bless.length===definitions[b.type].count)&&new Set([...b.bless,...b.curse]).size===b.bless.length+b.curse.length&&[...b.bless,...b.curse].every(n=>Number.isInteger(n)&&n>=1&&n<=6);}
+  function inherit(receiver,donor,index,part='both'){
+    if(receiver.brands.length>=3||!validateBrand(donor.brands[index])||!['both','bless','curse'].includes(part))throw Error('Invalid inheritance');
+    const source=donor.brands[index];
+    const inherited={type:source.type,bless:part==='curse'?[]:[...source.bless],curse:part==='bless'?[]:[...source.curse]};
+    if(!validateBrand(inherited))throw Error('Invalid inheritance');
+    receiver.brands.push(inherited);
+    donor.brands.splice(index,1);
   }
   function individual(slug,rng=Math.random){
     const d=D.units[slug];if(!d)throw Error('Unknown unit '+slug);
