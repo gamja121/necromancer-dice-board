@@ -81,10 +81,10 @@ assert(html.includes('id="treasureChestSprite"') && css.includes("@keyframes tre
 assert(source.includes('scene.animation === "treasure"') && source.includes('eventTreasure.classList.add("is-playing")'), "Treasure animation must restart when the tile is reached.");
 assert(source.includes("async function warpToOtherWarp()") && source.includes('tile.id === "warp" && index !== heroIndex'), "Warp must move to the other warp tile.");
 assert(source.includes('currentTiles[heroIndex]?.id === "warp"') && source.includes("await warpToOtherWarp()"), "Landing on a warp tile must trigger teleportation.");
-assert(html.includes("v2-map-practice.js?v=23") && html.includes("v2-map-practice.css?v=18") && html.includes("v2-sfx.js?v=3"), "The map page must load targeting, music, and mobile sound effects.");
+assert(html.includes("v2-map-practice.js?v=24") && html.includes("v2-map-practice.css?v=18") && html.includes("v2-sfx.js?v=3"), "The map page must load targeting, music, and mobile sound effects.");
 assert(worker.includes("v2-map-practice.html"), "Map test page is not cached.");
 assert(worker.includes("v2-landscape.js?v=1"), "Landscape helper is not cached.");
-assert(worker.includes("v2-map-practice.js?v=23") && worker.includes("v2-map-practice.css?v=18") && worker.includes("v2-sfx.js?v=3"), "The targeting, music, and mobile sound logic is not cached.");
+assert(worker.includes("v2-map-practice.js?v=24") && worker.includes("v2-map-practice.css?v=18") && worker.includes("v2-sfx.js?v=3"), "The targeting, music, and mobile sound logic is not cached.");
 assert(html.includes('class="tile-event-scene"') && html.includes('class="tile-event-exit"') && !html.includes('id="tileEventTitle"'), "Tile events must be image-only on the board with an exit button.");
 assert(html.includes('id="tileEventEnter"') && source.includes('el.eventEnter.addEventListener("click", enterHome)') && source.includes('el.eventEnter.hidden = tile.id !== "home"'), "Only the home tile must show an enter button above exit.");
 assert(source.includes('events/home-interior.jpg') && worker.includes('art/v2-style/map-test/events/home-interior.jpg'), "Entering home must show the supplied interior art, including offline cache.");

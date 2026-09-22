@@ -125,9 +125,11 @@
   function loadOwnedRoster() {
     let saved;
     try { if (typeof sessionStorage !== "undefined") saved = JSON.parse(sessionStorage.getItem(OWNED_ROSTER_KEY)); } catch (_) { /* Private browsing can block storage. */ }
-    const valid = Array.isArray(saved) && saved.length === TEST_DECK.length && saved.every((unit, index) =>
-      unit?.slug === TEST_DECK[index].slug && Number.isFinite(unit.maxHp) && Number.isFinite(unit.attack) &&
-      Number.isFinite(unit.speed) && Array.isArray(unit.brands) && unit.brands.every(V2Rules.validateBrand));
+    const valid = Array.isArray(saved) && saved.length <= TEST_DECK.length &&
+      new Set(saved.map((unit) => unit?.slug)).size === saved.length && saved.every((unit) =>
+        TEST_DECK.some((entry) => entry.slug === unit?.slug) && Number.isFinite(unit.maxHp) &&
+        Number.isFinite(unit.attack) && Number.isFinite(unit.speed) && Array.isArray(unit.brands) &&
+        unit.brands.length <= 3 && unit.brands.every(V2Rules.validateBrand));
     const roster = valid ? saved : TEST_DECK.map((entry) => V2Rules.individual(entry.slug));
     if (!valid) try { if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify(roster)); } catch (_) { /* The current map still works without storage. */ }
     return new Map(roster.map((unit) => [unit.slug, unit]));
@@ -217,6 +219,7 @@
     }
     el.deckRoster.replaceChildren();
     for (const entry of TEST_DECK) {
+      if (!ownedUnits.has(entry.slug)) continue;
       const selectedIndex = selectedDeck.indexOf(entry.slug);
       const button = document.createElement("button");
       button.type = "button";
@@ -239,6 +242,7 @@
   function renderBookRoster() {
     el.bookRoster.replaceChildren();
     for (const entry of TEST_DECK) {
+      if (!ownedUnits.has(entry.slug)) continue;
       const button = document.createElement("button");
       const image = document.createElement("img");
       const name = document.createElement("span");
@@ -584,6 +588,13 @@
   el.eventEnter.addEventListener("click", enterHome);
   el.eventInheritance.addEventListener("click", () => {
     if (eventOpen && activeEventTileId === "home") V2HomeInheritance.open();
+  });
+  window.addEventListener("v2-roster-changed", (event) => {
+    ownedUnits.delete(event.detail.donorSlug);
+    ownedUnits.set(event.detail.recipient.slug, event.detail.recipient);
+    selectedDeck = selectedDeck.filter((slug) => ownedUnits.has(slug));
+    renderBookRoster();
+    if (!el.deckOverlay.hidden) renderDeckSelection();
   });
   el.bookButton.addEventListener("click", toggleBookRoster);
   el.infoClose.addEventListener("click", closeBookUnitInfo);

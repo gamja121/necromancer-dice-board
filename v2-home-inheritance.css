@@ -19,7 +19,11 @@
 .home-inheritance-brand-box li small { color: #d4b684; font-size: clamp(8px, .78vw, 11px); }
 .home-inheritance-close { position: absolute; z-index: 4; top: 4%; right: 5%; min-width: 72px; padding: 7px 16px; border: 1px solid #ae824c; border-radius: 4px; background: #2b1b12; color: #ffe0a6; font-weight: 900; cursor: pointer; box-shadow: 0 4px 8px #000a; }
 .home-inheritance-close:focus-visible { outline: 2px solid #ffd77e; outline-offset: 2px; }
+.home-inheritance-confirm { position: absolute; z-index: 4; top: 58%; left: 43%; width: 14%; aspect-ratio: 2.5; border: 0; background: transparent url("art/v2-style/map-test/events/enter-parchment.png") center / 100% 100% no-repeat; color: #3a271b; font-size: clamp(12px, 1.45vw, 20px); font-weight: 900; cursor: pointer; filter: drop-shadow(0 4px 5px #000a); }
+.home-inheritance-confirm:disabled { opacity: .45; cursor: not-allowed; }
+.home-inheritance-confirm:focus-visible { outline: 2px solid #ffd77e; outline-offset: 2px; }
 .map-deck-roster.home-inheritance-cards { z-index: 3; bottom: -3%; left: 15%; width: 70%; height: 34%; }
+.home-inheritance-cards button:not(.is-selected):hover, .home-inheritance-cards button:not(.is-selected):focus-visible { transform: translateY(10%) rotate(var(--card-tilt, 0deg)); filter: none; }
 .home-inheritance-overlay.is-open .home-inheritance-cards { animation: home-inheritance-cards-rise 680ms 160ms cubic-bezier(.18,.84,.25,1.08) forwards; }
 @keyframes home-inheritance-cards-rise { from { transform: translateY(125%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .home-inheritance-overlay.is-open .home-inheritance-cards { animation-duration: 1ms; animation-delay: 0ms; } }

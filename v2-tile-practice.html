@@ -7,7 +7,7 @@
   <title>타일 기능 테스트 · 집</title>
   <link rel="stylesheet" href="v2-map-practice.css?v=18">
   <link rel="stylesheet" href="v2-tile-practice.css?v=1">
-  <link rel="stylesheet" href="v2-home-inheritance.css?v=2">
+  <link rel="stylesheet" href="v2-home-inheritance.css?v=3">
 </head>
 <body data-v2-music="map">
   <main class="map-lab">
@@ -40,9 +40,11 @@
           </section>
           <div class="home-inheritance-panel home-inheritance-result" role="group" aria-label="계승 결과">
             <strong class="home-inheritance-panel-title">결과</strong>
-            <span class="home-inheritance-panel-hint">계승 결과 대기</span>
+            <img id="homeInheritanceResultCard" class="home-inheritance-panel-card" alt="" hidden>
+            <span id="homeInheritanceResultHint" class="home-inheritance-panel-hint">계승 결과 대기</span>
           </div>
         </div>
+        <button id="homeInheritanceConfirm" class="home-inheritance-confirm" type="button" disabled>계승</button>
         <button id="homeInheritanceClose" class="home-inheritance-close" type="button">닫기</button>
         <div id="homeInheritanceCards" class="home-inheritance-cards map-deck-roster" aria-label="보유 마물 카드 10장"></div>
       </section>
@@ -52,7 +54,7 @@
   <script src="v2-music.js?v=1"></script>
   <script src="v2-design-data.js?v=1"></script>
   <script src="v2-rules.js?v=4"></script>
-  <script src="v2-home-inheritance.js?v=2"></script>
+  <script src="v2-home-inheritance.js?v=3"></script>
   <script src="v2-tile-practice.js?v=2"></script>
 </body>
 </html>
