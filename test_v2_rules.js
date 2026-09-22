@@ -17,6 +17,13 @@ for(const type of Object.keys(R.definitions))for(let i=0;i<1000;i++)assert(R.val
  a.brands=[];d.brands=[b('freeze',[4],[1])];R.inherit(a,d,0,'both');assert.deepEqual(a.brands,[b('freeze',[4],[1])]);
  assert(!R.validateBrand(b('freeze',[],[])));
  assert(!R.validateBrand(b('freeze',[4],[4])));
+ assert.equal(R.inheritancePart(b('freeze'),()=>0),'bless');
+ assert.equal(R.inheritancePart(b('freeze'),()=>.499),'bless');
+ assert.equal(R.inheritancePart(b('freeze'),()=>.5),'both');
+ assert.equal(R.inheritancePart(b('freeze'),()=>.799),'both');
+ assert.equal(R.inheritancePart(b('freeze'),()=>.8),'curse');
+ assert.equal(R.inheritancePart(b('freeze',[4],[]),()=>.9),'bless');
+ assert.equal(R.inheritancePart(b('freeze',[],[1]),()=>.1),'curse');
 }
 {
  const a=unit('hydra','ally',0,null,[b('critical'),b('critical'),b('combo')]),t=unit('hydra','enemy');t.maxHp=100;

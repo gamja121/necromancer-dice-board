@@ -9,11 +9,11 @@ const source = fs.readFileSync(path.join(root, "v2-home-inheritance.js"), "utf8"
 const worker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
 const board = "art/v2-style/map-test/events/inheritance-board.png";
 if (!fs.existsSync(path.join(root, board))) throw Error("Two-panel inheritance image is missing");
-for (const file of [board, "v2-home-inheritance.css?v=4", "v2-home-inheritance.js?v=4"]) {
+for (const file of [board, "v2-home-inheritance.css?v=5", "v2-home-inheritance.js?v=5"]) {
   if (!worker.includes(file)) throw Error(`Inheritance resource is not cached: ${file}`);
 }
 if (!html.includes('class="home-inheritance-material"') && !html.includes('home-inheritance-material"')) throw Error("Material panel is missing");
-if (!html.includes('home-inheritance-result"') || !html.includes('id="homeInheritanceBrandList"') || !html.includes('id="homeInheritanceParts"') || !html.includes('id="homeInheritanceConfirm"') || !css.includes("legion-info-window-hd.png") || !html.includes('v2-home-inheritance.js?v=4')) throw Error("Battle effect information frame and inheritance controls are missing");
+if (!html.includes('home-inheritance-result"') || !html.includes('id="homeInheritanceBrandList"') || !html.includes('<h3>낙인</h3>') || html.includes('id="homeInheritanceParts"') || !html.includes('id="homeInheritanceConfirm"') || !css.includes("legion-info-window-hd.png") || !css.includes("height: 91%") || !html.includes('v2-home-inheritance.js?v=5')) throw Error("Tall, compact brand information frame or automatic inheritance controls are missing");
 if (!css.includes("home-inheritance-cards-rise")) throw Error("Owned cards must still rise from below");
 
 function classList() {
@@ -46,8 +46,6 @@ const resultCard = Object.assign(node(), { hidden: true });
 const resultHint = node();
 const brandHint = node();
 const brandList = Object.assign(node(), { hidden: true });
-const partChoices = Object.assign(node(), { hidden: true });
-for (const part of ["bless", "curse", "both"]) partChoices.append(Object.assign(node(), { dataset: { inheritPart: part } }));
 const confirm = Object.assign(node(), { disabled: true });
 const V2Rules = require("./v2-rules.js");
 const slugs = ["death-knight", "skeleton-spear", "ghoul", "ancient-treant", "goblin-rider", "minotaur", "plague-doctor", "spider-knight", "hydra", "siren"];
@@ -58,16 +56,18 @@ const donorBrands = JSON.stringify(saved[0].brands);
 const recipientBrands = JSON.stringify(saved[1].brands);
 let stored = JSON.stringify(saved);
 let rosterEvent;
+const randomValues = [.4, .2];
 const globals = {
   document: {
     getElementById: (id) => ({ homeInheritanceOverlay: overlay, homeInheritanceCards: cards, homeInheritanceClose: closeButton,
       homeInheritanceMaterialCard: materialCard, homeInheritanceMaterialHint: materialHint,
       homeInheritanceResultCard: resultCard, homeInheritanceResultHint: resultHint,
-      homeInheritanceBrandHint: brandHint, homeInheritanceBrandList: brandList, homeInheritanceParts: partChoices,
+      homeInheritanceBrandHint: brandHint, homeInheritanceBrandList: brandList,
       homeInheritanceConfirm: confirm })[id],
     createElement: () => node(), addEventListener() {}
   },
   V2DesignData: require("./v2-design-data.js"), V2Rules,
+  Math: Object.assign(Object.create(Math), { random: () => randomValues.shift() ?? .1 }),
   sessionStorage: { getItem: () => stored, setItem: (_, value) => { stored = value; } },
   CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options.detail; } },
   window: { dispatchEvent: (event) => { rosterEvent = event; } }
@@ -76,22 +76,17 @@ vm.runInNewContext(source, globals);
 globals.window.V2HomeInheritance.open();
 if (overlay.hidden || !overlay.classList.contains("is-open") || cards.children.length !== 10 || !closeButton.focused) throw Error("Opening inheritance must reveal the board and ten owned cards");
 cards.children[0].on_click();
-if (materialCard.hidden || !materialCard.src.includes("death-knight") || brandList.hidden || !brandList.children.length || !brandList.children[0].children[0].children[1].textContent.includes("축복")) throw Error("Selecting material must reveal that unit and its brands in the effect box");
+if (materialCard.hidden || !materialCard.src.includes("death-knight") || brandList.hidden || brandList.children.length !== 3 || !brandList.children[0].children[1].textContent.includes("축")) throw Error("Selecting material must show all three brands without scrolling or choice buttons");
 cards.children[0].on_click();
 if (!materialCard.hidden || cards.children[0].classList.contains("is-selected") || !confirm.disabled) throw Error("Tapping the material again must cancel it and lower the card");
 cards.children[0].on_click();
 cards.children[2].on_click();
 if (!resultCard.hidden || !confirm.disabled || !brandHint.textContent.includes("3칸")) throw Error("A three-brand unit may be material but cannot be selected as recipient");
 cards.children[1].on_click();
-if (resultCard.hidden || !resultCard.src.includes("skeleton-spear") || !confirm.disabled || brandList.children.length !== 4) throw Error("Second choice must preview recipient and all donor brand options without auto-inheriting");
+if (resultCard.hidden || !resultCard.src.includes("skeleton-spear") || confirm.disabled || brandList.children.length !== 4) throw Error("Second choice must show recipient and all donor brands without requiring effect selection");
 cards.children[1].on_click();
 if (!resultCard.hidden || !confirm.disabled || cards.children[1].classList.contains("is-selected")) throw Error("Tapping the recipient again must lower it and cancel the recipient choice");
 cards.children[1].on_click();
-brandList.children[2].children[0].on_click();
-partChoices.children[0].on_click();
-if (confirm.disabled || !brandList.children[2].children[0].children[0].textContent.includes("계승 예정") ||
-    !brandList.children[2].children[0].children[1].textContent.includes("저주 없음"))
-  throw Error("Choosing one donor brand and blessing must preview only the selected effect");
 confirm.on_click();
 const after = JSON.parse(stored);
 if (after.length !== 9 || after.some((unit) => unit.slug === "death-knight") ||
@@ -103,4 +98,4 @@ globals.window.V2HomeInheritance.close();
 if (!overlay.hidden || overlay.classList.contains("is-open") || !materialCard.hidden || brandList.children.length) throw Error("Closing inheritance must clear the material and hide the board");
 globals.window.V2HomeInheritance.open();
 if (cards.children.length !== 9) throw Error("Consumed material must stay gone when inheritance is reopened");
-console.log("PASS: selective blessing inheritance, full donor allowed, full recipient blocked, and donor consumption");
+console.log("PASS: automatic weighted inheritance, three-brand donor, full-recipient block, and compact info");

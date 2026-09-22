@@ -30,6 +30,13 @@
     receiver.brands.push(inherited);
     donor.brands.splice(index,1);
   }
+  function inheritancePart(source,rng=Math.random){
+    if(!validateBrand(source))throw Error('Invalid inheritance');
+    if(!source.bless.length)return 'curse';
+    if(!source.curse.length)return 'bless';
+    const roll=rng();
+    return roll<.5?'bless':roll<.8?'both':'curse';
+  }
   function individual(slug,rng=Math.random){
     const d=D.units[slug];if(!d)throw Error('Unknown unit '+slug);
     const passive=d.passives.length&&rng()<d.chance?choose(d.passives,rng):null;
@@ -152,6 +159,6 @@
     for(const u of s.units){u.poisonStacks=(u.poisonStacks||[]).map(p=>({remaining:p.remaining,source:s.units[p.source]||null}));u.poison=u.poisonStacks.length;}
     refresh(s);return s;
   }
-  const api={definitions,RULES,TARGET_RATES,individual,brand,validateBrand,inherit,create,init,applyUnit,active,suppressed,begin,roll,before,attack,addSummon,bloomPlans,bloomSeed,targetWeights,pickTarget,refresh,mode,heal,damage,snapshot,restore};
+  const api={definitions,RULES,TARGET_RATES,individual,brand,validateBrand,inherit,inheritancePart,create,init,applyUnit,active,suppressed,begin,roll,before,attack,addSummon,bloomPlans,bloomSeed,targetWeights,pickTarget,refresh,mode,heal,damage,snapshot,restore};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.V2Rules=api;
 })(globalThis);
