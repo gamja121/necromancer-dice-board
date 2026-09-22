@@ -7,7 +7,7 @@
   <title>타일 기능 테스트 · 집</title>
   <link rel="stylesheet" href="v2-map-practice.css?v=18">
   <link rel="stylesheet" href="v2-tile-practice.css?v=1">
-  <link rel="stylesheet" href="v2-home-inheritance.css?v=1">
+  <link rel="stylesheet" href="v2-home-inheritance.css?v=2">
 </head>
 <body data-v2-music="map">
   <main class="map-lab">
@@ -27,7 +27,22 @@
       </section>
       <section id="homeInheritanceOverlay" class="home-inheritance-overlay" role="dialog" aria-modal="true" aria-label="낙인 계승" hidden>
         <button class="home-inheritance-backdrop" type="button" aria-label="낙인 계승 창 닫기"></button>
-        <img class="home-inheritance-board" src="art/v2-style/map-test/events/inheritance-board.png" alt="마물 두 마리를 놓는 낙인 계승 패널">
+        <div class="home-inheritance-layout">
+          <div class="home-inheritance-panel home-inheritance-material" role="group" aria-label="재료 마물">
+            <strong class="home-inheritance-panel-title">재료</strong>
+            <img id="homeInheritanceMaterialCard" class="home-inheritance-panel-card" alt="" hidden>
+            <span id="homeInheritanceMaterialHint" class="home-inheritance-panel-hint">아래에서 마물을 선택</span>
+          </div>
+          <section class="home-inheritance-brand-box" aria-label="선택한 마물의 낙인" aria-live="polite">
+            <h3>낙인 확인</h3>
+            <p id="homeInheritanceBrandHint">재료 카드를 선택하세요</p>
+            <ul id="homeInheritanceBrandList" hidden></ul>
+          </section>
+          <div class="home-inheritance-panel home-inheritance-result" role="group" aria-label="계승 결과">
+            <strong class="home-inheritance-panel-title">결과</strong>
+            <span class="home-inheritance-panel-hint">계승 결과 대기</span>
+          </div>
+        </div>
         <button id="homeInheritanceClose" class="home-inheritance-close" type="button">닫기</button>
         <div id="homeInheritanceCards" class="home-inheritance-cards map-deck-roster" aria-label="보유 마물 카드 10장"></div>
       </section>
@@ -36,7 +51,8 @@
   <script src="v2-landscape.js?v=1"></script>
   <script src="v2-music.js?v=1"></script>
   <script src="v2-design-data.js?v=1"></script>
-  <script src="v2-home-inheritance.js?v=1"></script>
+  <script src="v2-rules.js?v=4"></script>
+  <script src="v2-home-inheritance.js?v=2"></script>
   <script src="v2-tile-practice.js?v=2"></script>
 </body>
 </html>
