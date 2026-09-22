@@ -7,6 +7,7 @@
   <title>타일 기능 테스트 · 집</title>
   <link rel="stylesheet" href="v2-map-practice.css?v=18">
   <link rel="stylesheet" href="v2-tile-practice.css?v=1">
+  <link rel="stylesheet" href="v2-home-inheritance.css?v=1">
 </head>
 <body data-v2-music="map">
   <main class="map-lab">
@@ -20,13 +21,22 @@
         <div class="tile-event-scene">
           <img id="tileTestImage" src="art/v2-style/map-test/events/home.jpg" alt="우리집 바깥 풍경">
           <button id="tileTestEnter" class="tile-event-enter" type="button">들어가기</button>
+          <button id="tileTestInheritance" class="tile-event-enter" type="button" hidden>낙인 계승</button>
           <button id="tileTestExit" class="tile-event-exit" type="button">나가기</button>
         </div>
+      </section>
+      <section id="homeInheritanceOverlay" class="home-inheritance-overlay" role="dialog" aria-modal="true" aria-label="낙인 계승" hidden>
+        <button class="home-inheritance-backdrop" type="button" aria-label="낙인 계승 창 닫기"></button>
+        <img class="home-inheritance-board" src="art/v2-style/map-test/events/inheritance-board.png" alt="마물 두 마리를 놓는 낙인 계승 패널">
+        <button id="homeInheritanceClose" class="home-inheritance-close" type="button">닫기</button>
+        <div id="homeInheritanceCards" class="home-inheritance-cards map-deck-roster" aria-label="보유 마물 카드 10장"></div>
       </section>
     </section>
   </main>
   <script src="v2-landscape.js?v=1"></script>
   <script src="v2-music.js?v=1"></script>
-  <script src="v2-tile-practice.js?v=1"></script>
+  <script src="v2-design-data.js?v=1"></script>
+  <script src="v2-home-inheritance.js?v=1"></script>
+  <script src="v2-tile-practice.js?v=2"></script>
 </body>
 </html>

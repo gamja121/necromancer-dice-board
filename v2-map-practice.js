@@ -75,6 +75,7 @@
     eventImage: document.getElementById("tileEventImage"),
     eventTreasure: document.getElementById("treasureChestSprite"),
     eventEnter: document.getElementById("tileEventEnter"),
+    eventInheritance: document.getElementById("tileEventInheritance"),
     eventClose: document.getElementById("tileEventClose"),
     bookButton: document.getElementById("mapBookButton"),
     bookImage: document.getElementById("mapBookImage"),
@@ -389,6 +390,7 @@
     el.eventImage.hidden = treasure;
     el.eventTreasure.hidden = !treasure;
     el.eventEnter.hidden = tile.id !== "home";
+    el.eventInheritance.hidden = true;
     if (treasure) {
       el.eventImage.removeAttribute("src");
       el.eventTreasure.classList.remove("is-playing");
@@ -408,7 +410,8 @@
     el.eventImage.src = `${ROOT}events/home-interior.jpg`;
     el.eventImage.alt = "우리집 실내 풍경";
     el.eventEnter.hidden = true;
-    el.eventClose.focus();
+    el.eventInheritance.hidden = false;
+    el.eventInheritance.focus();
   }
 
   async function warpToOtherWarp() {
@@ -439,6 +442,8 @@
     el.eventOverlay.hidden = true;
     el.eventImage.removeAttribute("src");
     el.eventEnter.hidden = true;
+    el.eventInheritance.hidden = true;
+    V2HomeInheritance.close();
     el.eventTreasure.classList.remove("is-playing");
     el.diceButton.disabled = false;
     el.regenerate.disabled = false;
@@ -577,6 +582,9 @@
   el.diceButton.addEventListener("click", rollAndMove);
   el.eventClose.addEventListener("click", closeTileEvent);
   el.eventEnter.addEventListener("click", enterHome);
+  el.eventInheritance.addEventListener("click", () => {
+    if (eventOpen && activeEventTileId === "home") V2HomeInheritance.open();
+  });
   el.bookButton.addEventListener("click", toggleBookRoster);
   el.infoClose.addEventListener("click", closeBookUnitInfo);
   el.infoBackdrop.addEventListener("click", closeBookUnitInfo);

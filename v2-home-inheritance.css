@@ -1,0 +1,10 @@
+.home-inheritance-overlay { position: absolute; z-index: 61; inset: 0; overflow: hidden; }
+.home-inheritance-overlay[hidden] { display: none; }
+.home-inheritance-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; background: #080503bd; backdrop-filter: blur(2px); cursor: pointer; }
+.home-inheritance-board { position: absolute; z-index: 1; top: 0; left: 50%; display: block; width: 90%; height: auto; transform: translateX(-50%); filter: drop-shadow(0 12px 14px #000b); pointer-events: none; }
+.home-inheritance-close { position: absolute; z-index: 4; top: 4%; right: 5%; min-width: 72px; padding: 7px 16px; border: 1px solid #ae824c; border-radius: 4px; background: #2b1b12; color: #ffe0a6; font-weight: 900; cursor: pointer; box-shadow: 0 4px 8px #000a; }
+.home-inheritance-close:focus-visible { outline: 2px solid #ffd77e; outline-offset: 2px; }
+.map-deck-roster.home-inheritance-cards { z-index: 3; bottom: -3%; left: 15%; width: 70%; height: 34%; }
+.home-inheritance-overlay.is-open .home-inheritance-cards { animation: home-inheritance-cards-rise 680ms 160ms cubic-bezier(.18,.84,.25,1.08) forwards; }
+@keyframes home-inheritance-cards-rise { from { transform: translateY(125%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .home-inheritance-overlay.is-open .home-inheritance-cards { animation-duration: 1ms; animation-delay: 0ms; } }

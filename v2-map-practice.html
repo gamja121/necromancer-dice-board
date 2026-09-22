@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#0b0907">
   <title>외곽 타일 맵 테스트</title>
   <link rel="stylesheet" href="v2-map-practice.css?v=18">
+  <link rel="stylesheet" href="v2-home-inheritance.css?v=1">
 </head>
 <body data-v2-music="map">
   <main class="map-lab">
@@ -75,8 +76,15 @@
           <img id="tileEventImage" alt="">
           <div id="treasureChestSprite" class="treasure-chest-sprite" role="img" aria-label="보물상자가 열리는 모습" hidden></div>
           <button id="tileEventEnter" class="tile-event-enter" type="button" hidden>들어가기</button>
+          <button id="tileEventInheritance" class="tile-event-enter" type="button" hidden>낙인 계승</button>
           <button id="tileEventClose" class="tile-event-exit" type="button">나가기</button>
         </div>
+      </section>
+      <section id="homeInheritanceOverlay" class="home-inheritance-overlay" role="dialog" aria-modal="true" aria-label="낙인 계승" hidden>
+        <button class="home-inheritance-backdrop" type="button" aria-label="낙인 계승 창 닫기"></button>
+        <img class="home-inheritance-board" src="art/v2-style/map-test/events/inheritance-board.png" alt="마물 두 마리를 놓는 낙인 계승 패널">
+        <button id="homeInheritanceClose" class="home-inheritance-close" type="button">닫기</button>
+        <div id="homeInheritanceCards" class="home-inheritance-cards map-deck-roster" aria-label="보유 마물 카드 10장"></div>
       </section>
       <section id="mapDeckOverlay" class="map-deck-overlay" role="dialog" aria-modal="true" aria-label="전장 덱 선택" hidden>
         <div class="map-deck-window">
@@ -95,6 +103,7 @@
   <script src="v2-sfx.js?v=3"></script>
   <script src="v2-design-data.js?v=1"></script>
   <script src="v2-rules.js?v=4"></script>
-  <script src="v2-map-practice.js?v=22"></script>
+  <script src="v2-home-inheritance.js?v=1"></script>
+  <script src="v2-map-practice.js?v=23"></script>
 </body>
 </html>
