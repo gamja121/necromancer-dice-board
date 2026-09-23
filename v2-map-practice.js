@@ -79,6 +79,8 @@
     eventClose: document.getElementById("tileEventClose"),
     bookButton: document.getElementById("mapBookButton"),
     cardDeckButton: document.getElementById("mapCardDeckButton"),
+    diceControlOverlay: document.getElementById("diceControlOverlay"),
+    diceControlBackdrop: document.getElementById("diceControlBackdrop"),
     bookImage: document.getElementById("mapBookImage"),
     bookRoster: document.getElementById("mapBookRoster"),
     infoOverlay: document.getElementById("mapUnitInfoOverlay"),
@@ -108,7 +110,6 @@
   const requestedMapId = new URLSearchParams(window.location.search).get("map");
   let activeMapId = maps[requestedMapId] ? requestedMapId : "default";
   let enteringBattle = false;
-  let previewingDeck = false;
   let eventOpen = false;
   let activeEventTileId = null;
   let activeEventRatio = 1280 / 714;
@@ -194,32 +195,18 @@
     return true;
   }
 
-  function openCardDeck() {
+  function openDiceControlCard() {
     if (rolling || eventOpen || enteringBattle || !el.infoOverlay.hidden) return;
     forceCloseBookRoster();
-    previewingDeck = true;
-    selectedDeck = [];
     el.diceButton.disabled = true;
     el.regenerate.disabled = true;
-    el.board.classList.add("is-deck-selecting");
-    el.deckOverlay.classList.add("is-preview");
-    el.deckOverlay.setAttribute("aria-label", "보유 마물 카드 덱 보기");
-    el.deckClose.hidden = false;
-    renderDeckSelection();
-    el.deckOverlay.hidden = false;
-    el.deckOverlay.classList.remove("is-open");
-    void el.deckOverlay.offsetWidth;
-    el.deckOverlay.classList.add("is-open");
+    el.diceControlOverlay.hidden = false;
+    el.diceControlBackdrop.focus();
   }
 
-  function closeCardDeck() {
-    if (!previewingDeck) return;
-    previewingDeck = false;
-    el.deckOverlay.hidden = true;
-    el.deckOverlay.classList.remove("is-open", "is-preview");
-    el.deckOverlay.setAttribute("aria-label", "전장 덱 선택");
-    el.deckClose.hidden = true;
-    el.board.classList.remove("is-deck-selecting");
+  function closeDiceControlCard() {
+    if (el.diceControlOverlay.hidden) return;
+    el.diceControlOverlay.hidden = true;
     el.diceButton.disabled = false;
     el.regenerate.disabled = false;
     el.cardDeckButton.focus();
@@ -272,7 +259,6 @@
     }
     const rates = TARGET_RATES[selectedDeck.length] || [];
     el.deckStatus.textContent = rates.length ? `마물 카드 ${selectedDeck.length} / 4 · 왼쪽부터 피격 ${rates.join(" · ")}%` : "마물 카드 0 / 4";
-    if (previewingDeck) el.deckStatus.textContent += " · 덱 미리보기";
     el.deckConfirm.disabled = selectedDeck.length !== 4;
   }
 
@@ -634,14 +620,14 @@
     if (!el.deckOverlay.hidden) renderDeckSelection();
   });
   el.bookButton.addEventListener("click", toggleBookRoster);
-  el.cardDeckButton.addEventListener("click", openCardDeck);
-  el.deckClose.addEventListener("click", closeCardDeck);
+  el.cardDeckButton.addEventListener("click", openDiceControlCard);
+  el.diceControlBackdrop.addEventListener("click", closeDiceControlCard);
   el.infoClose.addEventListener("click", closeBookUnitInfo);
   el.infoBackdrop.addEventListener("click", closeBookUnitInfo);
   window.addEventListener("resize", () => { if (eventOpen) fitTileEventScene(); });
   el.deckConfirm.addEventListener("click", confirmMonsterBattle);
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && previewingDeck) closeCardDeck();
+    if (event.key === "Escape" && !el.diceControlOverlay.hidden) closeDiceControlCard();
     else if (event.key === "Escape" && !el.infoOverlay.hidden) closeBookUnitInfo();
     else if (event.key === "Escape" && !el.bookRoster.hidden) toggleBookRoster();
     else if (event.key === "Escape" && eventOpen) closeTileEvent();
