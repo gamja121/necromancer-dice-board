@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
   <title>외곽 타일 맵 테스트</title>
-  <link rel="stylesheet" href="v2-map-practice.css?v=18">
+  <link rel="stylesheet" href="v2-map-practice.css?v=19">
   <link rel="stylesheet" href="v2-home-inheritance.css?v=5">
 </head>
 <body data-v2-music="map">
@@ -38,6 +38,9 @@
       </div>
       <button id="mapBookButton" class="map-book-button" type="button" aria-label="책 열기" aria-pressed="false">
         <img id="mapBookImage" src="art/v2-style/ui/map-book-closed.png" alt="">
+      </button>
+      <button id="mapCardDeckButton" class="map-card-deck-button" type="button" aria-label="마물 카드 덱 보기" aria-haspopup="dialog">
+        <img src="art/v2-style/ui/map-card-deck.png" alt="">
       </button>
       <div id="mapBookRoster" class="map-book-roster map-deck-roster" aria-label="보유 마물 카드 10장" hidden></div>
       <section id="mapUnitInfoOverlay" class="map-unit-info-overlay" hidden>
@@ -104,6 +107,7 @@
         <div id="homeInheritanceCards" class="home-inheritance-cards map-deck-roster" aria-label="보유 마물 카드 10장"></div>
       </section>
       <section id="mapDeckOverlay" class="map-deck-overlay" role="dialog" aria-modal="true" aria-label="전장 덱 선택" hidden>
+        <button id="mapDeckClose" class="map-deck-close" type="button" aria-label="덱 보기 닫기" hidden>닫기</button>
         <div class="map-deck-window">
           <img class="map-deck-board" src="art/v2-style/ui/battle-deck-selection-board.png" alt="전장 덱 선택 보드, 카드 자리 4칸">
           <div id="mapSelectedLineup" class="map-selected-lineup" aria-label="선택한 마물 카드 4장"></div>
@@ -121,6 +125,6 @@
   <script src="v2-design-data.js?v=1"></script>
   <script src="v2-rules.js?v=6"></script>
   <script src="v2-home-inheritance.js?v=5"></script>
-  <script src="v2-map-practice.js?v=24"></script>
+  <script src="v2-map-practice.js?v=25"></script>
 </body>
 </html>
