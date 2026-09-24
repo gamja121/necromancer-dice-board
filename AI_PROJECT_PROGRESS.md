@@ -1,5 +1,11 @@
 # AI 프로젝트 진행 상황 — 네크로멘서 앤드 다이스
 
+## 작업 시작 전 필수 확인
+
+- 사용자가 채팅에 첨부한 PNG/JPG 등 이미지를 GitHub에 추가·교체하는 작업은 **반드시 `GITHUB_IMAGE_UPLOAD_WORKFLOW.md`를 먼저 읽고 진행한다.**
+- 직접적인 바이너리 업로드 도구를 찾지 못하더라도 중단하지 말고, 문서의 `create_blob → create_tree → create_commit → update_ref` 절차를 확인한다.
+- 업로드 후에는 대상 경로와 최신 `main` commit을 다시 조회해 실제 반영 여부를 검증한다.
+
 이 파일은 ChatGPT와 Codex가 현재 저장소의 작업 맥락을 함께 확인하기 위한 기록이다. 실제 구현 판단은 최신 코드와 `GAME_DESIGN_RULES.md`를 우선 확인한다.
 
 ## 2026-09-23: 카드 더미 버튼 → 주사위 컨트롤 카드
