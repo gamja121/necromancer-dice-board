@@ -278,6 +278,7 @@
     ];
 
     const ROOT = "art/v2-style/ui/";
+    const IMAGE_VERSION = "20260926-ko1";
     const grid = document.getElementById("diceControlGrid");
     const modal = document.getElementById("imageModal");
     const modalImage = document.getElementById("imageModalImage");
@@ -318,9 +319,10 @@
       row.className = "image-pair-row";
 
       for (const lang of ["en", "ko"]) {
-        const path = lang === "ko"
+        const rawPath = lang === "ko"
           ? `${ROOT}dice-control-ko-${slug}.png`
           : `${ROOT}dice-control-${slug}.png`;
+        const path = `${rawPath}?v=${IMAGE_VERSION}`;
 
         const card = document.createElement("div");
         card.className = "image-card";
@@ -338,7 +340,7 @@
 
         const file = document.createElement("span");
         file.className = "image-file";
-        file.textContent = path.split("/").pop();
+        file.textContent = rawPath.split("/").pop();
 
         const size = document.createElement("span");
         size.className = "image-size";
