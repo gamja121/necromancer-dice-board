@@ -1,0 +1,79 @@
+name: Build dice control 1 textless base
+
+on:
+  push:
+    paths:
+      - ".github/workflows/build-dice-control-1-base.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Install image tools
+        run: pip install pillow opencv-python-headless numpy
+
+      - name: Create textless base from English card
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from PIL import Image
+          import numpy as np, cv2
+
+          src = "art/v2-style/ui/dice-control-1.png"
+          dst = "art/v2-style/ui/dice-control-1-base.png"
+
+          im = Image.open(src).convert("RGBA")
+          arr = np.array(im)
+          rgb = cv2.cvtColor(arr[:,:,:3], cv2.COLOR_RGB2BGR)
+          mask = np.zeros(arr.shape[:2], dtype=np.uint8)
+
+          # Restrict detection to the INNER text areas only.
+          # Keep panel borders and surrounding card art untouched.
+          regions = [
+              (61, 8, 137, 27),    # Dice Control
+              (64, 126, 137, 149), # Rolls a 1
+          ]
+
+          for x0,y0,x1,y1 in regions:
+              roi = arr[y0:y1, x0:x1, :3]
+              # English lettering is the darkest material inside these panels.
+              # Conservative threshold avoids masking watercolor texture.
+              lum = roi.mean(axis=2)
+              dark = lum < 78
+              local = np.zeros((y1-y0, x1-x0), dtype=np.uint8)
+              local[dark] = 255
+
+              # Join anti-aliased glyph edges without expanding into panel borders.
+              kernel = np.ones((3,3), np.uint8)
+              local = cv2.dilate(local, kernel, iterations=1)
+              mask[y0:y1, x0:x1] = np.maximum(mask[y0:y1, x0:x1], local)
+
+          # Content-aware fill from nearby pixels within the same painted panels.
+          cleaned = cv2.inpaint(rgb, mask, 3, cv2.INPAINT_TELEA)
+          out_rgb = cv2.cvtColor(cleaned, cv2.COLOR_BGR2RGB)
+          arr[:,:,:3] = out_rgb
+          out = Image.fromarray(arr, "RGBA")
+          out.save(dst, "PNG", optimize=True)
+
+          chk = Image.open(dst)
+          print("created:", dst, chk.size, chk.mode)
+          print("masked pixels:", int((mask > 0).sum()))
+          PY
+
+      - name: Commit base image
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add art/v2-style/ui/dice-control-1-base.png
+          git commit -m "art: add textless dice control 1 base"
+          git push
