@@ -24,7 +24,7 @@ jobs:
           sudo apt-get install -y fonts-noto-cjk
           pip install pillow opencv-python-headless numpy
 
-      - name: Rebuild Korean 1 from Korean 3 visual master
+      - name: Convert Korean 3 into Korean 1 with minimal edits
         shell: bash
         run: |
           set -euo pipefail
@@ -32,49 +32,38 @@ jobs:
           from PIL import Image, ImageDraw, ImageFont
           import numpy as np, cv2, os, glob
 
-          ref_path = "art/v2-style/ui/dice-control-ko-3.png"
-          en1_path = "art/v2-style/ui/dice-control-1.png"
-          out_path = "art/v2-style/ui/dice-control-ko-1.png"
+          src = "art/v2-style/ui/dice-control-ko-3.png"
+          dst = "art/v2-style/ui/dice-control-ko-1.png"
 
-          ref = Image.open(ref_path).convert("RGBA")
-          en1 = Image.open(en1_path).convert("RGBA")
-          out = ref.copy()
-
-          # 1) Preserve KO-3 frame/card exactly.
-          # Replace only the cream die-face interior with the EN-1 face.
-          # Exclude the outer die border so no double frame appears.
-          src_face = en1.crop((75, 47, 133, 105))
-          dst_box = (80, 51, 138, 109)
-          if src_face.size != (dst_box[2]-dst_box[0], dst_box[3]-dst_box[1]):
-              src_face = src_face.resize((dst_box[2]-dst_box[0], dst_box[3]-dst_box[1]), Image.Resampling.LANCZOS)
-          out.paste(src_face, (dst_box[0], dst_box[1]), src_face)
-
-          # 2) Remove KO-3 lower sentence while preserving the panel texture.
-          arr = np.array(out)
+          base = Image.open(src).convert("RGBA")
+          arr = np.array(base)
           rgb = cv2.cvtColor(arr[:,:,:3], cv2.COLOR_RGB2BGR)
+
+          # Remove only KO-3's top-left and bottom-right pips.
+          # Center pip remains untouched => die face becomes 1.
           mask = np.zeros(arr.shape[:2], dtype=np.uint8)
+          cv2.circle(mask, (96, 68), 8, 255, -1)
+          cv2.circle(mask, (133, 103), 8, 255, -1)
+          rgb = cv2.inpaint(rgb, mask, 4, cv2.INPAINT_TELEA)
 
-          # lower label interior only
-          x0,y0,x1,y1 = 57,143,151,164
-          roi = arr[y0:y1, x0:x1, :3]
-          # dark text pixels; keep panel border untouched
-          dark = np.all(roi < np.array([90,90,90]), axis=2)
-          mask[y0:y1, x0:x1][dark] = 255
-
-          # slightly expand mask so old glyph edges disappear cleanly
-          kernel = np.ones((3,3), np.uint8)
-          mask = cv2.dilate(mask, kernel, iterations=1)
-          cleaned = cv2.inpaint(rgb, mask, 3, cv2.INPAINT_TELEA)
-          cleaned = cv2.cvtColor(cleaned, cv2.COLOR_BGR2RGB)
-          arr[:,:,:3] = cleaned
+          arr[:,:,:3] = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
           out = Image.fromarray(arr, "RGBA")
 
-          # 3) Draw one-line Korean sentence in the same bold/dark direction as KO-3.
+          # Keep KO-3 lower label and typography. Remove only numeral 3.
+          arr = np.array(out)
+          rgb = cv2.cvtColor(arr[:,:,:3], cv2.COLOR_RGB2BGR)
+          num_mask = np.zeros(arr.shape[:2], dtype=np.uint8)
+          # numeral location in the one-line lower label
+          cv2.rectangle(num_mask, (107, 149), (115, 160), 255, -1)
+          rgb = cv2.inpaint(rgb, num_mask, 3, cv2.INPAINT_TELEA)
+          arr[:,:,:3] = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
+          out = Image.fromarray(arr, "RGBA")
+
+          # Draw only numeral 1 in matching dark bold style.
           draw = ImageDraw.Draw(out)
           candidates = [
               "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
               "/usr/share/fonts/opentype/noto/NotoSansCJKkr-Bold.otf",
-              "/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc",
           ]
           font_path = next((p for p in candidates if os.path.exists(p)), None)
           if not font_path:
@@ -83,25 +72,11 @@ jobs:
           if not font_path:
               raise SystemExit("Korean bold font not found")
 
-          text = "주사위 눈금 1이 나온다"
-          font = None
-          for size in range(10, 5, -1):
-              f = ImageFont.truetype(font_path, size=size)
-              bb = draw.textbbox((0,0), text, font=f)
-              if bb[2]-bb[0] <= 88 and bb[3]-bb[1] <= 13:
-                  font = f
-                  break
-          if font is None:
-              font = ImageFont.truetype(font_path, size=6)
+          font = ImageFont.truetype(font_path, size=9)
+          draw.text((109,148), "1", font=font, fill=(8,20,13,255))
 
-          bb = draw.textbbox((0,0), text, font=font)
-          cx, cy = 104, 153
-          tx = cx - (bb[2]-bb[0])/2 - bb[0]
-          ty = cy - (bb[3]-bb[1])/2 - bb[1]
-          draw.text((tx,ty), text, font=font, fill=(8,20,13,255))
-
-          out.save(out_path, "PNG", optimize=True)
-          print("saved", out_path, out.size)
+          out.save(dst, "PNG", optimize=True)
+          print("saved:", dst, out.size)
           PY
 
       - name: Commit corrected Korean card
@@ -111,5 +86,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add art/v2-style/ui/dice-control-ko-1.png
-          git commit -m "fix: align Korean dice control 1 with Korean 3"
+          git commit -m "fix: match Korean dice control 1 exactly to Korean 3 style"
           git push
