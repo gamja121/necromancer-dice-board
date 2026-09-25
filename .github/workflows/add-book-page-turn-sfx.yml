@@ -1,7 +1,9 @@
 name: Add book page turn SFX
 
 on:
-  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/add-book-page-turn-sfx.yml"
 
 permissions:
   contents: write
