@@ -242,6 +242,22 @@
       max-height: 72vh;
       object-fit: contain;
     }
+    .image-modal-preview .modal-stage-host {
+      display: grid;
+      place-items: center;
+      width: 100%;
+      min-height: 260px;
+    }
+    .image-modal-preview .modal-stage-host .unified-card-stage {
+      width: min(420px, 82vw);
+      max-width: 100%;
+    }
+    .image-modal-preview .modal-stage-host .unified-card-stage img {
+      width: 100%;
+      max-width: none;
+      max-height: none;
+      height: auto;
+    }
     .image-modal-name {
       color: #d7c9de;
       font-size: .8rem;
@@ -292,8 +308,9 @@
   <section id="imageModal" class="image-modal" role="dialog" aria-modal="true" aria-label="이미지 확대 보기" hidden>
     <div class="image-modal-panel">
       <button id="imageModalClose" class="image-modal-close" type="button" aria-label="확대 보기 닫기">×</button>
-      <div class="image-modal-preview">
+      <div id="imageModalPreview" class="image-modal-preview">
         <img id="imageModalImage" alt="">
+        <div id="imageModalStageHost" class="modal-stage-host" hidden></div>
       </div>
       <div id="imageModalName" class="image-modal-name"></div>
     </div>
@@ -326,10 +343,14 @@
     const grid = document.getElementById("diceControlGrid");
     const modal = document.getElementById("imageModal");
     const modalImage = document.getElementById("imageModalImage");
+    const modalStageHost = document.getElementById("imageModalStageHost");
     const modalName = document.getElementById("imageModalName");
     const modalClose = document.getElementById("imageModalClose");
 
     function openImageModal(path, alt) {
+      modalStageHost.hidden = true;
+      modalStageHost.replaceChildren();
+      modalImage.hidden = false;
       modalImage.src = path;
       modalImage.alt = alt;
       modalName.textContent = path.split("/").pop();
@@ -337,10 +358,24 @@
       modalClose.focus();
     }
 
-    function closeImageModal() {
-      modal.hidden = true;
+    function openStageModal(stage, label) {
+      modalImage.hidden = true;
       modalImage.removeAttribute("src");
       modalImage.alt = "";
+      modalStageHost.hidden = false;
+      modalStageHost.replaceChildren(stage.cloneNode(true));
+      modalName.textContent = label;
+      modal.hidden = false;
+      modalClose.focus();
+    }
+
+    function closeImageModal() {
+      modal.hidden = true;
+      modalImage.hidden = false;
+      modalImage.removeAttribute("src");
+      modalImage.alt = "";
+      modalStageHost.hidden = true;
+      modalStageHost.replaceChildren();
       modalName.textContent = "";
     }
 
@@ -435,6 +470,9 @@
 
         stage.append(image, titleOverlay, descOverlay);
         preview.append(stage);
+        preview.addEventListener("click", () => {
+          openStageModal(stage, "눈금 1 · 통합 테스트 (공용 이미지 + HTML/CSS 텍스트)");
+        });
 
         const file = document.createElement("span");
         file.className = "image-file";
