@@ -73,19 +73,77 @@
     }
     .image-test-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-      gap: 14px;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 16px;
     }
-    .image-test-empty {
-      min-height: 220px;
+    .image-pair {
+      border: 1px solid #3c3344;
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(20, 16, 24, .86);
+    }
+    .image-pair h2 {
+      margin: 0 0 10px;
+      font-size: 1rem;
+      color: #eadff0;
+    }
+    .image-pair-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .image-card {
+      min-width: 0;
+    }
+    .image-card strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: .75rem;
+      color: #bca8cb;
+      letter-spacing: .06em;
+    }
+    .image-preview {
       display: grid;
       place-items: center;
-      border: 1px dashed #51465b;
-      border-radius: 14px;
-      color: #94899a;
-      background: rgba(20, 16, 24, .78);
-      text-align: center;
-      padding: 20px;
+      width: 100%;
+      min-height: 190px;
+      padding: 8px;
+      overflow: hidden;
+      border: 1px solid #4e4356;
+      border-radius: 10px;
+      background-color: #ddd;
+      background-image:
+        linear-gradient(45deg, #bdbdbd 25%, transparent 25%),
+        linear-gradient(-45deg, #bdbdbd 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #bdbdbd 75%),
+        linear-gradient(-45deg, transparent 75%, #bdbdbd 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+    }
+    .image-preview img {
+      display: block;
+      max-width: 100%;
+      max-height: 260px;
+      object-fit: contain;
+    }
+    .image-file {
+      display: block;
+      margin-top: 7px;
+      color: #9f94a5;
+      font-size: .67rem;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+    @media (max-width: 520px) {
+      .image-test {
+        padding-inline: 10px;
+      }
+      .image-test-grid {
+        grid-template-columns: 1fr;
+      }
+      .image-preview {
+        min-height: 170px;
+      }
     }
   </style>
 </head>
@@ -101,6 +159,7 @@
 
     <p class="image-test-note">
       게임 이미지의 잘림, 비율, 투명 배경을 한곳에서 확인하기 위한 검수 페이지입니다.
+      체크무늬가 보이면 해당 영역은 투명 배경입니다.
     </p>
 
     <nav class="image-test-toolbar" aria-label="이미지 테스트 분류">
@@ -110,11 +169,69 @@
       <button type="button" disabled>UI</button>
     </nav>
 
-    <section class="image-test-grid" aria-label="이미지 목록">
-      <div class="image-test-empty">
-        다음 단계에서 주사위 컨트롤 카드 목록을 연결합니다.
-      </div>
-    </section>
+    <section id="diceControlGrid" class="image-test-grid" aria-label="주사위 컨트롤 카드 목록"></section>
   </main>
+
+  <script>
+    const CARD_PAIRS = [
+      ["echo", "Echo"],
+      ["even", "Even"],
+      ["high", "High"],
+      ["low", "Low"],
+      ["odd", "Odd"],
+      ["repeat", "Repeat"],
+      ["exclude-1", "Exclude 1"],
+      ["exclude-2", "Exclude 2"],
+      ["exclude-3", "Exclude 3"],
+      ["exclude-4", "Exclude 4"],
+      ["exclude-5", "Exclude 5"],
+      ["exclude-6", "Exclude 6"]
+    ];
+
+    const ROOT = "art/v2-style/ui/";
+    const grid = document.getElementById("diceControlGrid");
+
+    for (const [slug, label] of CARD_PAIRS) {
+      const pair = document.createElement("article");
+      pair.className = "image-pair";
+
+      const title = document.createElement("h2");
+      title.textContent = label;
+
+      const row = document.createElement("div");
+      row.className = "image-pair-row";
+
+      for (const lang of ["en", "ko"]) {
+        const path = lang === "ko"
+          ? `${ROOT}dice-control-ko-${slug}.png`
+          : `${ROOT}dice-control-${slug}.png`;
+
+        const card = document.createElement("div");
+        card.className = "image-card";
+
+        const langLabel = document.createElement("strong");
+        langLabel.textContent = lang === "ko" ? "한글" : "영문";
+
+        const preview = document.createElement("div");
+        preview.className = "image-preview";
+
+        const image = document.createElement("img");
+        image.src = path;
+        image.alt = `${label} ${lang === "ko" ? "한글" : "영문"} 카드`;
+        image.loading = "lazy";
+
+        const file = document.createElement("span");
+        file.className = "image-file";
+        file.textContent = path.split("/").pop();
+
+        preview.append(image);
+        card.append(langLabel, preview, file);
+        row.append(card);
+      }
+
+      pair.append(title, row);
+      grid.append(pair);
+    }
+  </script>
 </body>
 </html>
