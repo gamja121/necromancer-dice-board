@@ -42,24 +42,24 @@ jobs:
           # Remove only KO-3's top-left and bottom-right pips.
           # Center pip remains untouched => die face becomes 1.
           mask = np.zeros(arr.shape[:2], dtype=np.uint8)
-          cv2.circle(mask, (96, 68), 8, 255, -1)
-          cv2.circle(mask, (133, 103), 8, 255, -1)
+          cv2.circle(mask, (96, 68), 9, 255, -1)
+          cv2.circle(mask, (133, 103), 12, 255, -1)
           rgb = cv2.inpaint(rgb, mask, 4, cv2.INPAINT_TELEA)
 
           arr[:,:,:3] = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
           out = Image.fromarray(arr, "RGBA")
 
-          # Keep KO-3 lower label and typography. Remove only numeral 3.
+          # Rebuild the lower sentence cleanly in the same KO-3 direction.
           arr = np.array(out)
           rgb = cv2.cvtColor(arr[:,:,:3], cv2.COLOR_RGB2BGR)
-          num_mask = np.zeros(arr.shape[:2], dtype=np.uint8)
-          # numeral location in the one-line lower label
-          cv2.rectangle(num_mask, (107, 149), (115, 160), 255, -1)
-          rgb = cv2.inpaint(rgb, num_mask, 3, cv2.INPAINT_TELEA)
+          text_mask = np.zeros(arr.shape[:2], dtype=np.uint8)
+
+          # Remove the whole existing sentence band, leaving panel border untouched.
+          cv2.rectangle(text_mask, (61, 145), (148, 162), 255, -1)
+          rgb = cv2.inpaint(rgb, text_mask, 4, cv2.INPAINT_TELEA)
           arr[:,:,:3] = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
           out = Image.fromarray(arr, "RGBA")
 
-          # Draw only numeral 1 in matching dark bold style.
           draw = ImageDraw.Draw(out)
           candidates = [
               "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
@@ -72,8 +72,22 @@ jobs:
           if not font_path:
               raise SystemExit("Korean bold font not found")
 
-          font = ImageFont.truetype(font_path, size=9)
-          draw.text((109,148), "1", font=font, fill=(8,20,13,255))
+          text = "주사위 눈금 1이 나온다"
+          chosen = None
+          for size in range(10, 6, -1):
+              f = ImageFont.truetype(font_path, size=size)
+              bb = draw.textbbox((0,0), text, font=f)
+              if bb[2]-bb[0] <= 86 and bb[3]-bb[1] <= 12:
+                  chosen = f
+                  break
+          if chosen is None:
+              chosen = ImageFont.truetype(font_path, size=7)
+
+          bb = draw.textbbox((0,0), text, font=chosen)
+          cx, cy = 104, 153
+          tx = cx - (bb[2]-bb[0])/2 - bb[0]
+          ty = cy - (bb[3]-bb[1])/2 - bb[1]
+          draw.text((tx,ty), text, font=chosen, fill=(8,20,13,255))
 
           out.save(dst, "PNG", optimize=True)
           print("saved:", dst, out.size)
