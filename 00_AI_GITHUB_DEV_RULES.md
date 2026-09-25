@@ -18,6 +18,7 @@
    - 프로젝트 진행: `AI_PROJECT_PROGRESS.md`
    - 이미지 업로드/교체: `GITHUB_IMAGE_UPLOAD_WORKFLOW.md`
    - 게임 규칙: `GAME_DESIGN_RULES.md`
+   - 주사위 컨트롤 카드 제작/재제작: `DICE_CONTROL_CARD_STYLE_GUIDE.md`
 4. V1은 구현 기준이 아니다. V2 및 최신 문서를 우선한다.
 
 ---
@@ -284,6 +285,7 @@ AI가 작업하기 전 아래 7개를 확인한다.
 - `AI_PROJECT_PROGRESS.md`
 - `GITHUB_IMAGE_UPLOAD_WORKFLOW.md`
 - `GAME_DESIGN_RULES.md`
+- `DICE_CONTROL_CARD_STYLE_GUIDE.md`
 - `README.md`
 
 이 문서는 **외부 개발 환경 운영 규칙의 최상위 기준**으로 사용한다.
