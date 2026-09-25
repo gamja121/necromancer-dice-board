@@ -134,6 +134,13 @@
       line-height: 1.25;
       overflow-wrap: anywhere;
     }
+    .image-size {
+      display: block;
+      margin-top: 4px;
+      color: #c9bdcf;
+      font-size: .72rem;
+      font-variant-numeric: tabular-nums;
+    }
     .image-preview {
       cursor: zoom-in;
     }
@@ -327,9 +334,20 @@
         file.className = "image-file";
         file.textContent = path.split("/").pop();
 
+        const size = document.createElement("span");
+        size.className = "image-size";
+        size.textContent = "해상도 확인 중…";
+
+        image.addEventListener("load", () => {
+          size.textContent = `${image.naturalWidth} × ${image.naturalHeight}`;
+        });
+        image.addEventListener("error", () => {
+          size.textContent = "이미지 로드 실패";
+        });
+
         preview.append(image);
         preview.addEventListener("click", () => openImageModal(path, image.alt));
-        card.append(langLabel, preview, file);
+        card.append(langLabel, preview, file, size);
         row.append(card);
       }
 
