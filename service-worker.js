@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-expedition-v279";
+const CACHE_NAME = "necromancer-expedition-v280";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -38,9 +38,7 @@ const APP_SHELL = [
   "./v2-scorpion-frames.js?v=1",
   "./art/v2-style/animation-sheets/green-raw/scorpion-knight-animation-sheet.jpg",
   "./art/v2-style/animation-sheets/green-raw/hell-mantis-animation-sheet.jpg",
-  "./v2-dice-practice.html",
-  "./v2-dice-practice.css?v=1",
-  "./v2-dice-practice.js?v=1",
+  "./v2-image-test.html",
   "./v2-map-practice.html",
   "./v2-map-practice.css?v=18",
   "./v2-music.js?v=1",
