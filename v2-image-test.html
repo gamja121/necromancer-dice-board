@@ -89,8 +89,49 @@
     }
     .image-pair-row {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 8px;
+    }
+    .image-pair:not(.has-unified) .image-pair-row {
+      grid-template-columns: 1fr 1fr;
+    }
+    .unified-card-stage {
+      position: relative;
+      display: inline-block;
+      line-height: 0;
+    }
+    .unified-card-stage img {
+      display: block;
+    }
+    .unified-card-stage .overlay-panel {
+      position: absolute;
+      left: 25%;
+      width: 50%;
+      display: grid;
+      place-items: center;
+      background: rgba(171, 205, 170, .96);
+      color: #08150d;
+      font-family: "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+      font-weight: 800;
+      line-height: 1;
+      text-align: center;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .unified-card-stage .overlay-title {
+      top: 5.5%;
+      height: 12.5%;
+      font-size: clamp(7px, 1.25vw, 11px);
+      border-radius: 2px;
+    }
+    .unified-card-stage .overlay-desc {
+      left: 24%;
+      width: 53%;
+      bottom: 9%;
+      height: 18%;
+      font-size: clamp(5px, .9vw, 8px);
+      letter-spacing: -.04em;
+      border-radius: 2px;
     }
     .image-card {
       min-width: 0;
@@ -216,6 +257,9 @@
       }
       .image-preview {
         min-height: 170px;
+      }
+      .image-pair.has-unified .image-pair-row {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -355,6 +399,51 @@
 
         preview.append(image);
         preview.addEventListener("click", () => openImageModal(path, image.alt));
+        card.append(langLabel, preview, file, size);
+        row.append(card);
+      }
+
+      if (slug === "1") {
+        pair.classList.add("has-unified");
+
+        const card = document.createElement("div");
+        card.className = "image-card";
+
+        const langLabel = document.createElement("strong");
+        langLabel.textContent = "통합 테스트";
+
+        const preview = document.createElement("div");
+        preview.className = "image-preview";
+
+        const stage = document.createElement("div");
+        stage.className = "unified-card-stage";
+
+        const image = document.createElement("img");
+        const rawPath = `${ROOT}dice-control-1.png`;
+        const path = `${rawPath}?v=unified-1-20260926`;
+        image.src = path;
+        image.alt = "눈금 1 공용 이미지 + HTML 한글 오버레이 테스트";
+        image.loading = "lazy";
+
+        const titleOverlay = document.createElement("div");
+        titleOverlay.className = "overlay-panel overlay-title";
+        titleOverlay.textContent = "주사위 컨트롤";
+
+        const descOverlay = document.createElement("div");
+        descOverlay.className = "overlay-panel overlay-desc";
+        descOverlay.textContent = "주사위 눈금 1이 나온다";
+
+        stage.append(image, titleOverlay, descOverlay);
+        preview.append(stage);
+
+        const file = document.createElement("span");
+        file.className = "image-file";
+        file.textContent = "공용 이미지 + HTML/CSS 텍스트";
+
+        const size = document.createElement("span");
+        size.className = "image-size";
+        size.textContent = "언어별 PNG 불필요 구조 테스트";
+
         card.append(langLabel, preview, file, size);
         row.append(card);
       }
