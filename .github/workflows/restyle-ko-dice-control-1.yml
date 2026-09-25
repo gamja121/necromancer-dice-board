@@ -24,87 +24,110 @@ jobs:
           sudo apt-get install -y fonts-noto-cjk
           pip install pillow
 
-      - name: Rebuild Korean 1 using Korean 3 as style master
+      - name: Make Korean 1 by minimally editing Korean 3
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
-          from PIL import Image, ImageDraw, ImageFont, ImageFilter
+          from PIL import Image, ImageDraw, ImageFont
           import os, glob
 
-          ref_path = "art/v2-style/ui/dice-control-ko-3.png"
-          die_path = "art/v2-style/ui/dice-control-1.png"
-          out_path = "art/v2-style/ui/dice-control-ko-1.png"
+          src = "art/v2-style/ui/dice-control-ko-3.png"
+          dst = "art/v2-style/ui/dice-control-ko-1.png"
+          im = Image.open(src).convert("RGBA")
 
-          ref = Image.open(ref_path).convert("RGBA")
-          die_src = Image.open(die_path).convert("RGBA")
+          # KO-3 is the complete visual master.
+          # Remove only the top-left and bottom-right pips by copying
+          # nearby blank cream texture from the same die face.
+          def copy_patch(src_box, dst_xy):
+              patch = im.crop(src_box)
+              im.paste(patch, dst_xy)
 
-          print("ref:", ref.size, "die:", die_src.size)
+          # cover top-left pip with nearby top-right blank die texture
+          copy_patch((118, 57, 132, 71), (88, 62))
+          # cover bottom-right pip with nearby bottom-left blank die texture
+          copy_patch((83, 94, 99, 110), (126, 96))
 
-          # Use KO-3 as the visual/style master so frame, panel tint,
-          # text color, spacing and layout all match the approved Korean card.
-          out = ref.copy()
+          # Bottom label stays exactly as KO-3 except numeral 3 -> 1.
+          draw = ImageDraw.Draw(im)
 
-          # Replace only the central die artwork with the die-1 artwork from EN-1.
-          # The crop boxes are tuned to the 192px card family.
-          die_crop = die_src.crop((58, 40, 138, 115))
-          # Fit into KO-3's die area while preserving aspect ratio.
-          target_box = (57, 43, 139, 119)
-          tw, th = target_box[2]-target_box[0], target_box[3]-target_box[1]
-          die_crop.thumbnail((tw, th), Image.Resampling.LANCZOS)
+          # Find dark-pixel column groups in the lower label, then replace
+          # the sixth glyph-group (the numeral) only.
+          x0,y0,x1,y1 = 57,142,151,163
+          groups=[]
+          in_group=False
+          start=None
+          for x in range(x0,x1):
+              dark=False
+              for y in range(y0,y1):
+                  r,g,b,a=im.getpixel((x,y))
+                  if a>0 and r<70 and g<70 and b<70:
+                      dark=True
+                      break
+              if dark and not in_group:
+                  start=x; in_group=True
+              elif not dark and in_group:
+                  if x-start>=2:
+                      groups.append((start,x-1))
+                  in_group=False
+          if in_group:
+              groups.append((start,x1-1))
 
-          # Preserve KO-3 frame around the die; paste only inside the cream panel.
-          x = target_box[0] + (tw-die_crop.width)//2
-          y = target_box[1] + (th-die_crop.height)//2
-          out.alpha_composite(die_crop, (x, y))
+          # Merge tiny gaps inside glyphs.
+          merged=[]
+          for g in groups:
+              if merged and g[0]-merged[-1][1] <= 2:
+                  merged[-1]=(merged[-1][0],g[1])
+              else:
+                  merged.append(g)
+          print("bottom groups:", merged)
 
-          draw = ImageDraw.Draw(out)
+          # Identify numeral 3 by selecting a narrow Latin-digit-like group
+          # around the center of the sentence.
+          candidates=[g for g in merged if 96 <= (g[0]+g[1])//2 <= 118]
+          if not candidates:
+              raise SystemExit("Could not locate numeral 3")
+          num_box=min(candidates, key=lambda g: abs(((g[0]+g[1])//2)-107))
+          gx0,gx1=num_box
+          erase=(gx0-2, y0-2, gx1+3, y1+2)
 
-          # Clean only the bottom text area, keeping KO-3's panel texture.
-          # Median-filtered patch removes the old "3" sentence without replacing the panel style.
-          bottom = (49, 132, 147, 170)
-          crop = out.crop(bottom)
-          for _ in range(4):
-              crop = crop.filter(ImageFilter.MedianFilter(7))
-          out.paste(crop, bottom)
+          # Fill numeral area using clean panel texture from adjacent area.
+          ew,eh=erase[2]-erase[0], erase[3]-erase[1]
+          texture=im.crop((erase[0]-ew-3, erase[1], erase[0]-3, erase[3]))
+          if texture.size != (ew,eh):
+              texture=texture.resize((ew,eh))
+          im.paste(texture, (erase[0],erase[1]))
 
-          # Korean 3 uses a bold, dark Korean sans look.
-          candidates = [
+          candidates_font=[
               "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
               "/usr/share/fonts/opentype/noto/NotoSansCJKkr-Bold.otf",
-              "/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc",
           ]
-          font_path = next((p for p in candidates if os.path.exists(p)), None)
+          font_path=next((p for p in candidates_font if os.path.exists(p)), None)
           if not font_path:
-              found = glob.glob("/usr/share/fonts/**/*NotoSans*CJK*Bold*", recursive=True)
-              font_path = found[0] if found else None
+              found=glob.glob("/usr/share/fonts/**/*NotoSans*CJK*Bold*",recursive=True)
+              font_path=found[0] if found else None
           if not font_path:
-              raise SystemExit("Korean bold font not found")
+              raise SystemExit("Bold Korean font not found")
 
-          text = "주사위 눈금 1이 나온다"
-          # Match KO-3: single-line, bold, dark text centered in lower panel.
-          for size in range(9, 5, -1):
-              font = ImageFont.truetype(font_path, size=size)
-              bb = draw.textbbox((0,0), text, font=font)
-              if bb[2]-bb[0] <= 90:
-                  break
+          # Match the reference numeral height and position.
+          font=ImageFont.truetype(font_path, size=9)
+          bb=draw.textbbox((0,0),"1",font=font)
+          cx=(gx0+gx1)/2
+          cy=153
+          tx=cx-(bb[2]-bb[0])/2-bb[0]
+          ty=cy-(bb[3]-bb[1])/2-bb[1]
+          draw.text((tx,ty),"1",font=font,fill=(8,19,13,255))
 
-          bb = draw.textbbox((0,0), text, font=font)
-          tx = 98 - (bb[2]-bb[0])/2 - bb[0]
-          ty = 151 - (bb[3]-bb[1])/2 - bb[1]
-          draw.text((tx,ty), text, font=font, fill=(7,18,12,255))
-
-          out.save(out_path, "PNG", optimize=True)
-          chk = Image.open(out_path)
-          print("output:", chk.format, chk.mode, chk.size)
+          im.save(dst,"PNG",optimize=True)
+          print("saved:",dst,im.size)
           PY
 
-      - name: Commit restyled Korean card
+      - name: Commit corrected Korean card
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add art/v2-style/ui/dice-control-ko-1.png
-          git commit -m "fix: restyle Korean dice control 1 to match Korean 3"
+          git commit -m "fix: match Korean dice control 1 to Korean 3 style"
           git push
