@@ -668,17 +668,25 @@
         const drag = Math.exp(-lateDrag * dt);
         vx *= drag;
         vy *= drag;
-        x += vx * dt;
-        y += vy * dt;
 
         let bounced = false;
-        if (x < minX) { x = minX; vx = Math.abs(vx) * .78; bounced = true; }
-        else if (x > maxX) { x = maxX; vx = -Math.abs(vx) * .78; bounced = true; }
-        if (y < minY) { y = minY; vy = Math.abs(vy) * .78; bounced = true; }
-        else if (y > maxY) { y = maxY; vy = -Math.abs(vy) * .78; bounced = true; }
+        const travel = Math.hypot(vx * dt, vy * dt);
+        const maxStep = Math.max(radius * .42, 4);
+        const substeps = Math.max(1, Math.min(8, Math.ceil(travel / maxStep)));
+        const subDt = dt / substeps;
 
-        for (const wall of walls) {
-          if (bounceAgainstRect(wall)) bounced = true;
+        for (let substep = 0; substep < substeps; substep += 1) {
+          x += vx * subDt;
+          y += vy * subDt;
+
+          if (x < minX) { x = minX; vx = Math.abs(vx) * .78; bounced = true; }
+          else if (x > maxX) { x = maxX; vx = -Math.abs(vx) * .78; bounced = true; }
+          if (y < minY) { y = minY; vy = Math.abs(vy) * .78; bounced = true; }
+          else if (y > maxY) { y = maxY; vy = -Math.abs(vy) * .78; bounced = true; }
+
+          for (const wall of walls) {
+            if (bounceAgainstRect(wall)) bounced = true;
+          }
         }
 
         if (bounced && soundClock > 85 && typeof V2Sfx !== "undefined") {
@@ -716,6 +724,8 @@
     el.regenerate.disabled = true;
     el.diceButton.classList.add("is-rolling");
     el.diceResult.textContent = "굴리는 중…";
+    resetMapDicePosition();
+    await new Promise((resolve) => requestAnimationFrame(resolve));
     const result = Math.floor(Math.random() * 6) + 1;
     await animateMapDiceRoll(result);
     el.diceResult.textContent = `${result} · 이동 시작`;
