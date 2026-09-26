@@ -730,7 +730,11 @@
     await animateMapDiceRoll(result);
     el.diceResult.textContent = `${result} · 이동 시작`;
     el.diceButton.classList.remove("is-rolling");
-    await wait(220);
+    // Show the landed result briefly, then park the die back at the fixed center.
+    // This guarantees the idle die and the next roll always begin from one place.
+    await wait(320);
+    resetMapDicePosition();
+    await new Promise((resolve) => requestAnimationFrame(resolve));
     let stepsMoved = 0;
     let reachedHome = false;
     for (let step = 0; step < result; step += 1) {
