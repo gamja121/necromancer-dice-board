@@ -58,6 +58,10 @@
     lightspeed: [222, 316, 220, 220], counter: [852, 316, 220, 220]
   });
   const TARGET_RATES = Object.freeze({ 1: [100], 2: [35, 65], 3: [20, 33, 47], 4: [15, 20, 27, 38] });
+  const CARD_DECK_IMAGES = Object.freeze({
+    closed: "art/v2-style/ui/map-card-deck.png",
+    open: "art/v2-style/ui/map-card-deck-open.png",
+  });
   const HOME_INDEX = 15; // 16번 타일: 하단 일곱 칸의 정중앙.
   const el = {
     board: document.getElementById("mapBoard"),
@@ -79,6 +83,7 @@
     eventClose: document.getElementById("tileEventClose"),
     bookButton: document.getElementById("mapBookButton"),
     cardDeckButton: document.getElementById("mapCardDeckButton"),
+    cardDeckImage: document.getElementById("mapCardDeckImage"),
     diceControlOverlay: document.getElementById("diceControlOverlay"),
     diceControlBackdrop: document.getElementById("diceControlBackdrop"),
     bookImage: document.getElementById("mapBookImage"),
@@ -200,6 +205,8 @@
     forceCloseBookRoster();
     el.diceButton.disabled = true;
     el.regenerate.disabled = true;
+    el.cardDeckImage.src = CARD_DECK_IMAGES.open;
+    el.cardDeckButton.setAttribute("aria-expanded", "true");
     el.diceControlOverlay.hidden = false;
     el.diceControlBackdrop.focus();
   }
@@ -207,9 +214,16 @@
   function closeDiceControlCard() {
     if (el.diceControlOverlay.hidden) return;
     el.diceControlOverlay.hidden = true;
+    el.cardDeckImage.src = CARD_DECK_IMAGES.closed;
+    el.cardDeckButton.setAttribute("aria-expanded", "false");
     el.diceButton.disabled = false;
     el.regenerate.disabled = false;
     el.cardDeckButton.focus();
+  }
+
+  function toggleDiceControlCard() {
+    if (el.diceControlOverlay.hidden) openDiceControlCard();
+    else closeDiceControlCard();
   }
 
   function toggleDeckUnit(slug) {
@@ -620,7 +634,7 @@
     if (!el.deckOverlay.hidden) renderDeckSelection();
   });
   el.bookButton.addEventListener("click", toggleBookRoster);
-  el.cardDeckButton.addEventListener("click", openDiceControlCard);
+  el.cardDeckButton.addEventListener("click", toggleDiceControlCard);
   el.diceControlBackdrop.addEventListener("click", closeDiceControlCard);
   el.infoClose.addEventListener("click", closeBookUnitInfo);
   el.infoBackdrop.addEventListener("click", closeBookUnitInfo);
