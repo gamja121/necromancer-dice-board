@@ -174,7 +174,7 @@
       if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY,
         JSON.stringify([...owned.values()]));
     } catch (_) { /* Keep the current session in memory. */ }
-    const donorSlug = materialSlug;
+    const donorInstanceId = materialInstanceId;
     materialInstanceId = null;
     completed = true;
     renderCards();
