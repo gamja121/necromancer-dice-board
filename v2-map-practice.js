@@ -689,7 +689,7 @@
       badge.className = "treasure-reward-badge";
       badge.textContent = reward.type === "unit" ? `마물 · ${reward.label}` : `주사위 · ${reward.label}`;
       card.append(image, badge);
-      card.addEventListener("click", () => chooseTreasureReward(reward, card), { once: true });
+      card.addEventListener("click", () => chooseTreasureReward(reward, card));
       el.eventTreasureRewards.append(card);
     }
     el.eventTreasureRewards.hidden = false;
