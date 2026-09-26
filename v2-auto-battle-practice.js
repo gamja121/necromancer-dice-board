@@ -925,11 +925,19 @@
     actionBusy = true;
     actor.gauge = 0;
     updateUnit(actor);
+    const poisonEventStart = rulesState.events.length;
     const poisonDamage = V2Rules.before(rulesState, actor);
+    const poisonEvents = rulesState.events.slice(poisonEventStart);
     if (poisonDamage) {
       if (!actor.alive) saveBattle('acting');
       updateUnit(actor);
       showDamage(actor, poisonDamage);
+      for (const event of poisonEvents) {
+        if (event.type === "heal" && event.source === "passive-feast") {
+          updateUnit(event.unit);
+          showHealing(event.unit, event.amount);
+        }
+      }
       message.textContent = `${actor.name} 중독 피해 ${poisonDamage}`;
       await wait(Math.max(260, 460 / speedMultiplier));
       if (token !== battleToken || !running) return;
