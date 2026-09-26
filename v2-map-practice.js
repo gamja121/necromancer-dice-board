@@ -578,6 +578,64 @@
     return mixed;
   }
 
+  async function animateTreasureRewardToTarget(reward, selectedCard) {
+    const targetButton = reward.type === "unit" ? el.bookButton : el.cardDeckButton;
+    const targetImage = reward.type === "unit" ? el.bookImage : el.cardDeckImage;
+    const sourceImage = selectedCard.querySelector("img");
+    if (!targetButton || !targetImage || !sourceImage) return;
+
+    const sourceRect = sourceImage.getBoundingClientRect();
+    const targetRect = targetImage.getBoundingClientRect();
+    const flyer = document.createElement("div");
+    const flyerImage = sourceImage.cloneNode(true);
+    const boardAngle = window.matchMedia?.("(orientation: portrait)").matches ? 90 : 0;
+
+    flyer.className = "treasure-reward-flyer";
+    flyer.style.left = `${sourceRect.left}px`;
+    flyer.style.top = `${sourceRect.top}px`;
+    flyer.style.width = `${sourceRect.width}px`;
+    flyer.style.height = `${sourceRect.height}px`;
+    flyerImage.alt = "";
+    flyerImage.style.transform = `rotate(${boardAngle}deg)`;
+    flyer.append(flyerImage);
+    document.body.append(flyer);
+
+    selectedCard.style.visibility = "hidden";
+
+    const sourceCenterX = sourceRect.left + sourceRect.width / 2;
+    const sourceCenterY = sourceRect.top + sourceRect.height / 2;
+    const targetCenterX = targetRect.left + targetRect.width / 2;
+    const targetCenterY = targetRect.top + targetRect.height / 2;
+    const dx = targetCenterX - sourceCenterX;
+    const dy = targetCenterY - sourceCenterY;
+    const arc = Math.max(34, Math.min(92, Math.hypot(dx, dy) * .12));
+
+    if (typeof flyer.animate === "function" && !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      const motion = flyer.animate([
+        { transform: "translate(0, 0) scale(1)", opacity: 1, offset: 0 },
+        { transform: `translate(${dx * .38}px, ${dy * .28 - arc}px) scale(.94)`, opacity: 1, offset: .42 },
+        { transform: `translate(${dx * .82}px, ${dy * .78 - arc * .18}px) scale(.48)`, opacity: 1, offset: .82 },
+        { transform: `translate(${dx}px, ${dy}px) scale(.10)`, opacity: 0, offset: 1 }
+      ], {
+        duration: 880,
+        easing: "cubic-bezier(.18,.78,.2,1)",
+        fill: "forwards"
+      });
+      await motion.finished.catch(() => {});
+    } else {
+      flyer.style.transform = `translate(${dx}px, ${dy}px) scale(.1)`;
+      flyer.style.opacity = "0";
+      await wait(40);
+    }
+
+    flyer.remove();
+    targetButton.classList.remove("is-reward-receiving");
+    void targetButton.offsetWidth;
+    targetButton.classList.add("is-reward-receiving");
+    await wait(260);
+    targetButton.classList.remove("is-reward-receiving");
+  }
+
   async function chooseTreasureReward(reward, selectedCard) {
     if (treasureRewardChosen || !eventOpen || activeEventTileId !== "gem") return;
     treasureRewardChosen = true;
@@ -589,12 +647,12 @@
       card.classList.toggle("is-rejected", card !== selectedCard);
     });
 
-    selectedCard.classList.add(reward.type === "unit" ? "is-fly-left" : "is-fly-right");
     el.diceResult.textContent = reward.type === "unit"
       ? `${reward.label} 선택 · 마물 카드 보관함으로 이동`
       : `${reward.label} 선택 · 주사위 컨트롤 카드 더미로 이동`;
 
-    await wait(720);
+    await wait(90);
+    await animateTreasureRewardToTarget(reward, selectedCard);
     closeTileEvent();
   }
 

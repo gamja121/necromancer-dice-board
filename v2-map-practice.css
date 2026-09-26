@@ -113,8 +113,16 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .treasure-reward-card:not(:disabled):focus-visible { z-index: 8; filter: drop-shadow(0 0 13px #ffe39a) drop-shadow(0 11px 12px #000d); outline: 0; }
 .treasure-reward-card.is-selected { z-index: 12; filter: drop-shadow(0 0 16px #ffe39a) drop-shadow(0 12px 13px #000d); }
 .treasure-reward-card.is-rejected { opacity: 0 !important; transform: translateY(10%) scale(.72) rotate(var(--reward-rot, 0deg)) !important; pointer-events: none; }
-.treasure-reward-card.is-fly-left { opacity: 0 !important; transform: translate(-210%, -18%) scale(.55) rotate(-18deg) !important; pointer-events: none; }
-.treasure-reward-card.is-fly-right { opacity: 0 !important; transform: translate(210%, -18%) scale(.55) rotate(18deg) !important; pointer-events: none; }
+.treasure-reward-flyer { position: fixed; z-index: 9999; margin: 0; padding: 0; pointer-events: none; transform-origin: center; filter: drop-shadow(0 12px 14px #000d) drop-shadow(0 0 8px #ffe09a88); will-change: transform, opacity; }
+.treasure-reward-flyer img { display: block; width: 100%; height: 100%; object-fit: contain; transform-origin: center; }
+.map-book-button.is-reward-receiving img,
+.map-card-deck-button.is-reward-receiving img { animation: reward-target-receive 320ms cubic-bezier(.18,.82,.25,1.15); }
+
+@keyframes reward-target-receive {
+  0% { transform: scale(1); filter: brightness(1); }
+  42% { transform: scale(1.16); filter: brightness(1.38) drop-shadow(0 0 10px #ffe49a); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
 
 @keyframes treasure-reward-rise {
   0% { opacity: 0; transform: translateY(22%) scale(.78) rotate(var(--reward-rot, 0deg)); }
