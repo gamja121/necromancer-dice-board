@@ -66,7 +66,7 @@
     if(target.shields>0){target.shields--;return 0;}
     const dealt=Math.min(target.hp,n);target.hp-=dealt;
     if(target.hp<=0&&passive(target,'undying')&&!target.undyingUsed){target.undyingUsed=true;target.hp=1;}
-    if(target.hp<=0){target.alive=false;s.events.push({type:'death',unit:target});if(source&&source.alive&&passive(source,'feast')&&['attack','poison'].includes(kind)){source.maxHp+=2;heal(source,2);}}
+    if(target.hp<=0){target.alive=false;s.events.push({type:'death',unit:target});if(source&&source.alive&&passive(source,'feast')&&['attack','poison'].includes(kind)){source.maxHp+=2;const amount=heal(source,2);if(amount)s.events.push({type:'heal',unit:source,amount,source:'passive-feast'});}}
     if(dealt>0&&source&&source.team!==target.team&&['attack','counter'].includes(kind)&&passive(target,'grudge'))target.grudge++;
     refresh(s);return dealt;
   }
@@ -120,10 +120,11 @@
     const actors=s.units.filter(u=>u.alive).slice().sort((a,b)=>a.team.localeCompare(b.team)||a.slot-b.slot);
     for(const u of actors){if(!u.alive)continue;
       const allies=()=>s.units.filter(a=>a.alive&&a.team===u.team).sort((a,b)=>a.slot-b.slot);
-      for(let i=0;i<(u.bless.healing||0);i++){const a=allies().sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];if(a)heal(a,2);}
-      for(let i=0;i<(u.curse.healing||0);i++){const a=allies().sort((a,b)=>b.hp-a.hp)[0];if(a)damage(s,a,1,u,'curse');}
+      for(let i=0;i<(u.bless.healing||0);i++){const a=allies().sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];if(a){const amount=heal(a,2);if(amount)s.events.push({type:'heal',unit:a,amount,source:'brand-healing'});}}
+      for(let i=0;i<(u.curse.healing||0);i++){const a=allies().sort((a,b)=>b.hp-a.hp)[0];if(a){const amount=damage(s,a,1,u,'curse');if(amount)s.events.push({type:'damage',unit:a,amount,source:'brand-healing-curse'});}}
       if(u.curse.freeze)u.frozen=true;poison(s,u,u.curse.poison||0,u);
-      if(u.curse.summon)damage(s,u,u.curse.summon,u,'curse');else {const pet=allies().find(a=>a.slot===4);if(pet&&u.bless.summon){heal(pet,u.bless.summon);pet.summonPower+=u.bless.summon;}}
+      if(u.curse.summon){const amount=damage(s,u,u.curse.summon,u,'curse');if(amount)s.events.push({type:'damage',unit:u,amount,source:'brand-summon-curse'});}
+      else {const pet=allies().find(a=>a.slot===4);if(pet&&u.bless.summon){const amount=heal(pet,u.bless.summon);if(amount)s.events.push({type:'heal',unit:pet,amount,source:'brand-summon'});pet.summonPower+=u.bless.summon;}}
     }
     refresh(s);
     const rank=u=>s.round===1&&passive(u,'initiative')?2:u.curse.lightspeed?-1:0;
@@ -131,7 +132,7 @@
     s.last=queue.filter(u=>u.slug!=='guardian-seed').at(-1);return queue;
   }
   function before(s,u){let n=0;for(const p of [...u.poisonStacks]){if(u.alive)n+=damage(s,u,1,p.source,'poison');p.remaining--;}u.poisonStacks=u.poisonStacks.filter(p=>p.remaining>0);u.poison=u.poisonStacks.length;return n;}
-  function attack(s,a,t){const out={damage:0,recovered:0,miss:false,immune:false,hits:[],counterDamage:0};
+  function attack(s,a,t){const out={damage:0,recovered:0,selfDamage:0,miss:false,immune:false,hits:[],counterDamage:0};
     if(!a.alive||!t?.alive||a.slug==='guardian-seed')return out;
     if(a.frozen){a.frozen=false;out.cancelled=true;return out;}
     if(a.curse.combo){out.cancelled=true;out.miss=true;return out;}
@@ -144,7 +145,7 @@
       if(hit>0){out.recovered+=heal(a,hit*(a.bless.vampire||0));if(t.alive){poison(s,t,a.bless.poison||0,a);if(a.bless.freeze&&!t.frozen)t.frozen=true;}}
       if(t.alive&&hit>0&&t.bless.counter){out.counterDamage+=damage(s,a,Math.max(1,Math.ceil(t.attack*.5))*t.bless.counter,t,'counter');}
     }
-    if(a.alive&&a.curse.vampire)damage(s,a,a.curse.vampire,a,'curse');return out;
+    if(a.alive&&a.curse.vampire)out.selfDamage=damage(s,a,a.curse.vampire,a,'curse');return out;
   }
   function mode(b,face){if(typeof b==='string')return 'normal';return !b?'normal':b.curse.includes(face)?'curse':b.bless.includes(face)?'blessing':'normal';}
   function snapshot(s){
