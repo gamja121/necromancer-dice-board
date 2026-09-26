@@ -31,10 +31,10 @@ jobs:
           # These ranges isolate the four authored poses while preserving
           # each pose's glow/rays. Transparent margins are trimmed afterward.
           ranges = [
-              (0, 435),
-              (395, 865),
-              (815, 1275),
-              (1150, w),
+              (0, 410),
+              (430, 835),
+              (855, 1240),
+              (1245, w),
           ]
 
           out_dir = src.parent
