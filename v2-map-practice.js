@@ -496,11 +496,13 @@
     el.cloudTransition.classList.remove("is-covered", "is-opening");
     void el.cloudTransition.offsetWidth;
     el.cloudTransition.classList.add("is-covered");
-    await wait(760);
+    // Let the fastest and slowest cloud layers meet at different times.
+    // The mist layer removes any dark gaps before the tile swap happens.
+    await wait(1200);
     generateTiles();
-    await wait(220);
+    await wait(260);
     el.cloudTransition.classList.add("is-opening");
-    await wait(700);
+    await wait(1080);
     el.cloudTransition.hidden = true;
     el.cloudTransition.classList.remove("is-covered", "is-opening");
     rolling = false;
