@@ -757,8 +757,17 @@
     }
     turnQueue = V2Rules.roll(rulesState, lastDiceRoll);
     saveBattle('acting');
+    const supportEvents = rulesState.events.filter(event => typeof event.source === "string" && event.source.startsWith("brand-"));
     const fallen = rulesState.events.filter(e => e.type === "death").map(e => e.unit);
     units.forEach(updateUnit);
+    for (const event of supportEvents) {
+      if (event.type === "heal") showHealing(event.unit, event.amount);
+      else if (event.type === "damage") showDamage(event.unit, event.amount);
+    }
+    if (supportEvents.length) {
+      await wait(Math.max(220, 380 / speedMultiplier));
+      if (token !== battleToken || !running) return;
+    }
     await Promise.all(fallen.map(unitState => playMotion(unitState, "death", unitState.frames.death, token, true)));
     if (token !== battleToken || !running) return;
     updateHud();
@@ -975,7 +984,9 @@
 
     const hadPoison = Boolean(target.poison);
     const legionAttack = { legionCritical: false };
+    const eventStart = rulesState.events.length;
     const outcome = V2Rules.attack(rulesState, actor, target);
+    const attackEvents = rulesState.events.slice(eventStart);
     saveBattle('acting');
     const legionApplied = { poison: Boolean(target.poison), frozen: Boolean(target.frozen) };
     if (!hadPoison && target.poison) target.poisonAppliedTurn = turnNumber;
@@ -988,6 +999,10 @@
     updateUnit(actor);
     updateUnit(target);
     if (outcome.recovered) showHealing(actor, outcome.recovered);
+    if (outcome.selfDamage) showDamage(actor, outcome.selfDamage);
+    for (const event of attackEvents) {
+      if (event.type === "heal" && event.source === "passive-feast") showHealing(event.unit, event.amount);
+    }
     if (legionApplied.frozen) target.element.classList.add("is-frozen");
     message.textContent = outcome.miss ? `${actor.name} 공격 빗나감` : outcome.cancelled ? `${actor.name} 공격 취소`
       : outcome.immune ? `${target.name} 수호 · 피해 무시`
