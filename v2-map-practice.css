@@ -100,6 +100,20 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .tile-event-scene > img[hidden], .treasure-chest-sprite[hidden] { display: none; }
 .treasure-chest-sprite { position: absolute; left: 50%; top: 50%; width: 48%; height: 100%; transform: translate(-50%, -50%); background: url("art/v2-style/map-test/events/treasure-chest-sprite.png") 0% 48% / 400% auto no-repeat; filter: drop-shadow(0 12px 12px #000c); }
 .treasure-chest-sprite.is-playing { animation: treasure-chest-open 1.45s linear forwards; }
+.treasure-reward-cards { position: absolute; z-index: 3; left: 50%; top: 48%; display: flex; align-items: flex-end; justify-content: center; gap: 4%; width: 82%; height: 76%; transform: translate(-50%, -50%); pointer-events: none; }
+.treasure-reward-cards[hidden] { display: none; }
+.treasure-reward-card { position: relative; width: 27%; max-height: 94%; padding: 0; border: 0; background: transparent; opacity: 0; transform: translateY(22%) scale(.78) rotate(var(--reward-rot, 0deg)); filter: drop-shadow(0 10px 10px #000c); animation: treasure-reward-rise 420ms cubic-bezier(.18,.88,.22,1.08) forwards; animation-delay: var(--reward-delay, 0ms); pointer-events: none; }
+.treasure-reward-card:nth-child(1) { --reward-rot: -7deg; --reward-delay: 0ms; }
+.treasure-reward-card:nth-child(2) { --reward-rot: 0deg; --reward-delay: 110ms; }
+.treasure-reward-card:nth-child(3) { --reward-rot: 7deg; --reward-delay: 220ms; }
+.treasure-reward-card img { display: block; width: 100%; height: 100%; max-height: 100%; object-fit: contain; }
+.treasure-reward-badge { position: absolute; left: 50%; bottom: -7%; transform: translateX(-50%); min-width: 64%; padding: 4px 8px; border: 1px solid #8d714b; border-radius: 3px; background: #120c09e8; color: #f5dfb8; font-size: clamp(8px, .95vw, 12px); font-weight: 900; text-align: center; white-space: nowrap; box-shadow: 0 4px 8px #0008; }
+@keyframes treasure-reward-rise {
+  0% { opacity: 0; transform: translateY(22%) scale(.78) rotate(var(--reward-rot, 0deg)); }
+  70% { opacity: 1; transform: translateY(-3%) scale(1.04) rotate(var(--reward-rot, 0deg)); }
+  100% { opacity: 1; transform: translateY(0) scale(1) rotate(var(--reward-rot, 0deg)); }
+}
+
 .tile-event-exit { position: absolute; right: 1%; bottom: 7%; width: 18%; min-width: 66px; min-height: 36px; aspect-ratio: 2.25; padding: 0 8px; border: 0; background: url("art/v2-style/map-test/events/exit-parchment.png") center / 100% 100% no-repeat; color: #49301d; font-size: clamp(12px, 1.5vw, 20px); font-weight: 900; text-shadow: 0 1px #fff7df; cursor: pointer; filter: drop-shadow(0 5px 5px #0009); pointer-events: auto; }
 .tile-event-enter { position: absolute; right: 1%; bottom: 29%; width: 18%; min-width: 66px; min-height: 36px; aspect-ratio: 2.7; padding: 0 8px; border: 0; background: url("art/v2-style/map-test/events/enter-parchment.png") center / 100% 100% no-repeat; color: #49301d; font-size: clamp(12px, 1.5vw, 20px); font-weight: 900; text-shadow: 0 1px #fff7df; cursor: pointer; filter: drop-shadow(0 5px 5px #0009); pointer-events: auto; }
 .tile-event-enter[hidden] { display: none; }
