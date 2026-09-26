@@ -119,13 +119,7 @@
       </section>
       <section id="diceControlOverlay" class="dice-control-overlay" role="dialog" aria-modal="true" aria-label="주사위 컨트롤 카드 5장" hidden>
         <button id="diceControlBackdrop" class="dice-control-backdrop" type="button" aria-label="주사위 컨트롤 카드 닫기"></button>
-        <div class="dice-control-hand" aria-label="보유 주사위 컨트롤 카드">
-          <img class="dice-control-card" src="art/v2-style/ui/dice-control-ko-1.png" alt="주사위 컨트롤 카드 1">
-          <img class="dice-control-card" src="art/v2-style/ui/dice-control-ko-2.png" alt="주사위 컨트롤 카드 2">
-          <img class="dice-control-card" src="art/v2-style/ui/dice-control-ko-3.png" alt="주사위 컨트롤 카드 3">
-          <img class="dice-control-card" src="art/v2-style/ui/dice-control-ko-4.png" alt="주사위 컨트롤 카드 4">
-          <img class="dice-control-card" src="art/v2-style/ui/dice-control-ko-5.png" alt="주사위 컨트롤 카드 5">
-        </div>
+        <div id="diceControlHand" class="dice-control-hand" role="listbox" aria-label="보유 주사위 컨트롤 카드"></div>
       </section>
       <section id="mapDeckOverlay" class="map-deck-overlay" role="dialog" aria-modal="true" aria-label="전장 덱 선택" hidden>
         <button id="mapDeckClose" class="map-deck-close" type="button" aria-label="덱 보기 닫기" hidden>닫기</button>
@@ -146,6 +140,7 @@
   <script src="v2-design-data.js?v=1"></script>
   <script src="v2-rules.js?v=6"></script>
   <script src="v2-home-inheritance.js?v=5"></script>
+  <script src="v2-dice-control.js?v=1"></script>
   <script src="v2-map-practice.js?v=29"></script>
 </body>
 </html>

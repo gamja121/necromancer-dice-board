@@ -86,6 +86,7 @@
     cardDeckImage: document.getElementById("mapCardDeckImage"),
     diceControlOverlay: document.getElementById("diceControlOverlay"),
     diceControlBackdrop: document.getElementById("diceControlBackdrop"),
+    diceControlHand: document.getElementById("diceControlHand"),
     bookImage: document.getElementById("mapBookImage"),
     bookRoster: document.getElementById("mapBookRoster"),
     infoOverlay: document.getElementById("mapUnitInfoOverlay"),
@@ -126,6 +127,10 @@
   let bookMotions = [];
   let lapReadyForRefresh = false;
   let cloudTransitioning = false;
+  let diceControlHand = [];
+  let pendingDiceControlId = null;
+  let previousDiceRoll = null;
+  let previousDiceControlId = null;
   const ownedUnits = loadOwnedRoster();
 
   [...rollingFrames, ...resultFrames, ...Object.values(tileEventScenes).map((scene) => scene.image).filter(Boolean), `${ROOT}events/home-interior.jpg`].forEach((src) => { const image = new Image(); image.src = src; });
@@ -215,6 +220,49 @@
     void el.diceControlOverlay.offsetWidth;
     el.diceControlOverlay.classList.add("is-open");
     el.diceControlBackdrop.focus();
+  }
+
+  function diceControlState() {
+    return { previousRoll: previousDiceRoll, previousCardId: previousDiceControlId };
+  }
+
+  function renderDiceControlHand() {
+    el.diceControlHand.replaceChildren();
+    for (const [index, card] of diceControlHand.entries()) {
+      const availability = V2DiceControl.canUse(card.id, diceControlState());
+      const button = document.createElement("button");
+      const image = document.createElement("img");
+      button.type = "button";
+      button.className = `dice-control-card${pendingDiceControlId === card.id ? " is-armed" : ""}`;
+      button.style.setProperty("--i", index + 1);
+      button.setAttribute("role", "option");
+      button.setAttribute("aria-selected", String(pendingDiceControlId === card.id));
+      button.disabled = !availability.ok;
+      button.title = availability.ok ? `${card.label}: ${card.description}` : availability.reason;
+      image.src = V2DiceControl.imagePath(card, "ko");
+      image.alt = `${card.label}: ${card.description}`;
+      button.append(image);
+      button.addEventListener("click", () => selectDiceControlCard(card.id));
+      el.diceControlHand.append(button);
+    }
+  }
+
+  function dealDiceControlHand() {
+    diceControlHand = shuffle([...V2DiceControl.cards]).slice(0, 5);
+    renderDiceControlHand();
+  }
+
+  function selectDiceControlCard(cardId) {
+    const availability = V2DiceControl.canUse(cardId, diceControlState());
+    if (!availability.ok) {
+      el.diceResult.textContent = availability.reason;
+      return;
+    }
+    const card = V2DiceControl.cards.find((entry) => entry.id === cardId);
+    pendingDiceControlId = cardId;
+    el.diceResult.textContent = `${card.label} · 다음 굴림에 적용`;
+    renderDiceControlHand();
+    closeDiceControlCard();
   }
 
   async function closeDiceControlCard() {
@@ -759,9 +807,21 @@
     el.regenerate.disabled = true;
     el.diceButton.classList.add("is-rolling");
     el.diceResult.textContent = "굴리는 중…";
-    const result = Math.floor(Math.random() * 6) + 1;
+    let result = Math.floor(Math.random() * 6) + 1;
+    let controlLabel = "";
+    if (pendingDiceControlId) {
+      const controlled = V2DiceControl.resolve(pendingDiceControlId, diceControlState());
+      if (controlled.ok) {
+        result = controlled.value;
+        controlLabel = controlled.label;
+        previousDiceControlId = controlled.effectiveCardId;
+      }
+      pendingDiceControlId = null;
+    }
+    previousDiceRoll = result;
+    renderDiceControlHand();
     await animateMapDiceRoll(result);
-    el.diceResult.textContent = `${result} · 이동 시작`;
+    el.diceResult.textContent = `${result}${controlLabel ? ` · ${controlLabel}` : ""} · 이동 시작`;
     el.diceButton.classList.remove("is-rolling");
     await wait(220);
     let stepsMoved = 0;
@@ -775,9 +835,10 @@
       await wait(230);
       if (heroIndex === HOME_INDEX) { reachedHome = true; lapReadyForRefresh = true; break; }
     }
+    const controlText = controlLabel ? ` · ${controlLabel}` : "";
     el.diceResult.textContent = reachedHome
-      ? `${result} · 집 도착 (${stepsMoved}칸 이동)`
-      : `${result} · 이동 완료`;
+      ? `${result}${controlText} · 집 도착 (${stepsMoved}칸 이동)`
+      : `${result}${controlText} · 이동 완료`;
     if (currentTiles[heroIndex]?.id === "monster") {
       el.diceResult.textContent = `${result} · 마물 조우`;
       await wait(320);
@@ -838,6 +899,7 @@
     else if (event.key === "Escape" && eventOpen) closeTileEvent();
   });
   renderBookRoster();
+  dealDiceControlHand();
   generateTiles();
   if (typeof V2Sfx !== "undefined") V2Sfx.preload();
 })();

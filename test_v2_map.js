@@ -63,7 +63,7 @@ for (const tile of ["home", "village", "fortune-teller-camp", "boss"]) {
 }
 assert(source.includes("const HOME_INDEX = 15") && source.includes("pool[HOME_INDEX] = fixedTiles.home") && source.includes("pool[23] = fixedTiles.boss"), "Home must sit on the central bottom tile and boss on the last tile.");
 assert(source.includes("heroIndex = HOME_INDEX") && source.includes("selectTile(currentButtons[HOME_INDEX]"), "The hero must start on the home tile.");
-assert(source.includes("if (heroIndex === HOME_INDEX) { reachedHome = true; break; }") && source.includes("집 도착 (${stepsMoved}칸 이동)"), "Dice movement must stop at home even when pips remain.");
+assert(source.includes("if (heroIndex === HOME_INDEX) { reachedHome = true; lapReadyForRefresh = true; break; }") && source.includes("집 도착 (${stepsMoved}칸 이동)"), "Dice movement must stop at home even when pips remain.");
 assert(source.includes('el.hero.style.setProperty("--hero-facing", heroIndex >= 12 ? -1 : 1)') && css.includes('scaleX(var(--hero-facing, 1))'), "The hero must face the direction of travel on the bottom and left sides.");
 assert(source.includes("fixedTiles.village") && source.includes("fixedTiles.fortune"), "Village and fortune-teller tiles must be connected to the route.");
 const eventScenes = {
@@ -81,10 +81,22 @@ assert(html.includes('id="treasureChestSprite"') && css.includes("@keyframes tre
 assert(source.includes('scene.animation === "treasure"') && source.includes('eventTreasure.classList.add("is-playing")'), "Treasure animation must restart when the tile is reached.");
 assert(source.includes("async function warpToOtherWarp()") && source.includes('tile.id === "warp" && index !== heroIndex'), "Warp must move to the other warp tile.");
 assert(source.includes('currentTiles[heroIndex]?.id === "warp"') && source.includes("await warpToOtherWarp()"), "Landing on a warp tile must trigger teleportation.");
-assert(html.includes("v2-map-practice.js?v=24") && html.includes("v2-map-practice.css?v=18") && html.includes("v2-sfx.js?v=3"), "The map page must load targeting, music, and mobile sound effects.");
+assert(html.includes("v2-map-practice.js?v=29") && html.includes("v2-map-practice.css?v=24") && html.includes("v2-sfx.js?v=3"), "The map page must load targeting, music, and mobile sound effects.");
 assert(worker.includes("v2-map-practice.html"), "Map test page is not cached.");
 assert(worker.includes("v2-landscape.js?v=1"), "Landscape helper is not cached.");
-assert(worker.includes("v2-map-practice.js?v=24") && worker.includes("v2-map-practice.css?v=18") && worker.includes("v2-sfx.js?v=3"), "The targeting, music, and mobile sound logic is not cached.");
+assert(worker.includes("v2-map-practice.js?v=29") && worker.includes("v2-map-practice.css?v=24") && worker.includes("v2-sfx.js?v=3"), "The targeting, music, and mobile sound logic is not cached.");
+assert(html.includes('id="diceControlHand"') && html.includes('v2-dice-control.js?v=1'), "The five-card dice control hand and ability engine must load on the map.");
+assert(source.includes("V2DiceControl.canUse") && source.includes("V2DiceControl.resolve") && source.includes("pendingDiceControlId"), "Dice control cards must arm and resolve on the next roll.");
+assert(source.includes("previousDiceRoll") && source.includes("previousDiceControlId"), "Repeat and effect reactivation history must be tracked.");
+assert(css.includes(".dice-control-card.is-armed") && css.includes(".dice-control-card:disabled"), "Armed and unavailable dice control cards need visible states.");
+const diceControlImages = ["1", "2", "3", "4", "5", "6", "low", "high", "odd", "even", "exclude-1", "exclude-2", "exclude-3", "exclude-4", "exclude-5", "exclude-6", "repeat", "echo"];
+for (const suffix of diceControlImages) {
+  for (const languagePrefix of ["ko-", ""]) {
+    const relative = `art/v2-style/ui/dice-control-${languagePrefix}${suffix}.png`;
+    assert(fs.existsSync(path.join(root, relative)), `Dice control card is missing: ${relative}`);
+    assert(worker.includes(relative), `Dice control card is not cached: ${relative}`);
+  }
+}
 assert(html.includes('class="tile-event-scene"') && html.includes('class="tile-event-exit"') && !html.includes('id="tileEventTitle"'), "Tile events must be image-only on the board with an exit button.");
 assert(html.includes('id="tileEventEnter"') && source.includes('el.eventEnter.addEventListener("click", enterHome)') && source.includes('el.eventEnter.hidden = tile.id !== "home"'), "Only the home tile must show an enter button above exit.");
 assert(source.includes('events/home-interior.jpg') && worker.includes('art/v2-style/map-test/events/home-interior.jpg'), "Entering home must show the supplied interior art, including offline cache.");
