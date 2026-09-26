@@ -233,16 +233,92 @@
       const button = document.createElement("button");
       const image = document.createElement("img");
       button.type = "button";
-      button.className = `dice-control-card${pendingDiceControlId === card.id ? " is-armed" : ""}`;
+      button.className = "dice-control-card";
       button.style.setProperty("--i", index + 1);
+      button.style.setProperty("--drag-y", "0px");
       button.setAttribute("role", "option");
-      button.setAttribute("aria-selected", String(pendingDiceControlId === card.id));
+      button.setAttribute("aria-selected", "false");
       button.disabled = !availability.ok;
-      button.title = availability.ok ? `${card.label}: ${card.description}` : availability.reason;
+      button.title = availability.ok
+        ? `${card.label}: 위로 살짝 끌어 사용 · ${card.description}`
+        : availability.reason;
       image.src = V2DiceControl.imagePath(card, "ko");
       image.alt = `${card.label}: ${card.description}`;
       button.append(image);
-      button.addEventListener("click", () => selectDiceControlCard(card.id));
+
+      if (availability.ok) {
+        let pointerId = null;
+        let startY = 0;
+        let dragY = 0;
+        let moved = false;
+        const USE_THRESHOLD = -46;
+
+        const resetDrag = () => {
+          button.classList.remove("is-dragging", "is-use-ready");
+          button.style.setProperty("--drag-y", "0px");
+          button.setAttribute("aria-selected", "false");
+          pointerId = null;
+          dragY = 0;
+          moved = false;
+        };
+
+        button.addEventListener("pointerdown", (event) => {
+          if (pendingDiceControlId || pointerId !== null) return;
+          event.preventDefault();
+          pointerId = event.pointerId;
+          startY = event.clientY;
+          dragY = 0;
+          moved = false;
+          button.setPointerCapture(pointerId);
+          button.classList.add("is-dragging");
+          button.setAttribute("aria-selected", "true");
+        });
+
+        button.addEventListener("pointermove", (event) => {
+          if (event.pointerId !== pointerId) return;
+          event.preventDefault();
+          dragY = Math.max(-96, Math.min(0, event.clientY - startY));
+          moved ||= Math.abs(dragY) > 4;
+          button.style.setProperty("--drag-y", `${dragY}px`);
+          button.classList.toggle("is-use-ready", dragY <= USE_THRESHOLD);
+        });
+
+        button.addEventListener("pointerup", async (event) => {
+          if (event.pointerId !== pointerId) return;
+          event.preventDefault();
+          const shouldUse = dragY <= USE_THRESHOLD;
+          if (button.hasPointerCapture(pointerId)) button.releasePointerCapture(pointerId);
+          if (!shouldUse) {
+            resetDrag();
+            return;
+          }
+          button.classList.remove("is-dragging", "is-use-ready");
+          button.classList.add("is-consuming");
+          button.style.setProperty("--drag-y", "-120px");
+          await wait(140);
+          useDiceControlCard(card.id);
+        });
+
+        button.addEventListener("pointercancel", resetDrag);
+        button.addEventListener("lostpointercapture", () => {
+          if (!button.classList.contains("is-consuming") && pointerId !== null) resetDrag();
+        });
+
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+          if (!moved) {
+            el.diceResult.textContent = `${card.label} · 위로 살짝 끌어 사용`;
+          }
+        });
+
+        button.addEventListener("keydown", (event) => {
+          if ((event.key === "Enter" || event.key === " ") && !pendingDiceControlId) {
+            event.preventDefault();
+            useDiceControlCard(card.id);
+          }
+        });
+      }
+
       el.diceControlHand.append(button);
     }
   }
@@ -252,15 +328,22 @@
     renderDiceControlHand();
   }
 
-  function selectDiceControlCard(cardId) {
+  function useDiceControlCard(cardId) {
+    if (pendingDiceControlId) {
+      el.diceResult.textContent = "이미 다음 굴림에 사용할 카드가 선택되어 있습니다.";
+      renderDiceControlHand();
+      return;
+    }
     const availability = V2DiceControl.canUse(cardId, diceControlState());
     if (!availability.ok) {
       el.diceResult.textContent = availability.reason;
+      renderDiceControlHand();
       return;
     }
     const card = V2DiceControl.cards.find((entry) => entry.id === cardId);
     pendingDiceControlId = cardId;
-    el.diceResult.textContent = `${card.label} · 다음 굴림에 적용`;
+    diceControlHand = diceControlHand.filter((entry) => entry.id !== cardId);
+    el.diceResult.textContent = `${card.label} · 사용 예약 · 다음 굴림에 적용`;
     renderDiceControlHand();
     closeDiceControlCard();
   }
