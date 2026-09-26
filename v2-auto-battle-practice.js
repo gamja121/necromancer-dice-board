@@ -11,6 +11,9 @@
   });
   const battleQuery = typeof location === "undefined" ? new URLSearchParams() : new URLSearchParams(location.search);
   const fromMap = battleQuery.get("from") === "map";
+  const mapEncounterId = battleQuery.get("encounter") || "";
+  const MAP_CONTAMINATION_KEY = "necromancer-map-contamination-v1";
+  const MAP_CONTAMINATION_WIN_PREFIX = "necromancer-map-contamination-win-v1:";
   const mapBattlefield = fromMap ? MAP_BATTLEFIELDS[battleQuery.get("map")] : null;
   const FRAME_ROOT = "art/v2-style/animation-test-frames/";
   const UNIT_TYPE_KEYS = {
@@ -190,6 +193,22 @@
     return COMBAT_SOUND_PROFILES[effect] || COMBAT_SOUND_PROFILES.physical;
   }
   const requestedAllySlugs = (battleQuery.get("allies") || "").split(",").filter((slug) => TEST_DECK_SLUGS.includes(slug));
+  let mapVictoryContaminationApplied = false;
+
+  function applyMapVictoryContamination() {
+    if (!fromMap || mapVictoryContaminationApplied) return;
+    mapVictoryContaminationApplied = true;
+    try {
+      if (typeof sessionStorage === "undefined") return;
+      const markerKey = mapEncounterId ? `${MAP_CONTAMINATION_WIN_PREFIX}${mapEncounterId}` : "";
+      if (markerKey && sessionStorage.getItem(markerKey) === "1") return;
+      const current = Number(sessionStorage.getItem(MAP_CONTAMINATION_KEY));
+      const next = Math.max(0, (Number.isFinite(current) ? current : 0) - 1);
+      sessionStorage.setItem(MAP_CONTAMINATION_KEY, String(next));
+      if (markerKey) sessionStorage.setItem(markerKey, "1");
+    } catch (_) { /* Battle result must still complete if storage is blocked. */ }
+  }
+
   const mapOwnedRoster = (() => {
     if (!fromMap || typeof sessionStorage === "undefined") return new Map();
     try {
@@ -1140,6 +1159,7 @@
     pauseButton.disabled = true;
     speedButton.disabled = true;
     const won = aliveUnits("ally").length > 0;
+    if (won) applyMapVictoryContamination();
     saveBattle('complete');
     resultTitle.textContent = won ? "아군 승리" : aliveUnits("enemy").length ? "적군 승리" : "무승부";
     resultBody.textContent = `${actionCount}번의 공격 후 전투가 끝났습니다. 매 턴 속도가 높은 순서로 생존 유닛 모두가 한 번씩 행동했습니다.`;

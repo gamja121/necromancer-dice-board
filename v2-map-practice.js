@@ -611,7 +611,8 @@
     if (selectedDeck.length !== 4) return;
     el.deckConfirm.disabled = true;
     el.deckStatus.textContent = "전장으로 이동 중…";
-    const params = new URLSearchParams({ from: "map", map: activeMapId, tile: String(battleStep), allies: selectedDeck.join(",") });
+    const encounterId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    const params = new URLSearchParams({ from: "map", map: activeMapId, tile: String(battleStep), allies: selectedDeck.join(","), encounter: encounterId });
     if (typeof V2Music !== "undefined") V2Music.handoff("battle");
     window.location.assign(`v2-auto-battle-practice.html?${params}`);
   }
@@ -869,10 +870,11 @@
   }
 
   async function handleTileEventExit() {
-    // The home scene's Exit button is the authoritative trigger for the lap transition.
-    // Do not depend on a transient lap flag here; if the player is leaving the home scene,
-    // always cover the map, rebuild the tiles, then reveal the new board.
+    // Leaving home still drives the tile refresh, but contamination only rises
+    // when the hero actually completed a lap and reached home through movement.
     const refreshAfterHome = eventOpen && activeEventTileId === "home";
+    const completedLap = refreshAfterHome && lapReadyForRefresh;
+    if (completedLap) addContamination(2);
     closeTileEvent();
     if (refreshAfterHome) await playCloudTileRefresh();
   }
