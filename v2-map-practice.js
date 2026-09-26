@@ -1017,6 +1017,20 @@
     });
   }
 
+  function getContaminationWallRect() {
+    if (!el.contaminationHud || el.contaminationHud.offsetWidth <= 0 || el.contaminationHud.offsetHeight <= 0) return null;
+    const centerX = el.contaminationHud.offsetLeft;
+    const centerY = el.contaminationHud.offsetTop;
+    const insetX = el.contaminationHud.offsetWidth * .025;
+    const insetY = el.contaminationHud.offsetHeight * .13;
+    return {
+      left: centerX - el.contaminationHud.offsetWidth / 2 + insetX,
+      right: centerX + el.contaminationHud.offsetWidth / 2 - insetX,
+      top: centerY - el.contaminationHud.offsetHeight / 2 + insetY,
+      bottom: centerY + el.contaminationHud.offsetHeight / 2 - insetY
+    };
+  }
+
   function getDiceInnerBounds(walls, radius, boardSize) {
     // The route is 8 top + 4 right + 7 bottom + 5 left tiles.
     // Individual tile rectangles have tiny gaps, so a fast die can slip through them.
@@ -1050,6 +1064,7 @@
       const boardSize = { width: el.board.clientWidth, height: el.board.clientHeight };
       const radius = Math.max(el.diceButton.offsetWidth, el.diceButton.offsetHeight) * .40;
       const walls = getDiceWallRects();
+      const contaminationWall = getContaminationWallRect();
       const duration = 1750 + Math.random() * 450;
       const { minX, maxX, minY, maxY } = getDiceInnerBounds(walls, radius, boardSize);
 
@@ -1150,6 +1165,10 @@
         else if (x > maxX) { x = maxX; vx = -Math.abs(vx) * .78; bounced = true; }
         if (y < minY) { y = minY; vy = Math.abs(vy) * .78; bounced = true; }
         else if (y > maxY) { y = maxY; vy = -Math.abs(vy) * .78; bounced = true; }
+
+        // The contamination HUD is a real interior map wall: the die may roll
+        // around its sides, but it cannot pass through the stone panel.
+        if (contaminationWall && bounceAgainstRect(contaminationWall)) bounced = true;
 
         if (bounced && soundClock > 85 && typeof V2Sfx !== "undefined") {
           V2Sfx.play("diceTick", { rate: .9 + Math.random() * .24 });
