@@ -236,6 +236,7 @@
     return COMBAT_SOUND_PROFILES[effect] || COMBAT_SOUND_PROFILES.physical;
   }
   const requestedAllySlugs = (battleQuery.get("allies") || "").split(",").filter((slug) => TEST_DECK_SLUGS.includes(slug));
+  const requestedAllyInstanceIds = (battleQuery.get("allyIds") || "").split(",").filter(Boolean);
   let mapVictoryContaminationApplied = false;
 
   function applyMapVictoryContamination() {
@@ -260,7 +261,7 @@
       return new Map(saved.filter((unit) => TEST_DECK_SLUGS.includes(unit?.slug) &&
         Number.isFinite(unit.maxHp) && Number.isFinite(unit.attack) && Number.isFinite(unit.speed) &&
         Array.isArray(unit.brands) && unit.brands.every(V2Rules.validateBrand))
-        .map((unit) => [unit.slug, unit]));
+        .map((unit) => [unit.instanceId || unit.slug, unit]));
     } catch (_) { return new Map(); }
   })();
 
@@ -359,7 +360,8 @@
   let captureTargetLocked = false;
   let lineupRequest = 0;
   let lineupSide = "ally";
-  let selectedAllySlugs = requestedAllySlugs.length >= 1 && requestedAllySlugs.length <= 4 && new Set(requestedAllySlugs).size === requestedAllySlugs.length ? requestedAllySlugs : [];
+  let selectedAllySlugs = requestedAllySlugs.length >= 1 && requestedAllySlugs.length <= 4 ? requestedAllySlugs : [];
+  let selectedAllyInstanceIds = fromMap && requestedAllyInstanceIds.length === selectedAllySlugs.length ? requestedAllyInstanceIds : [];
   let selectedEnemySlugs = fromMap ? createMapEnemySlugs() : TEAM_DATA.enemy.map(entry => entry.slug);
   let rosterTouchScroll = null;
   let selectedAllyTeam = TEAM_DATA.ally.map(entry => ({ ...entry }));
@@ -441,7 +443,7 @@
     legionState = rulesState.legions;
     if (fromMap) {
       for (const unitState of units.filter((unit) => unit.team === "ally" && !unit.isSummon)) {
-        const owned = mapOwnedRoster.get(unitState.slug);
+        const owned = unitState.instanceId ? mapOwnedRoster.get(unitState.instanceId) : null;
         if (!owned || !Number.isFinite(owned.currentHp)) continue;
         const temporaryMaxBonus = Math.max(0, unitState.maxHp - unitState.baseMaxHp);
         unitState.hp = Math.max(1, Math.min(unitState.maxHp, owned.currentHp + temporaryMaxBonus));
@@ -455,9 +457,9 @@
   }
 
   function makeState(data, team, slot) {
-    const owned = team === "ally" && slot < 4 ? mapOwnedRoster.get(data.slug) : null;
+    const owned = team === "ally" && slot < 4 && data.instanceId ? mapOwnedRoster.get(data.instanceId) : null;
     const generated = owned ? JSON.parse(JSON.stringify(owned)) : V2Rules.individual(data.slug);
-    return V2Rules.init({ ...data, ...generated, team, slot, gauge: 0, brand: generated.brands[0]?.type, brandMode: "normal", brandDisplayMode: "normal", element: null, image: null });
+    return V2Rules.init({ ...data, ...generated, instanceId: data.instanceId || generated.instanceId || null, team, slot, gauge: 0, brand: generated.brands[0]?.type, brandMode: "normal", brandDisplayMode: "normal", element: null, image: null });
   }
 
   function renderTeams() {
@@ -716,7 +718,9 @@
     startButton.textContent = "준비 중…";
     lineupStatus.textContent = "선택한 마물을 전장에 준비하고 있습니다.";
     try {
-      const preparedAllyTeam = selectedAllySlugs.map(slug => ({ ...ROSTER_BY_SLUG.get(slug) }));
+      const preparedAllyTeam = fromMap && selectedAllyInstanceIds.length === selectedAllySlugs.length
+        ? selectedAllyInstanceIds.map((instanceId, index) => ({ ...ROSTER_BY_SLUG.get(selectedAllySlugs[index]), instanceId }))
+        : selectedAllySlugs.map((slug) => ({ ...ROSTER_BY_SLUG.get(slug) }));
       const preparedEnemyTeam = selectedEnemySlugs.map(slug => ({ ...ROSTER_BY_SLUG.get(slug) }));
       await Promise.all([...preparedAllyTeam, ...preparedEnemyTeam].map(prepareSelectedMotion));
       if (request !== lineupRequest) return;
@@ -1205,18 +1209,19 @@
     try {
       const saved = JSON.parse(sessionStorage.getItem(MAP_ROSTER_KEY));
       if (!Array.isArray(saved)) return;
-      const bySlug = new Map(saved.map((unit) => [unit.slug, unit]));
+      const byInstance = new Map(saved.map((unit) => [unit.instanceId || unit.slug, unit]));
       for (const unitState of units.filter((unit) => unit.team === "ally" && !unit.isSummon && unit.slot < 4)) {
-        const owned = bySlug.get(unitState.slug);
+        const key = unitState.instanceId || unitState.slug;
+        const owned = byInstance.get(key);
         if (!owned) continue;
         if (!unitState.alive || unitState.hp <= 0) {
-          bySlug.delete(unitState.slug);
+          byInstance.delete(key);
           continue;
         }
         const temporaryMaxBonus = Math.max(0, unitState.maxHp - owned.maxHp);
         owned.currentHp = Math.max(1, Math.min(owned.maxHp, unitState.hp - temporaryMaxBonus));
       }
-      sessionStorage.setItem(MAP_ROSTER_KEY, JSON.stringify(saved.filter((unit) => bySlug.has(unit.slug)).map((unit) => bySlug.get(unit.slug))));
+      sessionStorage.setItem(MAP_ROSTER_KEY, JSON.stringify(saved.filter((unit) => byInstance.has(unit.instanceId || unit.slug)).map((unit) => byInstance.get(unit.instanceId || unit.slug))));
     } catch (_) { /* Battle completion still works if storage is blocked. */ }
   }
 
@@ -1377,6 +1382,19 @@
       captureStatus.textContent = captureSummary(selectedCorpse, "성공");
       await wait(420);
       await animateSoulHarvest(selectedCorpse);
+      try {
+        if (typeof sessionStorage !== "undefined") {
+          const saved = JSON.parse(sessionStorage.getItem(MAP_ROSTER_KEY));
+          const roster = Array.isArray(saved) ? saved : [];
+          const captured = V2Rules.individual(selectedCorpse.slug);
+          captured.instanceId = globalThis.crypto?.randomUUID
+            ? `${selectedCorpse.slug}-${globalThis.crypto.randomUUID()}`
+            : `${selectedCorpse.slug}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+          captured.currentHp = captured.maxHp;
+          roster.push(captured);
+          sessionStorage.setItem(MAP_ROSTER_KEY, JSON.stringify(roster));
+        }
+      } catch (_) { /* Capture result remains valid even if storage is blocked. */ }
       selectedCorpse.element?.classList.remove("is-capture-selected");
       battlefield.classList.remove("is-capture-rolling");
       diceRolling = false;

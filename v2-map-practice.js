@@ -165,6 +165,34 @@
     return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
   }
 
+  function createUnitInstanceId(slug = "unit") {
+    if (globalThis.crypto?.randomUUID) return `${slug}-${globalThis.crypto.randomUUID()}`;
+    return `${slug}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+  }
+
+  function normalizeOwnedUnit(unit) {
+    const normalized = { ...unit };
+    normalized.instanceId = typeof unit?.instanceId === "string" && unit.instanceId ? unit.instanceId : createUnitInstanceId(unit?.slug || "unit");
+    normalized.currentHp = Math.max(0, Math.min(normalized.maxHp, Number.isFinite(normalized.currentHp) ? normalized.currentHp : normalized.maxHp));
+    return normalized;
+  }
+
+  function saveOwnedRoster() {
+    try {
+      if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify([...ownedUnits.values()]));
+    } catch (_) { /* Keep the current run usable without storage. */ }
+  }
+
+  function addOwnedUnit(slug) {
+    if (!TEST_DECK.some((entry) => entry.slug === slug)) return null;
+    const unit = normalizeOwnedUnit(V2Rules.individual(slug));
+    ownedUnits.set(unit.instanceId, unit);
+    saveOwnedRoster();
+    renderBookRoster();
+    if (!el.deckOverlay.hidden) renderDeckSelection();
+    return unit;
+  }
+
   function loadContamination() {
     try {
       if (typeof sessionStorage !== "undefined") {
@@ -206,26 +234,27 @@
 
   function healOwnedRosterAtHome() {
     for (const unit of ownedUnits.values()) unit.currentHp = unit.maxHp;
-    try {
-      if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify([...ownedUnits.values()]));
-    } catch (_) { /* Keep the current run usable without storage. */ }
+    saveOwnedRoster();
     renderBookRoster();
   }
 
   function loadOwnedRoster() {
     let saved;
     try { if (typeof sessionStorage !== "undefined") saved = JSON.parse(sessionStorage.getItem(OWNED_ROSTER_KEY)); } catch (_) { /* Private browsing can block storage. */ }
-    const valid = Array.isArray(saved) && saved.length <= TEST_DECK.length &&
-      new Set(saved.map((unit) => unit?.slug)).size === saved.length && saved.every((unit) =>
-        TEST_DECK.some((entry) => entry.slug === unit?.slug) && Number.isFinite(unit.maxHp) &&
-        Number.isFinite(unit.attack) && Number.isFinite(unit.speed) && Array.isArray(unit.brands) &&
-        unit.brands.length <= 3 && unit.brands.every(V2Rules.validateBrand));
-    const roster = (valid ? saved : STARTING_UNIT_SLUGS.map((slug) => V2Rules.individual(slug))).map((unit) => ({
-      ...unit,
-      currentHp: Math.max(0, Math.min(unit.maxHp, Number.isFinite(unit.currentHp) ? unit.currentHp : unit.maxHp))
-    }));
+    const valid = Array.isArray(saved) && saved.length <= 100 && saved.every((unit) =>
+      TEST_DECK.some((entry) => entry.slug === unit?.slug) && Number.isFinite(unit.maxHp) &&
+      Number.isFinite(unit.attack) && Number.isFinite(unit.speed) && Array.isArray(unit.brands) &&
+      unit.brands.length <= 3 && unit.brands.every(V2Rules.validateBrand));
+    const source = valid ? saved : STARTING_UNIT_SLUGS.map((slug) => V2Rules.individual(slug));
+    const usedIds = new Set();
+    const roster = source.map((unit) => {
+      const normalized = normalizeOwnedUnit(unit);
+      while (usedIds.has(normalized.instanceId)) normalized.instanceId = createUnitInstanceId(normalized.slug);
+      usedIds.add(normalized.instanceId);
+      return normalized;
+    });
     try { if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify(roster)); } catch (_) { /* The current map still works without storage. */ }
-    return new Map(roster.map((unit) => [unit.slug, unit]));
+    return new Map(roster.map((unit) => [unit.instanceId, unit]));
   }
 
   function perimeterPositions() {
@@ -505,18 +534,19 @@
     else closeDiceControlCard();
   }
 
-  function toggleDeckUnit(slug) {
-    const selectedIndex = selectedDeck.indexOf(slug);
+  function toggleDeckUnit(instanceId) {
+    const selectedIndex = selectedDeck.indexOf(instanceId);
     if (selectedIndex >= 0) selectedDeck.splice(selectedIndex, 1);
-    else if (selectedDeck.length < 4) selectedDeck.push(slug);
+    else if (selectedDeck.length < 4 && ownedUnits.has(instanceId)) selectedDeck.push(instanceId);
     renderDeckSelection();
   }
 
   function renderDeckSelection() {
     el.deckSelected.replaceChildren();
     for (let index = 0; index < 4; index += 1) {
-      const slug = selectedDeck[index];
-      const entry = TEST_DECK.find((unit) => unit.slug === slug);
+      const instanceId = selectedDeck[index];
+      const owned = instanceId ? ownedUnits.get(instanceId) : null;
+      const entry = owned ? TEST_DECK.find((unit) => unit.slug === owned.slug) : null;
       const slot = document.createElement("button");
       slot.type = "button";
       slot.className = entry ? "selected-slot" : "selected-slot is-empty";
@@ -528,26 +558,28 @@
         rate.className = "map-target-rate";
         rate.textContent = `피격 ${TARGET_RATES[selectedDeck.length][index]}%`;
         slot.title = `${entry.name} 선택 해제`;
-        slot.addEventListener("click", () => toggleDeckUnit(entry.slug));
+        slot.addEventListener("click", () => toggleDeckUnit(instanceId));
         slot.append(image, rate);
       } else slot.disabled = true;
       el.deckSelected.append(slot);
     }
     el.deckRoster.replaceChildren();
-    for (const entry of TEST_DECK) {
-      if (!ownedUnits.has(entry.slug)) continue;
-      const selectedIndex = selectedDeck.indexOf(entry.slug);
+    for (const owned of ownedUnits.values()) {
+      const entry = TEST_DECK.find((unit) => unit.slug === owned.slug);
+      if (!entry) continue;
+      const selectedIndex = selectedDeck.indexOf(owned.instanceId);
       const button = document.createElement("button");
       button.type = "button";
       button.classList.toggle("is-selected", selectedIndex >= 0);
       button.setAttribute("aria-pressed", selectedIndex >= 0 ? "true" : "false");
+      button.dataset.instanceId = owned.instanceId;
       const image = document.createElement("img");
       image.src = `art/v2-style/ui/unit-card-${entry.slug}.png?v=19`;
       image.alt = "";
       const name = document.createElement("span");
       name.textContent = entry.name;
       button.append(image, name);
-      button.addEventListener("click", () => toggleDeckUnit(entry.slug));
+      button.addEventListener("click", () => toggleDeckUnit(owned.instanceId));
       el.deckRoster.append(button);
     }
     const rates = TARGET_RATES[selectedDeck.length] || [];
@@ -557,12 +589,14 @@
 
   function renderBookRoster() {
     el.bookRoster.replaceChildren();
-    for (const entry of TEST_DECK) {
-      if (!ownedUnits.has(entry.slug)) continue;
+    for (const owned of ownedUnits.values()) {
+      const entry = TEST_DECK.find((unit) => unit.slug === owned.slug);
+      if (!entry) continue;
       const button = document.createElement("button");
       const image = document.createElement("img");
       const name = document.createElement("span");
       button.type = "button";
+      button.dataset.instanceId = owned.instanceId;
       button.setAttribute("aria-label", `${entry.name} 카드 확인`);
       button.setAttribute("aria-pressed", "false");
       image.src = `art/v2-style/ui/unit-card-${entry.slug}.png?v=19`;
@@ -576,7 +610,7 @@
         if (!inspecting) {
           button.classList.add("is-inspecting");
           button.setAttribute("aria-pressed", "true");
-          openBookUnitInfo(ownedUnits.get(entry.slug));
+          openBookUnitInfo(ownedUnits.get(owned.instanceId));
         }
       });
       el.bookRoster.append(button);
@@ -688,7 +722,16 @@
     el.deckStatus.textContent = "전장으로 이동 중…";
     const encounterId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
     saveMapLayout();
-    const params = new URLSearchParams({ from: "map", map: activeMapId, tile: String(battleStep), allies: selectedDeck.join(","), encounter: encounterId, contamination: String(contamination) });
+    const selectedUnits = selectedDeck.map((instanceId) => ownedUnits.get(instanceId)).filter(Boolean);
+    const params = new URLSearchParams({
+      from: "map",
+      map: activeMapId,
+      tile: String(battleStep),
+      allies: selectedUnits.map((unit) => unit.slug).join(","),
+      allyIds: selectedUnits.map((unit) => unit.instanceId).join(","),
+      encounter: encounterId,
+      contamination: String(contamination)
+    });
     if (typeof V2Music !== "undefined") V2Music.handoff("battle");
     window.location.assign(`v2-auto-battle-practice.html?${params}`);
   }
@@ -799,6 +842,7 @@
       card.classList.toggle("is-rejected", card !== selectedCard);
     });
 
+    if (reward.type === "unit") addOwnedUnit(reward.id);
     el.diceResult.textContent = reward.type === "unit"
       ? `${reward.label} 획득 · 마물 카드 보관함으로 이동`
       : `${reward.label} 획득 · 주사위 컨트롤 카드 더미로 이동`;
@@ -1337,9 +1381,9 @@
     if (eventOpen && activeEventTileId === "home") V2HomeInheritance.open();
   });
   window.addEventListener("v2-roster-changed", (event) => {
-    ownedUnits.delete(event.detail.donorSlug);
-    ownedUnits.set(event.detail.recipient.slug, event.detail.recipient);
-    selectedDeck = selectedDeck.filter((slug) => ownedUnits.has(slug));
+    ownedUnits.delete(event.detail.donorInstanceId);
+    ownedUnits.set(event.detail.recipient.instanceId, event.detail.recipient);
+    selectedDeck = selectedDeck.filter((instanceId) => ownedUnits.has(instanceId));
     renderBookRoster();
     if (!el.deckOverlay.hidden) renderDeckSelection();
   });

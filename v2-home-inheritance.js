@@ -16,33 +16,46 @@
   const inheritButton = document.getElementById("homeInheritanceConfirm");
   const backdrop = overlay?.querySelector(".home-inheritance-backdrop");
   let ownedUnits;
-  let materialSlug = null;
-  let resultSlug = null;
+  let materialInstanceId = null;
+  let resultInstanceId = null;
   let completed = false;
   let inheritedBrand = null;
   let inheritedPart = null;
   let notice = "";
 
+  function createInstanceId(slug = "unit") {
+    if (globalThis.crypto?.randomUUID) return `${slug}-${globalThis.crypto.randomUUID()}`;
+    return `${slug}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+  }
+
   function loadOwnedUnits() {
     if (ownedUnits) return ownedUnits;
     let saved;
     try { if (typeof sessionStorage !== "undefined") saved = JSON.parse(sessionStorage.getItem(OWNED_ROSTER_KEY)); } catch (_) { /* Storage can be unavailable. */ }
-    const valid = Array.isArray(saved) && saved.length <= SLUGS.length &&
-      new Set(saved.map((unit) => unit?.slug)).size === saved.length && saved.every((unit) =>
-        SLUGS.includes(unit?.slug) && Number.isFinite(unit.maxHp) && Number.isFinite(unit.attack) &&
-        Number.isFinite(unit.speed) && Array.isArray(unit.brands) && unit.brands.length <= 3 &&
-        unit.brands.every(V2Rules.validateBrand));
-    const roster = valid ? saved : STARTING_SLUGS.map((slug) => V2Rules.individual(slug));
-    if (!valid) try { if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify(roster)); } catch (_) { /* Keep this session's units in memory. */ }
-    ownedUnits = new Map(roster.map((unit) => [unit.slug, unit]));
+    const valid = Array.isArray(saved) && saved.length <= 100 && saved.every((unit) =>
+      SLUGS.includes(unit?.slug) && Number.isFinite(unit.maxHp) && Number.isFinite(unit.attack) &&
+      Number.isFinite(unit.speed) && Array.isArray(unit.brands) && unit.brands.length <= 3 &&
+      unit.brands.every(V2Rules.validateBrand));
+    const source = valid ? saved : STARTING_SLUGS.map((slug) => V2Rules.individual(slug));
+    const usedIds = new Set();
+    const roster = source.map((unit) => {
+      const copy = { ...unit };
+      copy.instanceId = typeof copy.instanceId === "string" && copy.instanceId ? copy.instanceId : createInstanceId(copy.slug);
+      while (usedIds.has(copy.instanceId)) copy.instanceId = createInstanceId(copy.slug);
+      usedIds.add(copy.instanceId);
+      copy.currentHp = Math.max(0, Math.min(copy.maxHp, Number.isFinite(copy.currentHp) ? copy.currentHp : copy.maxHp));
+      return copy;
+    });
+    try { if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify(roster)); } catch (_) { /* Keep this session's units in memory. */ }
+    ownedUnits = new Map(roster.map((unit) => [unit.instanceId, unit]));
     return ownedUnits;
   }
 
-  function displayCard(image, hint, slug, role) {
-    const unit = slug && loadOwnedUnits().get(slug);
+  function displayCard(image, hint, instanceId, role) {
+    const unit = instanceId && loadOwnedUnits().get(instanceId);
     image.hidden = !unit;
     if (unit) {
-      image.src = `art/v2-style/ui/unit-card-${slug}.png?v=19`;
+      image.src = `art/v2-style/ui/unit-card-${unit.slug}.png?v=19`;
       image.alt = `${unit.name} ${role} 카드`;
     } else image.removeAttribute("src");
     hint.textContent = unit?.name || (role === "재료" ? "아래에서 마물을 선택" : "계승 결과 대기");
@@ -62,12 +75,12 @@
 
   function renderSelection() {
     const owned = loadOwnedUnits();
-    const material = owned.get(materialSlug);
-    const result = owned.get(resultSlug);
-    displayCard(materialCard, materialHint, materialSlug, "재료");
-    displayCard(resultCard, resultHint, resultSlug, "결과");
+    const material = owned.get(materialInstanceId);
+    const result = owned.get(resultInstanceId);
+    displayCard(materialCard, materialHint, materialInstanceId, "재료");
+    displayCard(resultCard, resultHint, resultInstanceId, "결과");
     cards.querySelectorAll("button").forEach((card) => {
-      const selected = card.dataset.slug === materialSlug || card.dataset.slug === resultSlug;
+      const selected = card.dataset.instanceId === materialInstanceId || card.dataset.instanceId === resultInstanceId;
       card.classList.toggle("is-selected", selected);
       card.setAttribute("aria-pressed", String(selected));
     });
@@ -84,43 +97,42 @@
     inheritButton.disabled = !material || !result || !material.brands.length || result.brands.length >= 3;
   }
 
-  function selectCard(slug) {
-    if (completed) { materialSlug = null; resultSlug = null; completed = false; }
+  function selectCard(instanceId) {
+    if (completed) { materialInstanceId = null; resultInstanceId = null; completed = false; }
     notice = "";
-    if (slug === materialSlug) { materialSlug = null; resultSlug = null; }
-    else if (slug === resultSlug) resultSlug = null;
-    else if (!materialSlug) materialSlug = slug;
-    else if (loadOwnedUnits().get(slug)?.brands.length >= 3) notice = "낙인 3칸이 찬 마물은 결과 카드가 될 수 없습니다";
-    else resultSlug = slug;
+    if (instanceId === materialInstanceId) { materialInstanceId = null; resultInstanceId = null; }
+    else if (instanceId === resultInstanceId) resultInstanceId = null;
+    else if (!materialInstanceId) materialInstanceId = instanceId;
+    else if (loadOwnedUnits().get(instanceId)?.brands.length >= 3) notice = "낙인 3칸이 찬 마물은 결과 카드가 될 수 없습니다";
+    else resultInstanceId = instanceId;
     renderSelection();
   }
 
   function renderCards() {
     if (!cards) return;
     cards.replaceChildren();
-    for (const slug of SLUGS) {
-      if (!loadOwnedUnits().has(slug)) continue;
-      const name = V2DesignData.units[slug]?.name || slug;
+    for (const unit of loadOwnedUnits().values()) {
+      const name = V2DesignData.units[unit.slug]?.name || unit.slug;
       const card = document.createElement("button");
       const image = document.createElement("img");
       const label = document.createElement("span");
       card.type = "button";
-      card.dataset.slug = slug;
+      card.dataset.instanceId = unit.instanceId;
       card.setAttribute("aria-label", name);
       card.setAttribute("aria-pressed", "false");
-      image.src = `art/v2-style/ui/unit-card-${slug}.png?v=19`;
+      image.src = `art/v2-style/ui/unit-card-${unit.slug}.png?v=19`;
       image.alt = "";
       label.textContent = name;
       card.append(image, label);
-      card.addEventListener("click", () => selectCard(slug));
+      card.addEventListener("click", () => selectCard(unit.instanceId));
       cards.append(card);
     }
   }
 
   function open() {
     if (!overlay) return;
-    materialSlug = null;
-    resultSlug = null;
+    materialInstanceId = null;
+    resultInstanceId = null;
     completed = false;
     inheritedBrand = null;
     inheritedPart = null;
@@ -138,8 +150,8 @@
     if (!overlay || overlay.hidden) return;
     overlay.classList.remove("is-open");
     overlay.hidden = true;
-    materialSlug = null;
-    resultSlug = null;
+    materialInstanceId = null;
+    resultInstanceId = null;
     completed = false;
     inheritedBrand = null;
     inheritedPart = null;
@@ -149,25 +161,25 @@
 
   function inherit() {
     const owned = loadOwnedUnits();
-    const material = owned.get(materialSlug);
-    const result = owned.get(resultSlug);
+    const material = owned.get(materialInstanceId);
+    const result = owned.get(resultInstanceId);
     if (!material || !result || !material.brands.length || result.brands.length >= 3) return;
     const randomIndex = Math.floor(Math.random() * material.brands.length);
     const part = V2Rules.inheritancePart(material.brands[randomIndex], Math.random);
     V2Rules.inherit(result, material, randomIndex, part);
     inheritedBrand = result.brands[result.brands.length - 1];
     inheritedPart = part;
-    owned.delete(materialSlug);
+    owned.delete(materialInstanceId);
     try {
       if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY,
-        JSON.stringify(SLUGS.filter((slug) => owned.has(slug)).map((slug) => owned.get(slug))));
+        JSON.stringify([...owned.values()]));
     } catch (_) { /* Keep the current session in memory. */ }
     const donorSlug = materialSlug;
-    materialSlug = null;
+    materialInstanceId = null;
     completed = true;
     renderCards();
     renderSelection();
-    window.dispatchEvent?.(new CustomEvent("v2-roster-changed", { detail: { donorSlug, recipient: JSON.parse(JSON.stringify(result)) } }));
+    window.dispatchEvent?.(new CustomEvent("v2-roster-changed", { detail: { donorInstanceId, recipient: JSON.parse(JSON.stringify(result)) } }));
   }
 
   inheritButton?.addEventListener("click", inherit);
