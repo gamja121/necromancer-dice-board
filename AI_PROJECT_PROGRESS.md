@@ -83,3 +83,24 @@
   - 반격으로 다시 반격하지 않음.
 - 구현 커밋: `38efddce8c041b262704440fed69fab557708ca6`
 - Codex 확인 시 `v2-auto-battle-practice.js`의 `outcome.counterDamage > 0 && target.alive` 블록을 우선 검토할 것.
+
+
+## 2026-09-26: 회복/자해 수치 표시 누락 보강
+
+- 기존 초록 회복 숫자 시트 `art/v2-style/ui/healing-digits-sheet.jpg`와 `V2DamageDigits.renderHealing()`을 그대로 재사용했다. 새 숫자 이미지는 만들지 않았다.
+- `v2-rules.js`에서 주사위 판정 시 발생하는 지원 효과를 UI가 알 수 있도록 이벤트를 기록하도록 보강했다.
+  - 회복 낙인 축복: 실제 회복량을 `brand-healing` heal 이벤트로 기록.
+  - 회복 낙인 저주: 실제 피해량을 `brand-healing-curse` damage 이벤트로 기록.
+  - 소환 낙인 축복: 소환물 실제 회복량을 `brand-summon` heal 이벤트로 기록.
+  - 소환 낙인 저주: 본체 실제 피해량을 `brand-summon-curse` damage 이벤트로 기록.
+  - 흡혈 낙인 저주: 공격 결과에 `selfDamage`를 반환해 실제 자해 피해 숫자를 표시할 수 있게 했다.
+  - 시체 포식 패시브: 처치 시 실제 회복량을 `passive-feast` heal 이벤트로 기록.
+- `v2-auto-battle-practice.js`에서 위 이벤트를 받아 기존 숫자 렌더러로 표시한다.
+  - heal 이벤트 → 기존 초록 `+숫자` 시트.
+  - damage 이벤트 / 흡혈 저주 자해 → 기존 피해 `-숫자` 시트.
+  - 시체 포식 회복도 기존 초록 회복 숫자로 표시.
+- 언데드 군단 회복 표시는 기존 구현을 그대로 유지했다.
+- 공격력 상승 자체(피의 원한, 소환 강화)는 체력 숫자가 아니라 능력치 버프 피드백 문제이므로 이번 수정 범위에서는 별도 숫자 연출을 추가하지 않았다.
+- 규칙 이벤트 기록 커밋: `92c8ac42a8a2d5c63851b44978114e7e6fcf5e49`
+- 전투 UI 연결 커밋: `ef417153431ef9da9c6861bf777d4710a546a9f3`
+- Codex 확인 포인트: `v2-rules.js`의 `roll()` 지원 효과 이벤트와 `attack().selfDamage`, `v2-auto-battle-practice.js`의 `supportEvents` / `attackEvents` 처리.
