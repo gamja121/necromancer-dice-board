@@ -78,6 +78,7 @@
     eventScene: document.querySelector(".tile-event-scene"),
     eventImage: document.getElementById("tileEventImage"),
     eventTreasure: document.getElementById("treasureChestSprite"),
+    eventTreasureRewards: document.getElementById("treasureRewardCards"),
     eventEnter: document.getElementById("tileEventEnter"),
     eventInheritance: document.getElementById("tileEventInheritance"),
     eventClose: document.getElementById("tileEventClose"),
@@ -559,6 +560,46 @@
     el.eventScene.style.height = `${width / activeEventRatio}px`;
   }
 
+  function createTreasureRewards() {
+    const unitRewards = TEST_DECK.map((unit) => ({
+      type: "unit",
+      id: unit.slug,
+      label: unit.name,
+      image: `art/v2-style/ui/unit-card-${unit.slug}.png?v=19`
+    }));
+    const diceRewards = V2DiceControl.cards.map((card) => ({
+      type: "dice",
+      id: card.id,
+      label: card.label,
+      image: V2DiceControl.imagePath(card, "ko")
+    }));
+    const mixed = shuffle([...unitRewards, ...diceRewards]).slice(0, 3);
+    return mixed;
+  }
+
+  function showTreasureRewards() {
+    const rewards = createTreasureRewards();
+    el.eventTreasureRewards.replaceChildren();
+    for (const reward of rewards) {
+      const card = document.createElement("div");
+      const image = document.createElement("img");
+      const badge = document.createElement("span");
+      card.className = "treasure-reward-card";
+      image.src = reward.image;
+      image.alt = reward.label;
+      badge.className = "treasure-reward-badge";
+      badge.textContent = reward.type === "unit" ? `마물 · ${reward.label}` : `주사위 · ${reward.label}`;
+      card.append(image, badge);
+      el.eventTreasureRewards.append(card);
+    }
+    el.eventTreasureRewards.hidden = false;
+  }
+
+  function clearTreasureRewards() {
+    el.eventTreasureRewards.hidden = true;
+    el.eventTreasureRewards.replaceChildren();
+  }
+
   function openTileEvent(tile, step) {
     const scene = tileEventScenes[tile?.id];
     if (!scene || enteringBattle) return false;
@@ -576,10 +617,15 @@
     el.eventInheritance.hidden = true;
     if (treasure) {
       el.eventImage.removeAttribute("src");
+      clearTreasureRewards();
       el.eventTreasure.classList.remove("is-playing");
+    clearTreasureRewards();
       void el.eventTreasure.offsetWidth;
       el.eventTreasure.classList.add("is-playing");
       if (typeof V2Sfx !== "undefined") V2Sfx.play("treasureChestOpen");
+      window.setTimeout(() => {
+        if (eventOpen && activeEventTileId === "gem") showTreasureRewards();
+      }, 1050);
     } else {
       el.eventImage.src = scene.image;
       el.eventImage.alt = `${scene.title} 풍경`;
