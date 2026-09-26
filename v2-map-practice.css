@@ -40,10 +40,21 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .map-card-deck-button[aria-expanded="true"] { z-index: 71; }
 .map-card-deck-button:hover, .map-card-deck-button:focus-visible { transform: translateY(-3%) scale(1.04); filter: drop-shadow(0 6px 5px #000b) brightness(1.12); }
 .map-card-deck-button:focus-visible { outline: 2px solid #ffd77e; outline-offset: 2px; }
-.dice-control-overlay { position: absolute; z-index: 70; inset: 0; display: grid; place-items: center; }
+.dice-control-overlay { position: absolute; z-index: 70; inset: 0; overflow: hidden; pointer-events: auto; }
 .dice-control-overlay[hidden] { display: none; }
-.dice-control-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; background: #030201c7; backdrop-filter: blur(2px); cursor: pointer; }
-.dice-control-card { position: relative; z-index: 1; display: block; width: min(28%, 300px); height: auto; max-height: 84%; object-fit: contain; filter: drop-shadow(0 12px 16px #000d); pointer-events: none; user-select: none; }
+.dice-control-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; background: transparent; cursor: default; }
+.dice-control-hand { position: absolute; right: 8.7%; bottom: 4.8%; width: 68%; height: 50%; pointer-events: none; }
+.dice-control-card { --card-x: 0%; --card-y: 0%; --card-rot: 0deg; --card-delay: 0ms; position: absolute; right: 0; bottom: 0; z-index: 1; display: block; width: clamp(92px, 14.2%, 164px); height: auto; max-height: 94%; object-fit: contain; opacity: 0; transform: translate(42%, 18%) rotate(7deg) scale(.72); transform-origin: 82% 92%; filter: drop-shadow(0 8px 8px #000b); pointer-events: none; user-select: none; transition: transform 420ms cubic-bezier(.18,.84,.24,1.08), opacity 170ms ease; transition-delay: var(--card-delay); will-change: transform, opacity; }
+.dice-control-card:nth-child(1) { --card-x: -324%; --card-y: -3%; --card-rot: -10deg; --card-delay: 0ms; z-index: 1; }
+.dice-control-card:nth-child(2) { --card-x: -242%; --card-y: -7%; --card-rot: -5deg; --card-delay: 55ms; z-index: 2; }
+.dice-control-card:nth-child(3) { --card-x: -160%; --card-y: -9%; --card-rot: 0deg; --card-delay: 110ms; z-index: 3; }
+.dice-control-card:nth-child(4) { --card-x: -78%; --card-y: -6%; --card-rot: 5deg; --card-delay: 165ms; z-index: 4; }
+.dice-control-card:nth-child(5) { --card-x: 4%; --card-y: -1%; --card-rot: 10deg; --card-delay: 220ms; z-index: 5; }
+.dice-control-overlay.is-open .dice-control-card { opacity: 1; transform: translate(var(--card-x), var(--card-y)) rotate(var(--card-rot)) scale(1); }
+.dice-control-overlay.is-closing .dice-control-card { opacity: 0; transform: translate(42%, 18%) rotate(7deg) scale(.72); transition-delay: calc((5 - var(--i, 1)) * 34ms); }
+@media (prefers-reduced-motion: reduce) {
+  .dice-control-card { transition-duration: 1ms; transition-delay: 0ms !important; }
+}
 
 .map-board.is-deck-selecting .map-card-deck-button { visibility: hidden; pointer-events: none; }
 .map-deck-roster.map-book-roster { z-index: 49; left: 16%; transform: none; opacity: 1; }
