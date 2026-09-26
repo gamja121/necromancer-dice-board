@@ -990,19 +990,21 @@
     await impactReady;
     if (token !== battleToken || !running) return;
 
-    const hadPoison = Boolean(target.poison);
+    const poisonStacksBefore = Array.isArray(target.poisonStacks) ? target.poisonStacks.length : Number(target.poison || 0);
     const legionAttack = { legionCritical: false };
     const eventStart = rulesState.events.length;
     const outcome = V2Rules.attack(rulesState, actor, target);
     const attackEvents = rulesState.events.slice(eventStart);
     saveBattle('acting');
+    const poisonStacksAfter = Array.isArray(target.poisonStacks) ? target.poisonStacks.length : Number(target.poison || 0);
+    const poisonAppliedNow = poisonStacksAfter > poisonStacksBefore;
     const legionApplied = { poison: Boolean(target.poison), frozen: Boolean(target.frozen) };
-    if (!hadPoison && target.poison) target.poisonAppliedTurn = turnNumber;
+    if (poisonStacksBefore === 0 && poisonAppliedNow) target.poisonAppliedTurn = turnNumber;
     if (typeof V2DamageDigits !== "undefined") {
       if (outcome.miss) V2DamageDigits.showLabel(target, "miss");
       else if (outcome.immune) V2DamageDigits.showLabel(target, "immune");
       else if (outcome.damage > 0 && (legionAttack.legionCritical || actor.brand === "critical" && actor.brandMode === "blessing")) V2DamageDigits.showLabel(target, "critical");
-      if (outcome.damage > 0 && target.hp > 0 && (legionApplied.poison || actor.brand === "poison" && actor.brandMode === "blessing")) V2DamageDigits.showLabel(target, "poison");
+      if (outcome.damage > 0 && target.hp > 0 && poisonAppliedNow) V2DamageDigits.showLabel(target, "poison");
     }
     updateUnit(actor);
     updateUnit(target);
