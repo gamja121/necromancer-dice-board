@@ -987,7 +987,6 @@
     }
     updateUnit(actor);
     updateUnit(target);
-    if (outcome.counterDamage) showDamage(actor, outcome.counterDamage);
     if (outcome.recovered) showHealing(actor, outcome.recovered);
     if (legionApplied.frozen) target.element.classList.add("is-frozen");
     message.textContent = outcome.miss ? `${actor.name} 공격 빗나감` : outcome.cancelled ? `${actor.name} 공격 취소`
@@ -1023,6 +1022,38 @@
     } else await wait(250 / speedMultiplier);
     if (token !== battleToken || !running) return;
     updateUnit(target);
+
+    if (outcome.counterDamage > 0 && target.alive) {
+      await attackPlayback;
+      if (token !== battleToken || !running) return;
+
+      message.textContent = `${target.name} 반격! · ${actor.name}에게 피해 ${outcome.counterDamage}`;
+      target.element.classList.add("is-attacking");
+      actor.element.classList.add("is-targeted");
+
+      const counterSoundProfile = combatSoundProfile(target);
+      let signalCounterImpact;
+      const counterImpactReady = new Promise(resolve => { signalCounterImpact = resolve; });
+      if (typeof V2Sfx !== "undefined") V2Sfx.play("attack", { variant: counterSoundProfile.attack, rate: .95 + Math.min(6, target.speed) * .02 });
+      const counterPlayback = playMotion(target, "attack", target.frames.attack, token, false, signalCounterImpact);
+      counterPlayback.then(signalCounterImpact, signalCounterImpact);
+      await counterImpactReady;
+      if (token !== battleToken || !running) return;
+
+      if (typeof V2Sfx !== "undefined") V2Sfx.play("hit", { variant: counterSoundProfile.hit, rate: Math.max(.72, 1.08 - outcome.counterDamage * .045), volume: Math.min(1.25, .82 + outcome.counterDamage * .07) });
+      showDamage(actor, outcome.counterDamage);
+      actor.element.classList.add("is-hit");
+      await playMotion(actor, "hit", actor.frames.hit, token);
+      if (token !== battleToken || !running) return;
+      actor.element.classList.remove("is-hit");
+
+      await counterPlayback;
+      if (token !== battleToken || !running) return;
+      target.element.classList.remove("is-attacking");
+      actor.element.classList.remove("is-targeted");
+      updateUnit(actor);
+      updateUnit(target);
+    }
 
     if (target.hp <= 0) {
       target.hp = 0;
