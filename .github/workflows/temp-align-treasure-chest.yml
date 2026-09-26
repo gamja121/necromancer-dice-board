@@ -1,0 +1,63 @@
+name: Align treasure chest baseline
+
+on:
+  push:
+    paths:
+      - ".github/workflows/temp-align-treasure-chest.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  align:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --quiet pillow
+      - name: Bottom-align all treasure frames on one canvas
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+
+          root = Path("art/v2-style/map-test/events")
+          paths = [root / f"treasure-chest-frame-{i}.png" for i in range(1, 5)]
+          crops = []
+          for p in paths:
+              img = Image.open(p).convert("RGBA")
+              bbox = img.getchannel("A").getbbox()
+              if not bbox:
+                  raise RuntimeError(f"empty frame: {p}")
+              crops.append(img.crop(bbox))
+
+          pad_x = 28
+          pad_top = 28
+          pad_bottom = 28
+          content_w = max(img.width for img in crops)
+          content_h = max(img.height for img in crops)
+          canvas_w = content_w + pad_x * 2
+          canvas_h = content_h + pad_top + pad_bottom
+          baseline_y = canvas_h - pad_bottom
+
+          for i, (p, img) in enumerate(zip(paths, crops), start=1):
+              canvas = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
+              x = (canvas_w - img.width) // 2
+              y = baseline_y - img.height
+              canvas.alpha_composite(img, (x, y))
+              canvas.save(p, "PNG", optimize=True)
+              print(f"frame {i}: source={img.size} canvas={canvas.size} placed=({x},{y}) baseline={baseline_y}")
+          PY
+      - name: Commit aligned frames
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add art/v2-style/map-test/events/treasure-chest-frame-1.png \
+                  art/v2-style/map-test/events/treasure-chest-frame-2.png \
+                  art/v2-style/map-test/events/treasure-chest-frame-3.png \
+                  art/v2-style/map-test/events/treasure-chest-frame-4.png
+          git diff --cached --quiet && exit 0
+          git commit -m "art: align treasure chest frames to baseline"
+          git push
