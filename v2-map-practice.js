@@ -551,6 +551,159 @@
     placeHero();
     selectTile(currentButtons[HOME_INDEX], currentTiles[HOME_INDEX], HOME_INDEX + 1);
     el.diceResult.textContent = "주사위 굴리기";
+    resetMapDicePosition();
+  }
+
+  function resetMapDicePosition() {
+    el.diceButton.style.left = "50%";
+    el.diceButton.style.top = "48%";
+    el.diceButton.style.transform = "translate(-50%, -50%) rotate(0deg)";
+  }
+
+  function getDiceWallRects(boardRect) {
+    return currentButtons.map((button) => {
+      const rect = button.getBoundingClientRect();
+      return {
+        left: rect.left - boardRect.left,
+        right: rect.right - boardRect.left,
+        top: rect.top - boardRect.top,
+        bottom: rect.bottom - boardRect.top
+      };
+    });
+  }
+
+  function animateMapDiceRoll(result) {
+    return new Promise((resolve) => {
+      const boardRect = el.board.getBoundingClientRect();
+      const diceRect = el.diceButton.getBoundingClientRect();
+      const radius = Math.max(diceRect.width, diceRect.height) * .40;
+      const walls = getDiceWallRects(boardRect);
+      const duration = 1750 + Math.random() * 450;
+      const minX = radius + 4;
+      const maxX = boardRect.width - radius - 4;
+      const minY = radius + 4;
+      const maxY = boardRect.height - radius - 4;
+
+      let x = diceRect.left - boardRect.left + diceRect.width / 2;
+      let y = diceRect.top - boardRect.top + diceRect.height / 2;
+      let direction = Math.random() * Math.PI * 2;
+      if (Math.abs(Math.cos(direction)) < .28) direction += .45;
+      const baseSpeed = boardRect.width * (.62 + Math.random() * .16);
+      let vx = Math.cos(direction) * baseSpeed;
+      let vy = Math.sin(direction) * baseSpeed * .72;
+      let rotation = Math.random() * 80 - 40;
+      let lastTime = performance.now();
+      let elapsed = 0;
+      let frameClock = 0;
+      let soundClock = 0;
+      let settled = false;
+
+      const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+      function bounceAgainstRect(wall) {
+        const nearestX = clamp(x, wall.left, wall.right);
+        const nearestY = clamp(y, wall.top, wall.bottom);
+        let dx = x - nearestX;
+        let dy = y - nearestY;
+        let distanceSq = dx * dx + dy * dy;
+        if (distanceSq >= radius * radius) return false;
+
+        let nx;
+        let ny;
+        let distance = Math.sqrt(distanceSq);
+        if (distance > .001) {
+          nx = dx / distance;
+          ny = dy / distance;
+        } else {
+          const distances = [
+            { d: Math.abs(x - wall.left), nx: -1, ny: 0 },
+            { d: Math.abs(wall.right - x), nx: 1, ny: 0 },
+            { d: Math.abs(y - wall.top), nx: 0, ny: -1 },
+            { d: Math.abs(wall.bottom - y), nx: 0, ny: 1 }
+          ].sort((a, b) => a.d - b.d);
+          nx = distances[0].nx;
+          ny = distances[0].ny;
+          distance = 0;
+        }
+
+        const dot = vx * nx + vy * ny;
+        if (dot < 0) {
+          vx -= 2 * dot * nx;
+          vy -= 2 * dot * ny;
+          vx *= .82;
+          vy *= .82;
+        }
+        const push = radius - distance + 1.5;
+        x += nx * push;
+        y += ny * push;
+        return true;
+      }
+
+      function finish() {
+        if (settled) return;
+        settled = true;
+        el.diceImage.src = resultFrames[result - 1];
+        el.diceImage.alt = `주사위 결과 ${result}`;
+        el.diceButton.style.left = `${x}px`;
+        el.diceButton.style.top = `${y}px`;
+        el.diceButton.style.transform = `translate(-50%, -50%) rotate(${rotation}deg) scale(1.04)`;
+        if (typeof V2Sfx !== "undefined") V2Sfx.play("diceLand", { rate: .94 + result * .015 });
+        window.setTimeout(() => {
+          el.diceButton.style.transform = `translate(-50%, -50%) rotate(${rotation}deg) scale(1)`;
+          resolve();
+        }, 120);
+      }
+
+      function tick(now) {
+        const dt = Math.min((now - lastTime) / 1000, .035);
+        lastTime = now;
+        elapsed += dt * 1000;
+        frameClock += dt * 1000;
+        soundClock += dt * 1000;
+
+        const lateDrag = elapsed > duration * .62 ? 3.4 : 1.15;
+        const drag = Math.exp(-lateDrag * dt);
+        vx *= drag;
+        vy *= drag;
+        x += vx * dt;
+        y += vy * dt;
+
+        let bounced = false;
+        if (x < minX) { x = minX; vx = Math.abs(vx) * .78; bounced = true; }
+        else if (x > maxX) { x = maxX; vx = -Math.abs(vx) * .78; bounced = true; }
+        if (y < minY) { y = minY; vy = Math.abs(vy) * .78; bounced = true; }
+        else if (y > maxY) { y = maxY; vy = -Math.abs(vy) * .78; bounced = true; }
+
+        for (const wall of walls) {
+          if (bounceAgainstRect(wall)) bounced = true;
+        }
+
+        if (bounced && soundClock > 85 && typeof V2Sfx !== "undefined") {
+          V2Sfx.play("diceTick", { rate: .9 + Math.random() * .24 });
+          soundClock = 0;
+        }
+
+        const speed = Math.hypot(vx, vy);
+        rotation += (vx >= 0 ? 1 : -1) * speed * dt * .62;
+        el.diceButton.style.left = `${x}px`;
+        el.diceButton.style.top = `${y}px`;
+        el.diceButton.style.transform = `translate(-50%, -50%) rotate(${rotation}deg) scale(${1 + Math.min(speed / Math.max(baseSpeed, 1), 1) * .09})`;
+
+        if (frameClock > 62) {
+          diceFrameIndex = (diceFrameIndex + 1) % rollingFrames.length;
+          el.diceImage.src = rollingFrames[diceFrameIndex];
+          frameClock = 0;
+        }
+
+        if (elapsed >= duration || (elapsed > 1250 && speed < boardRect.width * .045)) {
+          finish();
+          return;
+        }
+        requestAnimationFrame(tick);
+      }
+
+      requestAnimationFrame(tick);
+    });
   }
 
   async function rollAndMove() {
@@ -560,18 +713,8 @@
     el.regenerate.disabled = true;
     el.diceButton.classList.add("is-rolling");
     el.diceResult.textContent = "굴리는 중…";
-    const animationSteps = 17 + Math.floor(Math.random() * 6);
-    for (let step = 0; step < animationSteps; step += 1) {
-      if (step % 2 === 0 && typeof V2Sfx !== "undefined") V2Sfx.play("diceTick", { rate: .9 + Math.random() * .24 });
-      diceFrameIndex = (diceFrameIndex + 1) % rollingFrames.length;
-      el.diceImage.src = rollingFrames[diceFrameIndex];
-      await wait(52 + Math.round((step / animationSteps) * 38));
-    }
-
     const result = Math.floor(Math.random() * 6) + 1;
-    if (typeof V2Sfx !== "undefined") V2Sfx.play("diceLand", { rate: .94 + result * .015 });
-    el.diceImage.src = resultFrames[result - 1];
-    el.diceImage.alt = `주사위 결과 ${result}`;
+    await animateMapDiceRoll(result);
     el.diceResult.textContent = `${result} · 이동 시작`;
     el.diceButton.classList.remove("is-rolling");
     await wait(220);
