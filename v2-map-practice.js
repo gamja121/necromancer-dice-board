@@ -104,7 +104,8 @@
     deckSelected: document.getElementById("mapSelectedLineup"),
     deckRoster: document.getElementById("mapDeckRoster"),
     deckStatus: document.getElementById("mapDeckStatus"),
-    deckConfirm: document.getElementById("mapDeckConfirm")
+    deckConfirm: document.getElementById("mapDeckConfirm"),
+    cloudTransition: document.getElementById("mapCloudTransition")
   };
   let positions = [];
   let currentTiles = [];
@@ -123,6 +124,8 @@
   let bookOpen = false;
   let bookAnimating = false;
   let bookMotions = [];
+  let lapReadyForRefresh = false;
+  let cloudTransitioning = false;
   const ownedUnits = loadOwnedRoster();
 
   [...rollingFrames, ...resultFrames, ...Object.values(tileEventScenes).map((scene) => scene.image).filter(Boolean), `${ROOT}events/home-interior.jpg`].forEach((src) => { const image = new Image(); image.src = src; });
@@ -476,6 +479,36 @@
     return true;
   }
 
+  async function playCloudTileRefresh() {
+    if (cloudTransitioning || !el.cloudTransition) return;
+    cloudTransitioning = true;
+    rolling = true;
+    el.diceButton.disabled = true;
+    el.regenerate.disabled = true;
+    el.cloudTransition.hidden = false;
+    el.cloudTransition.classList.remove("is-covered", "is-opening");
+    void el.cloudTransition.offsetWidth;
+    el.cloudTransition.classList.add("is-covered");
+    await wait(760);
+    generateTiles();
+    await wait(220);
+    el.cloudTransition.classList.add("is-opening");
+    await wait(700);
+    el.cloudTransition.hidden = true;
+    el.cloudTransition.classList.remove("is-covered", "is-opening");
+    rolling = false;
+    cloudTransitioning = false;
+    el.diceButton.disabled = false;
+    el.regenerate.disabled = false;
+    el.diceButton.focus();
+  }
+
+  async function handleTileEventExit() {
+    const refreshAfterHome = eventOpen && activeEventTileId === "home" && lapReadyForRefresh;
+    closeTileEvent();
+    if (refreshAfterHome) await playCloudTileRefresh();
+  }
+
   function closeTileEvent() {
     if (!eventOpen) return;
     eventOpen = false;
@@ -510,6 +543,7 @@
   }
 
   function generateTiles() {
+    lapReadyForRefresh = false;
     const pool = createPool();
     positions = perimeterPositions();
     currentTiles = pool;
@@ -727,7 +761,7 @@
       placeHero(true);
       selectTile(currentButtons[heroIndex], currentTiles[heroIndex], heroIndex + 1);
       await wait(230);
-      if (heroIndex === HOME_INDEX) { reachedHome = true; break; }
+      if (heroIndex === HOME_INDEX) { reachedHome = true; lapReadyForRefresh = true; break; }
     }
     el.diceResult.textContent = reachedHome
       ? `${result} · 집 도착 (${stepsMoved}칸 이동)`
@@ -766,7 +800,7 @@
   if (initialMapButton && activeMapId !== "default") initialMapButton.click();
   el.regenerate.addEventListener("click", generateTiles);
   el.diceButton.addEventListener("click", rollAndMove);
-  el.eventClose.addEventListener("click", closeTileEvent);
+  el.eventClose.addEventListener("click", handleTileEventExit);
   el.eventEnter.addEventListener("click", enterHome);
   el.eventInheritance.addEventListener("click", () => {
     if (eventOpen && activeEventTileId === "home") V2HomeInheritance.open();
