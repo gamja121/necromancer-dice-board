@@ -21,14 +21,14 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .hero-token { position: absolute; z-index: 16; left: 12%; top: 12%; width: 6.4%; transform: translate(-50%, -72%); pointer-events: none; transition: left 190ms ease, top 190ms ease; }
 .hero-token img { display: block; width: 100%; height: auto; transform: scaleX(var(--hero-facing, 1)); filter: drop-shadow(0 4px 3px #000e) drop-shadow(0 0 4px #d6b66c); }
 .hero-token.is-moving img { animation: hero-step 190ms ease-in-out; }
-.dice-controller { position: absolute; z-index: 19; left: 50%; top: 48%; display: flex; align-items: center; gap: 7px; transform: translate(-50%, -50%); padding: 5px 9px 5px 5px; border: 1px solid #76583d; border-radius: 5px; background: #100c09e8; box-shadow: 0 5px 16px #000a; }
-.dice-controller > button { display: grid; place-items: center; width: clamp(52px, 7vw, 72px); height: clamp(52px, 7vw, 72px); padding: 0; border: 1px solid #806447; border-radius: 4px; background: radial-gradient(circle, #5c422b, #20140e); }
-.dice-controller > button:disabled { opacity: .68; }
-.dice-controller img { display: block; width: 90%; height: 90%; object-fit: contain; filter: drop-shadow(0 4px 3px #000b); }
-.dice-controller > button.is-rolling img { animation: dice-roll-pulse 180ms ease-in-out infinite alternate; }
-.dice-controller div { display: grid; gap: 2px; min-width: 90px; }
-.dice-controller span { color: #baa98f; font-size: clamp(8px, 1.15vw, 11px); }
-.dice-controller strong { color: #ffe0a1; font-size: clamp(10px, 1.4vw, 14px); white-space: nowrap; }
+.dice-controller { position: absolute; z-index: 19; inset: 0; pointer-events: none; }
+.dice-controller > button { position: absolute; left: 50%; top: 48%; display: grid; place-items: center; width: clamp(54px, 7vw, 76px); height: clamp(54px, 7vw, 76px); padding: 0; border: 0; border-radius: 50%; background: transparent; transform: translate(-50%, -50%); transform-origin: center; pointer-events: auto; cursor: pointer; -webkit-tap-highlight-color: transparent; filter: drop-shadow(0 7px 5px #000b); will-change: left, top, transform; }
+.dice-controller > button:disabled { cursor: default; }
+.dice-controller > button:focus-visible { outline: 2px solid #ffd77e; outline-offset: 5px; }
+.dice-controller > button:not(.is-rolling):hover { filter: drop-shadow(0 8px 6px #000c) brightness(1.08); }
+.dice-controller img { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.dice-controller > button.is-rolling { filter: drop-shadow(0 9px 7px #000c); }
+.dice-controller div { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .tile-info { position: absolute; z-index: 18; left: 50%; bottom: 19%; display: flex; align-items: center; gap: 8px; transform: translateX(-50%); padding: 5px 10px; border: 1px solid #735538; background: #110c09e8; font-size: clamp(9px, 1.25vw, 12px); white-space: nowrap; }
 .tile-info span { color: #c0a987; }
 .tile-info strong { color: #ffe0a0; }
