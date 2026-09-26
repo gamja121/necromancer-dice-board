@@ -578,10 +578,7 @@
       const diceRect = el.diceButton.getBoundingClientRect();
       const radius = Math.max(diceRect.width, diceRect.height) * .40;
       const walls = getDiceWallRects(boardRect);
-      // Keep the approved launch direction/start behavior intact.
-      // Only the throw strength varies: sometimes soft, sometimes forceful.
-      const duration = 1950;
-      const throwStrength = .48 + Math.random() * .44;
+      const duration = 1750 + Math.random() * 450;
       const minX = radius + 4;
       const maxX = boardRect.width - radius - 4;
       const minY = radius + 4;
@@ -591,7 +588,7 @@
       let y = diceRect.top - boardRect.top + diceRect.height / 2;
       let direction = Math.random() * Math.PI * 2;
       if (Math.abs(Math.cos(direction)) < .28) direction += .45;
-      const baseSpeed = boardRect.width * throwStrength;
+      const baseSpeed = boardRect.width * (.62 + Math.random() * .16);
       let vx = Math.cos(direction) * baseSpeed;
       let vy = Math.sin(direction) * baseSpeed * .72;
       let rotation = Math.random() * 80 - 40;
@@ -668,25 +665,17 @@
         const drag = Math.exp(-lateDrag * dt);
         vx *= drag;
         vy *= drag;
+        x += vx * dt;
+        y += vy * dt;
 
         let bounced = false;
-        const travel = Math.hypot(vx * dt, vy * dt);
-        const maxStep = Math.max(radius * .42, 4);
-        const substeps = Math.max(1, Math.min(8, Math.ceil(travel / maxStep)));
-        const subDt = dt / substeps;
+        if (x < minX) { x = minX; vx = Math.abs(vx) * .78; bounced = true; }
+        else if (x > maxX) { x = maxX; vx = -Math.abs(vx) * .78; bounced = true; }
+        if (y < minY) { y = minY; vy = Math.abs(vy) * .78; bounced = true; }
+        else if (y > maxY) { y = maxY; vy = -Math.abs(vy) * .78; bounced = true; }
 
-        for (let substep = 0; substep < substeps; substep += 1) {
-          x += vx * subDt;
-          y += vy * subDt;
-
-          if (x < minX) { x = minX; vx = Math.abs(vx) * .78; bounced = true; }
-          else if (x > maxX) { x = maxX; vx = -Math.abs(vx) * .78; bounced = true; }
-          if (y < minY) { y = minY; vy = Math.abs(vy) * .78; bounced = true; }
-          else if (y > maxY) { y = maxY; vy = -Math.abs(vy) * .78; bounced = true; }
-
-          for (const wall of walls) {
-            if (bounceAgainstRect(wall)) bounced = true;
-          }
+        for (const wall of walls) {
+          if (bounceAgainstRect(wall)) bounced = true;
         }
 
         if (bounced && soundClock > 85 && typeof V2Sfx !== "undefined") {
@@ -724,17 +713,11 @@
     el.regenerate.disabled = true;
     el.diceButton.classList.add("is-rolling");
     el.diceResult.textContent = "굴리는 중…";
-    resetMapDicePosition();
-    await new Promise((resolve) => requestAnimationFrame(resolve));
     const result = Math.floor(Math.random() * 6) + 1;
     await animateMapDiceRoll(result);
     el.diceResult.textContent = `${result} · 이동 시작`;
     el.diceButton.classList.remove("is-rolling");
-    // Show the landed result briefly, then park the die back at the fixed center.
-    // This guarantees the idle die and the next roll always begin from one place.
-    await wait(320);
-    resetMapDicePosition();
-    await new Promise((resolve) => requestAnimationFrame(resolve));
+    await wait(220);
     let stepsMoved = 0;
     let reachedHome = false;
     for (let step = 0; step < result; step += 1) {
