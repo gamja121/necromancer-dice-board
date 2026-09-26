@@ -335,29 +335,31 @@
   </section>
 
   <script>
+    // Only list image files that currently exist in art/v2-style/ui/.
+    // Each entry declares which language assets are present so the test page never shows
+    // intentional "image load failed" placeholders for cards that have not been uploaded yet.
     const CARD_PAIRS = [
-      ["1", "눈금 1"],
-      ["2", "눈금 2"],
-      ["3", "눈금 3"],
-      ["4", "눈금 4"],
-      ["5", "눈금 5"],
-      ["6", "눈금 6"],
-      ["echo", "Echo"],
-      ["even", "Even"],
-      ["high", "High"],
-      ["low", "Low"],
-      ["odd", "Odd"],
-      ["repeat", "Repeat"],
-      ["exclude-1", "Exclude 1"],
-      ["exclude-2", "Exclude 2"],
-      ["exclude-3", "Exclude 3"],
-      ["exclude-4", "Exclude 4"],
-      ["exclude-5", "Exclude 5"],
-      ["exclude-6", "Exclude 6"]
+      { slug: "1", label: "눈금 1", langs: ["en", "ko"] },
+      { slug: "2", label: "눈금 2", langs: ["en", "ko"] },
+      { slug: "3", label: "눈금 3", langs: ["en", "ko"] },
+      { slug: "4", label: "눈금 4", langs: ["en", "ko"] },
+      { slug: "5", label: "눈금 5", langs: ["en", "ko"] },
+      { slug: "6", label: "눈금 6", langs: ["ko"] },
+      { slug: "echo", label: "효과 재발동 / Effect Reactivation", langs: ["en", "ko"] },
+      { slug: "high", label: "큰수 / High", langs: ["en", "ko"] },
+      { slug: "low", label: "작은수 / Low", langs: ["en", "ko"] },
+      { slug: "odd", label: "홀수 / Odd", langs: ["en", "ko"] },
+      { slug: "repeat", label: "반복 / Repeat", langs: ["en", "ko"] },
+      { slug: "exclude-1", label: "제외 1 / Exclude 1", langs: ["en", "ko"] },
+      { slug: "exclude-2", label: "제외 2 / Exclude 2", langs: ["en", "ko"] },
+      { slug: "exclude-3", label: "제외 3 / Exclude 3", langs: ["en", "ko"] },
+      { slug: "exclude-4", label: "제외 4 / Exclude 4", langs: ["en", "ko"] },
+      { slug: "exclude-5", label: "제외 5 / Exclude 5", langs: ["en", "ko"] },
+      { slug: "exclude-6", label: "제외 6 / Exclude 6", langs: ["en", "ko"] }
     ];
 
     const ROOT = "art/v2-style/ui/";
-    const IMAGE_VERSION = "20260926-ko1-match3";
+    const IMAGE_VERSION = "20260926-existing-only-1";
     const grid = document.getElementById("diceControlGrid");
     const modal = document.getElementById("imageModal");
     const modalImage = document.getElementById("imageModalImage");
@@ -405,7 +407,7 @@
       if (event.key === "Escape" && !modal.hidden) closeImageModal();
     });
 
-    for (const [slug, label] of CARD_PAIRS) {
+    for (const { slug, label, langs } of CARD_PAIRS) {
       const pair = document.createElement("article");
       pair.className = "image-pair";
 
@@ -415,7 +417,7 @@
       const row = document.createElement("div");
       row.className = "image-pair-row";
 
-      for (const lang of ["en", "ko"]) {
+      for (const lang of langs) {
         const rawPath = lang === "ko"
           ? `${ROOT}dice-control-ko-${slug}.png`
           : `${ROOT}dice-control-${slug}.png`;
