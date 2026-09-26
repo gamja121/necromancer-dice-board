@@ -885,19 +885,26 @@
     el.diceButton.style.transform = "translate(-50%, -50%) rotate(0deg)";
   }
 
-  function getDiceWallRects(boardRect) {
+  function getDiceWallRects() {
+    // Use map-local layout coordinates, not viewport coordinates.
+    // In portrait mode the whole map is rotated 90deg with CSS, so
+    // getBoundingClientRect() returns rotated screen coordinates that cannot
+    // be written back into left/top without making the die jump.
     return currentButtons.map((button) => {
-      const rect = button.getBoundingClientRect();
+      const centerX = button.offsetLeft;
+      const centerY = button.offsetTop;
+      const halfWidth = button.offsetWidth / 2;
+      const halfHeight = button.offsetHeight / 2;
       return {
-        left: rect.left - boardRect.left,
-        right: rect.right - boardRect.left,
-        top: rect.top - boardRect.top,
-        bottom: rect.bottom - boardRect.top
+        left: centerX - halfWidth,
+        right: centerX + halfWidth,
+        top: centerY - halfHeight,
+        bottom: centerY + halfHeight
       };
     });
   }
 
-  function getDiceInnerBounds(walls, radius, boardRect) {
+  function getDiceInnerBounds(walls, radius, boardSize) {
     // The route is 8 top + 4 right + 7 bottom + 5 left tiles.
     // Individual tile rectangles have tiny gaps, so a fast die can slip through them.
     // Build one continuous invisible inner wall from the route itself.
@@ -908,9 +915,9 @@
 
     const fallback = {
       minX: radius + 4,
-      maxX: boardRect.width - radius - 4,
+      maxX: boardSize.width - radius - 4,
       minY: radius + 4,
-      maxY: boardRect.height - radius - 4
+      maxY: boardSize.height - radius - 4
     };
     if (!topWalls.length || !rightWalls.length || !bottomWalls.length || !leftWalls.length) return fallback;
 
@@ -927,18 +934,20 @@
 
   function animateMapDiceRoll(result) {
     return new Promise((resolve) => {
-      const boardRect = el.board.getBoundingClientRect();
-      const diceRect = el.diceButton.getBoundingClientRect();
-      const radius = Math.max(diceRect.width, diceRect.height) * .40;
-      const walls = getDiceWallRects(boardRect);
+      const boardSize = { width: el.board.clientWidth, height: el.board.clientHeight };
+      const radius = Math.max(el.diceButton.offsetWidth, el.diceButton.offsetHeight) * .40;
+      const walls = getDiceWallRects();
       const duration = 1750 + Math.random() * 450;
-      const { minX, maxX, minY, maxY } = getDiceInnerBounds(walls, radius, boardRect);
+      const { minX, maxX, minY, maxY } = getDiceInnerBounds(walls, radius, boardSize);
 
-      let x = diceRect.left - boardRect.left + diceRect.width / 2;
-      let y = diceRect.top - boardRect.top + diceRect.height / 2;
+      // offsetLeft/offsetTop are the die's logical center coordinates because
+      // its CSS left/top mark the center and translate(-50%, -50%) only affects
+      // painting. These stay correct even when the whole map is rotated.
+      let x = el.diceButton.offsetLeft;
+      let y = el.diceButton.offsetTop;
       let direction = Math.random() * Math.PI * 2;
       if (Math.abs(Math.cos(direction)) < .28) direction += .45;
-      const baseSpeed = boardRect.width * (.62 + Math.random() * .16);
+      const baseSpeed = boardSize.width * (.62 + Math.random() * .16);
       let vx = Math.cos(direction) * baseSpeed;
       let vy = Math.sin(direction) * baseSpeed * .72;
       let rotation = Math.random() * 80 - 40;
@@ -1046,7 +1055,7 @@
           frameClock = 0;
         }
 
-        if (elapsed >= duration || (elapsed > 1250 && speed < boardRect.width * .045)) {
+        if (elapsed >= duration || (elapsed > 1250 && speed < boardSize.width * .045)) {
           finish();
           return;
         }
