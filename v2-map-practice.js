@@ -438,6 +438,7 @@
       el.eventTreasure.classList.remove("is-playing");
       void el.eventTreasure.offsetWidth;
       el.eventTreasure.classList.add("is-playing");
+      if (typeof V2Sfx !== "undefined") V2Sfx.play("treasureChestOpen");
     } else {
       el.eventImage.src = scene.image;
       el.eventImage.alt = `${scene.title} 풍경`;

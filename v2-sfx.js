@@ -6,10 +6,11 @@
     diceLand: "assets/sfx/dice-land.ogg",
     move: "assets/sfx/move.ogg",
     bookCardsOpen: "assets/sfx/book-cards-open.mp3",
+    treasureChestOpen: "assets/sfx/treasure-chest-open.mp3",
     attack: "assets/sfx/attack.ogg",
     hit: "assets/sfx/hit.ogg"
   });
-  const BASE_VOLUME = Object.freeze({ diceTick: .55, diceLand: .95, move: .65, bookCardsOpen: .8, attack: .85, hit: .95 });
+  const BASE_VOLUME = Object.freeze({ diceTick: .55, diceLand: .95, move: .65, bookCardsOpen: .8, treasureChestOpen: .9, attack: .85, hit: .95 });
   const VARIANTS = Object.freeze({
     attack: Object.freeze({
       B: Object.freeze({ file: "claw.ogg", rate: 1 }),
