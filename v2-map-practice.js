@@ -332,9 +332,11 @@
     renderDiceControlHand();
   }
 
-  function useDiceControlCard(cardId) {
-    if (pendingDiceControlId) {
-      el.diceResult.textContent = "이미 다음 굴림에 사용할 카드가 선택되어 있습니다.";
+  async function useDiceControlCard(cardId) {
+    if (pendingDiceControlId || rolling) {
+      el.diceResult.textContent = pendingDiceControlId
+        ? "이미 다음 굴림에 사용할 카드가 선택되어 있습니다."
+        : "주사위가 이미 굴러가고 있습니다.";
       renderDiceControlHand();
       return;
     }
@@ -347,9 +349,13 @@
     const card = V2DiceControl.cards.find((entry) => entry.id === cardId);
     pendingDiceControlId = cardId;
     diceControlHand = diceControlHand.filter((entry) => entry.id !== cardId);
-    el.diceResult.textContent = `${card.label} · 사용 예약 · 다음 굴림에 적용`;
+    el.diceResult.textContent = `${card.label} · 사용 · 자동으로 굴립니다`;
     renderDiceControlHand();
-    closeDiceControlCard();
+
+    await closeDiceControlCard();
+    if (!eventOpen && !enteringBattle && !rolling && pendingDiceControlId === cardId) {
+      await rollAndMove();
+    }
   }
 
   async function closeDiceControlCard() {
