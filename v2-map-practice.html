@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
   <title>외곽 타일 맵 테스트</title>
-  <link rel="stylesheet" href="v2-map-practice.css?v=21">
+  <link rel="stylesheet" href="v2-map-practice.css?v=22">
   <link rel="stylesheet" href="v2-home-inheritance.css?v=5">
 </head>
 <body data-v2-music="map">
@@ -74,6 +74,15 @@
           </section>
         </article>
       </section>
+      <div id="mapCloudTransition" class="map-cloud-transition" aria-hidden="true" hidden>
+        <div class="map-cloud-mist"></div>
+        <img class="map-transition-cloud cloud-left cloud-top" src="art/v2-style/ui/map-cloud-transition.png" alt="">
+        <img class="map-transition-cloud cloud-left cloud-mid" src="art/v2-style/ui/map-cloud-transition.png" alt="">
+        <img class="map-transition-cloud cloud-left cloud-bottom" src="art/v2-style/ui/map-cloud-transition.png" alt="">
+        <img class="map-transition-cloud cloud-right cloud-top" src="art/v2-style/ui/map-cloud-transition.png" alt="">
+        <img class="map-transition-cloud cloud-right cloud-mid" src="art/v2-style/ui/map-cloud-transition.png" alt="">
+        <img class="map-transition-cloud cloud-right cloud-bottom" src="art/v2-style/ui/map-cloud-transition.png" alt="">
+      </div>
       <section id="tileEventOverlay" class="tile-event-overlay" role="dialog" aria-modal="true" aria-label="타일 장면" hidden>
         <div class="tile-event-scene">
           <img id="tileEventImage" alt="">
@@ -129,6 +138,6 @@
   <script src="v2-design-data.js?v=1"></script>
   <script src="v2-rules.js?v=6"></script>
   <script src="v2-home-inheritance.js?v=5"></script>
-  <script src="v2-map-practice.js?v=26"></script>
+  <script src="v2-map-practice.js?v=27"></script>
 </body>
 </html>
