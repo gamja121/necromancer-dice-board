@@ -172,7 +172,7 @@
   });
   const ROSTER_BY_SLUG = new Map(ROSTER.map(entry => [entry.slug, entry]));
   const TEST_DECK_SLUGS = Object.freeze([
-    "death-knight", "skeleton-spear", "ghoul", "ancient-treant", "goblin-rider",
+    "death-knight", "skeleton-spear", "skeleton-archer", "ghoul", "ancient-treant", "goblin-rider",
     "minotaur", "plague-doctor", "spider-knight", "hydra", "siren"
   ]);
   const COMBAT_SOUND_PROFILES = Object.freeze({
@@ -212,7 +212,7 @@
   const mapOwnedRoster = (() => {
     if (!fromMap || typeof sessionStorage === "undefined") return new Map();
     try {
-      const saved = JSON.parse(sessionStorage.getItem("necromancer-map-test-roster-v1"));
+      const saved = JSON.parse(sessionStorage.getItem("necromancer-map-roster-v2"));
       if (!Array.isArray(saved)) return new Map();
       return new Map(saved.filter((unit) => TEST_DECK_SLUGS.includes(unit?.slug) &&
         Number.isFinite(unit.maxHp) && Number.isFinite(unit.attack) && Number.isFinite(unit.speed) &&
@@ -1354,7 +1354,7 @@
     speedButton.textContent = `속도 ×${speedMultiplier}`;
   });
 
-  const mapLineupReady = fromMap && selectedAllySlugs.length === 4;
+  const mapLineupReady = fromMap && selectedAllySlugs.length >= 1 && selectedAllySlugs.length <= 4;
   if (mapLineupReady) { resetBattle(false); startSelectedBattle(); }
   else {
   resetBattle(true);

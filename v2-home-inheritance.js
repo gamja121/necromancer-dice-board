@@ -1,7 +1,9 @@
 (() => {
   "use strict";
-  const SLUGS = ["death-knight", "skeleton-spear", "ghoul", "ancient-treant", "goblin-rider",
+  const SLUGS = ["death-knight", "skeleton-spear", "skeleton-archer", "ghoul", "ancient-treant", "goblin-rider",
     "minotaur", "plague-doctor", "spider-knight", "hydra", "siren"];
+  const STARTING_SLUGS = ["skeleton-spear", "skeleton-archer"];
+  const OWNED_ROSTER_KEY = "necromancer-map-roster-v2";
   const overlay = document.getElementById("homeInheritanceOverlay");
   const cards = document.getElementById("homeInheritanceCards");
   const closeButton = document.getElementById("homeInheritanceClose");
@@ -24,14 +26,14 @@
   function loadOwnedUnits() {
     if (ownedUnits) return ownedUnits;
     let saved;
-    try { if (typeof sessionStorage !== "undefined") saved = JSON.parse(sessionStorage.getItem("necromancer-map-test-roster-v1")); } catch (_) { /* Storage can be unavailable. */ }
+    try { if (typeof sessionStorage !== "undefined") saved = JSON.parse(sessionStorage.getItem(OWNED_ROSTER_KEY)); } catch (_) { /* Storage can be unavailable. */ }
     const valid = Array.isArray(saved) && saved.length <= SLUGS.length &&
       new Set(saved.map((unit) => unit?.slug)).size === saved.length && saved.every((unit) =>
         SLUGS.includes(unit?.slug) && Number.isFinite(unit.maxHp) && Number.isFinite(unit.attack) &&
         Number.isFinite(unit.speed) && Array.isArray(unit.brands) && unit.brands.length <= 3 &&
         unit.brands.every(V2Rules.validateBrand));
-    const roster = valid ? saved : SLUGS.map((slug) => V2Rules.individual(slug));
-    if (!valid) try { if (typeof sessionStorage !== "undefined") sessionStorage.setItem("necromancer-map-test-roster-v1", JSON.stringify(roster)); } catch (_) { /* Keep this session's units in memory. */ }
+    const roster = valid ? saved : STARTING_SLUGS.map((slug) => V2Rules.individual(slug));
+    if (!valid) try { if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify(roster)); } catch (_) { /* Keep this session's units in memory. */ }
     ownedUnits = new Map(roster.map((unit) => [unit.slug, unit]));
     return ownedUnits;
   }
@@ -157,7 +159,7 @@
     inheritedPart = part;
     owned.delete(materialSlug);
     try {
-      if (typeof sessionStorage !== "undefined") sessionStorage.setItem("necromancer-map-test-roster-v1",
+      if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY,
         JSON.stringify(SLUGS.filter((slug) => owned.has(slug)).map((slug) => owned.get(slug))));
     } catch (_) { /* Keep the current session in memory. */ }
     const donorSlug = materialSlug;

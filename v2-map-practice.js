@@ -45,11 +45,14 @@
     boss: Object.freeze({ id: "boss", name: "보스 타일", count: 1 })
   });
   const TEST_DECK = Object.freeze([
-    ["death-knight", "데스 나이트"], ["skeleton-spear", "해골 병사"], ["ghoul", "구울"],
+    ["death-knight", "데스 나이트"], ["skeleton-spear", "해골 병사"], ["skeleton-archer", "해골 궁수"], ["ghoul", "구울"],
     ["ancient-treant", "숲의 장로"], ["goblin-rider", "고블린 라이더"], ["minotaur", "미노타우로스"],
     ["plague-doctor", "역병술사"], ["spider-knight", "거미여왕"], ["hydra", "히드라"], ["siren", "세이렌"]
   ].map(([slug, name]) => Object.freeze({ slug, name })));
-  const OWNED_ROSTER_KEY = "necromancer-map-test-roster-v1";
+  const OWNED_ROSTER_KEY = "necromancer-map-roster-v2";
+  const STARTING_UNIT_SLUGS = Object.freeze(["skeleton-spear", "skeleton-archer"]);
+  const DICE_CONTROL_INVENTORY_KEY = "necromancer-map-dice-control-v1";
+  const STARTING_DICE_EXCLUDED_IDS = Object.freeze(new Set(["repeat", "echo"]));
   const CONTAMINATION_KEY = "necromancer-map-contamination-v1";
   const CONTAMINATION_MAX = 100;
   const CONTAMINATION_STAGES = Object.freeze([
@@ -204,7 +207,7 @@
         TEST_DECK.some((entry) => entry.slug === unit?.slug) && Number.isFinite(unit.maxHp) &&
         Number.isFinite(unit.attack) && Number.isFinite(unit.speed) && Array.isArray(unit.brands) &&
         unit.brands.length <= 3 && unit.brands.every(V2Rules.validateBrand));
-    const roster = valid ? saved : TEST_DECK.map((entry) => V2Rules.individual(entry.slug));
+    const roster = valid ? saved : STARTING_UNIT_SLUGS.map((slug) => V2Rules.individual(slug));
     if (!valid) try { if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify(roster)); } catch (_) { /* The current map still works without storage. */ }
     return new Map(roster.map((unit) => [unit.slug, unit]));
   }
@@ -281,6 +284,33 @@
 
   function diceControlState() {
     return { previousRoll: previousDiceRoll, previousCardId: previousDiceControlId };
+  }
+
+  function saveDiceControlInventory() {
+    try {
+      if (typeof sessionStorage !== "undefined") {
+        sessionStorage.setItem(DICE_CONTROL_INVENTORY_KEY, JSON.stringify(diceControlHand.map((card) => card.id)));
+      }
+    } catch (_) { /* Keep the current run usable without storage. */ }
+  }
+
+  function loadDiceControlInventory() {
+    let saved;
+    try {
+      if (typeof sessionStorage !== "undefined") saved = JSON.parse(sessionStorage.getItem(DICE_CONTROL_INVENTORY_KEY));
+    } catch (_) { /* Storage can be unavailable. */ }
+    if (Array.isArray(saved) && saved.every((id) => V2DiceControl.cards.some((card) => card.id === id))) {
+      return saved.map((id) => V2DiceControl.cards.find((card) => card.id === id)).filter(Boolean);
+    }
+    const startingPool = V2DiceControl.cards.filter((card) => !STARTING_DICE_EXCLUDED_IDS.has(card.id));
+    const startingCard = startingPool[Math.floor(Math.random() * startingPool.length)];
+    const inventory = startingCard ? [startingCard] : [];
+    try {
+      if (typeof sessionStorage !== "undefined") {
+        sessionStorage.setItem(DICE_CONTROL_INVENTORY_KEY, JSON.stringify(inventory.map((card) => card.id)));
+      }
+    } catch (_) { /* Keep the current run usable without storage. */ }
+    return inventory;
   }
 
   function renderDiceControlHand() {
@@ -381,7 +411,7 @@
   }
 
   function dealDiceControlHand() {
-    diceControlHand = shuffle([...V2DiceControl.cards]).slice(0, 5);
+    diceControlHand = loadDiceControlInventory();
     renderDiceControlHand();
   }
 
@@ -402,6 +432,7 @@
     const card = V2DiceControl.cards.find((entry) => entry.id === cardId);
     pendingDiceControlId = cardId;
     diceControlHand = diceControlHand.filter((entry) => entry.id !== cardId);
+    saveDiceControlInventory();
     el.diceResult.textContent = `${card.label} · 사용 · 자동으로 굴립니다`;
     renderDiceControlHand();
 
@@ -477,7 +508,7 @@
     }
     const rates = TARGET_RATES[selectedDeck.length] || [];
     el.deckStatus.textContent = rates.length ? `마물 카드 ${selectedDeck.length} / 4 · 왼쪽부터 피격 ${rates.join(" · ")}%` : "마물 카드 0 / 4";
-    el.deckConfirm.disabled = selectedDeck.length !== 4;
+    el.deckConfirm.disabled = selectedDeck.length < 1;
   }
 
   function renderBookRoster() {
@@ -608,7 +639,7 @@
   }
 
   function confirmMonsterBattle() {
-    if (selectedDeck.length !== 4) return;
+    if (selectedDeck.length < 1 || selectedDeck.length > 4) return;
     el.deckConfirm.disabled = true;
     el.deckStatus.textContent = "전장으로 이동 중…";
     const encounterId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
