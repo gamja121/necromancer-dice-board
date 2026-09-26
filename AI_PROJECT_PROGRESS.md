@@ -131,3 +131,18 @@
   - 흡혈 저주 → 기존 피해 숫자
   - 시체 포식 패시브(직접 공격/중독 처치) → 기존 초록 회복 숫자
 - 피의 원한 공격력 증가, 소환 강화 공격력 증가 등 **체력이 아닌 능력치 변화**는 별도 버프 피드백 설계 항목으로 남겨둔다.
+
+
+## 2026-09-26: 중독 문구 시트 중복 표시 조건 수정
+
+- 전투 상태 문구는 기존 이미지 시트를 그대로 사용한다.
+  - `combat-labels-sheet.jpg`: 빗나감, 치명타
+  - `status-labels-sheet.jpg`: 중독, 무적
+- `V2DamageDigits.prepareLabels()`와 `prepareStatusLabels()` 로딩 경로가 정상 연결된 것을 재확인했다.
+- 기존 중독 문구 조건은 대상이 이미 중독 상태이기만 해도 이후 공격에서 `중독` 문구가 다시 뜰 수 있었다.
+- `v2-auto-battle-practice.js`에서 공격 전/후 `poisonStacks.length`를 비교하도록 수정했다.
+- 이제 **이번 공격으로 중독 스택이 실제 증가한 경우에만** `V2DamageDigits.showLabel(target, "poison")`가 호출된다.
+- 대상이 이미 중독 최대 스택이거나 중독 면역이라 스택이 늘지 않으면 중독 문구가 다시 뜨지 않는다.
+- 첫 중독 부여 시 사용하는 `poisonAppliedTurn`도 실제 신규 스택이 들어온 경우에만 기록된다.
+- 수정 커밋: `24bd5715d64b0cf47ed63de01447fa785d7c6df8`
+- Codex 확인 포인트: `v2-auto-battle-practice.js`의 `poisonStacksBefore`, `poisonStacksAfter`, `poisonAppliedNow` 조건.
