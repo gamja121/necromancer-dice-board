@@ -391,6 +391,7 @@
       bookOpen = true;
       setBookVisual(true);
       el.bookRoster.hidden = false;
+      if (typeof V2Sfx !== "undefined") V2Sfx.play("bookCardsOpen");
       await animateBookCards(true);
     } else {
       clearBookSelection();
