@@ -1,5 +1,15 @@
 # AI 프로젝트 진행 상황 — 네크로멘서 앤드 다이스
 
+## 2026-09-27: 맵 오염도 HUD 1차 배치
+
+- 기존 순찰/오염 설계에 맞춰 v2-map-practice에 오염도 HUD를 추가했다.
+- 사용자 제공 UI 시트의 상단 HUD를 투명 PNG 자산 art/v2-style/ui/contamination/contamination-hud.png 로 정리해 사용한다.
+- HUD는 현재 오염도 0~100, 단계 안정/확산/침식/재앙/임계, 20 단위 구간을 표시한다.
+- 현재 단계 기준은 0/20/40/60/80이며 초기값은 0 · 안정이다.
+- 값은 sessionStorage의 necromancer-map-contamination-v1 에 저장한다.
+- 다음 사건/전투/보스 조건 연결을 위해 window.V2Contamination.get()/set()/add()/stage() 훅을 준비했다.
+- 이번 작업은 UI와 상태 뼈대 배치까지이며, 타일/사건별 실제 오염 증감 규칙과 보스 생성 조건은 아직 연결하지 않았다.
+
 ## 작업 시작 전 필수 확인
 
 - 사용자가 채팅에 첨부한 PNG/JPG 등 이미지를 GitHub에 추가·교체하는 작업은 **반드시 `GITHUB_IMAGE_UPLOAD_WORKFLOW.md`를 먼저 읽고 진행한다.**

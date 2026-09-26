@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
   <title>외곽 타일 맵 테스트</title>
-  <link rel="stylesheet" href="v2-map-practice.css?v=34">
+  <link rel="stylesheet" href="v2-map-practice.css?v=35">
   <link rel="stylesheet" href="v2-home-inheritance.css?v=5">
 </head>
 <body data-v2-music="map">
@@ -36,6 +36,21 @@
         <span id="mapName">기본 지역</span>
         <strong id="tileName">타일을 선택하세요</strong>
       </div>
+      <section id="contaminationHud" class="contamination-hud" data-stage="stable" aria-label="현재 오염도">
+        <img class="contamination-hud-frame" src="art/v2-style/ui/contamination/contamination-hud.png?v=1" alt="" aria-hidden="true">
+        <div class="contamination-meter" aria-hidden="true">
+          <div id="contaminationFill" class="contamination-fill"></div>
+          <span class="contamination-cut contamination-cut-1"></span>
+          <span class="contamination-cut contamination-cut-2"></span>
+          <span class="contamination-cut contamination-cut-3"></span>
+          <span class="contamination-cut contamination-cut-4"></span>
+        </div>
+        <span class="contamination-title">오염도</span>
+        <div class="contamination-readout">
+          <strong id="contaminationStage">안정</strong>
+          <span id="contaminationValue">0 / 100</span>
+        </div>
+      </section>
       <button id="mapBookButton" class="map-book-button" type="button" aria-label="책 열기" aria-pressed="false">
         <img id="mapBookImage" src="art/v2-style/ui/map-book-closed.png" alt="">
       </button>
@@ -142,6 +157,6 @@
   <script src="v2-rules.js?v=6"></script>
   <script src="v2-home-inheritance.js?v=5"></script>
   <script src="v2-dice-control.js?v=1"></script>
-  <script src="v2-map-practice.js?v=38"></script>
+  <script src="v2-map-practice.js?v=39"></script>
 </body>
 </html>

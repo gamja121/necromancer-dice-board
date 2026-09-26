@@ -50,6 +50,15 @@
     ["plague-doctor", "역병술사"], ["spider-knight", "거미여왕"], ["hydra", "히드라"], ["siren", "세이렌"]
   ].map(([slug, name]) => Object.freeze({ slug, name })));
   const OWNED_ROSTER_KEY = "necromancer-map-test-roster-v1";
+  const CONTAMINATION_KEY = "necromancer-map-contamination-v1";
+  const CONTAMINATION_MAX = 100;
+  const CONTAMINATION_STAGES = Object.freeze([
+    Object.freeze({ id: "stable", label: "안정", min: 0 }),
+    Object.freeze({ id: "spread", label: "확산", min: 20 }),
+    Object.freeze({ id: "erosion", label: "침식", min: 40 }),
+    Object.freeze({ id: "catastrophe", label: "재앙", min: 60 }),
+    Object.freeze({ id: "threshold", label: "임계", min: 80 })
+  ]);
   const GRADE_LABELS = Object.freeze({ normal: "일반", advanced: "고급", hero: "영웅", special: "소환물" });
   const LEGION_LABELS = Object.freeze({ skeleton: "언데드", corpse: "시체", beast: "야수", plague: "역병", ice: "얼음", summon: "소환", demon: "악마", insect: "벌레", plant: "식물", element: "원소" });
   const BRAND_ICON_VIEWS = Object.freeze({
@@ -75,6 +84,10 @@
     diceImage: document.getElementById("mapDiceImage"),
     diceResult: document.getElementById("diceResult"),
     moveState: document.getElementById("moveState"),
+    contaminationHud: document.getElementById("contaminationHud"),
+    contaminationFill: document.getElementById("contaminationFill"),
+    contaminationStage: document.getElementById("contaminationStage"),
+    contaminationValue: document.getElementById("contaminationValue"),
     eventOverlay: document.getElementById("tileEventOverlay"),
     eventScene: document.querySelector(".tile-event-scene"),
     eventImage: document.getElementById("tileEventImage"),
@@ -135,12 +148,52 @@
   let previousDiceControlId = null;
   let treasureRewardChosen = false;
   let selectedTreasureRewardId = null;
+  let contamination = loadContamination();
   const ownedUnits = loadOwnedRoster();
 
   [...rollingFrames, ...resultFrames, ...treasureChestFrames, ...Object.values(tileEventScenes).map((scene) => scene.image).filter(Boolean), `${ROOT}events/home-interior.jpg`].forEach((src) => { const image = new Image(); image.src = src; });
 
   function wait(milliseconds) {
     return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+  }
+
+  function loadContamination() {
+    try {
+      if (typeof sessionStorage !== "undefined") {
+        const saved = Number(sessionStorage.getItem(CONTAMINATION_KEY));
+        if (Number.isFinite(saved)) return Math.max(0, Math.min(CONTAMINATION_MAX, saved));
+      }
+    } catch (_) { /* The map still works if storage is blocked. */ }
+    return 0;
+  }
+
+  function contaminationStage(value = contamination) {
+    for (let index = CONTAMINATION_STAGES.length - 1; index >= 0; index -= 1) {
+      if (value >= CONTAMINATION_STAGES[index].min) return CONTAMINATION_STAGES[index];
+    }
+    return CONTAMINATION_STAGES[0];
+  }
+
+  function renderContamination() {
+    const stage = contaminationStage();
+    const percent = (contamination / CONTAMINATION_MAX) * 100;
+    if (el.contaminationFill) el.contaminationFill.style.width = `${percent}%`;
+    if (el.contaminationStage) el.contaminationStage.textContent = stage.label;
+    if (el.contaminationValue) el.contaminationValue.textContent = `${contamination} / ${CONTAMINATION_MAX}`;
+    if (el.contaminationHud) el.contaminationHud.dataset.stage = stage.id;
+  }
+
+  function setContamination(value) {
+    contamination = Math.max(0, Math.min(CONTAMINATION_MAX, Math.round(Number(value) || 0)));
+    try {
+      if (typeof sessionStorage !== "undefined") sessionStorage.setItem(CONTAMINATION_KEY, String(contamination));
+    } catch (_) { /* Keep the live run usable without storage. */ }
+    renderContamination();
+    return contamination;
+  }
+
+  function addContamination(amount) {
+    return setContamination(contamination + Number(amount || 0));
   }
 
   function loadOwnedRoster() {
@@ -1165,6 +1218,15 @@
   const initialMapButton = document.querySelector(`[data-map="${activeMapId}"]`);
   if (initialMapButton && activeMapId !== "default") initialMapButton.click();
   el.regenerate.addEventListener("click", generateTiles);
+  window.V2Contamination = Object.freeze({
+    get: () => contamination,
+    stage: () => contaminationStage().id,
+    set: setContamination,
+    add: addContamination
+  });
+
+  renderContamination();
+
   el.diceButton.addEventListener("click", rollAndMove);
   el.eventClose.addEventListener("click", handleTileEventExit);
   el.eventEnter.addEventListener("click", enterHome);
