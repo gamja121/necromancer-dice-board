@@ -717,6 +717,7 @@
     el.eventTreasure.hidden = !treasure;
     el.eventEnter.hidden = tile.id !== "home";
     el.eventInheritance.hidden = true;
+    el.eventClose.hidden = treasure;
     if (treasure) {
       el.eventImage.removeAttribute("src");
       clearTreasureRewards();
@@ -732,7 +733,7 @@
       el.eventImage.alt = `${scene.title} 풍경`;
     }
     el.eventOverlay.hidden = false;
-    el.eventClose.focus();
+    if (!treasure) el.eventClose.focus();
     return true;
   }
 

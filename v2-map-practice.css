@@ -113,6 +113,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .treasure-reward-card:not(:disabled):focus-visible { z-index: 8; filter: drop-shadow(0 0 13px #ffe39a) drop-shadow(0 11px 12px #000d); outline: 0; }
 .treasure-reward-card.is-selected {
   z-index: 12;
+  opacity: 1 !important;
   transform: translateY(-8%) scale(1.08) rotate(var(--reward-rot, 0deg));
   filter: drop-shadow(0 0 8px #fff4c9) drop-shadow(0 0 18px #ffd56a) drop-shadow(0 14px 14px #000d);
   animation: treasure-reward-selected 760ms ease-in-out infinite alternate;
@@ -127,7 +128,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   pointer-events: none;
 }
 .treasure-reward-card.is-dimmed { opacity: .48; filter: grayscale(.22) brightness(.72) drop-shadow(0 8px 8px #000b); }
-.treasure-reward-card.is-confirming { animation: none; transform: translateY(-10%) scale(1.1) rotate(var(--reward-rot, 0deg)); filter: drop-shadow(0 0 12px #fff7d8) drop-shadow(0 0 24px #ffd56a) drop-shadow(0 14px 14px #000d); }
+.treasure-reward-card.is-confirming { opacity: 1 !important; animation: none; transform: translateY(-10%) scale(1.1) rotate(var(--reward-rot, 0deg)); filter: drop-shadow(0 0 12px #fff7d8) drop-shadow(0 0 24px #ffd56a) drop-shadow(0 14px 14px #000d); }
 .treasure-reward-card.is-rejected { opacity: 0 !important; transform: translateY(10%) scale(.72) rotate(var(--reward-rot, 0deg)) !important; pointer-events: none; }
 
 @keyframes treasure-reward-selected {
