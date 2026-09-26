@@ -749,6 +749,34 @@
     });
   }
 
+  function getDiceInnerBounds(walls, radius, boardRect) {
+    // The route is 8 top + 4 right + 7 bottom + 5 left tiles.
+    // Individual tile rectangles have tiny gaps, so a fast die can slip through them.
+    // Build one continuous invisible inner wall from the route itself.
+    const topWalls = walls.slice(0, 8);
+    const rightWalls = walls.slice(8, 12);
+    const bottomWalls = walls.slice(12, 19);
+    const leftWalls = walls.slice(19, 24);
+
+    const fallback = {
+      minX: radius + 4,
+      maxX: boardRect.width - radius - 4,
+      minY: radius + 4,
+      maxY: boardRect.height - radius - 4
+    };
+    if (!topWalls.length || !rightWalls.length || !bottomWalls.length || !leftWalls.length) return fallback;
+
+    const bounds = {
+      minX: Math.max(...leftWalls.map((wall) => wall.right)) + radius,
+      maxX: Math.min(...rightWalls.map((wall) => wall.left)) - radius,
+      minY: Math.max(...topWalls.map((wall) => wall.bottom)) + radius,
+      maxY: Math.min(...bottomWalls.map((wall) => wall.top)) - radius
+    };
+
+    if (bounds.minX >= bounds.maxX || bounds.minY >= bounds.maxY) return fallback;
+    return bounds;
+  }
+
   function animateMapDiceRoll(result) {
     return new Promise((resolve) => {
       const boardRect = el.board.getBoundingClientRect();
@@ -756,10 +784,7 @@
       const radius = Math.max(diceRect.width, diceRect.height) * .40;
       const walls = getDiceWallRects(boardRect);
       const duration = 1750 + Math.random() * 450;
-      const minX = radius + 4;
-      const maxX = boardRect.width - radius - 4;
-      const minY = radius + 4;
-      const maxY = boardRect.height - radius - 4;
+      const { minX, maxX, minY, maxY } = getDiceInnerBounds(walls, radius, boardRect);
 
       let x = diceRect.left - boardRect.left + diceRect.width / 2;
       let y = diceRect.top - boardRect.top + diceRect.height / 2;
