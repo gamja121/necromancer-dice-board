@@ -917,14 +917,15 @@
         y += vy * dt;
 
         let bounced = false;
+
+        // The continuous inner bounds are the authoritative tile-ring wall.
+        // Do not run the old per-tile push-out after this clamp: when the die
+        // enters a bottom tile rectangle, that resolver can choose the outer
+        // face and push the die through the lower row on the first roll.
         if (x < minX) { x = minX; vx = Math.abs(vx) * .78; bounced = true; }
         else if (x > maxX) { x = maxX; vx = -Math.abs(vx) * .78; bounced = true; }
         if (y < minY) { y = minY; vy = Math.abs(vy) * .78; bounced = true; }
         else if (y > maxY) { y = maxY; vy = -Math.abs(vy) * .78; bounced = true; }
-
-        for (const wall of walls) {
-          if (bounceAgainstRect(wall)) bounced = true;
-        }
 
         if (bounced && soundClock > 85 && typeof V2Sfx !== "undefined") {
           V2Sfx.play("diceTick", { rate: .9 + Math.random() * .24 });
