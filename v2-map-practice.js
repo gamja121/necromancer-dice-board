@@ -511,7 +511,10 @@
   }
 
   async function handleTileEventExit() {
-    const refreshAfterHome = eventOpen && activeEventTileId === "home" && lapReadyForRefresh;
+    // The home scene's Exit button is the authoritative trigger for the lap transition.
+    // Do not depend on a transient lap flag here; if the player is leaving the home scene,
+    // always cover the map, rebuild the tiles, then reveal the new board.
+    const refreshAfterHome = eventOpen && activeEventTileId === "home";
     closeTileEvent();
     if (refreshAfterHome) await playCloudTileRefresh();
   }
