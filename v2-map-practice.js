@@ -132,6 +132,7 @@
   let pendingDiceControlId = null;
   let previousDiceRoll = null;
   let previousDiceControlId = null;
+  let treasureRewardChosen = false;
   const ownedUnits = loadOwnedRoster();
 
   [...rollingFrames, ...resultFrames, ...Object.values(tileEventScenes).map((scene) => scene.image).filter(Boolean), `${ROOT}events/home-interior.jpg`].forEach((src) => { const image = new Image(); image.src = src; });
@@ -577,25 +578,50 @@
     return mixed;
   }
 
+  async function chooseTreasureReward(reward, selectedCard) {
+    if (treasureRewardChosen || !eventOpen || activeEventTileId !== "gem") return;
+    treasureRewardChosen = true;
+
+    const cards = [...el.eventTreasureRewards.querySelectorAll(".treasure-reward-card")];
+    cards.forEach((card) => {
+      card.disabled = true;
+      card.classList.toggle("is-selected", card === selectedCard);
+      card.classList.toggle("is-rejected", card !== selectedCard);
+    });
+
+    selectedCard.classList.add(reward.type === "unit" ? "is-fly-left" : "is-fly-right");
+    el.diceResult.textContent = reward.type === "unit"
+      ? `${reward.label} 선택 · 마물 카드 보관함으로 이동`
+      : `${reward.label} 선택 · 주사위 컨트롤 카드 더미로 이동`;
+
+    await wait(720);
+    closeTileEvent();
+  }
+
   function showTreasureRewards() {
+    treasureRewardChosen = false;
     const rewards = createTreasureRewards();
     el.eventTreasureRewards.replaceChildren();
     for (const reward of rewards) {
-      const card = document.createElement("div");
+      const card = document.createElement("button");
       const image = document.createElement("img");
       const badge = document.createElement("span");
+      card.type = "button";
       card.className = "treasure-reward-card";
+      card.setAttribute("aria-label", `${reward.label} 선택`);
       image.src = reward.image;
       image.alt = reward.label;
       badge.className = "treasure-reward-badge";
       badge.textContent = reward.type === "unit" ? `마물 · ${reward.label}` : `주사위 · ${reward.label}`;
       card.append(image, badge);
+      card.addEventListener("click", () => chooseTreasureReward(reward, card), { once: true });
       el.eventTreasureRewards.append(card);
     }
     el.eventTreasureRewards.hidden = false;
   }
 
   function clearTreasureRewards() {
+    treasureRewardChosen = false;
     el.eventTreasureRewards.hidden = true;
     el.eventTreasureRewards.replaceChildren();
   }
