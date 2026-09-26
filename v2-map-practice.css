@@ -100,14 +100,22 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .tile-event-scene > img[hidden], .treasure-chest-sprite[hidden] { display: none; }
 .treasure-chest-sprite { position: absolute; left: 50%; top: 50%; width: 48%; height: 100%; transform: translate(-50%, -50%); background: url("art/v2-style/map-test/events/treasure-chest-sprite.png") 0% 48% / 400% auto no-repeat; filter: drop-shadow(0 12px 12px #000c); }
 .treasure-chest-sprite.is-playing { animation: treasure-chest-open 1.45s linear forwards; }
-.treasure-reward-cards { position: absolute; z-index: 3; left: 50%; top: 48%; display: flex; align-items: flex-end; justify-content: center; gap: 4%; width: 82%; height: 76%; transform: translate(-50%, -50%); pointer-events: none; }
+.treasure-reward-cards { position: absolute; z-index: 3; left: 50%; top: 48%; display: flex; align-items: flex-end; justify-content: center; gap: 4%; width: 82%; height: 76%; transform: translate(-50%, -50%); pointer-events: auto; }
 .treasure-reward-cards[hidden] { display: none; }
-.treasure-reward-card { position: relative; width: 27%; max-height: 94%; padding: 0; border: 0; background: transparent; opacity: 0; transform: translateY(22%) scale(.78) rotate(var(--reward-rot, 0deg)); filter: drop-shadow(0 10px 10px #000c); animation: treasure-reward-rise 420ms cubic-bezier(.18,.88,.22,1.08) forwards; animation-delay: var(--reward-delay, 0ms); pointer-events: none; }
+.treasure-reward-card { position: relative; width: 27%; max-height: 94%; padding: 0; border: 0; background: transparent; opacity: 0; transform: translateY(22%) scale(.78) rotate(var(--reward-rot, 0deg)); filter: drop-shadow(0 10px 10px #000c); animation: treasure-reward-rise 420ms cubic-bezier(.18,.88,.22,1.08) forwards; animation-delay: var(--reward-delay, 0ms); pointer-events: auto; cursor: pointer; touch-action: manipulation; transition: filter 150ms ease, opacity 260ms ease, transform 620ms cubic-bezier(.2,.76,.2,1); }
 .treasure-reward-card:nth-child(1) { --reward-rot: -7deg; --reward-delay: 0ms; }
 .treasure-reward-card:nth-child(2) { --reward-rot: 0deg; --reward-delay: 110ms; }
 .treasure-reward-card:nth-child(3) { --reward-rot: 7deg; --reward-delay: 220ms; }
 .treasure-reward-card img { display: block; width: 100%; height: 100%; max-height: 100%; object-fit: contain; }
 .treasure-reward-badge { position: absolute; left: 50%; bottom: -7%; transform: translateX(-50%); min-width: 64%; padding: 4px 8px; border: 1px solid #8d714b; border-radius: 3px; background: #120c09e8; color: #f5dfb8; font-size: clamp(8px, .95vw, 12px); font-weight: 900; text-align: center; white-space: nowrap; box-shadow: 0 4px 8px #0008; }
+
+.treasure-reward-card:not(:disabled):hover,
+.treasure-reward-card:not(:disabled):focus-visible { z-index: 8; filter: drop-shadow(0 0 13px #ffe39a) drop-shadow(0 11px 12px #000d); outline: 0; }
+.treasure-reward-card.is-selected { z-index: 12; filter: drop-shadow(0 0 16px #ffe39a) drop-shadow(0 12px 13px #000d); }
+.treasure-reward-card.is-rejected { opacity: 0 !important; transform: translateY(10%) scale(.72) rotate(var(--reward-rot, 0deg)) !important; pointer-events: none; }
+.treasure-reward-card.is-fly-left { opacity: 0 !important; transform: translate(-210%, -18%) scale(.55) rotate(-18deg) !important; pointer-events: none; }
+.treasure-reward-card.is-fly-right { opacity: 0 !important; transform: translate(210%, -18%) scale(.55) rotate(18deg) !important; pointer-events: none; }
+
 @keyframes treasure-reward-rise {
   0% { opacity: 0; transform: translateY(22%) scale(.78) rotate(var(--reward-rot, 0deg)); }
   70% { opacity: 1; transform: translateY(-3%) scale(1.04) rotate(var(--reward-rot, 0deg)); }
