@@ -578,7 +578,10 @@
       const diceRect = el.diceButton.getBoundingClientRect();
       const radius = Math.max(diceRect.width, diceRect.height) * .40;
       const walls = getDiceWallRects(boardRect);
-      const duration = 1750 + Math.random() * 450;
+      // Keep the approved launch direction/start behavior intact.
+      // Only the throw strength varies: sometimes soft, sometimes forceful.
+      const duration = 1950;
+      const throwStrength = .48 + Math.random() * .44;
       const minX = radius + 4;
       const maxX = boardRect.width - radius - 4;
       const minY = radius + 4;
@@ -588,7 +591,7 @@
       let y = diceRect.top - boardRect.top + diceRect.height / 2;
       let direction = Math.random() * Math.PI * 2;
       if (Math.abs(Math.cos(direction)) < .28) direction += .45;
-      const baseSpeed = boardRect.width * (.62 + Math.random() * .16);
+      const baseSpeed = boardRect.width * throwStrength;
       let vx = Math.cos(direction) * baseSpeed;
       let vy = Math.sin(direction) * baseSpeed * .72;
       let rotation = Math.random() * 80 - 40;
