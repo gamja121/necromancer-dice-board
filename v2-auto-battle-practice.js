@@ -359,7 +359,7 @@
   let captureTargetLocked = false;
   let lineupRequest = 0;
   let lineupSide = "ally";
-  let selectedAllySlugs = requestedAllySlugs.length === 4 && new Set(requestedAllySlugs).size === 4 ? requestedAllySlugs : [];
+  let selectedAllySlugs = requestedAllySlugs.length >= 1 && requestedAllySlugs.length <= 4 && new Set(requestedAllySlugs).size === requestedAllySlugs.length ? requestedAllySlugs : [];
   let selectedEnemySlugs = fromMap ? createMapEnemySlugs() : TEAM_DATA.enemy.map(entry => entry.slug);
   let rosterTouchScroll = null;
   let selectedAllyTeam = TEAM_DATA.ally.map(entry => ({ ...entry }));
