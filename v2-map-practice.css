@@ -97,9 +97,9 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .tile-event-overlay[hidden] { display: none; }
 .tile-event-scene { position: absolute; left: 50%; top: 50%; width: 62%; height: 65%; transform: translate(-50%, -50%); pointer-events: none; }
 .tile-event-scene > img { display: block; width: 100%; height: 100%; min-width: 0; max-width: 100%; max-height: 100%; object-fit: fill; filter: drop-shadow(0 8px 10px #0007); }
-.tile-event-scene > img[hidden], .treasure-chest-sprite[hidden] { display: none; }
-.treasure-chest-sprite { position: absolute; left: 50%; top: 50%; width: 25%; height: 100%; transform: translate(-50%, -50%); background: url("art/v2-style/map-test/events/treasure-chest-sprite.png") 0% 50% / 400% 100% no-repeat; filter: drop-shadow(0 12px 12px #000c); }
-.treasure-chest-sprite.is-playing { animation: treasure-chest-open 1.45s linear forwards; }
+.tile-event-scene > img[hidden], .treasure-chest-frame[hidden] { display: none; }
+.treasure-chest-frame { position: absolute; left: 50%; top: 50%; width: auto; height: 88%; max-width: 46%; max-height: 88%; transform: translate(-50%, -50%); object-fit: contain; filter: drop-shadow(0 12px 12px #000c); pointer-events: none; user-select: none; }
+.treasure-chest-frame.is-burst { height: 96%; max-width: 54%; max-height: 96%; }
 .treasure-reward-cards { position: absolute; z-index: 3; left: 50%; top: 48%; display: flex; align-items: flex-end; justify-content: center; gap: 4%; width: 82%; height: 76%; transform: translate(-50%, -50%); pointer-events: auto; }
 .treasure-reward-cards[hidden] { display: none; }
 .treasure-reward-card { position: relative; width: 27%; max-height: 94%; padding: 0; border: 0; background: transparent; opacity: 0; transform: translateY(22%) scale(.78) rotate(var(--reward-rot, 0deg)); filter: drop-shadow(0 10px 10px #000c); animation: treasure-reward-rise 420ms cubic-bezier(.18,.88,.22,1.08) forwards; animation-delay: var(--reward-delay, 0ms); pointer-events: auto; cursor: pointer; touch-action: manipulation; transition: filter 150ms ease, opacity 260ms ease, transform 620ms cubic-bezier(.2,.76,.2,1); }
@@ -202,16 +202,10 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 }
 @keyframes hero-step { 0% { transform: translateY(0) scale(1) scaleX(var(--hero-facing, 1)); } 50% { transform: translateY(-12%) scale(1.08) scaleX(var(--hero-facing, 1)); } 100% { transform: translateY(0) scale(1) scaleX(var(--hero-facing, 1)); } }
 @keyframes dice-roll-pulse { from { transform: translateY(3px) rotate(-3deg); } to { transform: translateY(-4px) rotate(3deg); } }
-@keyframes treasure-chest-open {
-  0%, 23% { background-position: 0% 48%; }
-  24%, 47% { background-position: 33.333% 48%; }
-  48%, 71% { background-position: 66.667% 48%; }
-  72%, 100% { background-position: 100% 48%; }
-}
 @keyframes map-deck-window-drop { from { transform: translate(-50%, -118%); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
 @keyframes map-deck-roster-rise { from { transform: translateY(125%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @keyframes map-deck-controls-rise { from { transform: translateY(32px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } .treasure-chest-sprite.is-playing { animation: none; background-position: 100% 48%; } .map-deck-overlay.is-open .map-deck-window, .map-deck-overlay.is-open .map-deck-roster, .map-deck-overlay.is-open #mapDeckStatus, .map-deck-overlay.is-open .map-deck-confirm { animation-duration: 1ms; animation-delay: 0ms; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } .map-deck-overlay.is-open .map-deck-window, .map-deck-overlay.is-open .map-deck-roster, .map-deck-overlay.is-open #mapDeckStatus, .map-deck-overlay.is-open .map-deck-confirm { animation-duration: 1ms; animation-delay: 0ms; } }
 
 .map-cloud-transition { position: absolute; z-index: 90; inset: 0; overflow: hidden; pointer-events: auto; }
 .map-cloud-transition[hidden] { display: none; }

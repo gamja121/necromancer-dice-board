@@ -5,6 +5,7 @@
   const DICE_ROOT = "art/v2-style/dice-test/frames/";
   const rollingFrames = Array.from({ length: 12 }, (_, index) => `${DICE_ROOT}roll-${String(index + 1).padStart(2, "0")}.png`);
   const resultFrames = Array.from({ length: 6 }, (_, index) => `${DICE_ROOT}result-${String(index + 1).padStart(2, "0")}.png`);
+  const treasureChestFrames = Array.from({ length: 4 }, (_, index) => `${ROOT}events/treasure-chest-frame-${index + 1}.png`);
   const maps = {
     default: { name: "기본 지역", image: `${ROOT}maps/default-map.jpg` },
     winter: { name: "겨울 지역", image: `${ROOT}maps/winter-map.jpg` },
@@ -77,7 +78,7 @@
     eventOverlay: document.getElementById("tileEventOverlay"),
     eventScene: document.querySelector(".tile-event-scene"),
     eventImage: document.getElementById("tileEventImage"),
-    eventTreasure: document.getElementById("treasureChestSprite"),
+    eventTreasure: document.getElementById("treasureChestFrame"),
     eventTreasureRewards: document.getElementById("treasureRewardCards"),
     eventEnter: document.getElementById("tileEventEnter"),
     eventInheritance: document.getElementById("tileEventInheritance"),
@@ -136,7 +137,7 @@
   let selectedTreasureRewardId = null;
   const ownedUnits = loadOwnedRoster();
 
-  [...rollingFrames, ...resultFrames, ...Object.values(tileEventScenes).map((scene) => scene.image).filter(Boolean), `${ROOT}events/home-interior.jpg`].forEach((src) => { const image = new Image(); image.src = src; });
+  [...rollingFrames, ...resultFrames, ...treasureChestFrames, ...Object.values(tileEventScenes).map((scene) => scene.image).filter(Boolean), `${ROOT}events/home-interior.jpg`].forEach((src) => { const image = new Image(); image.src = src; });
 
   function wait(milliseconds) {
     return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
@@ -702,6 +703,24 @@
     el.eventTreasureRewards.replaceChildren();
   }
 
+  async function playTreasureChestAnimation() {
+    if (!el.eventTreasure) return;
+    el.eventTreasure.hidden = false;
+    el.eventTreasure.classList.remove("is-burst");
+    el.eventTreasure.src = treasureChestFrames[0];
+    await wait(180);
+    if (!eventOpen || activeEventTileId !== "gem") return;
+    el.eventTreasure.src = treasureChestFrames[1];
+    await wait(220);
+    if (!eventOpen || activeEventTileId !== "gem") return;
+    el.eventTreasure.src = treasureChestFrames[2];
+    await wait(250);
+    if (!eventOpen || activeEventTileId !== "gem") return;
+    el.eventTreasure.classList.add("is-burst");
+    el.eventTreasure.src = treasureChestFrames[3];
+    await wait(340);
+  }
+
   function openTileEvent(tile, step) {
     const scene = tileEventScenes[tile?.id];
     if (!scene || enteringBattle) return false;
@@ -721,13 +740,12 @@
     if (treasure) {
       el.eventImage.removeAttribute("src");
       clearTreasureRewards();
-      el.eventTreasure.classList.remove("is-playing");
-      void el.eventTreasure.offsetWidth;
-      el.eventTreasure.classList.add("is-playing");
+      el.eventTreasure.classList.remove("is-burst");
+      el.eventTreasure.src = treasureChestFrames[0];
       if (typeof V2Sfx !== "undefined") V2Sfx.play("treasureChestOpen");
-      window.setTimeout(() => {
+      void playTreasureChestAnimation().then(() => {
         if (eventOpen && activeEventTileId === "gem") showTreasureRewards();
-      }, 1050);
+      });
     } else {
       el.eventImage.src = scene.image;
       el.eventImage.alt = `${scene.title} 풍경`;
@@ -811,7 +829,9 @@
     el.eventEnter.hidden = true;
     el.eventInheritance.hidden = true;
     V2HomeInheritance.close();
-    el.eventTreasure.classList.remove("is-playing");
+    el.eventTreasure.hidden = true;
+    el.eventTreasure.classList.remove("is-burst");
+    el.eventTreasure.src = treasureChestFrames[0];
     clearTreasureRewards();
     el.diceButton.disabled = false;
     el.regenerate.disabled = false;
