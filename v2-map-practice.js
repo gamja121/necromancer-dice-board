@@ -619,7 +619,6 @@
       el.eventImage.removeAttribute("src");
       clearTreasureRewards();
       el.eventTreasure.classList.remove("is-playing");
-    clearTreasureRewards();
       void el.eventTreasure.offsetWidth;
       el.eventTreasure.classList.add("is-playing");
       if (typeof V2Sfx !== "undefined") V2Sfx.play("treasureChestOpen");
@@ -710,6 +709,7 @@
     el.eventInheritance.hidden = true;
     V2HomeInheritance.close();
     el.eventTreasure.classList.remove("is-playing");
+    clearTreasureRewards();
     el.diceButton.disabled = false;
     el.regenerate.disabled = false;
     el.diceButton.focus();
