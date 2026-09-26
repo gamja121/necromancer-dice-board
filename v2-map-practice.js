@@ -578,7 +578,6 @@
       const diceRect = el.diceButton.getBoundingClientRect();
       const radius = Math.max(diceRect.width, diceRect.height) * .40;
       const walls = getDiceWallRects(boardRect);
-      const duration = 1750 + Math.random() * 450;
       const minX = radius + 4;
       const maxX = boardRect.width - radius - 4;
       const minY = radius + 4;
@@ -586,26 +585,48 @@
 
       let x = diceRect.left - boardRect.left + diceRect.width / 2;
       let y = diceRect.top - boardRect.top + diceRect.height / 2;
-      let direction = Math.random() * Math.PI * 2;
-      if (Math.abs(Math.cos(direction)) < .28) direction += .45;
-      const baseSpeed = boardRect.width * (.62 + Math.random() * .16);
-      let vx = Math.cos(direction) * baseSpeed;
-      let vy = Math.sin(direction) * baseSpeed * .72;
-      let rotation = Math.random() * 80 - 40;
+
+      const launchAngle = Math.random() * Math.PI * 2;
+      const launchSpeed = boardRect.width * (.54 + Math.random() * .34);
+      const verticalRatio = .55 + Math.random() * .38;
+      let vx = Math.cos(launchAngle) * launchSpeed;
+      let vy = Math.sin(launchAngle) * launchSpeed * verticalRatio;
+
+      const targetBounces = 2 + Math.floor(Math.random() * 5);
+      const hardStopMs = 1700 + Math.random() * 1550;
+      const softStopMs = 1150 + Math.random() * 700;
+      const earlyDrag = .72 + Math.random() * .75;
+      const lateDrag = 2.2 + Math.random() * 2.7;
+      const bounceRetention = .72 + Math.random() * .18;
+      const edgeRetention = .70 + Math.random() * .16;
+      const spinDirection = Math.random() < .5 ? -1 : 1;
+      const spinFactor = .44 + Math.random() * .50;
+      const frameInterval = 46 + Math.random() * 42;
+
+      let rotation = Math.random() * 110 - 55;
       let lastTime = performance.now();
       let elapsed = 0;
       let frameClock = 0;
       let soundClock = 0;
       let settled = false;
+      let bounceCount = 0;
 
       const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+      function registerBounce() {
+        bounceCount += 1;
+        if (soundClock > 75 && typeof V2Sfx !== "undefined") {
+          V2Sfx.play("diceTick", { rate: .88 + Math.random() * .28 });
+          soundClock = 0;
+        }
+      }
 
       function bounceAgainstRect(wall) {
         const nearestX = clamp(x, wall.left, wall.right);
         const nearestY = clamp(y, wall.top, wall.bottom);
         let dx = x - nearestX;
         let dy = y - nearestY;
-        let distanceSq = dx * dx + dy * dy;
+        const distanceSq = dx * dx + dy * dy;
         if (distanceSq >= radius * radius) return false;
 
         let nx;
@@ -630,9 +651,13 @@
         if (dot < 0) {
           vx -= 2 * dot * nx;
           vy -= 2 * dot * ny;
-          vx *= .82;
-          vy *= .82;
+          const jitter = (Math.random() - .5) * launchSpeed * .055;
+          vx += -ny * jitter;
+          vy += nx * jitter;
+          vx *= bounceRetention;
+          vy *= bounceRetention;
         }
+
         const push = radius - distance + 1.5;
         x += nx * push;
         y += ny * push;
@@ -646,7 +671,7 @@
         el.diceImage.alt = `주사위 결과 ${result}`;
         el.diceButton.style.left = `${x}px`;
         el.diceButton.style.top = `${y}px`;
-        el.diceButton.style.transform = `translate(-50%, -50%) rotate(${rotation}deg) scale(1.04)`;
+        el.diceButton.style.transform = `translate(-50%, -50%) rotate(${rotation}deg) scale(1.05)`;
         if (typeof V2Sfx !== "undefined") V2Sfx.play("diceLand", { rate: .94 + result * .015 });
         window.setTimeout(() => {
           el.diceButton.style.transform = `translate(-50%, -50%) rotate(${rotation}deg) scale(1)`;
@@ -661,51 +686,71 @@
         frameClock += dt * 1000;
         soundClock += dt * 1000;
 
-        const lateDrag = elapsed > duration * .62 ? 3.4 : 1.15;
-        const drag = Math.exp(-lateDrag * dt);
+        const bounceProgress = Math.min(bounceCount / Math.max(targetBounces, 1), 1);
+        const timeProgress = Math.min(elapsed / hardStopMs, 1);
+        const dragStrength = earlyDrag + (lateDrag - earlyDrag) * Math.max(bounceProgress * .82, timeProgress * .72);
+        const drag = Math.exp(-dragStrength * dt);
+
         vx *= drag;
         vy *= drag;
         x += vx * dt;
         y += vy * dt;
 
         let bounced = false;
-        if (x < minX) { x = minX; vx = Math.abs(vx) * .78; bounced = true; }
-        else if (x > maxX) { x = maxX; vx = -Math.abs(vx) * .78; bounced = true; }
-        if (y < minY) { y = minY; vy = Math.abs(vy) * .78; bounced = true; }
-        else if (y > maxY) { y = maxY; vy = -Math.abs(vy) * .78; bounced = true; }
+        if (x < minX) {
+          x = minX;
+          vx = Math.abs(vx) * edgeRetention;
+          bounced = true;
+        } else if (x > maxX) {
+          x = maxX;
+          vx = -Math.abs(vx) * edgeRetention;
+          bounced = true;
+        }
+        if (y < minY) {
+          y = minY;
+          vy = Math.abs(vy) * edgeRetention;
+          bounced = true;
+        } else if (y > maxY) {
+          y = maxY;
+          vy = -Math.abs(vy) * edgeRetention;
+          bounced = true;
+        }
 
         for (const wall of walls) {
           if (bounceAgainstRect(wall)) bounced = true;
         }
 
-        if (bounced && soundClock > 85 && typeof V2Sfx !== "undefined") {
-          V2Sfx.play("diceTick", { rate: .9 + Math.random() * .24 });
-          soundClock = 0;
-        }
+        if (bounced) registerBounce();
 
         const speed = Math.hypot(vx, vy);
-        rotation += (vx >= 0 ? 1 : -1) * speed * dt * .62;
+        rotation += spinDirection * speed * dt * spinFactor;
         el.diceButton.style.left = `${x}px`;
         el.diceButton.style.top = `${y}px`;
-        el.diceButton.style.transform = `translate(-50%, -50%) rotate(${rotation}deg) scale(${1 + Math.min(speed / Math.max(baseSpeed, 1), 1) * .09})`;
+        el.diceButton.style.transform = `translate(-50%, -50%) rotate(${rotation}deg) scale(${1 + Math.min(speed / Math.max(launchSpeed, 1), 1) * .10})`;
 
-        if (frameClock > 62) {
-          diceFrameIndex = (diceFrameIndex + 1) % rollingFrames.length;
+        if (frameClock > frameInterval) {
+          diceFrameIndex = (diceFrameIndex + 1 + Math.floor(Math.random() * 2)) % rollingFrames.length;
           el.diceImage.src = rollingFrames[diceFrameIndex];
           frameClock = 0;
         }
 
-        if (elapsed >= duration || (elapsed > 1250 && speed < boardRect.width * .045)) {
+        const enoughBounces = bounceCount >= targetBounces;
+        const slowEnough = speed < boardRect.width * (.034 + Math.random() * .012);
+        if (
+          elapsed >= hardStopMs ||
+          (elapsed > softStopMs && enoughBounces && slowEnough) ||
+          (elapsed > hardStopMs * .78 && speed < boardRect.width * .025)
+        ) {
           finish();
           return;
         }
+
         requestAnimationFrame(tick);
       }
 
       requestAnimationFrame(tick);
     });
   }
-
   async function rollAndMove() {
     if (rolling) return;
     rolling = true;
