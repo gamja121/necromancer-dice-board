@@ -56,12 +56,14 @@
   const CONTAMINATION_KEY = "necromancer-map-contamination-v1";
   const CONTAMINATION_MAX = 100;
   const CONTAMINATION_STAGES = Object.freeze([
-    Object.freeze({ id: "stable", label: "안정", min: 0 }),
-    Object.freeze({ id: "spread", label: "확산", min: 20 }),
-    Object.freeze({ id: "erosion", label: "침식", min: 40 }),
-    Object.freeze({ id: "catastrophe", label: "재앙", min: 60 }),
-    Object.freeze({ id: "threshold", label: "임계", min: 80 })
+    Object.freeze({ id: "stable", label: "안정", min: 0, monsterTiles: 3 }),
+    Object.freeze({ id: "spread", label: "확산", min: 20, monsterTiles: 3 }),
+    Object.freeze({ id: "erosion", label: "침식", min: 40, monsterTiles: 4 }),
+    Object.freeze({ id: "catastrophe", label: "재앙", min: 60, monsterTiles: 4 }),
+    Object.freeze({ id: "threshold", label: "임계", min: 80, monsterTiles: 5 })
   ]);
+  const BOSS_CONTAMINATION_MIN = 80;
+  const MAP_LAYOUT_KEY = "necromancer-map-layout-v1";
   const GRADE_LABELS = Object.freeze({ normal: "일반", advanced: "고급", hero: "영웅", special: "소환물" });
   const LEGION_LABELS = Object.freeze({ skeleton: "언데드", corpse: "시체", beast: "야수", plague: "역병", ice: "얼음", summon: "소환", demon: "악마", insect: "벌레", plant: "식물", element: "원소" });
   const BRAND_ICON_VIEWS = Object.freeze({
@@ -132,7 +134,10 @@
   let heroIndex = 0;
   let rolling = false;
   let diceFrameIndex = 0;
-  const requestedMapId = new URLSearchParams(window.location.search).get("map");
+  const mapQuery = new URLSearchParams(window.location.search);
+  const requestedMapId = mapQuery.get("map");
+  const requestedResumeStep = Number(mapQuery.get("resume"));
+  let resumeHeroIndex = Number.isInteger(requestedResumeStep) && requestedResumeStep >= 1 && requestedResumeStep <= 24 ? requestedResumeStep - 1 : null;
   let activeMapId = maps[requestedMapId] ? requestedMapId : "default";
   let enteringBattle = false;
   let eventOpen = false;
@@ -199,6 +204,14 @@
     return setContamination(contamination + Number(amount || 0));
   }
 
+  function healOwnedRosterAtHome() {
+    for (const unit of ownedUnits.values()) unit.currentHp = unit.maxHp;
+    try {
+      if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify([...ownedUnits.values()]));
+    } catch (_) { /* Keep the current run usable without storage. */ }
+    renderBookRoster();
+  }
+
   function loadOwnedRoster() {
     let saved;
     try { if (typeof sessionStorage !== "undefined") saved = JSON.parse(sessionStorage.getItem(OWNED_ROSTER_KEY)); } catch (_) { /* Private browsing can block storage. */ }
@@ -207,8 +220,11 @@
         TEST_DECK.some((entry) => entry.slug === unit?.slug) && Number.isFinite(unit.maxHp) &&
         Number.isFinite(unit.attack) && Number.isFinite(unit.speed) && Array.isArray(unit.brands) &&
         unit.brands.length <= 3 && unit.brands.every(V2Rules.validateBrand));
-    const roster = valid ? saved : STARTING_UNIT_SLUGS.map((slug) => V2Rules.individual(slug));
-    if (!valid) try { if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify(roster)); } catch (_) { /* The current map still works without storage. */ }
+    const roster = (valid ? saved : STARTING_UNIT_SLUGS.map((slug) => V2Rules.individual(slug))).map((unit) => ({
+      ...unit,
+      currentHp: Math.max(0, Math.min(unit.maxHp, Number.isFinite(unit.currentHp) ? unit.currentHp : unit.maxHp))
+    }));
+    try { if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify(roster)); } catch (_) { /* The current map still works without storage. */ }
     return new Map(roster.map((unit) => [unit.slug, unit]));
   }
 
@@ -229,13 +245,41 @@
     return items;
   }
 
+  function tileDefinitionById(id) {
+    return tileTypes.find((tile) => tile.id === id) || Object.values(fixedTiles).find((tile) => tile.id === id) || null;
+  }
+
+  function loadSavedMapLayout() {
+    if (resumeHeroIndex === null) return null;
+    try {
+      const ids = JSON.parse(sessionStorage.getItem(MAP_LAYOUT_KEY));
+      if (!Array.isArray(ids) || ids.length !== 24) return null;
+      const restored = ids.map(tileDefinitionById);
+      return restored.every(Boolean) ? restored : null;
+    } catch (_) { return null; }
+  }
+
+  function saveMapLayout(tiles = currentTiles) {
+    try {
+      if (typeof sessionStorage !== "undefined") sessionStorage.setItem(MAP_LAYOUT_KEY, JSON.stringify(tiles.map((tile) => tile.id)));
+    } catch (_) { /* Keep the live map usable without storage. */ }
+  }
+
   function createPool() {
-    const randomTiles = shuffle(tileTypes.flatMap((tile) => Array.from({ length: tile.count }, () => tile)));
+    const stage = contaminationStage();
+    const bossActive = contamination >= BOSS_CONTAMINATION_MIN;
+    const monsterDelta = Math.max(0, stage.monsterTiles - 3);
+    const stagedTypes = tileTypes.map((tile) => {
+      if (tile.id === "monster") return { ...tile, count: stage.monsterTiles };
+      if (tile.id === "basic") return { ...tile, count: Math.max(0, tile.count - monsterDelta) + (bossActive ? 0 : 1) };
+      return tile;
+    });
+    const randomTiles = shuffle(stagedTypes.flatMap((tile) => Array.from({ length: tile.count }, () => tile)));
     const pool = Array(24);
     pool[0] = fixedTiles.fortune;
     pool[8] = fixedTiles.village;
     pool[HOME_INDEX] = fixedTiles.home;
-    pool[23] = fixedTiles.boss;
+    if (bossActive) pool[23] = fixedTiles.boss;
     for (let index = 0, randomIndex = 0; index < pool.length; index += 1) {
       if (!pool[index]) pool[index] = randomTiles[randomIndex++];
     }
@@ -643,7 +687,8 @@
     el.deckConfirm.disabled = true;
     el.deckStatus.textContent = "전장으로 이동 중…";
     const encounterId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-    const params = new URLSearchParams({ from: "map", map: activeMapId, tile: String(battleStep), allies: selectedDeck.join(","), encounter: encounterId });
+    saveMapLayout();
+    const params = new URLSearchParams({ from: "map", map: activeMapId, tile: String(battleStep), allies: selectedDeck.join(","), encounter: encounterId, contamination: String(contamination) });
     if (typeof V2Music !== "undefined") V2Music.handoff("battle");
     window.location.assign(`v2-auto-battle-practice.html?${params}`);
   }
@@ -905,7 +950,10 @@
     // when the hero actually completed a lap and reached home through movement.
     const refreshAfterHome = eventOpen && activeEventTileId === "home";
     const completedLap = refreshAfterHome && lapReadyForRefresh;
-    if (completedLap) addContamination(2);
+    if (completedLap) {
+      addContamination(2);
+      healOwnedRosterAtHome();
+    }
     closeTileEvent();
     if (refreshAfterHome) await playCloudTileRefresh();
   }
@@ -948,7 +996,8 @@
 
   function generateTiles() {
     lapReadyForRefresh = false;
-    const pool = createPool();
+    const restoredPool = loadSavedMapLayout();
+    const pool = restoredPool || createPool();
     positions = perimeterPositions();
     currentTiles = pool;
     currentButtons = positions.map((position, index) => {
@@ -985,9 +1034,11 @@
       return button;
     });
     el.ring.replaceChildren(...currentButtons);
-    heroIndex = HOME_INDEX;
+    const startingIndex = resumeHeroIndex === null ? HOME_INDEX : resumeHeroIndex;
+    resumeHeroIndex = null;
+    heroIndex = startingIndex;
     placeHero();
-    selectTile(currentButtons[HOME_INDEX], currentTiles[HOME_INDEX], HOME_INDEX + 1);
+    selectTile(currentButtons[heroIndex], currentTiles[heroIndex], heroIndex + 1);
     el.diceResult.textContent = "주사위 굴리기";
     resetMapDicePosition();
   }

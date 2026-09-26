@@ -14,6 +14,15 @@
   const mapEncounterId = battleQuery.get("encounter") || "";
   const MAP_CONTAMINATION_KEY = "necromancer-map-contamination-v1";
   const MAP_CONTAMINATION_WIN_PREFIX = "necromancer-map-contamination-win-v1:";
+  const MAP_ROSTER_KEY = "necromancer-map-roster-v2";
+  const mapContamination = Math.max(0, Math.min(100, Number(battleQuery.get("contamination")) || 0));
+  const MAP_ENCOUNTER_STAGES = Object.freeze([
+    Object.freeze({ min: 0, counts: Object.freeze([1, 2]), countWeights: Object.freeze([.65, .35]), grades: Object.freeze({ normal: .90, advanced: .10, hero: 0 }) }),
+    Object.freeze({ min: 20, counts: Object.freeze([2]), countWeights: Object.freeze([1]), grades: Object.freeze({ normal: .75, advanced: .25, hero: 0 }) }),
+    Object.freeze({ min: 40, counts: Object.freeze([2, 3]), countWeights: Object.freeze([.65, .35]), grades: Object.freeze({ normal: .55, advanced: .40, hero: .05 }) }),
+    Object.freeze({ min: 60, counts: Object.freeze([3]), countWeights: Object.freeze([1]), grades: Object.freeze({ normal: .35, advanced: .50, hero: .15 }) }),
+    Object.freeze({ min: 80, counts: Object.freeze([3, 4]), countWeights: Object.freeze([.55, .45]), grades: Object.freeze({ normal: .20, advanced: .55, hero: .25 }) })
+  ]);
   const mapBattlefield = fromMap ? MAP_BATTLEFIELDS[battleQuery.get("map")] : null;
   const FRAME_ROOT = "art/v2-style/animation-test-frames/";
   const UNIT_TYPE_KEYS = {
@@ -175,6 +184,40 @@
     "death-knight", "skeleton-spear", "skeleton-archer", "ghoul", "ancient-treant", "goblin-rider",
     "minotaur", "plague-doctor", "spider-knight", "hydra", "siren"
   ]);
+
+  function weightedChoice(values, weights) {
+    let roll = Math.random() * weights.reduce((sum, weight) => sum + weight, 0);
+    for (let index = 0; index < values.length; index += 1) {
+      roll -= weights[index];
+      if (roll <= 0) return values[index];
+    }
+    return values[values.length - 1];
+  }
+
+  function mapEncounterStage(value = mapContamination) {
+    for (let index = MAP_ENCOUNTER_STAGES.length - 1; index >= 0; index -= 1) {
+      if (value >= MAP_ENCOUNTER_STAGES[index].min) return MAP_ENCOUNTER_STAGES[index];
+    }
+    return MAP_ENCOUNTER_STAGES[0];
+  }
+
+  function createMapEnemySlugs() {
+    const stage = mapEncounterStage();
+    const count = weightedChoice(stage.counts, stage.countWeights);
+    const gradeNames = ["normal", "advanced", "hero"];
+    const gradeWeights = gradeNames.map((grade) => stage.grades[grade]);
+    const available = ROSTER.filter((entry) => TEST_DECK_SLUGS.includes(entry.slug) && gradeNames.includes(entry.grade));
+    const selected = [];
+    while (selected.length < count && available.length) {
+      const desiredGrade = weightedChoice(gradeNames, gradeWeights);
+      let candidates = available.filter((entry) => entry.grade === desiredGrade);
+      if (!candidates.length) candidates = available;
+      const pick = candidates[Math.floor(Math.random() * candidates.length)];
+      selected.push(pick.slug);
+      available.splice(available.findIndex((entry) => entry.slug === pick.slug), 1);
+    }
+    return selected;
+  }
   const COMBAT_SOUND_PROFILES = Object.freeze({
     physical: Object.freeze({ attack: "G", hit: "G" }),
     poison: Object.freeze({ attack: "B", hit: "E" }),
@@ -212,7 +255,7 @@
   const mapOwnedRoster = (() => {
     if (!fromMap || typeof sessionStorage === "undefined") return new Map();
     try {
-      const saved = JSON.parse(sessionStorage.getItem("necromancer-map-roster-v2"));
+      const saved = JSON.parse(sessionStorage.getItem(MAP_ROSTER_KEY));
       if (!Array.isArray(saved)) return new Map();
       return new Map(saved.filter((unit) => TEST_DECK_SLUGS.includes(unit?.slug) &&
         Number.isFinite(unit.maxHp) && Number.isFinite(unit.attack) && Number.isFinite(unit.speed) &&
@@ -317,7 +360,7 @@
   let lineupRequest = 0;
   let lineupSide = "ally";
   let selectedAllySlugs = requestedAllySlugs.length === 4 && new Set(requestedAllySlugs).size === 4 ? requestedAllySlugs : [];
-  let selectedEnemySlugs = TEAM_DATA.enemy.map(entry => entry.slug);
+  let selectedEnemySlugs = fromMap ? createMapEnemySlugs() : TEAM_DATA.enemy.map(entry => entry.slug);
   let rosterTouchScroll = null;
   let selectedAllyTeam = TEAM_DATA.ally.map(entry => ({ ...entry }));
   let selectedEnemyTeam = TEAM_DATA.enemy.map(entry => ({ ...entry }));
@@ -396,6 +439,15 @@
     ];
     rulesState = V2Rules.create(units);
     legionState = rulesState.legions;
+    if (fromMap) {
+      for (const unitState of units.filter((unit) => unit.team === "ally" && !unit.isSummon)) {
+        const owned = mapOwnedRoster.get(unitState.slug);
+        if (!owned || !Number.isFinite(owned.currentHp)) continue;
+        const temporaryMaxBonus = Math.max(0, unitState.maxHp - unitState.baseMaxHp);
+        unitState.hp = Math.max(1, Math.min(unitState.maxHp, owned.currentHp + temporaryMaxBonus));
+        unitState.alive = unitState.hp > 0;
+      }
+    }
     renderTeams();
     if (typeof V2UnitCards !== "undefined") V2UnitCards.setPhase("locked");
     message.textContent = "전투 시작을 눌러주세요";
@@ -558,6 +610,8 @@
   }
 
   function isLineupReady() {
+    if (fromMap) return selectedAllySlugs.length >= 1 && selectedAllySlugs.length <= 4 &&
+      selectedEnemySlugs.length >= 1 && selectedEnemySlugs.length <= 4;
     return selectedAllySlugs.length === 4 && selectedEnemySlugs.length === 4;
   }
 
@@ -1146,6 +1200,26 @@
     if (!holdLast) await wait(delay() * .35);
   }
 
+  function persistMapAllyOutcome() {
+    if (!fromMap || typeof sessionStorage === "undefined") return;
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(MAP_ROSTER_KEY));
+      if (!Array.isArray(saved)) return;
+      const bySlug = new Map(saved.map((unit) => [unit.slug, unit]));
+      for (const unitState of units.filter((unit) => unit.team === "ally" && !unit.isSummon && unit.slot < 4)) {
+        const owned = bySlug.get(unitState.slug);
+        if (!owned) continue;
+        if (!unitState.alive || unitState.hp <= 0) {
+          bySlug.delete(unitState.slug);
+          continue;
+        }
+        const temporaryMaxBonus = Math.max(0, unitState.maxHp - owned.maxHp);
+        owned.currentHp = Math.max(1, Math.min(owned.maxHp, unitState.hp - temporaryMaxBonus));
+      }
+      sessionStorage.setItem(MAP_ROSTER_KEY, JSON.stringify(saved.filter((unit) => bySlug.has(unit.slug)).map((unit) => bySlug.get(unit.slug))));
+    } catch (_) { /* Battle completion still works if storage is blocked. */ }
+  }
+
   function finishBattle() {
     if (typeof V2UnitCards !== "undefined") V2UnitCards.setPhase("locked");
     battlefield.classList.remove("is-cinematic");
@@ -1159,6 +1233,7 @@
     pauseButton.disabled = true;
     speedButton.disabled = true;
     const won = aliveUnits("ally").length > 0;
+    persistMapAllyOutcome();
     if (won) applyMapVictoryContamination();
     saveBattle('complete');
     resultTitle.textContent = won ? "아군 승리" : aliveUnits("enemy").length ? "적군 승리" : "무승부";
@@ -1232,9 +1307,12 @@
 
   function returnToMap() {
     const map = battleQuery.get("map");
-    const suffix = MAP_BATTLEFIELDS[map] ? `?map=${encodeURIComponent(map)}` : "";
+    const tile = Math.max(1, Math.min(24, Number(battleQuery.get("tile")) || 1));
+    const params = new URLSearchParams();
+    if (MAP_BATTLEFIELDS[map]) params.set("map", map);
+    params.set("resume", String(tile));
     if (typeof V2Music !== "undefined") V2Music.handoff("map");
-    window.location.assign(`v2-map-practice.html${suffix}`);
+    window.location.assign(`v2-map-practice.html?${params.toString()}`);
   }
 
   async function animateSoulHarvest(corpse) {
