@@ -211,12 +211,19 @@
     el.cardDeckImage.src = CARD_DECK_IMAGES.open;
     el.cardDeckButton.setAttribute("aria-expanded", "true");
     el.diceControlOverlay.hidden = false;
+    el.diceControlOverlay.classList.remove("is-closing");
+    void el.diceControlOverlay.offsetWidth;
+    el.diceControlOverlay.classList.add("is-open");
     el.diceControlBackdrop.focus();
   }
 
-  function closeDiceControlCard() {
+  async function closeDiceControlCard() {
     if (el.diceControlOverlay.hidden) return;
+    el.diceControlOverlay.classList.remove("is-open");
+    el.diceControlOverlay.classList.add("is-closing");
+    await wait(360);
     el.diceControlOverlay.hidden = true;
+    el.diceControlOverlay.classList.remove("is-closing");
     el.cardDeckImage.src = CARD_DECK_IMAGES.closed;
     el.cardDeckButton.setAttribute("aria-expanded", "false");
     el.diceButton.disabled = false;
