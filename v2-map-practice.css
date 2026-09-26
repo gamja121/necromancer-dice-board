@@ -111,8 +111,29 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 
 .treasure-reward-card:not(:disabled):hover,
 .treasure-reward-card:not(:disabled):focus-visible { z-index: 8; filter: drop-shadow(0 0 13px #ffe39a) drop-shadow(0 11px 12px #000d); outline: 0; }
-.treasure-reward-card.is-selected { z-index: 12; filter: drop-shadow(0 0 16px #ffe39a) drop-shadow(0 12px 13px #000d); }
+.treasure-reward-card.is-selected {
+  z-index: 12;
+  transform: translateY(-8%) scale(1.08) rotate(var(--reward-rot, 0deg));
+  filter: drop-shadow(0 0 8px #fff4c9) drop-shadow(0 0 18px #ffd56a) drop-shadow(0 14px 14px #000d);
+  animation: treasure-reward-selected 760ms ease-in-out infinite alternate;
+}
+.treasure-reward-card.is-selected::after {
+  content: "";
+  position: absolute;
+  inset: -6%;
+  border: 2px solid #ffe29a;
+  border-radius: 8px;
+  box-shadow: 0 0 10px #ffe29acc, inset 0 0 9px #ffe29a55;
+  pointer-events: none;
+}
+.treasure-reward-card.is-dimmed { opacity: .48; filter: grayscale(.22) brightness(.72) drop-shadow(0 8px 8px #000b); }
+.treasure-reward-card.is-confirming { animation: none; transform: translateY(-10%) scale(1.1) rotate(var(--reward-rot, 0deg)); filter: drop-shadow(0 0 12px #fff7d8) drop-shadow(0 0 24px #ffd56a) drop-shadow(0 14px 14px #000d); }
 .treasure-reward-card.is-rejected { opacity: 0 !important; transform: translateY(10%) scale(.72) rotate(var(--reward-rot, 0deg)) !important; pointer-events: none; }
+
+@keyframes treasure-reward-selected {
+  from { filter: drop-shadow(0 0 7px #fff4c9) drop-shadow(0 0 14px #ffd56a) drop-shadow(0 14px 14px #000d); }
+  to { filter: drop-shadow(0 0 11px #fff8dc) drop-shadow(0 0 24px #ffd56a) drop-shadow(0 14px 14px #000d); }
+}
 .treasure-reward-flyer { position: fixed; z-index: 9999; margin: 0; padding: 0; pointer-events: none; transform-origin: center; filter: drop-shadow(0 12px 14px #000d) drop-shadow(0 0 8px #ffe09a88); will-change: transform, opacity; }
 .treasure-reward-flyer img { display: block; width: 100%; height: 100%; object-fit: contain; transform-origin: center; }
 .map-book-button.is-reward-receiving img,

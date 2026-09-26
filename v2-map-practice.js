@@ -133,6 +133,7 @@
   let previousDiceRoll = null;
   let previousDiceControlId = null;
   let treasureRewardChosen = false;
+  let selectedTreasureRewardId = null;
   const ownedUnits = loadOwnedRoster();
 
   [...rollingFrames, ...resultFrames, ...Object.values(tileEventScenes).map((scene) => scene.image).filter(Boolean), `${ROOT}events/home-interior.jpg`].forEach((src) => { const image = new Image(); image.src = src; });
@@ -638,26 +639,41 @@
 
   async function chooseTreasureReward(reward, selectedCard) {
     if (treasureRewardChosen || !eventOpen || activeEventTileId !== "gem") return;
-    treasureRewardChosen = true;
 
+    const rewardKey = `${reward.type}:${reward.id}`;
     const cards = [...el.eventTreasureRewards.querySelectorAll(".treasure-reward-card")];
+
+    if (selectedTreasureRewardId !== rewardKey) {
+      selectedTreasureRewardId = rewardKey;
+      cards.forEach((card) => {
+        const selected = card === selectedCard;
+        card.classList.toggle("is-selected", selected);
+        card.classList.toggle("is-dimmed", !selected);
+        card.setAttribute("aria-pressed", selected ? "true" : "false");
+      });
+      el.diceResult.textContent = `${reward.label} 선택 · 한 번 더 누르면 획득`;
+      return;
+    }
+
+    treasureRewardChosen = true;
     cards.forEach((card) => {
       card.disabled = true;
-      card.classList.toggle("is-selected", card === selectedCard);
+      card.classList.toggle("is-confirming", card === selectedCard);
       card.classList.toggle("is-rejected", card !== selectedCard);
     });
 
     el.diceResult.textContent = reward.type === "unit"
-      ? `${reward.label} 선택 · 마물 카드 보관함으로 이동`
-      : `${reward.label} 선택 · 주사위 컨트롤 카드 더미로 이동`;
+      ? `${reward.label} 획득 · 마물 카드 보관함으로 이동`
+      : `${reward.label} 획득 · 주사위 컨트롤 카드 더미로 이동`;
 
-    await wait(90);
+    await wait(120);
     await animateTreasureRewardToTarget(reward, selectedCard);
     closeTileEvent();
   }
 
   function showTreasureRewards() {
     treasureRewardChosen = false;
+    selectedTreasureRewardId = null;
     const rewards = createTreasureRewards();
     el.eventTreasureRewards.replaceChildren();
     for (const reward of rewards) {
@@ -667,6 +683,7 @@
       card.type = "button";
       card.className = "treasure-reward-card";
       card.setAttribute("aria-label", `${reward.label} 선택`);
+      card.setAttribute("aria-pressed", "false");
       image.src = reward.image;
       image.alt = reward.label;
       badge.className = "treasure-reward-badge";
@@ -680,6 +697,7 @@
 
   function clearTreasureRewards() {
     treasureRewardChosen = false;
+    selectedTreasureRewardId = null;
     el.eventTreasureRewards.hidden = true;
     el.eventTreasureRewards.replaceChildren();
   }
