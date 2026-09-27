@@ -172,6 +172,11 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .tile-event-heal[hidden], .tile-event-pray[hidden] { display: none; }
 .tile-event-heal:hover, .tile-event-pray:hover { filter: brightness(1.15); }
 .tile-event-exit:focus-visible, .tile-event-enter:focus-visible, .tile-event-heal:focus-visible, .tile-event-pray:focus-visible { outline: 2px solid #ffd77e; outline-offset: 2px; }
+.tile-event-prayer-result { position: absolute; z-index: 6; left: 50%; top: 18%; min-width: 28%; padding: 2.2% 4%; transform: translateX(-50%); border: 2px solid #4a3421; border-radius: 4px; background: rgba(225, 199, 151, .94); color: #3b291d; font: 1000 clamp(20px, 3.1vw, 42px)/1 Georgia, "Malgun Gothic", serif; text-align: center; text-shadow: 0 1px #fff2d2; box-shadow: 0 7px 14px #0008, inset 0 0 0 1px #f4deb6; pointer-events: none; }
+.tile-event-prayer-result[hidden] { display: none; }
+.tile-event-prayer-result[data-result="failure"] { filter: grayscale(.35) brightness(.78); }
+.map-board.is-tile-event-open.is-world-tree-praying .dice-controller { z-index: 55; visibility: visible; }
+.map-board.is-tile-event-open.is-world-tree-praying .dice-controller > button { pointer-events: none; }
 .map-deck-overlay { position: absolute; z-index: 45; inset: 0; display: block; overflow: hidden; background: transparent; pointer-events: auto; }
 .map-deck-overlay[hidden] { display: none; }
 .map-deck-overlay.is-preview .map-deck-confirm { display: none; }
