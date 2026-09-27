@@ -404,6 +404,60 @@
     return entry;
   }
 
+
+  function preloadImageForBattle(src) {
+    return new Promise((resolve) => {
+      const image = new Image();
+      let settled = false;
+      const finish = (loaded) => {
+        if (settled) return;
+        settled = true;
+        resolve(loaded);
+      };
+      image.decoding = "async";
+      image.onload = () => {
+        if (typeof image.decode === "function") image.decode().then(() => finish(true)).catch(() => finish(true));
+        else finish(true);
+      };
+      image.onerror = () => finish(false);
+      image.src = src;
+    });
+  }
+
+  async function preloadBattleImages(urls, concurrency = 6) {
+    const queue = [...urls];
+    if (!queue.length) return;
+    const workerCount = Math.min(concurrency, queue.length);
+    await Promise.all(Array.from({ length: workerCount }, async () => {
+      while (queue.length) {
+        const src = queue.shift();
+        await preloadImageForBattle(src);
+      }
+    }));
+  }
+
+  async function preloadBattleVisuals(entries) {
+    const frameUrls = new Set();
+    for (const entry of entries) {
+      for (const motion of ["attack", "hit", "death"]) {
+        const count = entry.frames?.[motion] || 0;
+        for (let index = 1; index <= count; index += 1) frameUrls.add(frame(entry, motion, index));
+      }
+    }
+    await preloadBattleImages(frameUrls, 6);
+
+    if (typeof V2CombatEffects !== "undefined") {
+      const effectRepresentatives = new Map();
+      for (const entry of entries) {
+        const effectId = V2CombatEffects.ATTACK_EFFECTS?.[entry.slug];
+        if (effectId && !effectRepresentatives.has(effectId)) effectRepresentatives.set(effectId, entry.slug);
+      }
+      for (const slug of effectRepresentatives.values()) await V2CombatEffects.prepare(slug);
+    }
+
+    if (typeof V2Sfx !== "undefined") V2Sfx.preload();
+  }
+
   function resetBattle(showStart) {
     battlefield.classList.remove("is-cinematic");
     if (showStart) {
@@ -733,6 +787,9 @@
         : selectedAllySlugs.map((slug) => ({ ...ROSTER_BY_SLUG.get(slug) }));
       const preparedEnemyTeam = selectedEnemySlugs.map(slug => ({ ...ROSTER_BY_SLUG.get(slug) }));
       await Promise.all([...preparedAllyTeam, ...preparedEnemyTeam].map(prepareSelectedMotion));
+      if (request !== lineupRequest) return;
+      lineupStatus.textContent = "전투 애니메이션과 타격 효과를 준비하고 있습니다.";
+      await preloadBattleVisuals([...preparedAllyTeam, ...preparedEnemyTeam]);
       if (request !== lineupRequest) return;
       selectedAllyTeam = preparedAllyTeam;
       selectedEnemyTeam = preparedEnemyTeam;
