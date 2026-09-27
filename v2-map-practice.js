@@ -21,7 +21,7 @@
     rest: Object.freeze({ title: "숙영", image: `${ROOT}events/camp.jpg?v=${EVENT_ASSET_VERSION}` }),
     altar: Object.freeze({ title: "제단", image: `${ROOT}events/altar.jpg?v=20260928-2` }),
     unknown: Object.freeze({ title: "세계수", image: `${ROOT}events/world-tree.jpg?v=20260928-2` }),
-    forest: Object.freeze({ title: "숲", image: `${ROOT}events/forest.jpg?v=${EVENT_ASSET_VERSION}` }),
+    forest: Object.freeze({ title: "언덕", image: `${ROOT}events/forest.jpg?v=${EVENT_ASSET_VERSION}` }),
     gem: Object.freeze({ title: "보물상자", animation: "treasure" })
   });
   const tileEventRatios = Object.freeze({
@@ -34,7 +34,7 @@
     { id: "graveyard", name: "공동묘지 타일", count: 2 },
     { id: "altar", name: "제단 타일", count: 1 },
     { id: "unknown", name: "세계수 타일", count: 1 },
-    { id: "forest", name: "숲 타일", count: 2 },
+    { id: "forest", name: "언덕 타일", count: 2 },
     { id: "rest", name: "휴식 타일", count: 2 },
     { id: "monster", name: "일반 마물 타일", count: 2 },
     { id: "rare-monster", name: "희귀 마물 타일", count: 1 },
@@ -72,6 +72,7 @@
   const MAP_LAYOUT_KEY = "necromancer-map-layout-v2";
   const LEGACY_MAP_LAYOUT_KEY = "necromancer-map-layout-v1";
   const MAP_CLEARED_MONSTER_KEY = "necromancer-map-cleared-monsters-v1";
+  const WORLD_TREE_PRAYER_KEY = "necromancer-map-world-tree-prayed-v1";
   const MONSTER_BATTLE_TILE_IDS = Object.freeze(new Set(["monster", "rare-monster", "boss"]));
   const GRADE_LABELS = Object.freeze({ normal: "일반", advanced: "고급", hero: "영웅", special: "소환물" });
   const LEGION_LABELS = Object.freeze({ skeleton: "언데드", corpse: "시체", beast: "야수", plague: "역병", ice: "얼음", summon: "소환", demon: "악마", insect: "벌레", plant: "식물", element: "원소" });
@@ -111,6 +112,7 @@
     eventEnter: document.getElementById("tileEventEnter"),
     eventInheritance: document.getElementById("tileEventInheritance"),
     eventHeal: document.getElementById("tileEventHeal"),
+    eventPray: document.getElementById("tileEventPray"),
     eventClose: document.getElementById("tileEventClose"),
     bookButton: document.getElementById("mapBookButton"),
     cardDeckButton: document.getElementById("mapCardDeckButton"),
@@ -164,6 +166,7 @@
   let battleStep = 0;
   let battleTileType = "monster";
   let clearedMonsterSteps = new Set();
+  let worldTreePrayed = false;
   let selectedDeck = [];
   let bookOpen = false;
   let bookAnimating = false;
@@ -433,6 +436,28 @@
     try {
       if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(MAP_CLEARED_MONSTER_KEY);
     } catch (_) { /* A fresh map still works without storage. */ }
+  }
+
+  function loadWorldTreePrayer() {
+    try {
+      worldTreePrayed = typeof sessionStorage !== "undefined" && sessionStorage.getItem(WORLD_TREE_PRAYER_KEY) === "1";
+    } catch (_) {
+      worldTreePrayed = false;
+    }
+  }
+
+  function resetWorldTreePrayer() {
+    worldTreePrayed = false;
+    try {
+      if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(WORLD_TREE_PRAYER_KEY);
+    } catch (_) { /* A fresh lap still works without storage. */ }
+  }
+
+  function markWorldTreePrayed() {
+    worldTreePrayed = true;
+    try {
+      if (typeof sessionStorage !== "undefined") sessionStorage.setItem(WORLD_TREE_PRAYER_KEY, "1");
+    } catch (_) { /* Prayer still works without storage persistence. */ }
   }
 
   function isMonsterBattleTile(tile) {
@@ -1261,6 +1286,7 @@
     el.eventEnter.hidden = tile.id !== "home";
     el.eventInheritance.hidden = true;
     el.eventHeal.hidden = tile.id !== "rest" || !hasInjuredOwnedUnits();
+    el.eventPray.hidden = tile.id !== "unknown" || worldTreePrayed;
     el.eventClose.hidden = treasure;
     if (treasure) {
       el.eventImage.removeAttribute("src");
@@ -1288,6 +1314,18 @@
     healOwnedRosterFull();
     el.eventHeal.hidden = true;
     el.diceResult.textContent = "숙영 · 모든 마물 체력 완전 회복";
+    el.eventClose.focus();
+  }
+
+  function prayAtWorldTree() {
+    if (!eventOpen || activeEventTileId !== "unknown" || worldTreePrayed) {
+      el.eventPray.hidden = true;
+      return;
+    }
+    addContamination(-3);
+    markWorldTreePrayed();
+    el.eventPray.hidden = true;
+    el.diceResult.textContent = "세계수에 기도 · 오염도 -3";
     el.eventClose.focus();
   }
 
@@ -1369,6 +1407,7 @@
     el.eventEnter.hidden = true;
     el.eventInheritance.hidden = true;
     el.eventHeal.hidden = true;
+    el.eventPray.hidden = true;
     V2HomeInheritance.close();
     el.eventTreasure.hidden = true;
     el.eventTreasure.classList.remove("is-burst");
@@ -1399,8 +1438,13 @@
     lapReadyForRefresh = false;
     let restoredPool = loadSavedMapLayout();
     if (restoredPool && !isValidMapPool(restoredPool)) restoredPool = null;
-    if (restoredPool) loadClearedMonsterSteps();
-    else resetClearedMonsterSteps();
+    if (restoredPool) {
+      loadClearedMonsterSteps();
+      loadWorldTreePrayer();
+    } else {
+      resetClearedMonsterSteps();
+      resetWorldTreePrayer();
+    }
     const pool = restoredPool || createPool();
     positions = perimeterPositions();
     if (positions.length !== 24 || !hasValidMapDistribution(pool)) {
@@ -1754,6 +1798,7 @@
   el.eventClose.addEventListener("click", handleTileEventExit);
   el.eventEnter.addEventListener("click", enterHome);
   el.eventHeal.addEventListener("click", healAtRestTile);
+  el.eventPray.addEventListener("click", prayAtWorldTree);
   el.eventInheritance.addEventListener("click", () => {
     if (eventOpen && activeEventTileId === "home") V2HomeInheritance.open();
   });
