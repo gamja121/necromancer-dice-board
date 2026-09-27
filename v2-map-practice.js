@@ -84,6 +84,7 @@
   });
   const HOME_INDEX = 15; // 16번 타일: 하단 일곱 칸의 정중앙.
   const el = {
+    mapLab: document.querySelector(".map-lab"),
     board: document.getElementById("mapBoard"),
     ring: document.getElementById("tileRing"),
     mapName: document.getElementById("mapName"),
@@ -497,15 +498,42 @@
     return inventory;
   }
 
+  const DICE_CONTROL_CARD_SLOTS = Object.freeze([
+    Object.freeze({ x: "4%", y: "-1%", rot: "10deg" }),
+    Object.freeze({ x: "-78%", y: "-6%", rot: "5deg" }),
+    Object.freeze({ x: "-160%", y: "-9%", rot: "0deg" }),
+    Object.freeze({ x: "-242%", y: "-7%", rot: "-5deg" }),
+    Object.freeze({ x: "-324%", y: "-3%", rot: "-10deg" })
+  ]);
+
+  function screenDeltaToMapY(deltaX, deltaY) {
+    const transform = el.mapLab ? getComputedStyle(el.mapLab).transform : "none";
+    if (!transform || transform === "none" || typeof DOMMatrixReadOnly === "undefined") return deltaY;
+    try {
+      const matrix = new DOMMatrixReadOnly(transform);
+      const det = matrix.a * matrix.d - matrix.b * matrix.c;
+      if (Math.abs(det) < .0001) return deltaY;
+      return (-matrix.b * deltaX + matrix.a * deltaY) / det;
+    } catch (_) {
+      return deltaY;
+    }
+  }
+
   function renderDiceControlHand() {
     el.diceControlHand.replaceChildren();
     for (const [index, card] of diceControlHand.entries()) {
       const availability = V2DiceControl.canUse(card.id, diceControlState());
       const button = document.createElement("button");
       const image = document.createElement("img");
+      const slot = DICE_CONTROL_CARD_SLOTS[Math.min(index, DICE_CONTROL_CARD_SLOTS.length - 1)];
       button.type = "button";
       button.className = "dice-control-card";
       button.style.setProperty("--i", index + 1);
+      button.style.setProperty("--card-x", slot.x);
+      button.style.setProperty("--card-y", slot.y);
+      button.style.setProperty("--card-rot", slot.rot);
+      button.style.setProperty("--card-delay", `${index * 55}ms`);
+      button.style.zIndex = String(DICE_CONTROL_CAPACITY - index);
       button.style.setProperty("--drag-y", "0px");
       button.setAttribute("role", "option");
       button.setAttribute("aria-selected", "false");
@@ -519,10 +547,11 @@
 
       if (availability.ok) {
         let pointerId = null;
+        let startX = 0;
         let startY = 0;
         let dragY = 0;
         let moved = false;
-        const USE_THRESHOLD = -46;
+        const USE_THRESHOLD = -34;
 
         const resetDrag = () => {
           button.classList.remove("is-dragging", "is-use-ready");
@@ -537,6 +566,7 @@
           if (pendingDiceControlId || pointerId !== null) return;
           event.preventDefault();
           pointerId = event.pointerId;
+          startX = event.clientX;
           startY = event.clientY;
           dragY = 0;
           moved = false;
@@ -548,8 +578,9 @@
         button.addEventListener("pointermove", (event) => {
           if (event.pointerId !== pointerId) return;
           event.preventDefault();
-          dragY = Math.max(-96, Math.min(0, event.clientY - startY));
-          moved ||= Math.abs(dragY) > 4;
+          const localDeltaY = screenDeltaToMapY(event.clientX - startX, event.clientY - startY);
+          dragY = Math.max(-110, Math.min(0, localDeltaY));
+          moved ||= Math.abs(dragY) > 3;
           button.style.setProperty("--drag-y", `${dragY}px`);
           button.classList.toggle("is-use-ready", dragY <= USE_THRESHOLD);
         });
