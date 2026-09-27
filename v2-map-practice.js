@@ -113,6 +113,7 @@
     eventInheritance: document.getElementById("tileEventInheritance"),
     eventHeal: document.getElementById("tileEventHeal"),
     eventPray: document.getElementById("tileEventPray"),
+    eventPrayerResult: document.getElementById("tileEventPrayerResult"),
     eventClose: document.getElementById("tileEventClose"),
     bookButton: document.getElementById("mapBookButton"),
     cardDeckButton: document.getElementById("mapCardDeckButton"),
@@ -167,6 +168,7 @@
   let battleTileType = "monster";
   let clearedMonsterSteps = new Set();
   let worldTreePrayed = false;
+  let worldTreePrayerRolling = false;
   let selectedDeck = [];
   let bookOpen = false;
   let bookAnimating = false;
@@ -1287,6 +1289,8 @@
     el.eventInheritance.hidden = true;
     el.eventHeal.hidden = tile.id !== "rest" || !hasInjuredOwnedUnits();
     el.eventPray.hidden = tile.id !== "unknown" || worldTreePrayed;
+    el.eventPrayerResult.hidden = true;
+    el.eventPrayerResult.textContent = "";
     el.eventClose.hidden = treasure;
     if (treasure) {
       el.eventImage.removeAttribute("src");
@@ -1317,15 +1321,45 @@
     el.eventClose.focus();
   }
 
-  function prayAtWorldTree() {
-    if (!eventOpen || activeEventTileId !== "unknown" || worldTreePrayed) {
+  async function prayAtWorldTree() {
+    if (!eventOpen || activeEventTileId !== "unknown" || worldTreePrayed || worldTreePrayerRolling) {
       el.eventPray.hidden = true;
       return;
     }
-    addContamination(-3);
+
+    worldTreePrayerRolling = true;
     markWorldTreePrayed();
     el.eventPray.hidden = true;
-    el.diceResult.textContent = "세계수에 기도 · 오염도 -3";
+    el.eventPrayerResult.hidden = true;
+    el.eventClose.disabled = true;
+    el.board.classList.add("is-world-tree-praying");
+    resetMapDicePosition();
+    el.diceButton.classList.add("is-rolling");
+
+    const result = Math.floor(Math.random() * 6) + 1;
+    await animateMapDiceRoll(result);
+
+    let label;
+    let contaminationDelta;
+    if (result === 6) {
+      label = "대축복";
+      contaminationDelta = -5;
+    } else if (result >= 4) {
+      label = "축복";
+      contaminationDelta = -3;
+    } else {
+      label = "실패";
+      contaminationDelta = 1;
+    }
+
+    addContamination(contaminationDelta);
+    el.eventPrayerResult.textContent = label;
+    el.eventPrayerResult.dataset.result = label === "실패" ? "failure" : label === "대축복" ? "great-blessing" : "blessing";
+    el.eventPrayerResult.hidden = false;
+    el.diceResult.textContent = `세계수 기도 · 주사위 ${result} · ${label} · 오염도 ${contaminationDelta > 0 ? "+" : ""}${contaminationDelta}`;
+    el.diceButton.classList.remove("is-rolling");
+    worldTreePrayerRolling = false;
+    el.eventClose.disabled = false;
     el.eventClose.focus();
   }
 
@@ -1408,6 +1442,11 @@
     el.eventInheritance.hidden = true;
     el.eventHeal.hidden = true;
     el.eventPray.hidden = true;
+    el.eventPrayerResult.hidden = true;
+    el.eventPrayerResult.textContent = "";
+    el.eventClose.disabled = false;
+    worldTreePrayerRolling = false;
+    el.board.classList.remove("is-world-tree-praying");
     V2HomeInheritance.close();
     el.eventTreasure.hidden = true;
     el.eventTreasure.classList.remove("is-burst");
