@@ -95,10 +95,10 @@ for (let index = 1; index <= 4; index += 1) {
 assert(source.includes('scene.animation === "treasure"') && source.includes("async function playTreasureChestAnimation()") && source.includes('eventTreasure.classList.add("is-burst")'), "Treasure animation must restart through the current four-frame sequence.");
 assert(source.includes("async function warpToOtherWarp()") && source.includes('tile.id === "warp" && index !== heroIndex'), "Warp must move to the other warp tile.");
 assert(source.includes('currentTiles[heroIndex]?.id === "warp"') && source.includes("await warpToOtherWarp()"), "Landing on a warp tile must trigger teleportation.");
-assert(html.includes("v2-map-practice.js?v=57") && html.includes("v2-map-practice.css?v=41") && html.includes("v2-sfx.js?v=3"), "The map page must load the current map, styling, and mobile sound scripts.");
+assert(html.includes("v2-map-practice.js?v=58") && html.includes("v2-map-practice.css?v=41") && html.includes("v2-sfx.js?v=3"), "The map page must load the current map, styling, and mobile sound scripts.");
 assert(worker.includes("v2-map-practice.html"), "Map test page is not cached.");
 assert(worker.includes("v2-landscape.js?v=1"), "Landscape helper is not cached.");
-assert(worker.includes("v2-map-practice.js?v=57") && worker.includes("v2-map-practice.css?v=41") && worker.includes("v2-sfx.js?v=3"), "The current map, styling, and mobile sound logic is not cached.");
+assert(worker.includes("v2-map-practice.js?v=58") && worker.includes("v2-map-practice.css?v=41") && worker.includes("v2-sfx.js?v=3"), "The current map, styling, and mobile sound logic is not cached.");
 assert(html.includes('id="diceControlHand"') && html.includes('v2-dice-control.js?v=1'), "The five-card dice control hand and ability engine must load on the map.");
 assert(source.includes("V2DiceControl.canUse") && source.includes("V2DiceControl.resolve") && source.includes("pendingDiceControlId"), "Dice control cards must arm and resolve on the next roll.");
 assert(source.includes("previousDiceRoll") && source.includes("previousDiceControlId"), "Repeat and effect reactivation history must be tracked.");
@@ -115,7 +115,7 @@ assert(html.includes('class="tile-event-scene"') && html.includes('class="tile-e
 assert(html.includes('id="tileEventEnter"') && source.includes('el.eventEnter.addEventListener("click", enterHome)') && source.includes('el.eventEnter.hidden = tile.id !== "home"'), "Only the home tile must show an enter button above exit.");
 assert(source.includes('events/home-interior.jpg') && worker.includes('art/v2-style/map-test/events/home-interior.jpg'), "Entering home must show the supplied interior art, including offline cache.");
 assert(html.includes('id="tileEventInheritance"') && source.includes('el.eventInheritance.hidden = false') && source.includes('V2HomeInheritance.open()'), "The home interior must open the inheritance board.");
-assert(html.includes('id="tileEventPray"') && source.includes('activeEventTileId !== "unknown"') && source.includes('addContamination(-3)') && source.includes('WORLD_TREE_PRAYER_KEY'), "World tree must expose a once-per-lap prayer that purifies contamination by 3.");
+assert(html.includes('id="tileEventPray"') && html.includes('id="tileEventPrayerResult"') && source.includes('activeEventTileId !== "unknown"') && source.includes('result === 6') && source.includes('result >= 4') && source.includes('contaminationDelta = -5') && source.includes('contaminationDelta = -3') && source.includes('contaminationDelta = 1') && source.includes('WORLD_TREE_PRAYER_KEY'), "World tree prayer must roll a die and resolve great blessing, blessing, or failure once per lap.");
 assert(html.includes('id="homeInheritanceOverlay"') && html.includes('id="homeInheritanceCards"') && worker.includes('events/inheritance-board.png'), "The two-panel inheritance image and rising owned cards must be available on the map.");
 assert(css.includes('enter-parchment.png') && css.includes('bottom: 29%') && css.includes('.tile-event-enter[hidden]'), "Home enter must use a different supplied parchment button above exit.");
 assert(html.includes('href="v2-tile-practice.html"') && worker.includes('v2-tile-practice.html'), "The dedicated tile test must be reachable from the map.");
