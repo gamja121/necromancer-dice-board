@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0907">
+  <title>Event Lab · 사건 테스트</title>
+  <link rel="stylesheet" href="v2-event-lab.css?v=1">
+</head>
+<body>
+  <main class="event-lab">
+    <header class="lab-header">
+      <div>
+        <strong>EVENT LAB</strong>
+        <span>사건 · 조건 · 후속 이벤트 테스트</span>
+      </div>
+      <nav>
+        <a href="v2.html">V2</a>
+        <a href="v2-map-practice.html">맵</a>
+      </nav>
+    </header>
+
+    <section class="lab-grid">
+      <aside class="panel event-browser">
+        <div class="panel-title">
+          <strong>이벤트 목록</strong>
+          <button id="resetSession" type="button">전체 초기화</button>
+        </div>
+        <div id="eventList" class="event-list"></div>
+      </aside>
+
+      <section class="event-stage">
+        <div class="event-card">
+          <img id="eventArt" alt="">
+          <div class="event-copy">
+            <div class="event-meta">
+              <span id="eventLocation">-</span>
+              <code id="eventId">-</code>
+            </div>
+            <h1 id="eventTitle">이벤트를 선택하세요</h1>
+            <p id="eventText">왼쪽 목록에서 테스트할 이벤트를 직접 선택할 수 있습니다.</p>
+            <div id="conditionSummary" class="condition-summary"></div>
+            <div id="choiceList" class="choice-list"></div>
+            <div id="outcomeBox" class="outcome-box" hidden></div>
+          </div>
+        </div>
+
+        <section class="roll-panel" id="rollPanel" hidden>
+          <div>
+            <strong id="rollTitle">판정</strong>
+            <span id="rollHint"></span>
+          </div>
+          <div class="dice-box" id="diceBox">-</div>
+          <div class="roll-actions">
+            <button type="button" data-roll="normal">정상 굴림</button>
+            <button type="button" data-roll="success">강제 성공</button>
+            <button type="button" data-roll="fail">강제 실패</button>
+          </div>
+        </section>
+
+        <section class="history-panel">
+          <div class="panel-title">
+            <strong>이벤트 히스토리</strong>
+            <button id="clearHistory" type="button">로그 지우기</button>
+          </div>
+          <div id="historyList" class="history-list"></div>
+        </section>
+      </section>
+
+      <aside class="panel state-panel">
+        <div class="panel-title"><strong>테스트 상태</strong></div>
+
+        <label class="field">
+          <span>오염도 <b id="contaminationValue">20</b></span>
+          <input id="contaminationInput" type="range" min="0" max="100" value="20">
+        </label>
+
+        <label class="field">
+          <span>현재 루프</span>
+          <input id="loopInput" type="number" min="1" max="99" value="1">
+        </label>
+
+        <fieldset>
+          <legend>보유 마물 태그</legend>
+          <label><input type="checkbox" data-monster-tag="skeleton"> 해골 계열</label>
+          <label><input type="checkbox" data-monster-tag="plant"> 식물 계열</label>
+          <label><input type="checkbox" data-monster-tag="plague"> 역병 계열</label>
+        </fieldset>
+
+        <section class="flag-editor">
+          <div class="panel-title">
+            <strong>WORLD FLAGS</strong>
+            <button id="addFlag" type="button">+ 플래그</button>
+          </div>
+          <div id="flagList"></div>
+        </section>
+
+        <section class="next-events">
+          <strong>현재 조건에서 등장 가능</strong>
+          <div id="availableEvents"></div>
+        </section>
+      </aside>
+    </section>
+  </main>
+
+  <dialog id="flagDialog">
+    <form method="dialog">
+      <h2>플래그 추가</h2>
+      <input id="newFlagName" placeholder="예: priest_saved">
+      <div>
+        <button value="cancel">취소</button>
+        <button id="confirmFlag" value="default">추가</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="v2-event-data.js?v=1"></script>
+  <script src="v2-event-lab.js?v=1"></script>
+</body>
+</html>
