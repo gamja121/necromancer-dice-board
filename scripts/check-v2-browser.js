@@ -42,6 +42,13 @@ const base = process.env.GAME_TEST_URL || "http://localhost:8788/";
     await page.locator("#startButton").click();
     await page.waitForFunction(() => document.getElementById("startOverlay").hidden);
     console.log("PASS: V2 battle roster and start");
+    await page.locator("#turnDiceButton").click();
+    await page.waitForFunction(() => {
+      const saved = JSON.parse(localStorage.getItem("necromancer-v2-battle-v1") || "null");
+      return saved?.state?.round >= 1 && saved?.actions >= 1;
+    }, null, { timeout: 60000 });
+    assert(!await page.locator("#battleMessage").textContent().then(text => text.includes("오류")));
+    console.log("PASS: real browser dice -> round -> completed attack");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(base);
     assert(await page.locator("a.play").isVisible());

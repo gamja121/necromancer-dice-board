@@ -64,7 +64,7 @@ for (const tile of ["home", "village", "fortune-teller-camp", "boss", "boss-clea
   assert(worker.includes(relative), `New tile is not cached: ${relative}`);
 }
 assert(source.includes("const HOME_INDEX = 15") && source.includes("pool[HOME_INDEX] = fixedTiles.home") && source.includes("pool[23] = fixedTiles.boss"), "Home must sit on the central bottom tile and boss on the last tile.");
-assert(source.includes("heroIndex = HOME_INDEX") && source.includes("selectTile(currentButtons[HOME_INDEX]"), "The hero must start on the home tile.");
+assert(source.includes("const startingIndex = resumeHeroIndex === null ? HOME_INDEX : resumeHeroIndex") && source.includes("heroIndex = startingIndex") && source.includes("selectTile(currentButtons[heroIndex]"), "A new expedition starts at home; a resumed expedition preserves its tile.");
 assert(source.includes("if (heroIndex === HOME_INDEX) { reachedHome = true; lapReadyForRefresh = true; break; }") && source.includes("집 도착 (${stepsMoved}칸 이동)"), "Dice movement must stop at home even when pips remain.");
 assert(source.includes('el.hero.style.setProperty("--hero-facing", heroIndex >= 12 ? -1 : 1)') && css.includes('scaleX(var(--hero-facing, 1))'), "The hero must face the direction of travel on the bottom and left sides.");
 assert(source.includes("fixedTiles.village") && source.includes("fixedTiles.fortune"), "Village and fortune-teller tiles must be connected to the route.");
@@ -131,7 +131,8 @@ for (const file of ['map-book-closed.png', 'map-book-open.png']) {
   assert(fs.existsSync(path.join(root, relative)), `Book button asset is missing: ${relative}`);
   assert(worker.includes(relative), `Book button asset is not cached: ${relative}`);
 }
-assert(!source.includes('document.createElement("b")'), "Selected roster cards must not show numbered badges.");
+const rosterSource = source.slice(source.indexOf('  function renderDeckSelection('), source.indexOf('  function renderBookRoster('));
+assert(rosterSource.length > 0 && !rosterSource.includes('document.createElement("b")'), "Selected roster cards must not show numbered badges; reward cards may show a new badge.");
 assert(css.includes("translateY(-22%)") && css.includes("width: 68%"), "Selected cards must rise and the roster must cluster on the left.");
 assert(source.includes('el.board.classList.add("is-deck-selecting")') && css.includes('.map-board.is-deck-selecting .map-tile .step { opacity: 0; }'), "Map tile step badges must be hidden behind deck cards.");
 assert(source.includes('1: [100], 2: [35, 65], 3: [20, 33, 47], 4: [15, 20, 27, 38]'), "Placement targeting rates are missing.");

@@ -39,6 +39,11 @@ const a=ui.units[0];a.brands=[{type:'critical',bless:[4],curse:[1]},{type:'criti
 ui.openUnitInfo(a);assert.equal((nodes.get('unitInfoBrands').innerHTML.match(/class="brand-heading"/g)||[]).length,3);assert(nodes.get('legionInfoContent').innerHTML.includes('저주 [6]'));
 assert(nodes.get('unitInfoBrands').innerHTML.includes('brand-icons-extra-sheet.jpg'));
 (async()=>{
+ // Keep this multi-hit assertion independent of randomly generated enemy brands/passives.
+ for(const target of ui.units.filter(u=>u.team==='enemy')){
+   target.hp=target.maxHp=100;target.brands=[];target.passive=null;
+ }
+ a.attack=2;a.passive=null;
  a.brands=[{type:'combo',bless:[4],curse:[1]}];
  ui.ready();ui.setRoll(4);await ui.startTurn();assert.equal(ui.state.round,1);assert(ui.queue.length>=8);
  await ui.performAttack(a,ui.token);
@@ -51,7 +56,7 @@ assert(nodes.get('unitInfoBrands').innerHTML.includes('brand-icons-extra-sheet.j
  const html=fs.readFileSync('v2-auto-battle-practice.html','utf8');assert(html.includes('>효과 정보</h2>'));assert(!html.includes('>기본 정보</h3>'));
  assert(html.includes('battle-deck-selection-board.png'));assert(html.includes('선택 가능한 마물 카드 11장'));
  assert(source.includes('const TEST_DECK_SLUGS = Object.freeze(['));assert(source.includes('selectedAllySlugs.length >= 1 && selectedAllySlugs.length <= 4'));assert(source.includes('selectedAllySlugs.length === 4 && selectedEnemySlugs.length === 4'));
- assert(source.includes('unit-card-${entry.slug}.png?v=19'));assert.equal((source.match(/"death-knight", "skeleton-spear", "ghoul", "ancient-treant", "goblin-rider"/g)||[]).length,1);
+ assert(source.includes('unit-card-${entry.slug}.png?v=19'));assert(source.includes('"death-knight", "skeleton-spear", "skeleton-archer", "ghoul", "ancient-treant", "goblin-rider"'));
  assert(html.indexOf('v2-rules.js')<html.indexOf('v2-auto-battle-practice.js'));
  console.log('PASS: actual UI controller, 45 roster entries, 3-slot info, new icons, real round/attack handlers');
 })().catch(e=>{console.error(e);process.exitCode=1;});

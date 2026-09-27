@@ -23,10 +23,11 @@ const picker = element(unit);
 picker.dataset.unit = unit;
 const errors = [];
 const context = {
+  URLSearchParams, window: { location: { search: '' } },
   document: { querySelector: element, querySelectorAll: () => [picker] },
   Image: class {
     set src(url) {
-      if (fs.existsSync(path.join(__dirname, url))) this.onload();
+      if (fs.existsSync(path.join(__dirname, url.split('?')[0]))) this.onload();
       else this.onerror();
     }
   },

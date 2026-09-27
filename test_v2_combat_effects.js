@@ -49,7 +49,8 @@ async function main(){
     const unit=slug=>({slug,name:slug,team:'ally',alive:true,hp:10,frames:{attack:5,hit:4,death:7},image:{},element:{classList:{add(){},remove(){}},querySelector(){return host;}}});
     const actor=unit(slug),target=unit('ghoul');target.team='enemy';
     const ctx={actor,Math,battleToken:1,running:true,turnNumber:1,actionCount:0,turnQueue:[],speedMultiplier:1,message:{},
-      V2BattleBrands:{beforeAction:()=>false,attack:()=>({damage,miss:damage===0})},
+      rulesState:{events:[]}, saveBattle(){}, combatSoundProfile:()=>({}),
+      V2Rules:{before:()=>0,pickTarget:()=>target,attack:()=>{target.hp-=damage;return {damage,hits:damage?[damage]:[],miss:damage===0};}},
       V2Legions:{consumeFreeze:()=>false,beforeAttack:()=>({}),afterAttack:()=>({}),afterAction:()=>0},legionState:{},
       summonBeforeAttack:async()=>{}, V2SummonRules:require('./v2-summon-rules'), battlefield:{classList:{add(){},remove(){}}},
       V2CombatEffects:{prepare:async type=>{assert.equal(type,slug);assert.equal(api.ATTACK_EFFECTS[type],effect);return ['a'];},play:async (node,frames)=>{assert.equal(node,host);events.push('effect');}},

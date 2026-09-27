@@ -49,7 +49,9 @@ const brandList = Object.assign(node(), { hidden: true });
 const confirm = Object.assign(node(), { disabled: true });
 const V2Rules = require("./v2-rules.js");
 const slugs = ["death-knight", "skeleton-spear", "ghoul", "ancient-treant", "goblin-rider", "minotaur", "plague-doctor", "spider-knight", "hydra", "siren"];
-const saved = slugs.map((slug) => V2Rules.individual(slug));
+const saved = slugs.map((slug, index) => ({ ...V2Rules.individual(slug), instanceId: `test-owned-${index}` }));
+// A second card of the donor species must survive instance-scoped consumption.
+saved[9] = { ...V2Rules.individual("death-knight"), instanceId: "test-owned-9" };
 saved[0].brands.push(V2Rules.brand("poison"), V2Rules.brand("guard"));
 saved[2].brands.push(V2Rules.brand("poison"), V2Rules.brand("guard"));
 const donorBrands = JSON.stringify(saved[0].brands);
@@ -92,7 +94,8 @@ if (!resultCard.hidden || !confirm.disabled || cards.children[1].classList.conta
 cards.children[1].on_click();
 confirm.on_click();
 const after = JSON.parse(stored);
-if (after.length !== 9 || after.some((unit) => unit.slug === "death-knight") ||
+if (after.length !== 9 || after.some((unit) => unit.instanceId === donorInstanceId) ||
+    !after.some((unit) => unit.instanceId === "test-owned-9" && unit.slug === "death-knight") ||
     JSON.stringify(after.find((unit) => unit.slug === "skeleton-spear").brands) !==
       JSON.stringify([...JSON.parse(recipientBrands), { ...JSON.parse(donorBrands)[1], curse: [] }]) ||
     cards.children.length !== 9 || !materialCard.hidden || resultCard.hidden ||

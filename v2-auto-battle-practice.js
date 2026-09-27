@@ -1106,6 +1106,7 @@
     const legionAttack = { legionCritical: false };
     const eventStart = rulesState.events.length;
     const outcome = V2Rules.attack(rulesState, actor, target);
+    const hitAmounts = outcome.hits.length ? outcome.hits : outcome.damage > 0 ? [outcome.damage] : [];
     const targetFinalHp = target.hp;
     const targetFinalAlive = target.alive;
     const attackEvents = rulesState.events.slice(eventStart);
@@ -1135,7 +1136,6 @@
     message.textContent = outcome.miss ? `${actor.name} 공격 빗나감` : outcome.cancelled ? `${actor.name} 공격 취소`
       : outcome.immune ? `${target.name} 수호 · 피해 무시`
       : `${actor.name} → ${target.name} · 피해 ${outcome.damage}${outcome.recovered ? ` · 흡혈 +${outcome.recovered}` : ""}`;
-    const hitAmounts = outcome.hits.length ? outcome.hits : outcome.damage > 0 ? [outcome.damage] : [];
     if (hitAmounts.length) {
       for (let hitIndex = 0; hitIndex < hitAmounts.length; hitIndex += 1) {
         if (hitIndex > 0) {
