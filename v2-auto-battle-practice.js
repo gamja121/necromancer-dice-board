@@ -793,12 +793,32 @@
     beginTurnIntermission(true);
   }
 
+  function recoverBattleFlow(error, phase = "전투 처리") {
+    console.error(`${phase} 오류`, error);
+    if (!running) return;
+    actionBusy = false;
+    introRunning = false;
+    battlefield.classList.remove("is-cinematic");
+    for (const unitState of units) {
+      unitState.element?.classList.remove("is-attacking", "is-targeted", "is-hit");
+      if (unitState.alive && unitState.image) unitState.image.src = frame(unitState, "attack", 1);
+      updateUnit(unitState);
+    }
+    updateHud();
+    if (!aliveUnits("ally").length || !aliveUnits("enemy").length) {
+      finishBattle();
+      return;
+    }
+    message.textContent = `${phase} 연출 오류 복구 · 전투 계속`;
+  }
+
   function battleLoop() {
     if (running && !paused && !actionBusy && !awaitingRoll) {
       let actor = turnQueue.shift();
       while (actor && !actor.alive) actor = turnQueue.shift();
-      if (actor) performAttack(actor, battleToken);
-      else beginTurnIntermission(false);
+      if (actor) {
+        performAttack(actor, battleToken).catch((error) => recoverBattleFlow(error, "공격"));
+      } else beginTurnIntermission(false);
     }
     requestAnimationFrame(battleLoop);
   }
@@ -918,7 +938,7 @@
     if (token !== battleToken || !running || !awaitingRoll) return;
     turnDiceButton.disabled = false;
     diceRolling = false;
-    startTurn();
+    startTurn().catch((error) => recoverBattleFlow(error, "턴 시작"));
   }
 
   function legionDetails(unitState) {
@@ -1072,7 +1092,7 @@
     if (typeof V2Sfx !== "undefined") V2Sfx.play("attack", { variant: soundProfile.attack, rate: .92 + Math.min(6, actor.speed) * .025 });
     let attackPlayback = playMotion(actor, "attack", actor.frames.attack, token, false, signalImpact);
     attackPlayback.then(signalImpact, signalImpact);
-    await impactReady;
+    await Promise.race([impactReady, wait(Math.max(900, 1600 / speedMultiplier))]);
     if (token !== battleToken || !running) return;
 
     const poisonStacksBefore = Array.isArray(target.poisonStacks) ? target.poisonStacks.length : Number(target.poison || 0);
@@ -1120,7 +1140,7 @@
           if (typeof V2Sfx !== "undefined") V2Sfx.play("attack", { variant: soundProfile.attack, rate: .96 + Math.min(6, actor.speed) * .02 });
           attackPlayback = playMotion(actor, "attack", actor.frames.attack, token, false, signalNextImpact);
           attackPlayback.then(signalNextImpact, signalNextImpact);
-          await nextImpactReady;
+          await Promise.race([nextImpactReady, wait(Math.max(900, 1600 / speedMultiplier))]);
           if (token !== battleToken || !running) return;
         }
         const hitAmount = hitAmounts[hitIndex];
@@ -1161,7 +1181,7 @@
       if (typeof V2Sfx !== "undefined") V2Sfx.play("attack", { variant: counterSoundProfile.attack, rate: .95 + Math.min(6, target.speed) * .02 });
       const counterPlayback = playMotion(target, "attack", target.frames.attack, token, false, signalCounterImpact);
       counterPlayback.then(signalCounterImpact, signalCounterImpact);
-      await counterImpactReady;
+      await Promise.race([counterImpactReady, wait(Math.max(900, 1600 / speedMultiplier))]);
       if (token !== battleToken || !running) return;
 
       if (typeof V2Sfx !== "undefined") V2Sfx.play("hit", { variant: counterSoundProfile.hit, rate: Math.max(.72, 1.08 - outcome.counterDamage * .045), volume: Math.min(1.25, .82 + outcome.counterDamage * .07) });
@@ -1213,6 +1233,10 @@
   }
 
   async function playMotion(unitState, motion, count, token, holdLast, onImpact) {
+    if (!unitState?.image || !unitState.image.isConnected || !Number.isFinite(count) || count <= 0) {
+      if (onImpact) onImpact();
+      return;
+    }
     const delay = () => Math.max(45, 135 / speedMultiplier);
     for (let index = 1; index <= count; index += 1) {
       if (token !== battleToken || !running) return;
