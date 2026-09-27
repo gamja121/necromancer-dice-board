@@ -444,11 +444,12 @@
   }
 
   function getTileImage(tile, step) {
-    if (isMonsterTileCleared(step)) {
-      if (tile.id === "monster") return `${ROOT}tiles/monster-cleared.png?v=${TILE_ASSET_VERSION}`;
-      if (tile.id === "rare-monster") return `${ROOT}tiles/rare-monster-cleared.png?v=${TILE_ASSET_VERSION}`;
-      if (tile.id === "boss") return `${ROOT}tiles/boss-cleared.png?v=${TILE_ASSET_VERSION}`;
-    }
+    // The four state-specific monster PNGs added on 2026-09-27 are currently
+    // malformed and fail to decode on browsers. Keep the files in the repo for
+    // replacement, but render known-good base artwork so monster tiles never vanish.
+    if (tile.id === "rare-monster") return `${ROOT}tiles/monster.png?v=${TILE_ASSET_VERSION}`;
+    if (tile.id === "boss") return `${ROOT}tiles/boss.png?v=${TILE_ASSET_VERSION}`;
+    if (tile.id === "monster") return `${ROOT}tiles/monster.png?v=${TILE_ASSET_VERSION}`;
     return `${ROOT}tiles/${tile.id}.png?v=${TILE_ASSET_VERSION}`;
   }
 
