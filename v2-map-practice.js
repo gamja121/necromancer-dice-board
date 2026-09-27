@@ -2,6 +2,8 @@
   "use strict";
 
   const ROOT = "art/v2-style/map-test/";
+  const TILE_ASSET_VERSION = "20260927-2";
+  const EVENT_ASSET_VERSION = "20260927-2";
   const DICE_ROOT = "art/v2-style/dice-test/frames/";
   const rollingFrames = Array.from({ length: 12 }, (_, index) => `${DICE_ROOT}roll-${String(index + 1).padStart(2, "0")}.png`);
   const resultFrames = Array.from({ length: 6 }, (_, index) => `${DICE_ROOT}result-${String(index + 1).padStart(2, "0")}.png`);
@@ -12,13 +14,13 @@
     hell: { name: "지옥 지역", image: `${ROOT}maps/hell-map.jpg` }
   };
   const tileEventScenes = Object.freeze({
-    graveyard: Object.freeze({ title: "묘지", image: `${ROOT}events/graveyard.jpg` }),
-    home: Object.freeze({ title: "집", image: `${ROOT}events/home.jpg` }),
-    "fortune-teller-camp": Object.freeze({ title: "예언자", image: `${ROOT}events/fortune-teller.jpg` }),
-    village: Object.freeze({ title: "마을", image: `${ROOT}events/village.jpg` }),
-    rest: Object.freeze({ title: "숙영", image: `${ROOT}events/camp.jpg` }),
-    altar: Object.freeze({ title: "정화의 나무", image: `${ROOT}events/altar.jpg` }),
-    forest: Object.freeze({ title: "숲", image: `${ROOT}events/forest.jpg` }),
+    graveyard: Object.freeze({ title: "묘지", image: `${ROOT}events/graveyard.jpg?v=${EVENT_ASSET_VERSION}` }),
+    home: Object.freeze({ title: "집", image: `${ROOT}events/home.jpg?v=${EVENT_ASSET_VERSION}` }),
+    "fortune-teller-camp": Object.freeze({ title: "예언자", image: `${ROOT}events/fortune-teller.jpg?v=${EVENT_ASSET_VERSION}` }),
+    village: Object.freeze({ title: "마을", image: `${ROOT}events/village.jpg?v=${EVENT_ASSET_VERSION}` }),
+    rest: Object.freeze({ title: "숙영", image: `${ROOT}events/camp.jpg?v=${EVENT_ASSET_VERSION}` }),
+    altar: Object.freeze({ title: "정화의 나무", image: `${ROOT}events/altar.jpg?v=${EVENT_ASSET_VERSION}` }),
+    forest: Object.freeze({ title: "숲", image: `${ROOT}events/forest.jpg?v=${EVENT_ASSET_VERSION}` }),
     gem: Object.freeze({ title: "보물상자", animation: "treasure" })
   });
   const tileEventRatios = Object.freeze({
@@ -175,7 +177,7 @@
   let contamination = loadContamination();
   const ownedUnits = loadOwnedRoster();
 
-  [...rollingFrames, ...resultFrames, ...treasureChestFrames, ...Object.values(tileEventScenes).map((scene) => scene.image).filter(Boolean), `${ROOT}events/home-interior.jpg`].forEach((src) => { const image = new Image(); image.src = src; });
+  [...rollingFrames, ...resultFrames, ...treasureChestFrames, ...Object.values(tileEventScenes).map((scene) => scene.image).filter(Boolean), `${ROOT}events/home-interior.jpg?v=${EVENT_ASSET_VERSION}`].forEach((src) => { const image = new Image(); image.src = src; });
 
   function wait(milliseconds) {
     return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
@@ -397,11 +399,11 @@
 
   function getTileImage(tile, step) {
     if (isMonsterTileCleared(step)) {
-      if (tile.id === "monster") return `${ROOT}tiles/monster-cleared.png`;
-      if (tile.id === "rare-monster") return `${ROOT}tiles/rare-monster-cleared.png`;
-      if (tile.id === "boss") return `${ROOT}tiles/boss-cleared.png`;
+      if (tile.id === "monster") return `${ROOT}tiles/monster-cleared.png?v=${TILE_ASSET_VERSION}`;
+      if (tile.id === "rare-monster") return `${ROOT}tiles/rare-monster-cleared.png?v=${TILE_ASSET_VERSION}`;
+      if (tile.id === "boss") return `${ROOT}tiles/boss-cleared.png?v=${TILE_ASSET_VERSION}`;
     }
-    return `${ROOT}tiles/${tile.id}.png`;
+    return `${ROOT}tiles/${tile.id}.png?v=${TILE_ASSET_VERSION}`;
   }
 
   function createPool() {
@@ -1243,7 +1245,7 @@
 
   function enterHome() {
     if (!eventOpen || activeEventTileId !== "home") return;
-    el.eventImage.src = `${ROOT}events/home-interior.jpg`;
+    el.eventImage.src = `${ROOT}events/home-interior.jpg?v=${EVENT_ASSET_VERSION}`;
     el.eventImage.alt = "우리집 실내 풍경";
     el.eventEnter.hidden = true;
     el.eventInheritance.hidden = false;
@@ -1372,6 +1374,11 @@
       button.classList.toggle("is-cleared-monster", cleared);
       image.src = getTileImage(tile, tileStep);
       image.alt = "";
+      image.addEventListener("error", () => {
+        if (image.dataset.fallbackTried === "1") return;
+        image.dataset.fallbackTried = "1";
+        image.src = image.src.split("?")[0];
+      }, { once: true });
       step.className = "step";
       step.textContent = String(index + 1);
       button.append(image, step);
@@ -1733,4 +1740,15 @@
   renderInventoryCounts();
   generateTiles();
   if (typeof V2Sfx !== "undefined") V2Sfx.preload();
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", async () => {
+      try {
+        const registration = await navigator.serviceWorker.register("./service-worker.js", { updateViaCache: "none" });
+        await registration.update();
+      } catch (error) {
+        console.warn("맵 화면 업데이트 확인 실패", error);
+      }
+    });
+  }
 })();
