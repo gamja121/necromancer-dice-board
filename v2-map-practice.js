@@ -190,6 +190,7 @@
     try {
       if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify([...ownedUnits.values()]));
     } catch (_) { /* Keep the current run usable without storage. */ }
+    renderInventoryCounts();
   }
 
   function renderInventoryCounts() {
@@ -270,6 +271,35 @@
     });
     try { if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify(roster)); } catch (_) { /* The current map still works without storage. */ }
     return new Map(roster.map((unit) => [unit.instanceId, unit]));
+  }
+
+  function syncInventoryStateFromStorage() {
+    try {
+      if (typeof sessionStorage === "undefined") return;
+
+      const savedRoster = JSON.parse(sessionStorage.getItem(OWNED_ROSTER_KEY));
+      if (Array.isArray(savedRoster)) {
+        const refreshed = savedRoster
+          .filter((unit) => TEST_DECK.some((entry) => entry.slug === unit?.slug))
+          .map(normalizeOwnedUnit);
+        const refreshedIds = new Set(refreshed.map((unit) => unit.instanceId));
+        ownedUnits.clear();
+        for (const unit of refreshed) ownedUnits.set(unit.instanceId, unit);
+        selectedDeck = selectedDeck.filter((instanceId) => refreshedIds.has(instanceId));
+      }
+
+      const savedDice = JSON.parse(sessionStorage.getItem(DICE_CONTROL_INVENTORY_KEY));
+      if (Array.isArray(savedDice) && savedDice.every((id) => V2DiceControl.cards.some((card) => card.id === id))) {
+        diceControlHand = savedDice.slice(0, DICE_CONTROL_CAPACITY)
+          .map((id) => V2DiceControl.cards.find((card) => card.id === id))
+          .filter(Boolean);
+      }
+
+      renderBookRoster();
+      renderDiceControlHand();
+      if (!el.deckOverlay.hidden) renderDeckSelection();
+      renderInventoryCounts();
+    } catch (_) { /* Keep current in-memory inventory if storage cannot be read. */ }
   }
 
   function perimeterPositions() {
@@ -380,6 +410,7 @@
         sessionStorage.setItem(DICE_CONTROL_INVENTORY_KEY, JSON.stringify(diceControlHand.map((card) => card.id)));
       }
     } catch (_) { /* Keep the current run usable without storage. */ }
+    renderInventoryCounts();
   }
 
   function addDiceControlCard(cardId) {
@@ -1519,6 +1550,7 @@
     selectedDeck = selectedDeck.filter((instanceId) => ownedUnits.has(instanceId));
     renderBookRoster();
     if (!el.deckOverlay.hidden) renderDeckSelection();
+    renderInventoryCounts();
   });
   el.bookButton.addEventListener("click", toggleBookRoster);
   el.cardDeckButton.addEventListener("click", toggleDiceControlCard);
@@ -1526,6 +1558,10 @@
   el.infoClose.addEventListener("click", closeBookUnitInfo);
   el.infoBackdrop.addEventListener("click", closeBookUnitInfo);
   window.addEventListener("resize", () => { if (eventOpen) fitTileEventScene(); });
+  window.addEventListener("pageshow", () => syncInventoryStateFromStorage());
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && !rolling && !enteringBattle) syncInventoryStateFromStorage();
+  });
   el.deckConfirm.addEventListener("click", confirmMonsterBattle);
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !el.rewardOverflowOverlay.hidden) return;
