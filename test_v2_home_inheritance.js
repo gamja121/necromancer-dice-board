@@ -9,11 +9,11 @@ const source = fs.readFileSync(path.join(root, "v2-home-inheritance.js"), "utf8"
 const worker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
 const board = "art/v2-style/map-test/events/inheritance-board.png";
 if (!fs.existsSync(path.join(root, board))) throw Error("Two-panel inheritance image is missing");
-for (const file of [board, "v2-home-inheritance.css?v=5", "v2-home-inheritance.js?v=5"]) {
+for (const file of [board, "v2-home-inheritance.css?v=5", "v2-home-inheritance.js?v=8"]) {
   if (!worker.includes(file)) throw Error(`Inheritance resource is not cached: ${file}`);
 }
 if (!html.includes('class="home-inheritance-material"') && !html.includes('home-inheritance-material"')) throw Error("Material panel is missing");
-if (!html.includes('home-inheritance-result"') || !html.includes('id="homeInheritanceBrandList"') || !html.includes('<h3>낙인</h3>') || html.includes('id="homeInheritanceParts"') || !html.includes('id="homeInheritanceConfirm"') || !css.includes("legion-info-window-hd.png") || !css.includes("height: 91%") || !html.includes('v2-home-inheritance.js?v=5')) throw Error("Tall, compact brand information frame or automatic inheritance controls are missing");
+if (!html.includes('home-inheritance-result"') || !html.includes('id="homeInheritanceBrandList"') || !html.includes('<h3>낙인</h3>') || html.includes('id="homeInheritanceParts"') || !html.includes('id="homeInheritanceConfirm"') || !css.includes("legion-info-window-hd.png") || !css.includes("height: 91%") || !html.includes('v2-home-inheritance.js?v=8')) throw Error("Tall, compact brand information frame or automatic inheritance controls are missing");
 if (!css.includes("home-inheritance-cards-rise")) throw Error("Owned cards must still rise from below");
 
 function classList() {
@@ -74,7 +74,10 @@ const globals = {
 };
 vm.runInNewContext(source, globals);
 globals.window.V2HomeInheritance.open();
-if (overlay.hidden || !overlay.classList.contains("is-open") || cards.children.length !== 10 || !closeButton.focused) throw Error("Opening inheritance must reveal the board and ten owned cards");
+if (overlay.hidden || !overlay.classList.contains("is-open") || cards.children.length !== saved.length || !closeButton.focused) throw Error("Opening inheritance must reveal the board and every stored owned card");
+const donorInstanceId = cards.children[0].dataset.instanceId;
+const recipientInstanceId = cards.children[1].dataset.instanceId;
+if (!donorInstanceId || !recipientInstanceId || donorInstanceId === recipientInstanceId) throw Error("Inheritance cards must keep distinct instance ids");
 cards.children[0].on_click();
 if (materialCard.hidden || !materialCard.src.includes("death-knight") || brandList.hidden || brandList.children.length !== 3 || !brandList.children[0].children[1].textContent.includes("축")) throw Error("Selecting material must show all three brands without scrolling or choice buttons");
 cards.children[0].on_click();
@@ -92,8 +95,11 @@ const after = JSON.parse(stored);
 if (after.length !== 9 || after.some((unit) => unit.slug === "death-knight") ||
     JSON.stringify(after.find((unit) => unit.slug === "skeleton-spear").brands) !==
       JSON.stringify([...JSON.parse(recipientBrands), { ...JSON.parse(donorBrands)[1], curse: [] }]) ||
-    cards.children.length !== 9 || !materialCard.hidden || resultCard.hidden || rosterEvent?.detail.donorSlug !== "death-knight")
-  throw Error("Inheritance must consume only donor and append exact brand face numbers to recipient");
+    cards.children.length !== 9 || !materialCard.hidden || resultCard.hidden ||
+    rosterEvent?.detail.donorInstanceId !== donorInstanceId ||
+    rosterEvent?.detail.recipient?.instanceId !== recipientInstanceId ||
+    rosterEvent?.detail.recipient?.slug !== "skeleton-spear")
+  throw Error("Inheritance must consume only the donor instance, preserve the recipient instance, and append exact brand face numbers");
 globals.window.V2HomeInheritance.close();
 if (!overlay.hidden || overlay.classList.contains("is-open") || !materialCard.hidden || brandList.children.length) throw Error("Closing inheritance must clear the material and hide the board");
 globals.window.V2HomeInheritance.open();
