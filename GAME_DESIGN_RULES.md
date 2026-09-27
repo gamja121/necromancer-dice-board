@@ -1,6 +1,6 @@
 # 마물 전투 시스템 확정 규칙
 
-> 확정 설계 기준이다. V2 전투 구현은 v2-design-data.js, v2-rules.js를 사용한다. 기존 본편(game.js)의 원정 저장과 V2 편성 테스트는 별도 시스템이다.
+> 확정 설계 기준이다. 현재 전투 구현의 기준은 `v2-design-data.js`, `v2-rules.js`이며, 원정 흐름은 `v2-map-practice.js`, 전투 진행은 `v2-auto-battle-practice.js`가 담당한다. 직접 조작 전투 화면(`v2.html`)은 별도의 개발용 테스트 화면이다.
 
 ## 군단 효과
 
