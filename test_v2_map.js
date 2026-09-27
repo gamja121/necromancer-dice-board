@@ -37,7 +37,7 @@ assert(source.includes("await wait(230)"), "Step-by-step movement timing is miss
 assert(source.includes("isMonsterBattleTile(tile)") && source.includes('el.deckOverlay.classList.add("is-open")'), "Monster, rare-monster, and boss tiles must open deck selection over the map.");
 assert(source.includes("isMonsterBattleTile(currentTiles[heroIndex])") && source.includes("enterMonsterBattle(currentTiles[heroIndex], landedStep)"), "Landing on an uncleared battle tile must open battle after dice movement.");
 assert(source.includes('new Set(["monster", "rare-monster", "boss"])') && source.includes("isMonsterTileCleared(step)"), "Battle tile types and per-step cleared-state handling must remain connected.");
-assert(source.includes('from: "map", map: activeMapId, tile: String(battleStep), allies: selectedDeck.join(",")'), "Monster battles must receive map, tile, and selected deck context.");
+assert(source.includes('from: "map",') && source.includes('allies: selectedUnits.map((unit) => unit.slug).join(",")') && source.includes('allyIds: selectedUnits.map((unit) => unit.instanceId).join(",")'), "Monster battles must receive map context plus ordered slugs and instance ids.");
 assert(css.includes("@keyframes map-deck-window-drop") && css.includes("@keyframes map-deck-roster-rise"), "Deck board and roster entrance animations are missing.");
 assert(css.includes(".map-deck-overlay") && css.includes("background: transparent"), "The board map must remain visible behind deck selection.");
 assert(source.includes("const tileEventScenes") && source.includes("openTileEvent(currentTiles[heroIndex], heroIndex + 1)"), "Landing on a supported tile must open its centered event scene.");
@@ -70,8 +70,7 @@ assert(source.includes('el.hero.style.setProperty("--hero-facing", heroIndex >= 
 assert(source.includes("fixedTiles.village") && source.includes("fixedTiles.fortune"), "Village and fortune-teller tiles must be connected to the route.");
 const eventScenes = {
   graveyard: "graveyard.jpg", home: "home.jpg", "fortune-teller-camp": "fortune-teller.jpg",
-  village: "village.jpg", rest: "camp.jpg", altar: "altar.jpg", forest: "forest.jpg",
-  gem: "treasure-chest-sprite.png"
+  village: "village.jpg", rest: "camp.jpg", altar: "altar.jpg", forest: "forest.jpg"
 };
 for (const [tile, file] of Object.entries(eventScenes)) {
   const relative = `art/v2-style/map-test/events/${file}`;
@@ -79,8 +78,13 @@ for (const [tile, file] of Object.entries(eventScenes)) {
   assert(worker.includes(relative), `Event scene is not cached: ${relative}`);
   assert(source.includes(`${tile.includes("-") ? `"${tile}"` : tile}: Object.freeze`), `Event scene mapping is missing: ${tile}`);
 }
-assert(html.includes('id="treasureChestSprite"') && css.includes("@keyframes treasure-chest-open"), "Treasure tile must use the transparent four-frame opening animation.");
-assert(source.includes('scene.animation === "treasure"') && source.includes('eventTreasure.classList.add("is-playing")'), "Treasure animation must restart when the tile is reached.");
+assert(html.includes('id="treasureChestFrame"') && css.includes(".treasure-chest-frame") && css.includes(".treasure-chest-frame.is-burst"), "Treasure tile must expose the current four-frame chest image.");
+for (let index = 1; index <= 4; index += 1) {
+  const relative = `art/v2-style/map-test/events/treasure-chest-frame-${index}.png`;
+  assert(fs.existsSync(path.join(root, relative)), `Treasure frame is missing: ${relative}`);
+  assert(worker.includes(relative), `Treasure frame is not cached: ${relative}`);
+}
+assert(source.includes('scene.animation === "treasure"') && source.includes("async function playTreasureChestAnimation()") && source.includes('eventTreasure.classList.add("is-burst")'), "Treasure animation must restart through the current four-frame sequence.");
 assert(source.includes("async function warpToOtherWarp()") && source.includes('tile.id === "warp" && index !== heroIndex'), "Warp must move to the other warp tile.");
 assert(source.includes('currentTiles[heroIndex]?.id === "warp"') && source.includes("await warpToOtherWarp()"), "Landing on a warp tile must trigger teleportation.");
 assert(html.includes("v2-map-practice.js?v=54") && html.includes("v2-map-practice.css?v=41") && html.includes("v2-sfx.js?v=3"), "The map page must load the current map, styling, and mobile sound scripts.");
@@ -117,9 +121,9 @@ assert(source.includes('forceCloseBookRoster();') && source.includes('async func
 assert(source.includes('el.bookButton.offsetLeft') && source.includes('translateX(${bookExitX - cardX}px)') && !source.includes('const book = el.bookButton.getBoundingClientRect()'), "Book cards must slide sideways from the book in board-local coordinates.");
 assert(css.includes('.map-deck-roster.map-book-roster button.is-inspecting') && css.includes('translateY(-22%)') && source.includes('clearBookSelection()'), "Book cards must rise slightly on selection and lower on deselection.");
 assert(html.includes('id="mapUnitInfoOverlay"') && html.includes('class="map-unit-info-panel"') && !html.includes('class="legion-info-panel"'), "Only the basic unit information window should appear in the map center.");
-assert(css.includes('.map-unit-info-overlay { position: absolute; z-index: 60; inset: 0; display: grid; place-items: center; }') && source.includes('openBookUnitInfo(ownedUnits.get(entry.slug))'), "Selecting an owned card must open centered basic information.");
-assert(html.includes('v2-design-data.js?v=1') && html.includes('v2-rules.js?v=6') && source.includes('V2Rules.individual(entry.slug)'), "Owned-card stats and brands must use battle rules.");
-assert(battleSource.includes('mapOwnedRoster.get(data.instanceId)') && battleSource.includes('mapOwnedRoster.get(unitState.instanceId)') && battleSource.includes('sessionStorage.getItem("necromancer-map-roster-v2")'), "Battle must restore the same instanceId-based individual cards from the map.");
+assert(css.includes('.map-unit-info-overlay { position: absolute; z-index: 60; inset: 0; display: grid; place-items: center; }') && source.includes('openBookUnitInfo(ownedUnits.get(owned.instanceId))'), "Selecting an owned card must open centered instance-based information.");
+assert(html.includes('v2-design-data.js?v=1') && html.includes('v2-rules.js?v=6') && source.includes('normalizeOwnedUnit(V2Rules.individual(slug))'), "Owned-card stats and brands must use battle rules.");
+assert(battleSource.includes('const MAP_ROSTER_KEY = "necromancer-map-roster-v2"') && battleSource.includes('sessionStorage.getItem(MAP_ROSTER_KEY)') && battleSource.includes('mapOwnedRoster.get(data.instanceId)') && battleSource.includes('mapOwnedRoster.get(unitState.instanceId)'), "Battle must restore the same instanceId-based individual cards from the map.");
 assert(source.includes('x: 20 + index * (70 / 7), y: 12') && source.includes('x: 79 - index * (58 / 6), y: 85') && source.includes('x: 6, y: 69 - index * (54 / 4)'), "The top tiles must shift right and one bottom tile must move up the left edge.");
 assert(!css.includes('.map-tile.is-bottom-row') && source.includes('button.className = "map-tile"'), "Bottom tiles must have the same size as every other map tile.");
 for (const file of ['map-book-closed.png', 'map-book-open.png']) {

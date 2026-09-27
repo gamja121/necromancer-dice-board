@@ -1,5 +1,13 @@
 # AI 프로젝트 진행 상황 — 네크로멘서 앤드 다이스
 
+## 2026-09-27: 맵 테스트의 보물/instanceId 잔여 옛 계약 정리
+
+- `test_v2_map.js`에 남아 있던 `selectedDeck.join()` 기반 전투 파라미터 검사를 현재 `selectedUnits`의 slug + instanceId 전달 구조로 변경했다.
+- 보물상자 검사를 옛 `treasureChestSprite`/CSS keyframe 방식에서 현재 `treasureChestFrame` 4프레임 + `is-burst` 방식으로 갱신했다.
+- 보물상자 frame 1~4의 실제 파일 존재와 서비스워커 캐시 포함 여부를 모두 검사하게 했다.
+- 보유 마물 정보창은 slug가 아니라 `owned.instanceId`로 개체를 찾는 현재 구현을 검사하도록 수정했다.
+- 자동전투 로스터 복원은 `MAP_ROSTER_KEY`와 instanceId 기반 조회를 검사하도록 수정했다.
+
 ## 2026-09-27: 맵 테스트 타일 수 계산 범위 수정
 
 - `test_v2_map.js`의 `tileCount()`가 소스 전체의 `count:`를 모두 합산해 동적 희귀 마물 보정 코드의 `count: 1`까지 포함하면서 25로 잘못 계산하고 있었다.
