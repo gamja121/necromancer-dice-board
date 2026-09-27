@@ -45,7 +45,8 @@ assert(css.includes(".tile-event-overlay") && css.includes("place-items: center"
 assert(tileCount(source) === 24, "Tile distribution must total 24.");
 
 function tileCount(text) {
-  return [...text.matchAll(/count:\s*(\d+)/g)].reduce((sum, match) => sum + Number(match[1]), 0);
+  const definitions = text.slice(text.indexOf("const tileTypes"), text.indexOf("const TEST_DECK"));
+  return [...definitions.matchAll(/count:\s*(\d+)/g)].reduce((sum, match) => sum + Number(match[1]), 0);
 }
 
 for (const map of ["default", "winter", "hell"]) {
