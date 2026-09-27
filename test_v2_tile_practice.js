@@ -16,7 +16,7 @@ for (const file of ["v2-tile-practice.html", "v2-tile-practice.css?v=1", "v2-til
   if (!worker.includes(file)) throw Error(`Tile test is not cached: ${file}`);
 }
 if (!html.includes('id="tileTestEnter"') || !html.includes('id="tileTestExit"') || !html.includes('id="tileTestImage"') || !html.includes('id="tileTestInheritance"')) throw Error("Home tile controls are missing");
-if (!css.includes("aspect-ratio: 1280 / 714") || !html.includes("v2-map-practice.css?v=18")) throw Error("Home scene must use the current map styling and keep its aspect ratio");
+if (!css.includes("aspect-ratio: 1280 / 714") || !html.includes("v2-map-practice.css?v=41")) throw Error("Home scene must use the current map styling and keep its aspect ratio");
 
 const handlers = {};
 const image = { src: "art/v2-style/map-test/events/home.jpg", alt: "" };

@@ -1,5 +1,12 @@
 # AI 프로젝트 진행 상황 — 네크로멘서 앤드 다이스
 
+## 2026-09-27: 서비스워커 중복 캐시 버전 정리
+
+- `v2-tile-practice.html`이 현재 맵과 동일한 파일을 옛 query 버전(`v2-map-practice.css?v=18`, `v2-home-inheritance.js?v=5`)으로 불러오던 부분을 현재 버전 `?v=41`, `?v=8`로 통일했다.
+- `test_v2_tile_practice.js`의 고정 버전 검사도 현재 참조와 일치하도록 갱신했다.
+- `service-worker.js`에서 같은 파일의 옛 query 버전 2개와 중복 `index.html` 항목을 제거했다.
+- 서비스워커 캐시 이름을 `necromancer-and-dice-v2-20260927-2`로 올려 모바일에서도 정리된 캐시 셸을 새로 설치하게 했다.
+
 ## 2026-09-27: V1 제거 후 규칙 문서 기준 설명 정리
 
 - V1 제거 이후에도 `GAME_DESIGN_RULES.md` 상단에 삭제된 `game.js`를 현재 본편처럼 설명하는 문장이 남아 있었다.
