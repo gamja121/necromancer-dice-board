@@ -1,5 +1,13 @@
 # AI 프로젝트 진행 상황 — 네크로멘서 앤드 다이스
 
+## 2026-09-27: 전투 모션이 생략되는 회귀 수정
+
+- 전투 정지 방지용 playMotion 가드가 unitState.image.isConnected=false인 순간 모션 전체를 생략할 수 있던 문제를 수정했다.
+- 이미지 참조가 끊겼거나 오래된 경우 현재 유닛 DOM의 .sprite-wrap > img를 다시 찾아 unitState.image를 복구한 뒤 모션을 계속 재생한다.
+- 모션 도중 DOM 참조가 바뀌는 경우에도 각 프레임에서 live sprite를 다시 찾을 수 있도록 보강했다.
+- 오류 복구 루틴도 오래된 이미지 참조 대신 현재 DOM의 sprite 이미지를 우선 사용하도록 변경했다.
+- 기존 공격 impact 무한대기 방지와 전투 루프 오류 복구는 유지한다.
+
 ## 2026-09-27: 전투 중 정지 버그 복구 보강
 
 - 전투 루프가 performAttack/startTurn의 Promise rejection을 처리하지 않아 연출 오류가 한 번 발생하면 actionBusy=true가 남고 전투가 영구 정지할 수 있는 구조를 확인했다.

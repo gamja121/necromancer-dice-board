@@ -801,7 +801,11 @@
     battlefield.classList.remove("is-cinematic");
     for (const unitState of units) {
       unitState.element?.classList.remove("is-attacking", "is-targeted", "is-hit");
-      if (unitState.alive && unitState.image) unitState.image.src = frame(unitState, "attack", 1);
+      const liveImage = unitState.element?.querySelector(".sprite-wrap > img") || unitState.image;
+      if (liveImage) {
+        unitState.image = liveImage;
+        if (unitState.alive) liveImage.src = frame(unitState, "attack", 1);
+      }
       updateUnit(unitState);
     }
     updateHud();
@@ -1233,19 +1237,44 @@
   }
 
   async function playMotion(unitState, motion, count, token, holdLast, onImpact) {
-    if (!unitState?.image || !unitState.image.isConnected || !Number.isFinite(count) || count <= 0) {
+    if (!unitState || !Number.isFinite(count) || count <= 0) {
       if (onImpact) onImpact();
       return;
     }
+
+    // The battlefield can refresh supporting UI while combat is running.
+    // Never treat a stale <img> reference as "no animation": reacquire the live sprite.
+    let image = unitState.image;
+    if (!image || image.isConnected === false) {
+      image = unitState.element?.querySelector(".sprite-wrap > img") || null;
+      if (image) unitState.image = image;
+    }
+    if (!image) {
+      if (onImpact) onImpact();
+      return;
+    }
+
     const delay = () => Math.max(45, 135 / speedMultiplier);
+    const impactFrame = Math.max(1, Math.ceil(count / 2));
     for (let index = 1; index <= count; index += 1) {
       if (token !== battleToken || !running) return;
       while (paused && token === battleToken && running) await wait(50);
       if (token !== battleToken || !running) return;
-      unitState.image.src = frame(unitState, motion, index);
-      if (onImpact && index === Math.max(1, Math.ceil(count / 2))) onImpact();
-      const impactFrame = Math.max(1, Math.ceil(count / 2));
-      await wait(motion === "attack" && onImpact ? Math.max(index === impactFrame ? 130 : 45, (index === impactFrame ? 190 : index === 1 ? 160 : 90) / speedMultiplier) : delay());
+
+      // Reacquire once more if another render detached the sprite mid-motion.
+      if (image.isConnected === false) {
+        const liveImage = unitState.element?.querySelector(".sprite-wrap > img");
+        if (liveImage) {
+          image = liveImage;
+          unitState.image = liveImage;
+        }
+      }
+
+      image.src = frame(unitState, motion, index);
+      if (onImpact && index === impactFrame) onImpact();
+      await wait(motion === "attack" && onImpact
+        ? Math.max(index === impactFrame ? 130 : 45, (index === impactFrame ? 190 : index === 1 ? 160 : 90) / speedMultiplier)
+        : delay());
     }
     if (!holdLast) await wait(delay() * .35);
   }
