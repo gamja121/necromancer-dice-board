@@ -1313,6 +1313,28 @@
     }
   }
 
+  function addCapturedMonsterToRoster(slug) {
+    if (!fromMap || typeof sessionStorage === "undefined" || !TEST_DECK_SLUGS.includes(slug)) return null;
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(MAP_ROSTER_KEY));
+      const roster = Array.isArray(saved) ? saved : [];
+      const captured = V2Rules.individual(slug);
+      captured.instanceId = globalThis.crypto?.randomUUID
+        ? `${slug}-${globalThis.crypto.randomUUID()}`
+        : `${slug}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+      captured.currentHp = captured.maxHp;
+      const usedIds = new Set(roster.map((unit) => unit?.instanceId).filter(Boolean));
+      while (usedIds.has(captured.instanceId)) {
+        captured.instanceId = `${slug}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+      }
+      roster.push(captured);
+      sessionStorage.setItem(MAP_ROSTER_KEY, JSON.stringify(roster));
+      return captured;
+    } catch (_) {
+      return null;
+    }
+  }
+
   function returnToMap() {
     const map = battleQuery.get("map");
     const tile = Math.max(1, Math.min(24, Number(battleQuery.get("tile")) || 1));
@@ -1385,19 +1407,15 @@
       captureStatus.textContent = captureSummary(selectedCorpse, "성공");
       await wait(420);
       await animateSoulHarvest(selectedCorpse);
-      try {
-        if (typeof sessionStorage !== "undefined") {
-          const saved = JSON.parse(sessionStorage.getItem(MAP_ROSTER_KEY));
-          const roster = Array.isArray(saved) ? saved : [];
-          const captured = V2Rules.individual(selectedCorpse.slug);
-          captured.instanceId = globalThis.crypto?.randomUUID
-            ? `${selectedCorpse.slug}-${globalThis.crypto.randomUUID()}`
-            : `${selectedCorpse.slug}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
-          captured.currentHp = captured.maxHp;
-          roster.push(captured);
-          sessionStorage.setItem(MAP_ROSTER_KEY, JSON.stringify(roster));
-        }
-      } catch (_) { /* Capture result remains valid even if storage is blocked. */ }
+      const capturedUnit = addCapturedMonsterToRoster(selectedCorpse.slug);
+      if (!capturedUnit) {
+        captureStatus.textContent = captureSummary(selectedCorpse, "획득 저장 실패");
+        battlefield.classList.remove("is-capture-rolling");
+        diceRolling = false;
+        turnDiceButton.disabled = false;
+        return;
+      }
+      captureStatus.textContent = captureSummary(selectedCorpse, "획득 완료");
       selectedCorpse.element?.classList.remove("is-capture-selected");
       battlefield.classList.remove("is-capture-rolling");
       diceRolling = false;

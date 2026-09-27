@@ -367,6 +367,15 @@
     } catch (_) { /* Keep the current run usable without storage. */ }
   }
 
+  function addDiceControlCard(cardId) {
+    const card = V2DiceControl.cards.find((entry) => entry.id === cardId);
+    if (!card) return null;
+    diceControlHand.push(card);
+    saveDiceControlInventory();
+    renderDiceControlHand();
+    return card;
+  }
+
   function loadDiceControlInventory() {
     let saved;
     try {
@@ -504,7 +513,8 @@
     }
     const card = V2DiceControl.cards.find((entry) => entry.id === cardId);
     pendingDiceControlId = cardId;
-    diceControlHand = diceControlHand.filter((entry) => entry.id !== cardId);
+    const ownedIndex = diceControlHand.findIndex((entry) => entry.id === cardId);
+    if (ownedIndex >= 0) diceControlHand.splice(ownedIndex, 1);
     saveDiceControlInventory();
     el.diceResult.textContent = `${card.label} · 사용 · 자동으로 굴립니다`;
     renderDiceControlHand();
@@ -842,10 +852,20 @@
       card.classList.toggle("is-rejected", card !== selectedCard);
     });
 
-    if (reward.type === "unit") addOwnedUnit(reward.id);
+    const acquired = reward.type === "unit"
+      ? addOwnedUnit(reward.id)
+      : reward.type === "dice"
+        ? addDiceControlCard(reward.id)
+        : null;
+    if (!acquired) {
+      treasureRewardChosen = false;
+      cards.forEach((card) => { card.disabled = false; });
+      el.diceResult.textContent = `${reward.label} 획득 저장 실패 · 다시 선택하세요`;
+      return;
+    }
     el.diceResult.textContent = reward.type === "unit"
-      ? `${reward.label} 획득 · 마물 카드 보관함으로 이동`
-      : `${reward.label} 획득 · 주사위 컨트롤 카드 더미로 이동`;
+      ? `${reward.label} 획득 · 내 마물 카드에 추가`
+      : `${reward.label} 획득 · 주사위 카드더미에 추가`;
 
     await wait(120);
     await animateTreasureRewardToTarget(reward, selectedCard);
