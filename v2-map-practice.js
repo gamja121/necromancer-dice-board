@@ -102,6 +102,7 @@
     eventTreasureRewards: document.getElementById("treasureRewardCards"),
     eventEnter: document.getElementById("tileEventEnter"),
     eventInheritance: document.getElementById("tileEventInheritance"),
+    eventHeal: document.getElementById("tileEventHeal"),
     eventClose: document.getElementById("tileEventClose"),
     bookButton: document.getElementById("mapBookButton"),
     cardDeckButton: document.getElementById("mapCardDeckButton"),
@@ -248,10 +249,15 @@
     return setContamination(contamination + Number(amount || 0));
   }
 
-  function healOwnedRosterAtHome() {
+  function hasInjuredOwnedUnits() {
+    return [...ownedUnits.values()].some((unit) => Number.isFinite(unit.currentHp) && unit.currentHp < unit.maxHp);
+  }
+
+  function healOwnedRosterFull() {
     for (const unit of ownedUnits.values()) unit.currentHp = unit.maxHp;
     saveOwnedRoster();
     renderBookRoster();
+    if (!el.deckOverlay.hidden) renderDeckSelection();
   }
 
   function loadOwnedRoster() {
@@ -1080,6 +1086,7 @@
     el.eventTreasure.hidden = !treasure;
     el.eventEnter.hidden = tile.id !== "home";
     el.eventInheritance.hidden = true;
+    el.eventHeal.hidden = tile.id !== "rest" || !hasInjuredOwnedUnits();
     el.eventClose.hidden = treasure;
     if (treasure) {
       el.eventImage.removeAttribute("src");
@@ -1097,6 +1104,17 @@
     el.eventOverlay.hidden = false;
     if (!treasure) el.eventClose.focus();
     return true;
+  }
+
+  function healAtRestTile() {
+    if (!eventOpen || activeEventTileId !== "rest" || !hasInjuredOwnedUnits()) {
+      el.eventHeal.hidden = true;
+      return;
+    }
+    healOwnedRosterFull();
+    el.eventHeal.hidden = true;
+    el.diceResult.textContent = "숙영 · 모든 마물 체력 완전 회복";
+    el.eventClose.focus();
   }
 
   function enterHome() {
@@ -1160,7 +1178,7 @@
     const completedLap = refreshAfterHome && lapReadyForRefresh;
     if (completedLap) {
       addContamination(2);
-      healOwnedRosterAtHome();
+      healOwnedRosterFull();
     }
     closeTileEvent();
     if (refreshAfterHome) await playCloudTileRefresh();
@@ -1176,6 +1194,7 @@
     el.eventImage.removeAttribute("src");
     el.eventEnter.hidden = true;
     el.eventInheritance.hidden = true;
+    el.eventHeal.hidden = true;
     V2HomeInheritance.close();
     el.eventTreasure.hidden = true;
     el.eventTreasure.classList.remove("is-burst");
@@ -1541,6 +1560,7 @@
   el.diceButton.addEventListener("click", rollAndMove);
   el.eventClose.addEventListener("click", handleTileEventExit);
   el.eventEnter.addEventListener("click", enterHome);
+  el.eventHeal.addEventListener("click", healAtRestTile);
   el.eventInheritance.addEventListener("click", () => {
     if (eventOpen && activeEventTileId === "home") V2HomeInheritance.open();
   });
