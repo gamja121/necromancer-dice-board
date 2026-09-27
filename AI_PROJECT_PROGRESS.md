@@ -1,5 +1,13 @@
 # AI 프로젝트 진행 상황 — 네크로멘서 앤드 다이스
 
+## 2026-09-27: 오래된 맵 테스트를 현재 V2 규칙에 맞게 갱신
+
+- `test_v2_map.js`가 맵 JS v29 / CSS v24와 일반 `monster` 단일 전투 타일을 전제로 검사하던 부분을 현재 v54 / v41 및 일반·희귀·보스 전투 타일 구조로 갱신했다.
+- `monster-cleared`, `rare-monster`, `rare-monster-cleared`, `boss-cleared` 자산도 맵 테스트에서 존재/캐시 여부를 검사하게 했다.
+- 전투 복귀 로스터 검사는 slug 기준이 아니라 현재 구현의 `instanceId` 기준 복원을 확인하도록 수정했다.
+- 전투 진입 URL 테스트는 현재 `allies`, `allyIds`, `encounter`, `encounterType`, `contamination` 파라미터를 검증하도록 갱신했다.
+- 게임 로직은 변경하지 않고 오래된 테스트 계약만 현재 구현 기준으로 정리했다.
+
 ## 2026-09-27: 서비스워커 중복 캐시 버전 정리
 
 - `v2-tile-practice.html`이 현재 맵과 동일한 파일을 옛 query 버전(`v2-map-practice.css?v=18`, `v2-home-inheritance.js?v=5`)으로 불러오던 부분을 현재 버전 `?v=41`, `?v=8`로 통일했다.

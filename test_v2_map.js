@@ -34,8 +34,9 @@ assert(mapPositions[0].x === 20 && mapPositions[23].y === 15, "The top row must 
 assert(source.includes("Math.floor(Math.random() * 6) + 1"), "Random dice result is missing.");
 assert(source.includes("heroIndex = (heroIndex + 1) % positions.length"), "Clockwise wraparound movement is missing.");
 assert(source.includes("await wait(230)"), "Step-by-step movement timing is missing.");
-assert(source.includes('tile?.id !== "monster"') && source.includes('el.deckOverlay.classList.add("is-open")'), "Monster tiles must open deck selection over the map.");
-assert(source.includes('currentTiles[heroIndex]?.id === "monster"') && source.includes("enterMonsterBattle(currentTiles[heroIndex], heroIndex + 1)"), "Landing on a monster tile must open battle after dice movement.");
+assert(source.includes("isMonsterBattleTile(tile)") && source.includes('el.deckOverlay.classList.add("is-open")'), "Monster, rare-monster, and boss tiles must open deck selection over the map.");
+assert(source.includes("isMonsterBattleTile(currentTiles[heroIndex])") && source.includes("enterMonsterBattle(currentTiles[heroIndex], landedStep)"), "Landing on an uncleared battle tile must open battle after dice movement.");
+assert(source.includes('new Set(["monster", "rare-monster", "boss"])') && source.includes("isMonsterTileCleared(step)"), "Battle tile types and per-step cleared-state handling must remain connected.");
 assert(source.includes('from: "map", map: activeMapId, tile: String(battleStep), allies: selectedDeck.join(",")'), "Monster battles must receive map, tile, and selected deck context.");
 assert(css.includes("@keyframes map-deck-window-drop") && css.includes("@keyframes map-deck-roster-rise"), "Deck board and roster entrance animations are missing.");
 assert(css.includes(".map-deck-overlay") && css.includes("background: transparent"), "The board map must remain visible behind deck selection.");
@@ -51,12 +52,12 @@ for (const map of ["default", "winter", "hell"]) {
   const relative = `art/v2-style/map-test/maps/${map}-map.jpg`;
   assert(fs.existsSync(path.join(root, relative)), `Map is missing: ${relative}`);
 }
-for (const tile of ["basic", "graveyard", "altar", "unknown", "forest", "rest", "monster", "gem", "event", "warp"]) {
+for (const tile of ["basic", "graveyard", "altar", "unknown", "forest", "rest", "monster", "monster-cleared", "rare-monster", "rare-monster-cleared", "gem", "event", "warp"]) {
   const relative = `art/v2-style/map-test/tiles/${tile}.png`;
   assert(fs.existsSync(path.join(root, relative)), `Tile is missing: ${relative}`);
   assert(worker.includes(relative), `Tile is not cached: ${relative}`);
 }
-for (const tile of ["home", "village", "fortune-teller-camp", "boss"]) {
+for (const tile of ["home", "village", "fortune-teller-camp", "boss", "boss-cleared"]) {
   const relative = `art/v2-style/map-test/tiles/${tile}.png`;
   assert(fs.existsSync(path.join(root, relative)), `New tile is missing: ${relative}`);
   assert(worker.includes(relative), `New tile is not cached: ${relative}`);
@@ -81,10 +82,10 @@ assert(html.includes('id="treasureChestSprite"') && css.includes("@keyframes tre
 assert(source.includes('scene.animation === "treasure"') && source.includes('eventTreasure.classList.add("is-playing")'), "Treasure animation must restart when the tile is reached.");
 assert(source.includes("async function warpToOtherWarp()") && source.includes('tile.id === "warp" && index !== heroIndex'), "Warp must move to the other warp tile.");
 assert(source.includes('currentTiles[heroIndex]?.id === "warp"') && source.includes("await warpToOtherWarp()"), "Landing on a warp tile must trigger teleportation.");
-assert(html.includes("v2-map-practice.js?v=29") && html.includes("v2-map-practice.css?v=24") && html.includes("v2-sfx.js?v=3"), "The map page must load targeting, music, and mobile sound effects.");
+assert(html.includes("v2-map-practice.js?v=54") && html.includes("v2-map-practice.css?v=41") && html.includes("v2-sfx.js?v=3"), "The map page must load the current map, styling, and mobile sound scripts.");
 assert(worker.includes("v2-map-practice.html"), "Map test page is not cached.");
 assert(worker.includes("v2-landscape.js?v=1"), "Landscape helper is not cached.");
-assert(worker.includes("v2-map-practice.js?v=29") && worker.includes("v2-map-practice.css?v=24") && worker.includes("v2-sfx.js?v=3"), "The targeting, music, and mobile sound logic is not cached.");
+assert(worker.includes("v2-map-practice.js?v=54") && worker.includes("v2-map-practice.css?v=41") && worker.includes("v2-sfx.js?v=3"), "The current map, styling, and mobile sound logic is not cached.");
 assert(html.includes('id="diceControlHand"') && html.includes('v2-dice-control.js?v=1'), "The five-card dice control hand and ability engine must load on the map.");
 assert(source.includes("V2DiceControl.canUse") && source.includes("V2DiceControl.resolve") && source.includes("pendingDiceControlId"), "Dice control cards must arm and resolve on the next roll.");
 assert(source.includes("previousDiceRoll") && source.includes("previousDiceControlId"), "Repeat and effect reactivation history must be tracked.");
@@ -117,7 +118,7 @@ assert(css.includes('.map-deck-roster.map-book-roster button.is-inspecting') && 
 assert(html.includes('id="mapUnitInfoOverlay"') && html.includes('class="map-unit-info-panel"') && !html.includes('class="legion-info-panel"'), "Only the basic unit information window should appear in the map center.");
 assert(css.includes('.map-unit-info-overlay { position: absolute; z-index: 60; inset: 0; display: grid; place-items: center; }') && source.includes('openBookUnitInfo(ownedUnits.get(entry.slug))'), "Selecting an owned card must open centered basic information.");
 assert(html.includes('v2-design-data.js?v=1') && html.includes('v2-rules.js?v=6') && source.includes('V2Rules.individual(entry.slug)'), "Owned-card stats and brands must use battle rules.");
-assert(battleSource.includes('mapOwnedRoster.get(data.slug)') && battleSource.includes('sessionStorage.getItem("necromancer-map-roster-v2")'), "Battle must use the same inspected individual cards from the map.");
+assert(battleSource.includes('mapOwnedRoster.get(data.instanceId)') && battleSource.includes('mapOwnedRoster.get(unitState.instanceId)') && battleSource.includes('sessionStorage.getItem("necromancer-map-roster-v2")'), "Battle must restore the same instanceId-based individual cards from the map.");
 assert(source.includes('x: 20 + index * (70 / 7), y: 12') && source.includes('x: 79 - index * (58 / 6), y: 85') && source.includes('x: 6, y: 69 - index * (54 / 4)'), "The top tiles must shift right and one bottom tile must move up the left edge.");
 assert(!css.includes('.map-tile.is-bottom-row') && source.includes('button.className = "map-tile"'), "Bottom tiles must have the same size as every other map tile.");
 for (const file of ['map-book-closed.png', 'map-book-open.png']) {
@@ -134,8 +135,16 @@ assert(source.includes('V2Sfx.play("diceTick"') && source.includes('V2Sfx.play("
 for(const sound of ['dice-tick.ogg','dice-land.ogg','move.ogg'])assert(worker.includes(`assets/sfx/${sound}`),`Map sound is not cached: ${sound}`);
 assert(source.includes("requestedMapId") && source.includes('document.querySelector(`[data-map="${activeMapId}"]`)'), "Returning from battle must restore the selected map region.");
 const navigation = [];
+const selectedIds = ["unit-a", "unit-b", "unit-c", "unit-d"];
+const ownedUnits = new Map([
+  ["unit-a", { instanceId: "unit-a", slug: "death-knight" }],
+  ["unit-b", { instanceId: "unit-b", slug: "ghoul" }],
+  ["unit-c", { instanceId: "unit-c", slug: "hydra" }],
+  ["unit-d", { instanceId: "unit-d", slug: "siren" }]
+]);
 const battleLinkContext = {
-  activeMapId: "winter", battleStep: 7, selectedDeck: ["death-knight", "ghoul", "hydra", "siren"], URLSearchParams,
+  activeMapId: "winter", battleStep: 7, battleTileType: "rare-monster", contamination: 42,
+  selectedDeck: selectedIds, ownedUnits, URLSearchParams, saveMapLayout() {},
   el: { deckConfirm: {}, deckStatus: {} },
   window: { location: { assign: url => navigation.push(url) } }
 };
@@ -143,7 +152,11 @@ const battleLinkSource = source.slice(source.indexOf("  function confirmMonsterB
 vm.createContext(battleLinkContext);
 vm.runInContext(battleLinkSource, battleLinkContext);
 vm.runInContext("confirmMonsterBattle()", battleLinkContext);
-assert(navigation[0] === "v2-auto-battle-practice.html?from=map&map=winter&tile=7&allies=death-knight%2Cghoul%2Chydra%2Csiren", "Battle navigation must preserve the ordered four-card deck.");
+assert(navigation.length === 1 && navigation[0].startsWith("v2-auto-battle-practice.html?"), "Battle navigation must open the V2 auto battle page.");
+const battleParams = new URLSearchParams(navigation[0].split("?")[1]);
+assert(battleParams.get("from") === "map" && battleParams.get("map") === "winter" && battleParams.get("tile") === "7", "Battle navigation must preserve map and tile context.");
+assert(battleParams.get("allies") === "death-knight,ghoul,hydra,siren" && battleParams.get("allyIds") === selectedIds.join(","), "Battle navigation must preserve ordered slugs and instance ids.");
+assert(battleParams.get("encounterType") === "rare-monster" && battleParams.get("contamination") === "42" && battleParams.get("encounter"), "Battle navigation must preserve encounter type, contamination, and unique encounter id.");
 const hero = "art/v2-style/map-test/hero/necromancer-hero.png";
 assert(fs.existsSync(path.join(root, hero)), "Processed hero token is missing.");
 assert(worker.includes(hero), "Hero token is not cached.");
