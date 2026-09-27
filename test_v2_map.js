@@ -11,6 +11,12 @@ const html = fs.readFileSync(path.join(root, "v2-map-practice.html"), "utf8");
 const css = fs.readFileSync(path.join(root, "v2-map-practice.css"), "utf8");
 const source = fs.readFileSync(path.join(root, "v2-map-practice.js"), "utf8");
 const battleSource = fs.readFileSync(path.join(root, "v2-auto-battle-practice.js"), "utf8");
+const sceneContext = {};
+vm.runInNewContext(source.slice(source.indexOf('  const ROOT ='), source.indexOf('  const tileTypes =')) +
+  ';globalThis.scenes=tileEventScenes;globalThis.ratios=tileEventRatios;', sceneContext);
+assert(sceneContext.scenes.altar.title === "제단" && sceneContext.scenes.altar.image.includes("/altar.jpg?v=20260928-2"), "Altar must retain its original artwork.");
+assert(sceneContext.scenes.unknown.title === "세계수" && sceneContext.scenes.unknown.image.includes("/world-tree.jpg?v=20260928-2"), "Orange tree tile must open world-tree artwork.");
+assert(sceneContext.ratios.altar === 1280 / 575 && sceneContext.ratios.unknown === 16 / 9, "Each scene must preserve its original aspect ratio.");
 const landscape = fs.readFileSync(path.join(root, "v2-landscape.js"), "utf8");
 const worker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
 
@@ -70,7 +76,7 @@ assert(source.includes('el.hero.style.setProperty("--hero-facing", heroIndex >= 
 assert(source.includes("fixedTiles.village") && source.includes("fixedTiles.fortune"), "Village and fortune-teller tiles must be connected to the route.");
 const eventScenes = {
   graveyard: "graveyard.jpg", home: "home.jpg", "fortune-teller-camp": "fortune-teller.jpg",
-  village: "village.jpg", rest: "camp.jpg", altar: "altar.jpg", forest: "forest.jpg"
+  village: "village.jpg", rest: "camp.jpg", altar: "altar.jpg", unknown: "world-tree.jpg", forest: "forest.jpg"
 };
 for (const [tile, file] of Object.entries(eventScenes)) {
   const relative = `art/v2-style/map-test/events/${file}`;
@@ -87,10 +93,10 @@ for (let index = 1; index <= 4; index += 1) {
 assert(source.includes('scene.animation === "treasure"') && source.includes("async function playTreasureChestAnimation()") && source.includes('eventTreasure.classList.add("is-burst")'), "Treasure animation must restart through the current four-frame sequence.");
 assert(source.includes("async function warpToOtherWarp()") && source.includes('tile.id === "warp" && index !== heroIndex'), "Warp must move to the other warp tile.");
 assert(source.includes('currentTiles[heroIndex]?.id === "warp"') && source.includes("await warpToOtherWarp()"), "Landing on a warp tile must trigger teleportation.");
-assert(html.includes("v2-map-practice.js?v=54") && html.includes("v2-map-practice.css?v=41") && html.includes("v2-sfx.js?v=3"), "The map page must load the current map, styling, and mobile sound scripts.");
+assert(html.includes("v2-map-practice.js?v=55") && html.includes("v2-map-practice.css?v=41") && html.includes("v2-sfx.js?v=3"), "The map page must load the current map, styling, and mobile sound scripts.");
 assert(worker.includes("v2-map-practice.html"), "Map test page is not cached.");
 assert(worker.includes("v2-landscape.js?v=1"), "Landscape helper is not cached.");
-assert(worker.includes("v2-map-practice.js?v=54") && worker.includes("v2-map-practice.css?v=41") && worker.includes("v2-sfx.js?v=3"), "The current map, styling, and mobile sound logic is not cached.");
+assert(worker.includes("v2-map-practice.js?v=55") && worker.includes("v2-map-practice.css?v=41") && worker.includes("v2-sfx.js?v=3"), "The current map, styling, and mobile sound logic is not cached.");
 assert(html.includes('id="diceControlHand"') && html.includes('v2-dice-control.js?v=1'), "The five-card dice control hand and ability engine must load on the map.");
 assert(source.includes("V2DiceControl.canUse") && source.includes("V2DiceControl.resolve") && source.includes("pendingDiceControlId"), "Dice control cards must arm and resolve on the next roll.");
 assert(source.includes("previousDiceRoll") && source.includes("previousDiceControlId"), "Repeat and effect reactivation history must be tracked.");
