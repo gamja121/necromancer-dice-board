@@ -17,19 +17,19 @@
     "fortune-teller-camp": Object.freeze({ title: "예언자", image: `${ROOT}events/fortune-teller.jpg` }),
     village: Object.freeze({ title: "마을", image: `${ROOT}events/village.jpg` }),
     rest: Object.freeze({ title: "숙영", image: `${ROOT}events/camp.jpg` }),
-    altar: Object.freeze({ title: "제단", image: `${ROOT}events/altar.jpg` }),
+    altar: Object.freeze({ title: "정화의 나무", image: `${ROOT}events/altar.jpg` }),
     forest: Object.freeze({ title: "숲", image: `${ROOT}events/forest.jpg` }),
     gem: Object.freeze({ title: "보물상자", animation: "treasure" })
   });
   const tileEventRatios = Object.freeze({
     graveyard: 1280 / 714, home: 1280 / 714, "fortune-teller-camp": 1280 / 575,
-    village: 1280 / 956, rest: 1280 / 714, altar: 1280 / 575,
+    village: 1280 / 956, rest: 1280 / 714, altar: 16 / 9,
     forest: 1280 / 714, gem: 1280 / 714
   });
   const tileTypes = [
     { id: "basic", name: "기본 타일", count: 2 },
     { id: "graveyard", name: "공동묘지 타일", count: 2 },
-    { id: "altar", name: "제단 타일", count: 1 },
+    { id: "altar", name: "정화 타일", count: 1 },
     { id: "unknown", name: "미정 타일", count: 1 },
     { id: "forest", name: "숲 타일", count: 2 },
     { id: "rest", name: "휴식 타일", count: 2 },
