@@ -6,14 +6,14 @@ const root = path.resolve(__dirname, "..");
 const port = Number(process.env.PORT || 8788);
 const mime = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
-  ".css": "text/css; charset=utf-8", ".json": "application/json; charset=utf-8",
+  ".webmanifest": "application/manifest+json", ".css": "text/css; charset=utf-8", ".json": "application/json; charset=utf-8",
   ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
   ".mp3": "audio/mpeg", ".ogg": "audio/ogg"
 };
 
 http.createServer((request, response) => {
   const pathname = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
-  const relative = pathname === "/" ? "v2.html" : pathname.replace(/^\/+/, "");
+  const relative = pathname === "/" ? "index.html" : pathname.replace(/^\/+/, "");
   const target = path.resolve(root, relative);
   if (!target.startsWith(root + path.sep)) {
     response.writeHead(403).end("Forbidden"); return;
@@ -23,4 +23,4 @@ http.createServer((request, response) => {
     response.writeHead(200, { "Content-Type": mime[path.extname(target).toLowerCase()] || "application/octet-stream", "Cache-Control": "no-store" });
     response.end(data);
   });
-}).listen(port, "0.0.0.0", () => console.log(`V2 server: http://localhost:${port}/v2.html`));
+}).listen(port, "0.0.0.0", () => console.log(`Necromancer and Dice: http://localhost:${port}/`));

@@ -62,12 +62,7 @@
     return Array.isArray(value) ? value : value ? [value] : [];
   }
   function artCandidates(type) {
-    const file = String(def(type)?.image || "assets/skeleton-spear.jpg").split("/").pop().replace(/\.jpg$/i, ".png");
-    return [
-      `art/v2-style/processed/192/${file}?v=20260825-originals1`,
-      `art/processed/192/${file}`,
-      def(type)?.image || "assets/skeleton-spear.jpg"
-    ];
+    return [def(type)?.image || "art/v2-style/processed/192/skeleton-spear.png"];
   }
   function artPath(type) {
     return artCandidates(type)[0];

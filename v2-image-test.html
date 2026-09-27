@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0d0b10">
-  <title>네크로멘서 이미지 테스트</title>
+  <title>네크로멘서 앤드 다이스 · 이미지 테스트</title>
   <style>
     :root {
       color-scheme: dark;
@@ -349,6 +349,7 @@
       { slug: "high", label: "큰수 / High", langs: ["en", "ko"] },
       { slug: "low", label: "작은수 / Low", langs: ["en", "ko"] },
       { slug: "odd", label: "홀수 / Odd", langs: ["en", "ko"] },
+      { slug: "even", label: "짝수 / Even", langs: ["en", "ko"] },
       { slug: "repeat", label: "반복 / Repeat", langs: ["en", "ko"] },
       { slug: "exclude-1", label: "제외 1 / Exclude 1", langs: ["en", "ko"] },
       { slug: "exclude-2", label: "제외 2 / Exclude 2", langs: ["en", "ko"] },
@@ -458,66 +459,6 @@
         row.append(card);
       }
 
-      if (slug === "1") {
-        pair.classList.add("has-unified");
-
-        const card = document.createElement("div");
-        card.className = "image-card";
-
-        const langLabel = document.createElement("strong");
-        langLabel.textContent = "SVG 통합 테스트";
-
-        const preview = document.createElement("div");
-        preview.className = "image-preview";
-
-        const stage = document.createElement("div");
-        stage.className = "unified-card-stage";
-
-        const image = document.createElement("img");
-        const rawPath = `${ROOT}dice-control-1-base.png`;
-        const path = `${rawPath}?v=svg-base-1-20260926`;
-        image.src = path;
-        image.alt = "눈금 1 텍스트 없는 공용 카드 베이스";
-        image.loading = "lazy";
-
-        const svgNS = "http://www.w3.org/2000/svg";
-        const svg = document.createElementNS(svgNS, "svg");
-        svg.setAttribute("class", "svg-card-text");
-        svg.setAttribute("viewBox", "0 0 192 168");
-        svg.setAttribute("aria-hidden", "true");
-
-        const titleText = document.createElementNS(svgNS, "text");
-        titleText.setAttribute("x", "96");
-        titleText.setAttribute("y", "19");
-        titleText.setAttribute("font-size", "10");
-        titleText.textContent = "주사위 컨트롤";
-
-        const descText = document.createElementNS(svgNS, "text");
-        descText.setAttribute("x", "96");
-        descText.setAttribute("y", "139");
-        descText.setAttribute("font-size", "7.2");
-        descText.setAttribute("letter-spacing", "-0.35");
-        descText.textContent = "주사위 눈금 1이 나온다";
-
-        svg.append(titleText, descText);
-        stage.append(image, svg);
-        preview.append(stage);
-
-        preview.addEventListener("click", () => {
-          openStageModal(stage, "눈금 1 · SVG 통합 테스트");
-        });
-
-        const file = document.createElement("span");
-        file.className = "image-file";
-        file.textContent = "dice-control-1-base.png + SVG 텍스트";
-
-        const size = document.createElement("span");
-        size.className = "image-size";
-        size.textContent = "공용 PNG 1장 + 벡터 언어 텍스트";
-
-        card.append(langLabel, preview, file, size);
-        row.append(card);
-      }
 
       pair.append(title, row);
       grid.append(pair);

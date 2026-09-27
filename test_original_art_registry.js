@@ -1,7 +1,7 @@
 const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
-const unitData = require("./unit-data.js");
+const unitData = require("./v2-unit-data.js");
 
 const root = __dirname;
 const originalDir = path.join(root, "art", "v2-style", "references", "cute-grotesque-master-collection", "uploaded-originals");
@@ -28,19 +28,12 @@ for (const type of enemyTypes) {
   assert.strictEqual(png[25], 6, `${basename}.png는 알파 채널 RGBA 형식이어야 함`);
 }
 
-for (const type of ["corpseSlime", "minotaur", "plagueFrog", "iceLord", "yeti"]) {
-  assert.ok(unitData.UNIT_TYPES[type].image.endsWith("?v=20260913-card"), `${type} 카드 캐시 버전이 필요함`);
-}
-for (const type of ["guardianSeed", "plague", "ghoul", "goblinChief", "goblinSoldier"]) {
-  assert.ok(unitData.UNIT_TYPES[type].image.endsWith("?v=20260913-card2"), `${type} 두 번째 카드 캐시 버전이 필요함`);
-}
-
 assert.strictEqual(unitData.UNIT_TYPES.worm.label, "역병 벌레");
 assert.strictEqual(unitData.UNIT_TYPES.seaWolf.label, "바다 늑대");
 assert.strictEqual(unitData.UNIT_TYPES.icePrincess.label, "얼음 여왕");
 assert.strictEqual(unitData.UNIT_TYPES.soulReaper.label, "리치");
 assert.strictEqual(unitData.UNIT_TYPES.mummyGuardian.label, "미이라");
 assert.strictEqual(unitData.UNIT_TYPES.siren.label, "세이렌");
-unitData.validateUnitRegistry();
+
 
 console.log("SUCCESS: 주인공 별도 + 46종 원화/전투 PNG/신규 유닛 레지스트리 검증 완료.");

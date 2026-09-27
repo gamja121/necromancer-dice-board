@@ -40,7 +40,7 @@ async function main(){
   assert(battle.includes('document.getElementById("fighter-" + target.id), hitFrames'));
   assert(auto.includes('target.element.querySelector(".sprite-wrap"), hitFrames'));
   assert(auto.indexOf('if (outcome.damage > 0)')<auto.indexOf('V2CombatEffects.play('));
-  assert(fs.readFileSync('unit-data.js','utf8').includes('forestFairy: {\n    label: "픽시"') || /forestFairy: \{\s+label: "픽시"/.test(fs.readFileSync('unit-data.js','utf8')));
+  assert(fs.readFileSync('v2-unit-data.js','utf8').includes('forestFairy: {\n    label: "픽시"') || /forestFairy: \{\s+label: "픽시"/.test(fs.readFileSync('v2-unit-data.js','utf8')));
   for(const slug of ['forest-fairy','siren']) for(const [motion,count] of [['attack',5],['hit',4],['death',7]]) for(let i=1;i<=count;i++) assert(fs.existsSync(`art/v2-style/animation-test-frames/${slug}/${motion}-${String(i).padStart(2,'0')}.png`));
   console.log('PASS: attacker mappings, target playback, cancellation/cleanup, damage gates and demo frame assets.');
   const vm=require('node:vm');

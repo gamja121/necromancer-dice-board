@@ -1,4 +1,4 @@
-# 네크로멘서 십이장기 V2 아트 스타일 바이블 (Style Bible - 최종 개정판)
+# 네크로멘서 앤드 다이스 아트 스타일 바이블 (Style Bible - 최종 개정판)
 
 ## 0. 최상위 화풍 기준
 - **유일 최상위 기준 이미지**: rt/v2-style/references/PRIMARY_STYLE_REFERENCE_MINOTAUR.jpg (승인 미노타우르스)

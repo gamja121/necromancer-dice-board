@@ -2,259 +2,39 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light only">
-  <meta name="supported-color-schemes" content="light">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101914">
+  <meta name="description" content="네크로멘서 앤드 다이스 — 주사위로 원정을 이어가고 마물과 낙인을 조합하는 덱빌딩 TRPG.">
+  <meta name="apple-mobile-web-app-title" content="네크로멘서 앤드 다이스">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="망자의 원정">
-  <title>네크로멘서 십이장기 프로토타입</title>
-  <link rel="manifest" href="manifest.webmanifest?v=20260726-10">
+  <title>네크로멘서 앤드 다이스</title>
+  <link rel="manifest" href="manifest.webmanifest?v=20260927-v2">
   <link rel="apple-touch-icon" href="assets/app-icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=44">
-  <link rel="stylesheet" href="ultimate-vfx.css?v=43">
-  <link rel="stylesheet" href="dice-overlay.css?v=46">
+  <link rel="stylesheet" href="launch.css?v=1">
 </head>
 <body>
-  <main class="app">
-    <section class="start-screen" id="startScreen" aria-label="시작 화면">
-      <div class="start-content">
-        <p class="eyebrow">Necromancer Dice Board</p>
-        <h1 class="start-title">네크로멘서 십이장기</h1>
-        <p class="start-subtitle">망자의 원정</p>
-        <div class="start-actions">
-          <button type="button" id="continueCampaignBtn" disabled>계속하기</button>
-          <button type="button" id="startCampaignBtn">새 원정</button>
-          <a class="v2-preview-link" href="v2.html">V2 자동전투 체험</a>
-          <a class="v2-preview-link" href="v2-animation-practice.html">모션 테스트</a>
-          <a class="v2-preview-link" href="v2-image-test.html">이미지 테스트</a>
-          <a class="v2-preview-link" href="v2-map-practice.html">맵 테스트</a>
-          <a class="v2-preview-link" href="v2-event-lab.html">이벤트 테스트</a>
-          <a class="v2-preview-link" href="v2-auto-battle-practice.html">4대4 속도 자동전투</a>
-          <button type="button" id="installAppBtn" hidden>앱으로 설치</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="campaign-map" id="mapScreen" aria-label="원정 지도" hidden>
-      <header class="map-header">
-        <div>
-          <div class="header-tag-row">
-            <span class="eyebrow">Necromancer Expedition</span>
-            <span class="stage-badge" id="stageBadge">스테이지 1/3</span>
-          </div>
-          <h1>망자의 원정</h1>
-          <p id="mapProgress">첫 전투를 선택하세요.</p>
-        </div>
-        <button type="button" id="newCampaignBtn">새 원정</button>
-      </header>
-      <div class="stage-tabs" id="stageTabs" aria-label="스테이지 탭"></div>
-      <div class="campaign-roster" id="campaignRoster" aria-label="보유 유닛"></div>
-      <div class="map-route-shell">
-        <div class="map-route-toolbar" aria-label="지도 조작">
-          <div class="map-legend" aria-label="지도 범례">
-            <span><i class="legend-battle"></i>일반</span>
-            <span><i class="legend-elite"></i>고급</span>
-            <span><i class="legend-event"></i>사건</span>
-            <span><i class="legend-boss"></i>보스</span>
-          </div>
-          <button type="button" class="map-focus-button" id="mapFocusBtn" title="현재 위치로 이동" aria-label="현재 위치로 이동">⌖</button>
-        </div>
-        <div class="map-route" id="mapRoute" aria-label="보스까지 이어지는 원정 경로"></div>
-      </div>
-    </section>
-
-    <section class="play-area" id="battleScreen" aria-label="5x5 전장" hidden>
-      <header class="topbar">
-        <div>
-          <p class="eyebrow">Necromancer Dice Board</p>
-          <h1>시체 소환 전장</h1>
-        </div>
-        <div class="topbar-actions">
-          <button class="icon-button" id="musicBtn" type="button" title="게임 소리 끄기" aria-label="게임 소리 끄기">♪</button>
-          <button class="icon-button" id="soundSettingsBtn" type="button" title="음향 설정" aria-label="음향 설정">⚙</button>
-          <button class="icon-button" id="resetBtn" type="button" title="새 원정">↻</button>
-        </div>
-      </header>
-
-      <div class="status-strip">
-        <article id="playerLegionCard" class="status-card is-clickable" role="button" tabindex="0" aria-label="내 군단 정보 보기">
-          <span>내 군단</span>
-          <strong id="phaseText">-</strong>
-        </article>
-        <article>
-          <span>턴</span>
-          <strong id="turnText">플레이어</strong>
-        </article>
-        <article>
-          <span>상대 군단</span>
-          <strong id="diceText">-</strong>
-        </article>
-      </div>
-
-      <div class="board-wrap">
-        <div class="setup-book is-hidden" id="setupBook" aria-label="배치 후보"></div>
-        <div class="board" id="board" aria-label="게임판"></div>
-      </div>
-
-      <div class="controls">
-        <button type="button" id="attackBtn" hidden>공격</button>
-        <button type="button" id="skipAttackBtn" hidden>공격 생략</button>
-        <button type="button" id="endTurnBtn">턴 종료</button>
-      </div>
-    </section>
-
-    <aside class="side-panel" id="battleSidePanel" hidden>
-      <section class="panel" id="actionPanel">
-        <h2>행동</h2>
-        <div class="reserve" id="reserve"></div>
-        <div class="selected-unit-artwork-panel" id="selectedUnitArtworkPanel" hidden>
-          <div class="artwork-frame">
-            <img id="selectedUnitArtworkImg" src="" alt="선택 유닛 원화">
-          </div>
-          <span id="selectedUnitArtworkName" class="artwork-name"></span>
-        </div>
-      </section>
-
-      <section class="panel">
-        <h2>유닛 정보</h2>
-        <div class="unit-info-panel is-hidden" id="unitInfo" aria-label="유닛 정보"></div>
-        <ol class="log hidden-log" id="log"></ol>
-      </section>
-
-      <section class="panel rules">
-        <h2>현재 규칙</h2>
-        <p>소환사는 자기 영역 2줄 안에서만 이동합니다. 중립 지역에는 들어갈 수 없습니다.</p>
-        <p>상대는 소환사가 없습니다. 적 유닛을 모두 쓰러뜨리면 전투에서 승리합니다.</p>
-        <p>시체 소환은 시체마다 최대 2회 도전할 수 있으며, 두 번 실패하면 시체가 사라집니다.</p>
-        <p>적 시체를 되살린 유닛이 승리할 때 생존하면 다음 전투부터 배치 후보에 합류합니다.</p>
-      </section>
-    </aside>
+  <main>
+    <p class="eyebrow">NECROMANCER AND DICE</p>
+    <h1>네크로멘서<br>앤드 다이스</h1>
+    <p>주사위가 이끄는 원정.<br>마물을 모으고, 낙인을 계승하고, 운명에 맞서세요.</p>
+    <a class="play" href="v2-map-practice.html">원정으로</a>
+    <p class="note">현재 브라우저 탭의 원정 상태를 이어갑니다.</p>
+    <button id="installAppButton" type="button" hidden>앱으로 설치</button>
+    <details>
+      <summary>개발 · 테스트</summary>
+      <nav aria-label="개발 테스트 화면">
+        <a href="v2-event-lab.html">이벤트 테스트</a>
+        <a href="v2-auto-battle-practice.html">자동전투 테스트</a>
+        <a href="v2.html">직접 조작 전투 테스트</a>
+        <a href="v2-animation-practice.html">모션 테스트</a>
+        <a href="v2-image-test.html">이미지 테스트</a>
+        <a href="v2-tile-practice.html">타일 테스트</a>
+        <a href="v2-sfx-sampler.html">효과음 테스트</a>
+      </nav>
+    </details>
+    <footer>웹 프로토타입 · 개발 중</footer>
   </main>
-
-  <dialog id="choiceDialog">
-    <form method="dialog" class="dialog-card">
-      <h2 id="dialogTitle">선택</h2>
-      <p id="dialogText"></p>
-      <div class="dialog-actions" id="dialogActions"></div>
-    </form>
-  </dialog>
-
-  <dialog id="unitArtDialog" class="unit-art-dialog" aria-labelledby="unitArtDialogTitle">
-    <article class="unit-art-dialog-card">
-      <header>
-        <h2 id="unitArtDialogTitle">유닛 원화</h2>
-        <button type="button" id="unitArtDialogClose" class="unit-art-dialog-close" aria-label="원화 닫기">×</button>
-      </header>
-      <div class="unit-art-dialog-canvas">
-        <img id="unitArtDialogImage" src="" alt="">
-      </div>
-    </article>
-  </dialog>
-
-  <dialog id="storyDialog" class="story-dialog">
-    <article class="story-card" aria-labelledby="storyTitle">
-      <header class="story-header">
-        <span id="storyKicker">원정 사건</span>
-        <h2 id="storyTitle">이야기</h2>
-        <p id="storyLocation"></p>
-      </header>
-      <div class="story-illustration" id="storyIllustration" aria-hidden="true">
-        <span></span>
-      </div>
-      <div class="story-copy" id="storyCopy"></div>
-      <div class="story-choices" id="storyChoices"></div>
-      <section class="story-result" id="storyResult" hidden aria-live="polite">
-        <strong>선택의 결과</strong>
-        <p id="storyResultText"></p>
-        <button type="button" id="storyContinueBtn">원정 지도로 돌아가기</button>
-      </section>
-    </article>
-  </dialog>
-
-  <dialog id="battleBriefingDialog" class="battle-briefing-dialog">
-    <section class="battle-briefing-card" aria-labelledby="briefingTitle">
-      <header class="briefing-header">
-        <span id="briefingBadge">전투</span>
-        <h2 id="briefingTitle">전투 브리핑</h2>
-        <p id="briefingSubtitle"></p>
-      </header>
-      <div class="briefing-recon" id="briefingRecon">
-        <div class="briefing-threat-copy">
-          <span>위험도</span>
-          <strong id="briefingThreatLabel">보통</strong>
-        </div>
-        <div class="briefing-threat-meter" role="meter" aria-label="전투 위험도" aria-valuemin="1" aria-valuemax="5" aria-valuenow="2">
-          <i id="briefingThreatFill"></i>
-        </div>
-        <p id="briefingIntel">정찰 정보를 분석하는 중입니다.</p>
-      </div>
-      <div class="briefing-section">
-        <strong>적 부대</strong>
-        <div class="briefing-enemies" id="briefingEnemies"></div>
-      </div>
-      <div class="briefing-section">
-        <strong>활성 군단</strong>
-        <div class="briefing-legions" id="briefingLegions"></div>
-      </div>
-      <div class="briefing-grid">
-        <div><strong>승리 보상</strong><p id="briefingReward"></p></div>
-        <div><strong>보유 토템</strong><p id="briefingTotems"></p></div>
-      </div>
-      <div class="briefing-actions">
-        <button type="button" id="briefingBackBtn">돌아가기</button>
-        <button type="button" id="briefingStartBtn">전투 시작</button>
-      </div>
-    </section>
-  </dialog>
-
-  <dialog id="soundDialog" class="sound-dialog">
-    <form method="dialog" class="sound-card">
-      <header>
-        <h2>음향 설정</h2>
-        <button class="sound-close" type="submit" aria-label="닫기">×</button>
-      </header>
-      <label class="sound-setting" for="musicVolumeRange">
-        <span>음악 <output id="musicVolumeValue">32</output></span>
-        <input id="musicVolumeRange" type="range" min="0" max="100" step="1" value="32">
-      </label>
-      <label class="sound-setting" for="sfxVolumeRange">
-        <span>효과음 <output id="sfxVolumeValue">75</output></span>
-        <input id="sfxVolumeRange" type="range" min="0" max="100" step="1" value="75">
-      </label>
-      <label class="vibration-setting" for="vibrationToggle">
-        <span>전투 진동</span>
-        <input id="vibrationToggle" type="checkbox" checked>
-      </label>
-    </form>
-  </dialog>
-
-  <dialog id="rewardDialog" class="reward-dialog">
-    <section class="reward-card" aria-labelledby="rewardTitle">
-      <header class="reward-header">
-        <span>전투 완료</span>
-        <h2 id="rewardTitle">승리</h2>
-        <p id="rewardSubtitle"></p>
-      </header>
-      <div class="reward-survivors" id="rewardSurvivors"></div>
-      <div class="reward-settlement" id="rewardSettlement"></div>
-      <div class="reward-captures" id="rewardCaptures"></div>
-      <div class="reward-options" id="rewardOptions" aria-label="승리 보상"></div>
-      <p class="reward-result" id="rewardResult" aria-live="polite"></p>
-      <button class="reward-continue" id="rewardContinueBtn" type="button" hidden>지도로</button>
-    </section>
-  </dialog>
-
-  <audio id="battleMusic" src="assets/battle-theme.mp3" preload="metadata" loop></audio>
-
-  <script src="unit-data.js?v=54"></script>
-  <script src="encounter-generator.js?v=44"></script>
-  <script src="ultimate-vfx.js?v=43"></script>
-  <script src="map-generator.js?v=43"></script>
-  <script src="event-data.js?v=43"></script>
-  <script src="dice-overlay.js?v=46"></script>
-  <script src="game.js?v=46"></script>
+  <script src="launch.js?v=1"></script>
 </body>
 </html>
