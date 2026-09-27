@@ -47,6 +47,7 @@ assert(source.includes('from: "map",') && source.includes('allies: selectedUnits
 assert(css.includes("@keyframes map-deck-window-drop") && css.includes("@keyframes map-deck-roster-rise"), "Deck board and roster entrance animations are missing.");
 assert(css.includes(".map-deck-overlay") && css.includes("background: transparent"), "The board map must remain visible behind deck selection.");
 assert(source.includes("const tileEventScenes") && source.includes("openTileEvent(currentTiles[heroIndex], heroIndex + 1)"), "Landing on a supported tile must open its centered event scene.");
+assert(source.includes('tile.id === "rare-monster"') && source.includes('tiles/monster.png?v=') && source.includes('tile.id === "boss"') && source.includes('tiles/boss.png?v='), "Malformed monster state art must fall back to known-good monster/boss artwork.");
 assert(css.includes(".tile-event-overlay") && css.includes("place-items: center"), "Tile event scene must be centered over the map.");
 assert(tileCount(source) === 24, "Tile distribution must total 24.");
 
@@ -93,10 +94,10 @@ for (let index = 1; index <= 4; index += 1) {
 assert(source.includes('scene.animation === "treasure"') && source.includes("async function playTreasureChestAnimation()") && source.includes('eventTreasure.classList.add("is-burst")'), "Treasure animation must restart through the current four-frame sequence.");
 assert(source.includes("async function warpToOtherWarp()") && source.includes('tile.id === "warp" && index !== heroIndex'), "Warp must move to the other warp tile.");
 assert(source.includes('currentTiles[heroIndex]?.id === "warp"') && source.includes("await warpToOtherWarp()"), "Landing on a warp tile must trigger teleportation.");
-assert(html.includes("v2-map-practice.js?v=55") && html.includes("v2-map-practice.css?v=41") && html.includes("v2-sfx.js?v=3"), "The map page must load the current map, styling, and mobile sound scripts.");
+assert(html.includes("v2-map-practice.js?v=56") && html.includes("v2-map-practice.css?v=41") && html.includes("v2-sfx.js?v=3"), "The map page must load the current map, styling, and mobile sound scripts.");
 assert(worker.includes("v2-map-practice.html"), "Map test page is not cached.");
 assert(worker.includes("v2-landscape.js?v=1"), "Landscape helper is not cached.");
-assert(worker.includes("v2-map-practice.js?v=55") && worker.includes("v2-map-practice.css?v=41") && worker.includes("v2-sfx.js?v=3"), "The current map, styling, and mobile sound logic is not cached.");
+assert(worker.includes("v2-map-practice.js?v=56") && worker.includes("v2-map-practice.css?v=41") && worker.includes("v2-sfx.js?v=3"), "The current map, styling, and mobile sound logic is not cached.");
 assert(html.includes('id="diceControlHand"') && html.includes('v2-dice-control.js?v=1'), "The five-card dice control hand and ability engine must load on the map.");
 assert(source.includes("V2DiceControl.canUse") && source.includes("V2DiceControl.resolve") && source.includes("pendingDiceControlId"), "Dice control cards must arm and resolve on the next roll.");
 assert(source.includes("previousDiceRoll") && source.includes("previousDiceControlId"), "Repeat and effect reactivation history must be tracked.");
