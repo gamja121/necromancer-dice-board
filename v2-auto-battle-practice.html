@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0a0807">
   <title>4대4 속도 자동전투 테스트</title>
-  <link rel="stylesheet" href="v2-auto-battle-practice.css?v=54">
+  <link rel="stylesheet" href="v2-auto-battle-practice.css?v=55">
 </head>
 <body data-v2-music="battle">
   <main class="auto-battle-lab">
@@ -114,6 +114,15 @@
         </div>
       </section>
 
+      <section id="captureOverflowOverlay" class="battle-overlay capture-overflow-overlay" role="dialog" aria-modal="true" aria-labelledby="captureOverflowTitle" hidden>
+        <div class="overlay-panel capture-overflow-panel">
+          <h2 id="captureOverflowTitle">마물 보관함 10/10</h2>
+          <p id="captureOverflowStatus">버릴 마물 카드 1장을 선택하세요.</p>
+          <div id="captureOverflowCards" class="capture-overflow-cards"></div>
+          <button id="captureOverflowConfirm" type="button" disabled>선택한 카드 버리기</button>
+        </div>
+      </section>
+
       <section id="resultOverlay" class="battle-overlay" hidden>
         <div class="overlay-panel">
           <span>BATTLE COMPLETE</span>
@@ -148,6 +157,6 @@
   <script src="v2-design-data.js?v=1"></script>
   <script src="v2-rules.js?v=6"></script>
   <script src="v2-sfx.js?v=3"></script>
-  <script src="v2-auto-battle-practice.js?v=89"></script>
+  <script src="v2-auto-battle-practice.js?v=90"></script>
 </body>
 </html>

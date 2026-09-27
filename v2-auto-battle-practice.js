@@ -15,6 +15,7 @@
   const MAP_CONTAMINATION_KEY = "necromancer-map-contamination-v1";
   const MAP_CONTAMINATION_WIN_PREFIX = "necromancer-map-contamination-win-v1:";
   const MAP_ROSTER_KEY = "necromancer-map-roster-v2";
+  const MONSTER_CAPACITY = 10;
   const mapContamination = Math.max(0, Math.min(100, Number(battleQuery.get("contamination")) || 0));
   const MAP_ENCOUNTER_STAGES = Object.freeze([
     Object.freeze({ min: 0, counts: Object.freeze([1, 2]), countWeights: Object.freeze([.65, .35]), grades: Object.freeze({ normal: .90, advanced: .10, hero: 0 }) }),
@@ -310,6 +311,10 @@
   const legionInfoContent = document.getElementById("legionInfoContent");
   const capturePanel = document.getElementById("capturePanel");
   const captureStatus = document.getElementById("captureStatus");
+  const captureOverflowOverlay = document.getElementById("captureOverflowOverlay");
+  const captureOverflowStatus = document.getElementById("captureOverflowStatus");
+  const captureOverflowCards = document.getElementById("captureOverflowCards");
+  const captureOverflowConfirm = document.getElementById("captureOverflowConfirm");
 
   let units = [];
   let running = false;
@@ -1313,26 +1318,100 @@
     }
   }
 
-  function addCapturedMonsterToRoster(slug) {
-    if (!fromMap || typeof sessionStorage === "undefined" || !TEST_DECK_SLUGS.includes(slug)) return null;
-    try {
-      const saved = JSON.parse(sessionStorage.getItem(MAP_ROSTER_KEY));
-      const roster = Array.isArray(saved) ? saved : [];
-      const captured = V2Rules.individual(slug);
-      captured.instanceId = globalThis.crypto?.randomUUID
-        ? `${slug}-${globalThis.crypto.randomUUID()}`
-        : `${slug}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
-      captured.currentHp = captured.maxHp;
+  function createCapturedMonster(slug) {
+    if (!TEST_DECK_SLUGS.includes(slug)) return null;
+    const captured = V2Rules.individual(slug);
+    captured.instanceId = globalThis.crypto?.randomUUID
+      ? `${slug}-${globalThis.crypto.randomUUID()}`
+      : `${slug}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+    captured.currentHp = captured.maxHp;
+    return captured;
+  }
+
+  function resolveCapturedMonsterReward(slug) {
+    return new Promise((resolve) => {
+      if (!fromMap || typeof sessionStorage === "undefined") { resolve({ acquired: false, keptReward: false }); return; }
+      let roster;
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(MAP_ROSTER_KEY));
+        roster = Array.isArray(saved) ? saved : [];
+      } catch (_) {
+        resolve({ acquired: false, keptReward: false });
+        return;
+      }
+
+      const captured = createCapturedMonster(slug);
+      if (!captured) { resolve({ acquired: false, keptReward: false }); return; }
       const usedIds = new Set(roster.map((unit) => unit?.instanceId).filter(Boolean));
       while (usedIds.has(captured.instanceId)) {
         captured.instanceId = `${slug}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
       }
-      roster.push(captured);
-      sessionStorage.setItem(MAP_ROSTER_KEY, JSON.stringify(roster));
-      return captured;
-    } catch (_) {
-      return null;
-    }
+
+      if (roster.length < MONSTER_CAPACITY) {
+        roster.push(captured);
+        try {
+          sessionStorage.setItem(MAP_ROSTER_KEY, JSON.stringify(roster));
+          resolve({ acquired: true, keptReward: true });
+        } catch (_) { resolve({ acquired: false, keptReward: false }); }
+        return;
+      }
+
+      let selectedKey = null;
+      const candidates = [
+        ...roster.map((unit) => ({ key: unit.instanceId, unit, isNew: false })),
+        { key: "__new__", unit: captured, isNew: true }
+      ];
+      captureOverflowCards.replaceChildren();
+      captureOverflowStatus.textContent = "새 마물을 받으려면 버릴 마물 카드 1장을 선택하세요.";
+      captureOverflowConfirm.disabled = true;
+
+      for (const candidate of candidates) {
+        const button = document.createElement("button");
+        const image = document.createElement("img");
+        const label = document.createElement("span");
+        button.type = "button";
+        button.className = "capture-overflow-card";
+        button.dataset.key = candidate.key;
+        image.src = `art/v2-style/ui/unit-card-${candidate.unit.slug}.png?v=19`;
+        image.alt = "";
+        label.textContent = candidate.unit.name || V2DesignData.units[candidate.unit.slug]?.name || candidate.unit.slug;
+        button.append(image, label);
+        if (candidate.isNew) {
+          const badge = document.createElement("b");
+          badge.textContent = "신규";
+          button.append(badge);
+        }
+        button.addEventListener("click", () => {
+          selectedKey = candidate.key;
+          captureOverflowCards.querySelectorAll(".capture-overflow-card").forEach((card) =>
+            card.classList.toggle("is-selected", card.dataset.key === selectedKey));
+          captureOverflowConfirm.disabled = false;
+          captureOverflowStatus.textContent = `${label.textContent} 버리기 선택됨`;
+        });
+        captureOverflowCards.append(button);
+      }
+
+      captureOverflowOverlay.hidden = false;
+      captureOverflowConfirm.focus();
+      captureOverflowConfirm.onclick = () => {
+        if (!selectedKey) return;
+        let keptReward = selectedKey !== "__new__";
+        if (keptReward) {
+          roster = roster.filter((unit) => unit.instanceId !== selectedKey);
+          roster.push(captured);
+        }
+        try {
+          sessionStorage.setItem(MAP_ROSTER_KEY, JSON.stringify(roster));
+        } catch (_) {
+          captureOverflowStatus.textContent = "저장 실패 · 다시 시도하세요.";
+          return;
+        }
+        captureOverflowOverlay.hidden = true;
+        captureOverflowCards.replaceChildren();
+        captureOverflowConfirm.onclick = null;
+        resolve({ acquired: true, keptReward });
+      };
+    });
   }
 
   function returnToMap() {
@@ -1407,15 +1486,15 @@
       captureStatus.textContent = captureSummary(selectedCorpse, "성공");
       await wait(420);
       await animateSoulHarvest(selectedCorpse);
-      const capturedUnit = addCapturedMonsterToRoster(selectedCorpse.slug);
-      if (!capturedUnit) {
+      const captureOutcome = await resolveCapturedMonsterReward(selectedCorpse.slug);
+      if (!captureOutcome.acquired) {
         captureStatus.textContent = captureSummary(selectedCorpse, "획득 저장 실패");
         battlefield.classList.remove("is-capture-rolling");
         diceRolling = false;
         turnDiceButton.disabled = false;
         return;
       }
-      captureStatus.textContent = captureSummary(selectedCorpse, "획득 완료");
+      captureStatus.textContent = captureSummary(selectedCorpse, captureOutcome.keptReward ? "획득 완료" : "신규 카드 버림");
       selectedCorpse.element?.classList.remove("is-capture-selected");
       battlefield.classList.remove("is-capture-rolling");
       diceRolling = false;

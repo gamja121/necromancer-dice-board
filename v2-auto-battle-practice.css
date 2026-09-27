@@ -330,3 +330,47 @@ button, a { font: inherit; }
 .effect-entry .effect-curse { color: #782622; }
 #resumeBattleButton { position: absolute; bottom: 3%; right: 4%; z-index: 3; min-width: 0; height: 28px; font-size: 11px; }
 #resumeBattleButton[hidden] { display: none; }
+
+.capture-overflow-overlay { z-index: 80; }
+.capture-overflow-panel {
+  width: min(84%, 780px);
+  max-width: none;
+}
+.capture-overflow-cards {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  overflow-x: auto;
+  padding: 14px 4px 18px;
+}
+.capture-overflow-card {
+  position: relative;
+  flex: 0 0 116px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  filter: drop-shadow(0 8px 8px #000b);
+}
+.capture-overflow-card img { display: block; width: 100%; height: auto; }
+.capture-overflow-card span {
+  display: block;
+  margin-top: 4px;
+  color: #ead4ae;
+  font-size: 11px;
+  font-weight: 800;
+}
+.capture-overflow-card b {
+  position: absolute;
+  top: -7px;
+  right: -4px;
+  padding: 2px 6px;
+  border-radius: 9px;
+  background: #78311f;
+  color: #fff0cf;
+  font-size: 9px;
+}
+.capture-overflow-card.is-selected {
+  transform: translateY(-6px) scale(1.05);
+  filter: drop-shadow(0 0 10px #ffe49a) drop-shadow(0 8px 8px #000c);
+}

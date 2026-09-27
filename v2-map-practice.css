@@ -283,3 +283,106 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 @media (prefers-reduced-motion: reduce) {
   .map-transition-cloud, .map-cloud-mist { transition-duration: 1ms; transition-delay: 0ms !important; }
 }
+
+.map-inventory-count {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  top: -12%;
+  min-width: 44%;
+  padding: 2px 5px;
+  transform: translateX(-50%);
+  border: 1px solid #8f744f;
+  border-radius: 999px;
+  background: #120d09e8;
+  color: #f1d9aa;
+  font-size: clamp(8px, .85vw, 11px);
+  font-weight: 900;
+  line-height: 1.15;
+  text-align: center;
+  text-shadow: 0 1px 2px #000;
+  box-shadow: 0 2px 5px #0009;
+  pointer-events: none;
+}
+.reward-overflow-overlay {
+  position: absolute;
+  z-index: 95;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #050302c7;
+  pointer-events: auto;
+}
+.reward-overflow-overlay[hidden] { display: none; }
+.reward-overflow-panel {
+  width: min(82%, 760px);
+  max-height: 82%;
+  padding: 3.2% 4%;
+  overflow: hidden;
+  border: 2px solid #806447;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #241a12f7, #100b08f7);
+  box-shadow: inset 0 0 0 1px #c1a77a33, 0 14px 36px #000d;
+  color: #f1dfbd;
+  text-align: center;
+}
+.reward-overflow-panel h2 {
+  margin: 0 0 1%;
+  font-size: clamp(14px, 2vw, 24px);
+}
+.reward-overflow-panel p {
+  margin: 0 0 2.5%;
+  color: #cfb88e;
+  font-size: clamp(9px, 1vw, 13px);
+}
+.reward-overflow-cards {
+  display: flex;
+  gap: 1.2%;
+  align-items: flex-end;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding: 2% 1% 3%;
+}
+.reward-overflow-card {
+  position: relative;
+  flex: 0 0 14%;
+  min-width: 72px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  filter: drop-shadow(0 7px 7px #000b);
+}
+.reward-overflow-card img { display: block; width: 100%; height: auto; }
+.reward-overflow-card span {
+  display: block;
+  margin-top: 3px;
+  color: #ecd5ad;
+  font-size: clamp(7px, .75vw, 10px);
+  font-weight: 800;
+}
+.reward-overflow-card b {
+  position: absolute;
+  top: -7px;
+  right: -5px;
+  padding: 2px 5px;
+  border-radius: 8px;
+  background: #78311f;
+  color: #fff0cf;
+  font-size: clamp(7px, .7vw, 9px);
+}
+.reward-overflow-card.is-selected {
+  transform: translateY(-6%) scale(1.06);
+  filter: drop-shadow(0 0 9px #ffe291) drop-shadow(0 8px 8px #000c);
+}
+.reward-overflow-confirm {
+  min-width: 34%;
+  padding: 8px 16px;
+  border: 1px solid #aa8655;
+  border-radius: 4px;
+  background: #3a2417;
+  color: #f4dfb7;
+  font-weight: 900;
+  cursor: pointer;
+}
+.reward-overflow-confirm:disabled { opacity: .45; cursor: default; }

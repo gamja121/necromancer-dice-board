@@ -52,6 +52,8 @@
   const OWNED_ROSTER_KEY = "necromancer-map-roster-v2";
   const STARTING_UNIT_SLUGS = Object.freeze(["skeleton-spear", "skeleton-archer"]);
   const DICE_CONTROL_INVENTORY_KEY = "necromancer-map-dice-control-v1";
+  const MONSTER_CAPACITY = 10;
+  const DICE_CONTROL_CAPACITY = 5;
   const STARTING_DICE_EXCLUDED_IDS = Object.freeze(new Set(["repeat", "echo"]));
   const CONTAMINATION_KEY = "necromancer-map-contamination-v1";
   const CONTAMINATION_MAX = 100;
@@ -126,7 +128,14 @@
     deckRoster: document.getElementById("mapDeckRoster"),
     deckStatus: document.getElementById("mapDeckStatus"),
     deckConfirm: document.getElementById("mapDeckConfirm"),
-    cloudTransition: document.getElementById("mapCloudTransition")
+    cloudTransition: document.getElementById("mapCloudTransition"),
+    monsterCount: document.getElementById("mapMonsterCount"),
+    diceCardCount: document.getElementById("mapDiceCardCount"),
+    rewardOverflowOverlay: document.getElementById("rewardOverflowOverlay"),
+    rewardOverflowTitle: document.getElementById("rewardOverflowTitle"),
+    rewardOverflowStatus: document.getElementById("rewardOverflowStatus"),
+    rewardOverflowCards: document.getElementById("rewardOverflowCards"),
+    rewardOverflowConfirm: document.getElementById("rewardOverflowConfirm")
   };
   let positions = [];
   let currentTiles = [];
@@ -183,12 +192,18 @@
     } catch (_) { /* Keep the current run usable without storage. */ }
   }
 
+  function renderInventoryCounts() {
+    if (el.monsterCount) el.monsterCount.textContent = `${ownedUnits.size}/${MONSTER_CAPACITY}`;
+    if (el.diceCardCount) el.diceCardCount.textContent = `${diceControlHand.length}/${DICE_CONTROL_CAPACITY}`;
+  }
+
   function addOwnedUnit(slug) {
-    if (!TEST_DECK.some((entry) => entry.slug === slug)) return null;
+    if (!TEST_DECK.some((entry) => entry.slug === slug) || ownedUnits.size >= MONSTER_CAPACITY) return null;
     const unit = normalizeOwnedUnit(V2Rules.individual(slug));
     ownedUnits.set(unit.instanceId, unit);
     saveOwnedRoster();
     renderBookRoster();
+    renderInventoryCounts();
     if (!el.deckOverlay.hidden) renderDeckSelection();
     return unit;
   }
@@ -369,10 +384,11 @@
 
   function addDiceControlCard(cardId) {
     const card = V2DiceControl.cards.find((entry) => entry.id === cardId);
-    if (!card) return null;
+    if (!card || diceControlHand.length >= DICE_CONTROL_CAPACITY) return null;
     diceControlHand.push(card);
     saveDiceControlInventory();
     renderDiceControlHand();
+    renderInventoryCounts();
     return card;
   }
 
@@ -493,8 +509,10 @@
   }
 
   function dealDiceControlHand() {
-    diceControlHand = loadDiceControlInventory();
+    diceControlHand = loadDiceControlInventory().slice(0, DICE_CONTROL_CAPACITY);
+    saveDiceControlInventory();
     renderDiceControlHand();
+    renderInventoryCounts();
   }
 
   async function useDiceControlCard(cardId) {
@@ -516,6 +534,7 @@
     const ownedIndex = diceControlHand.findIndex((entry) => entry.id === cardId);
     if (ownedIndex >= 0) diceControlHand.splice(ownedIndex, 1);
     saveDiceControlInventory();
+    renderInventoryCounts();
     el.diceResult.textContent = `${card.label} · 사용 · 자동으로 굴립니다`;
     renderDiceControlHand();
 
@@ -827,6 +846,98 @@
     targetButton.classList.remove("is-reward-receiving");
   }
 
+  function rewardCardImage(type, item) {
+    return type === "unit"
+      ? `art/v2-style/ui/unit-card-${item.slug}.png?v=19`
+      : V2DiceControl.imagePath(item, "ko");
+  }
+
+  function forceDiscardForReward(reward) {
+    return new Promise((resolve) => {
+      const type = reward.type;
+      const isUnit = type === "unit";
+      const full = isUnit ? ownedUnits.size >= MONSTER_CAPACITY : diceControlHand.length >= DICE_CONTROL_CAPACITY;
+      if (!full) {
+        const acquired = isUnit ? addOwnedUnit(reward.id) : addDiceControlCard(reward.id);
+        resolve({ acquired: Boolean(acquired), keptReward: Boolean(acquired) });
+        return;
+      }
+
+      const pending = isUnit
+        ? normalizeOwnedUnit(V2Rules.individual(reward.id))
+        : V2DiceControl.cards.find((entry) => entry.id === reward.id);
+      if (!pending) { resolve({ acquired: false, keptReward: false }); return; }
+
+      const existing = isUnit
+        ? [...ownedUnits.values()].map((unit) => ({ key: unit.instanceId, item: unit, isNew: false }))
+        : diceControlHand.map((card, index) => ({ key: `${index}:${card.id}`, item: card, index, isNew: false }));
+      const pendingEntry = { key: "__new__", item: pending, isNew: true };
+      const candidates = [...existing, pendingEntry];
+      let selectedKey = null;
+
+      el.rewardOverflowTitle.textContent = isUnit ? "마물 보관함 10/10" : "주사위 카드더미 5/5";
+      el.rewardOverflowStatus.textContent = "새 보상을 받으려면 버릴 카드 1장을 선택하세요.";
+      el.rewardOverflowCards.replaceChildren();
+      el.rewardOverflowConfirm.disabled = true;
+
+      for (const candidate of candidates) {
+        const button = document.createElement("button");
+        const image = document.createElement("img");
+        const label = document.createElement("span");
+        button.type = "button";
+        button.className = "reward-overflow-card";
+        button.dataset.key = candidate.key;
+        image.src = rewardCardImage(type, candidate.item);
+        image.alt = "";
+        label.textContent = candidate.item.name || candidate.item.label || reward.label;
+        button.append(image, label);
+        if (candidate.isNew) {
+          const badge = document.createElement("b");
+          badge.textContent = "신규";
+          button.append(badge);
+        }
+        button.addEventListener("click", () => {
+          selectedKey = candidate.key;
+          el.rewardOverflowCards.querySelectorAll(".reward-overflow-card").forEach((card) =>
+            card.classList.toggle("is-selected", card.dataset.key === selectedKey));
+          el.rewardOverflowConfirm.disabled = false;
+          el.rewardOverflowStatus.textContent = `${label.textContent} 버리기 선택됨`;
+        });
+        el.rewardOverflowCards.append(button);
+      }
+
+      el.rewardOverflowOverlay.hidden = false;
+      el.rewardOverflowConfirm.focus();
+
+      el.rewardOverflowConfirm.onclick = () => {
+        if (!selectedKey) return;
+        let keptReward = selectedKey !== "__new__";
+        if (isUnit) {
+          if (selectedKey !== "__new__") {
+            ownedUnits.delete(selectedKey);
+            ownedUnits.set(pending.instanceId, pending);
+            saveOwnedRoster();
+            renderBookRoster();
+            if (!el.deckOverlay.hidden) renderDeckSelection();
+          }
+        } else {
+          if (selectedKey !== "__new__") {
+            const selected = candidates.find((candidate) => candidate.key === selectedKey);
+            if (selected && Number.isInteger(selected.index)) diceControlHand.splice(selected.index, 1);
+            diceControlHand.push(pending);
+            saveDiceControlInventory();
+            renderDiceControlHand();
+          }
+        }
+        renderInventoryCounts();
+        el.rewardOverflowOverlay.hidden = true;
+        el.rewardOverflowCards.replaceChildren();
+        el.rewardOverflowConfirm.onclick = null;
+        resolve({ acquired: true, keptReward });
+      };
+    });
+  }
+
   async function chooseTreasureReward(reward, selectedCard) {
     if (treasureRewardChosen || !eventOpen || activeEventTileId !== "gem") return;
 
@@ -852,15 +963,17 @@
       card.classList.toggle("is-rejected", card !== selectedCard);
     });
 
-    const acquired = reward.type === "unit"
-      ? addOwnedUnit(reward.id)
-      : reward.type === "dice"
-        ? addDiceControlCard(reward.id)
-        : null;
-    if (!acquired) {
+    const outcome = await forceDiscardForReward(reward);
+    if (!outcome.acquired) {
       treasureRewardChosen = false;
       cards.forEach((card) => { card.disabled = false; });
       el.diceResult.textContent = `${reward.label} 획득 저장 실패 · 다시 선택하세요`;
+      return;
+    }
+    if (!outcome.keptReward) {
+      el.diceResult.textContent = `${reward.label} 대신 신규 보상을 버렸습니다`;
+      await wait(220);
+      closeTileEvent();
       return;
     }
     el.diceResult.textContent = reward.type === "unit"
@@ -1415,6 +1528,7 @@
   window.addEventListener("resize", () => { if (eventOpen) fitTileEventScene(); });
   el.deckConfirm.addEventListener("click", confirmMonsterBattle);
   document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !el.rewardOverflowOverlay.hidden) return;
     if (event.key === "Escape" && !el.diceControlOverlay.hidden) closeDiceControlCard();
     else if (event.key === "Escape" && !el.infoOverlay.hidden) closeBookUnitInfo();
     else if (event.key === "Escape" && !el.bookRoster.hidden) toggleBookRoster();
@@ -1422,6 +1536,7 @@
   });
   renderBookRoster();
   dealDiceControlHand();
+  renderInventoryCounts();
   generateTiles();
   if (typeof V2Sfx !== "undefined") V2Sfx.preload();
 })();

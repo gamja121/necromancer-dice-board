@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
   <title>외곽 타일 맵 테스트</title>
-  <link rel="stylesheet" href="v2-map-practice.css?v=38">
+  <link rel="stylesheet" href="v2-map-practice.css?v=39">
   <link rel="stylesheet" href="v2-home-inheritance.css?v=5">
 </head>
 <body data-v2-music="map">
@@ -52,9 +52,11 @@
         </div>
       </section>
       <button id="mapBookButton" class="map-book-button" type="button" aria-label="책 열기" aria-pressed="false">
+        <span id="mapMonsterCount" class="map-inventory-count" aria-live="polite">2/10</span>
         <img id="mapBookImage" src="art/v2-style/ui/map-book-closed.png" alt="">
       </button>
       <button id="mapCardDeckButton" class="map-card-deck-button" type="button" aria-label="주사위 컨트롤 카드 보기" aria-haspopup="dialog" aria-controls="diceControlOverlay" aria-expanded="false">
+        <span id="mapDiceCardCount" class="map-inventory-count" aria-live="polite">1/5</span>
         <img id="mapCardDeckImage" src="art/v2-style/ui/map-card-deck.png" alt="">
       </button>
       <div id="mapBookRoster" class="map-book-roster map-deck-roster" aria-label="보유 마물 카드 10장" hidden></div>
@@ -133,6 +135,14 @@
         <button id="homeInheritanceClose" class="home-inheritance-close" type="button">닫기</button>
         <div id="homeInheritanceCards" class="home-inheritance-cards map-deck-roster" aria-label="보유 마물 카드 10장"></div>
       </section>
+      <section id="rewardOverflowOverlay" class="reward-overflow-overlay" role="dialog" aria-modal="true" aria-labelledby="rewardOverflowTitle" hidden>
+        <div class="reward-overflow-panel">
+          <h2 id="rewardOverflowTitle">보관함이 가득 찼습니다</h2>
+          <p id="rewardOverflowStatus">버릴 카드 1장을 선택하세요.</p>
+          <div id="rewardOverflowCards" class="reward-overflow-cards"></div>
+          <button id="rewardOverflowConfirm" class="reward-overflow-confirm" type="button" disabled>선택한 카드 버리기</button>
+        </div>
+      </section>
       <section id="diceControlOverlay" class="dice-control-overlay" role="dialog" aria-modal="true" aria-label="주사위 컨트롤 카드 5장" hidden>
         <button id="diceControlBackdrop" class="dice-control-backdrop" type="button" aria-label="주사위 컨트롤 카드 닫기"></button>
         <div id="diceControlHand" class="dice-control-hand" role="listbox" aria-label="보유 주사위 컨트롤 카드"></div>
@@ -157,6 +167,6 @@
   <script src="v2-rules.js?v=6"></script>
   <script src="v2-home-inheritance.js?v=8"></script>
   <script src="v2-dice-control.js?v=1"></script>
-  <script src="v2-map-practice.js?v=45"></script>
+  <script src="v2-map-practice.js?v=46"></script>
 </body>
 </html>
