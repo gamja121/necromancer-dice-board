@@ -12,8 +12,10 @@
   const battleQuery = typeof location === "undefined" ? new URLSearchParams() : new URLSearchParams(location.search);
   const fromMap = battleQuery.get("from") === "map";
   const mapEncounterId = battleQuery.get("encounter") || "";
+  const mapEncounterType = battleQuery.get("encounterType") || "monster";
   const MAP_CONTAMINATION_KEY = "necromancer-map-contamination-v1";
   const MAP_CONTAMINATION_WIN_PREFIX = "necromancer-map-contamination-win-v1:";
+  const MAP_CLEARED_MONSTER_KEY = "necromancer-map-cleared-monsters-v1";
   const MAP_ROSTER_KEY = "necromancer-map-roster-v2";
   const MONSTER_CAPACITY = 10;
   const mapContamination = Math.max(0, Math.min(100, Number(battleQuery.get("contamination")) || 0));
@@ -1300,6 +1302,18 @@
     } catch (_) { /* Battle completion still works if storage is blocked. */ }
   }
 
+  function markMapBattleTileCleared() {
+    if (!fromMap || !["monster", "rare-monster", "boss"].includes(mapEncounterType)) return;
+    const step = Number(battleQuery.get("tile"));
+    if (!Number.isInteger(step) || step < 1 || step > 24) return;
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(MAP_CLEARED_MONSTER_KEY));
+      const steps = new Set(Array.isArray(saved) ? saved : []);
+      steps.add(step);
+      sessionStorage.setItem(MAP_CLEARED_MONSTER_KEY, JSON.stringify([...steps].sort((a, b) => a - b)));
+    } catch (_) { /* Victory still completes if storage is unavailable. */ }
+  }
+
   function finishBattle() {
     if (typeof V2UnitCards !== "undefined") V2UnitCards.setPhase("locked");
     battlefield.classList.remove("is-cinematic");
@@ -1314,7 +1328,10 @@
     speedButton.disabled = true;
     const won = aliveUnits("ally").length > 0;
     persistMapAllyOutcome();
-    if (won) applyMapVictoryContamination();
+    if (won) {
+      applyMapVictoryContamination();
+      markMapBattleTileCleared();
+    }
     saveBattle('complete');
     resultTitle.textContent = won ? "아군 승리" : aliveUnits("enemy").length ? "적군 승리" : "무승부";
     resultBody.textContent = `${actionCount}번의 공격 후 전투가 끝났습니다. 매 턴 속도가 높은 순서로 생존 유닛 모두가 한 번씩 행동했습니다.`;

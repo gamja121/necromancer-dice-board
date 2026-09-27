@@ -33,7 +33,8 @@
     { id: "unknown", name: "미정 타일", count: 1 },
     { id: "forest", name: "숲 타일", count: 2 },
     { id: "rest", name: "휴식 타일", count: 2 },
-    { id: "monster", name: "마물 타일", count: 3 },
+    { id: "monster", name: "일반 마물 타일", count: 2 },
+    { id: "rare-monster", name: "희귀 마물 타일", count: 1 },
     { id: "gem", name: "보석 타일", count: 2 },
     { id: "event", name: "이벤트 타일", count: 3 },
     { id: "warp", name: "워프 타일", count: 2 }
@@ -66,6 +67,8 @@
   ]);
   const BOSS_CONTAMINATION_MIN = 80;
   const MAP_LAYOUT_KEY = "necromancer-map-layout-v1";
+  const MAP_CLEARED_MONSTER_KEY = "necromancer-map-cleared-monsters-v1";
+  const MONSTER_BATTLE_TILE_IDS = Object.freeze(new Set(["monster", "rare-monster", "boss"]));
   const GRADE_LABELS = Object.freeze({ normal: "일반", advanced: "고급", hero: "영웅", special: "소환물" });
   const LEGION_LABELS = Object.freeze({ skeleton: "언데드", corpse: "시체", beast: "야수", plague: "역병", ice: "얼음", summon: "소환", demon: "악마", insect: "벌레", plant: "식물", element: "원소" });
   const BRAND_ICON_VIEWS = Object.freeze({
@@ -154,6 +157,8 @@
   let activeEventTileId = null;
   let activeEventRatio = 1280 / 714;
   let battleStep = 0;
+  let battleTileType = "monster";
+  let clearedMonsterSteps = new Set();
   let selectedDeck = [];
   let bookOpen = false;
   let bookAnimating = false;
@@ -345,12 +350,50 @@
     } catch (_) { /* Keep the live map usable without storage. */ }
   }
 
+  function loadClearedMonsterSteps() {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(MAP_CLEARED_MONSTER_KEY));
+      clearedMonsterSteps = new Set(
+        Array.isArray(saved)
+          ? saved.filter((step) => Number.isInteger(step) && step >= 1 && step <= 24)
+          : []
+      );
+    } catch (_) {
+      clearedMonsterSteps = new Set();
+    }
+  }
+
+  function resetClearedMonsterSteps() {
+    clearedMonsterSteps = new Set();
+    try {
+      if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(MAP_CLEARED_MONSTER_KEY);
+    } catch (_) { /* A fresh map still works without storage. */ }
+  }
+
+  function isMonsterBattleTile(tile) {
+    return MONSTER_BATTLE_TILE_IDS.has(tile?.id);
+  }
+
+  function isMonsterTileCleared(step) {
+    return clearedMonsterSteps.has(step);
+  }
+
+  function getTileImage(tile, step) {
+    if (isMonsterTileCleared(step)) {
+      if (tile.id === "monster") return `${ROOT}tiles/monster-cleared.png`;
+      if (tile.id === "rare-monster") return `${ROOT}tiles/rare-monster-cleared.png`;
+      if (tile.id === "boss") return `${ROOT}tiles/boss-cleared.png`;
+    }
+    return `${ROOT}tiles/${tile.id}.png`;
+  }
+
   function createPool() {
     const stage = contaminationStage();
     const bossActive = contamination >= BOSS_CONTAMINATION_MIN;
     const monsterDelta = Math.max(0, stage.monsterTiles - 3);
     const stagedTypes = tileTypes.map((tile) => {
-      if (tile.id === "monster") return { ...tile, count: stage.monsterTiles };
+      if (tile.id === "monster") return { ...tile, count: Math.max(1, stage.monsterTiles - 1) };
+      if (tile.id === "rare-monster") return { ...tile, count: 1 };
       if (tile.id === "basic") return { ...tile, count: Math.max(0, tile.count - monsterDelta) + (bossActive ? 0 : 1) };
       return tile;
     });
@@ -373,14 +416,20 @@
   }
 
   function enterMonsterBattle(tile, step) {
-    if (tile?.id !== "monster" || enteringBattle) return false;
+    if (!isMonsterBattleTile(tile) || enteringBattle) return false;
+    if (isMonsterTileCleared(step)) {
+      el.tileName.textContent = `${step}번 · ${tile.name} · 처치 완료`;
+      el.diceResult.textContent = "이미 처치한 마물 타일 · 전투 없음";
+      return false;
+    }
     forceCloseBookRoster();
     enteringBattle = true;
     battleStep = step;
+    battleTileType = tile.id;
     selectedDeck = [];
     el.diceButton.disabled = true;
     el.regenerate.disabled = true;
-    el.tileName.textContent = `${step}번 · 마물 출현 · 출전 마물 선택`;
+    el.tileName.textContent = `${step}번 · ${tile.name} 출현 · 출전 마물 선택`;
     el.board.classList.add("is-deck-selecting");
     el.deckOverlay.classList.remove("is-preview");
     el.deckClose.hidden = true;
@@ -796,6 +845,7 @@
       allies: selectedUnits.map((unit) => unit.slug).join(","),
       allyIds: selectedUnits.map((unit) => unit.instanceId).join(","),
       encounter: encounterId,
+      encounterType: battleTileType,
       contamination: String(contamination)
     });
     if (typeof V2Music !== "undefined") V2Music.handoff("battle");
@@ -1224,6 +1274,8 @@
   function generateTiles() {
     lapReadyForRefresh = false;
     const restoredPool = loadSavedMapLayout();
+    if (restoredPool) loadClearedMonsterSteps();
+    else resetClearedMonsterSteps();
     const pool = restoredPool || createPool();
     positions = perimeterPositions();
     currentTiles = pool;
@@ -1236,8 +1288,11 @@
       button.className = "map-tile";
       button.style.setProperty("--x", `${position.x}%`);
       button.style.setProperty("--y", `${position.y}%`);
-      button.setAttribute("aria-label", `${index + 1}번 ${tile.name}`);
-      image.src = `${ROOT}tiles/${tile.id}.png`;
+      const tileStep = index + 1;
+      const cleared = isMonsterTileCleared(tileStep);
+      button.setAttribute("aria-label", `${tileStep}번 ${tile.name}${cleared ? " · 처치 완료" : ""}`);
+      button.classList.toggle("is-cleared-monster", cleared);
+      image.src = getTileImage(tile, tileStep);
       image.alt = "";
       step.className = "step";
       step.textContent = String(index + 1);
@@ -1515,10 +1570,15 @@
     el.diceResult.textContent = reachedHome
       ? `${result}${controlText} · 집 도착 (${stepsMoved}칸 이동)`
       : `${result}${controlText} · 이동 완료`;
-    if (currentTiles[heroIndex]?.id === "monster") {
-      el.diceResult.textContent = `${result} · 마물 조우`;
-      await wait(320);
-      if (enterMonsterBattle(currentTiles[heroIndex], heroIndex + 1)) return;
+    if (isMonsterBattleTile(currentTiles[heroIndex])) {
+      const landedStep = heroIndex + 1;
+      if (isMonsterTileCleared(landedStep)) {
+        el.diceResult.textContent = `${result} · 처치 완료 타일 · 전투 없음`;
+      } else {
+        el.diceResult.textContent = `${result} · ${currentTiles[heroIndex].name} 조우`;
+        await wait(320);
+        if (enterMonsterBattle(currentTiles[heroIndex], landedStep)) return;
+      }
     }
     if (currentTiles[heroIndex]?.id === "warp") {
       await warpToOtherWarp();
