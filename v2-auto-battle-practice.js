@@ -1076,9 +1076,12 @@
     if (token !== battleToken || !running) return;
 
     const poisonStacksBefore = Array.isArray(target.poisonStacks) ? target.poisonStacks.length : Number(target.poison || 0);
+    const targetHpBeforeAttack = target.hp;
     const legionAttack = { legionCritical: false };
     const eventStart = rulesState.events.length;
     const outcome = V2Rules.attack(rulesState, actor, target);
+    const targetFinalHp = target.hp;
+    const targetFinalAlive = target.alive;
     const attackEvents = rulesState.events.slice(eventStart);
     saveBattle('acting');
     const poisonStacksAfter = Array.isArray(target.poisonStacks) ? target.poisonStacks.length : Number(target.poison || 0);
@@ -1092,6 +1095,10 @@
       if (outcome.damage > 0 && target.hp > 0 && poisonAppliedNow) V2DamageDigits.showLabel(target, "poison");
     }
     updateUnit(actor);
+    if (hitAmounts.length) {
+      target.hp = targetHpBeforeAttack;
+      target.alive = target.hp > 0;
+    }
     updateUnit(target);
     if (outcome.recovered) showHealing(actor, outcome.recovered);
     if (outcome.selfDamage) showDamage(actor, outcome.selfDamage);
@@ -1117,6 +1124,11 @@
           if (token !== battleToken || !running) return;
         }
         const hitAmount = hitAmounts[hitIndex];
+        if (hitAmount > 0) {
+          target.hp = Math.max(targetFinalHp, target.hp - hitAmount);
+          target.alive = target.hp > 0;
+          updateUnit(target);
+        }
         if (hitAmount > 0 && typeof V2Sfx !== "undefined") V2Sfx.play("hit", { variant: soundProfile.hit, rate: Math.max(.72, 1.08 - hitAmount * .045), volume: Math.min(1.25, .82 + hitAmount * .07) });
         if (hitAmount > 0) showDamage(target, hitAmount);
         else if (typeof V2DamageDigits !== "undefined") V2DamageDigits.showLabel(target, "immune");
@@ -1131,6 +1143,8 @@
       }
     } else await wait(250 / speedMultiplier);
     if (token !== battleToken || !running) return;
+    target.hp = targetFinalHp;
+    target.alive = targetFinalAlive;
     updateUnit(target);
 
     if (outcome.counterDamage > 0 && target.alive) {
