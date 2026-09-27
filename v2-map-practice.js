@@ -335,14 +335,30 @@
     return tileTypes.find((tile) => tile.id === id) || Object.values(fixedTiles).find((tile) => tile.id === id) || null;
   }
 
+  function isValidMapPool(pool) {
+    return Array.isArray(pool) &&
+      pool.length === 24 &&
+      pool.every((tile) => tile && typeof tile.id === "string" && tileDefinitionById(tile.id));
+  }
+
   function loadSavedMapLayout() {
     if (resumeHeroIndex === null) return null;
     try {
       const ids = JSON.parse(sessionStorage.getItem(MAP_LAYOUT_KEY));
-      if (!Array.isArray(ids) || ids.length !== 24) return null;
+      if (!Array.isArray(ids) || ids.length !== 24) {
+        sessionStorage.removeItem(MAP_LAYOUT_KEY);
+        return null;
+      }
       const restored = ids.map(tileDefinitionById);
-      return restored.every(Boolean) ? restored : null;
-    } catch (_) { return null; }
+      if (!isValidMapPool(restored)) {
+        sessionStorage.removeItem(MAP_LAYOUT_KEY);
+        return null;
+      }
+      return restored;
+    } catch (_) {
+      try { sessionStorage.removeItem(MAP_LAYOUT_KEY); } catch (_) { /* Ignore storage cleanup failure. */ }
+      return null;
+    }
   }
 
   function saveMapLayout(tiles = currentTiles) {
@@ -398,14 +414,41 @@
       if (tile.id === "basic") return { ...tile, count: Math.max(0, tile.count - monsterDelta) + (bossActive ? 0 : 1) };
       return tile;
     });
-    const randomTiles = shuffle(stagedTypes.flatMap((tile) => Array.from({ length: tile.count }, () => tile)));
+
     const pool = Array(24);
     pool[0] = fixedTiles.fortune;
     pool[8] = fixedTiles.village;
     pool[HOME_INDEX] = fixedTiles.home;
     if (bossActive) pool[23] = fixedTiles.boss;
+
+    const emptySlots = pool.reduce((count, tile) => count + (tile ? 0 : 1), 0);
+    let randomTiles = stagedTypes.flatMap((tile) => Array.from({ length: Math.max(0, tile.count) }, () => tile));
+
+    // The board must always contain exactly 24 real tiles. If future balance
+    // changes make the random pool count drift, repair the count before shuffle.
+    const basicTile = tileDefinitionById("basic");
+    if (randomTiles.length < emptySlots && basicTile) {
+      randomTiles.push(...Array.from({ length: emptySlots - randomTiles.length }, () => basicTile));
+    } else if (randomTiles.length > emptySlots) {
+      // Trim only generic basic tiles first so encounter/event counts stay intact.
+      let excess = randomTiles.length - emptySlots;
+      randomTiles = randomTiles.filter((tile) => {
+        if (excess > 0 && tile.id === "basic") {
+          excess -= 1;
+          return false;
+        }
+        return true;
+      });
+      if (randomTiles.length > emptySlots) randomTiles.length = emptySlots;
+    }
+
+    shuffle(randomTiles);
     for (let index = 0, randomIndex = 0; index < pool.length; index += 1) {
-      if (!pool[index]) pool[index] = randomTiles[randomIndex++];
+      if (!pool[index]) pool[index] = randomTiles[randomIndex++] || basicTile;
+    }
+
+    if (!isValidMapPool(pool)) {
+      throw new Error(`Invalid 24-tile map pool: ${pool.filter(Boolean).length}/24`);
     }
     return pool;
   }
@@ -1304,11 +1347,15 @@
 
   function generateTiles() {
     lapReadyForRefresh = false;
-    const restoredPool = loadSavedMapLayout();
+    let restoredPool = loadSavedMapLayout();
+    if (restoredPool && !isValidMapPool(restoredPool)) restoredPool = null;
     if (restoredPool) loadClearedMonsterSteps();
     else resetClearedMonsterSteps();
     const pool = restoredPool || createPool();
     positions = perimeterPositions();
+    if (positions.length !== 24 || !isValidMapPool(pool)) {
+      throw new Error(`Map invariant failed: positions=${positions.length}, tiles=${pool.filter(Boolean).length}`);
+    }
     currentTiles = pool;
     currentButtons = positions.map((position, index) => {
       const tile = pool[index];
