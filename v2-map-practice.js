@@ -68,7 +68,8 @@
     Object.freeze({ id: "threshold", label: "임계", min: 80, monsterTiles: 5 })
   ]);
   const BOSS_CONTAMINATION_MIN = 80;
-  const MAP_LAYOUT_KEY = "necromancer-map-layout-v1";
+  const MAP_LAYOUT_KEY = "necromancer-map-layout-v2";
+  const LEGACY_MAP_LAYOUT_KEY = "necromancer-map-layout-v1";
   const MAP_CLEARED_MONSTER_KEY = "necromancer-map-cleared-monsters-v1";
   const MONSTER_BATTLE_TILE_IDS = Object.freeze(new Set(["monster", "rare-monster", "boss"]));
   const GRADE_LABELS = Object.freeze({ normal: "일반", advanced: "고급", hero: "영웅", special: "소환물" });
@@ -343,22 +344,66 @@
       pool.every((tile) => tile && typeof tile.id === "string" && tileDefinitionById(tile.id));
   }
 
+  function hasValidMapDistribution(pool) {
+    if (!isValidMapPool(pool)) return false;
+    if (pool[0]?.id !== "fortune-teller-camp" || pool[8]?.id !== "village" || pool[HOME_INDEX]?.id !== "home") return false;
+
+    const counts = pool.reduce((result, tile) => {
+      result[tile.id] = (result[tile.id] || 0) + 1;
+      return result;
+    }, {});
+
+    const fixedCountsValid =
+      counts["fortune-teller-camp"] === 1 &&
+      counts.village === 1 &&
+      counts.home === 1 &&
+      counts.graveyard === 2 &&
+      counts.altar === 1 &&
+      counts.unknown === 1 &&
+      counts.forest === 2 &&
+      counts.rest === 2 &&
+      counts["rare-monster"] === 1 &&
+      counts.gem === 2 &&
+      counts.event === 3 &&
+      counts.warp === 2;
+
+    if (!fixedCountsValid) return false;
+
+    const bossCount = counts.boss || 0;
+    const basicCount = counts.basic || 0;
+    const monsterCount = counts.monster || 0;
+
+    if (bossCount === 0) {
+      return pool[23]?.id !== "boss" &&
+        ((basicCount === 3 && monsterCount === 2) || (basicCount === 2 && monsterCount === 3));
+    }
+
+    return bossCount === 1 &&
+      pool[23]?.id === "boss" &&
+      basicCount === 0 &&
+      monsterCount === 4;
+  }
+
   function loadSavedMapLayout() {
     if (resumeHeroIndex === null) return null;
     try {
+      sessionStorage.removeItem(LEGACY_MAP_LAYOUT_KEY);
       const ids = JSON.parse(sessionStorage.getItem(MAP_LAYOUT_KEY));
       if (!Array.isArray(ids) || ids.length !== 24) {
         sessionStorage.removeItem(MAP_LAYOUT_KEY);
         return null;
       }
       const restored = ids.map(tileDefinitionById);
-      if (!isValidMapPool(restored)) {
+      if (!hasValidMapDistribution(restored)) {
         sessionStorage.removeItem(MAP_LAYOUT_KEY);
         return null;
       }
       return restored;
     } catch (_) {
-      try { sessionStorage.removeItem(MAP_LAYOUT_KEY); } catch (_) { /* Ignore storage cleanup failure. */ }
+      try {
+        sessionStorage.removeItem(MAP_LAYOUT_KEY);
+        sessionStorage.removeItem(LEGACY_MAP_LAYOUT_KEY);
+      } catch (_) { /* Ignore storage cleanup failure. */ }
       return null;
     }
   }
@@ -423,7 +468,8 @@
     pool[HOME_INDEX] = fixedTiles.home;
     if (bossActive) pool[23] = fixedTiles.boss;
 
-    const emptySlots = pool.reduce((count, tile) => count + (tile ? 0 : 1), 0);
+    // Array(24) is sparse: reduce() skips holes, so count empties from length minus real entries.
+    const emptySlots = pool.length - pool.filter(Boolean).length;
     let randomTiles = stagedTypes.flatMap((tile) => Array.from({ length: Math.max(0, tile.count) }, () => tile));
 
     // The board must always contain exactly 24 real tiles. If future balance
@@ -449,8 +495,8 @@
       if (!pool[index]) pool[index] = randomTiles[randomIndex++] || basicTile;
     }
 
-    if (!isValidMapPool(pool)) {
-      throw new Error(`Invalid 24-tile map pool: ${pool.filter(Boolean).length}/24`);
+    if (!hasValidMapDistribution(pool)) {
+      throw new Error(`Invalid 24-tile map distribution: ${pool.filter(Boolean).length}/24`);
     }
     return pool;
   }
@@ -1355,7 +1401,7 @@
     else resetClearedMonsterSteps();
     const pool = restoredPool || createPool();
     positions = perimeterPositions();
-    if (positions.length !== 24 || !isValidMapPool(pool)) {
+    if (positions.length !== 24 || !hasValidMapDistribution(pool)) {
       throw new Error(`Map invariant failed: positions=${positions.length}, tiles=${pool.filter(Boolean).length}`);
     }
     currentTiles = pool;
