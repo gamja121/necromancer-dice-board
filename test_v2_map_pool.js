@@ -13,8 +13,7 @@ assert(source.includes("function hasValidMapDistribution(pool)"), "Map distribut
 assert(source.includes("basicCount === 3 && monsterCount === 2"), "Stable/spread distribution invariant is missing.");
 assert(source.includes("basicCount === 2 && monsterCount === 3"), "Erosion/catastrophe distribution invariant is missing.");
 assert(source.includes("basicCount === 0") && source.includes("monsterCount === 4"), "Threshold/boss distribution invariant is missing.");
-assert(html.includes('v2-map-practice.js?v=55'), "Map page cache version was not bumped.");
+require("./scripts/assert-linked-cache")(html, worker, ["v2-map-practice.js"]);
 assert(worker.includes('necromancer-and-dice-v2-'), "V2-only service worker cache is missing.");
-assert(worker.includes('v2-map-practice.js?v=55'), "Service worker is not caching the fixed map script.");
 
 console.log("map pool sparse-array regression test passed");

@@ -111,7 +111,7 @@ assert(practiceSource.includes('"minotaur": { name: "미노타우로스", root: 
 assert(practiceSource.includes("counts: { attack: 6, hit: 4, death: 7 }"), "Yeti frame counts are incorrect.");
 assert(practiceSource.includes("counts: { attack: 5, hit: 4, death: 6 }"), "Death Knight frame counts are incorrect.");
 assert(practiceSource.includes("counts: { attack: 5, hit: 4, death: 5 }"), "Skeleton Spearman frame counts are incorrect.");
-assert(practiceSource.includes("el.sprite.src = frames[index]"), "Single sprite animation advancement is missing.");
+assert(practiceSource.includes("applyFrame(frames[index])") && practiceSource.includes("el.sprite.src = frame"), "Single sprite animation advancement is missing.");
 assert((practiceSource.match(/battlefield\.jpg/g) || []).length === 3, "All three random battlefields must remain available.");
 
 for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
@@ -460,7 +460,8 @@ for (const [motion, count] of Object.entries({attack:5, hit:4, death:6})) {
     assert(png.readUInt32BE(16) === 320 && png.readUInt32BE(20) === 270, 'Death Knight must retain the same canvas in all poses');
   }
 }
-assert(!serviceWorker.includes("animation-sheets/uploaded-raw"), "Deleted legacy animation sheets remain in offline cache.");
+const rawSheets = [...serviceWorker.matchAll(/"\.\/([^"]*animation-sheets\/uploaded-raw[^"]*)"/g)].map(match=>match[1]);
+assert(rawSheets.length===1 && rawSheets[0]===require("./v2-dracula-frames").SHEET, "Only the active Dracula loader's source sheet may remain cached.");
 assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
 for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {
   assert(fs.existsSync(path.join(root, match[1].slice(2))), `Offline static asset is missing: ${match[1]}`);

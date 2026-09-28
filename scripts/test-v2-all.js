@@ -3,6 +3,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 const root = path.resolve(__dirname, "..");
+const syntax = spawnSync(process.execPath, [path.join(__dirname, "check-js-syntax.js")], { stdio: "inherit" });
+if (syntax.status !== 0) process.exit(1);
 const files = fs.readdirSync(root).filter(file => /^test.*\.js$/.test(file)).sort();
 let failures = 0;
 for (const file of files) {

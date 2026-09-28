@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20260929-04";
+const CACHE_NAME = "necromancer-and-dice-v2-20260929-05";
 const APP_SHELL = [
   "./art/v2-style/processed/192/grave-worm.png",
   "./art/v2-style/processed/192/flesh-golem.png",
@@ -106,8 +106,10 @@ const APP_SHELL = [
   "./art/v2-style/animation-sheets/green-raw/bone-hound-animation-sheet.jpg",
   "./art/v2-style/animation-sheets/green-raw/scorpion-knight-animation-sheet.jpg",
   "./art/v2-style/animation-sheets/green-raw/hell-mantis-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/uploaded-raw/dracula-attack.webp",
-  "./art/v2-style/animation-test-frames/vampire/vampire-motion-sprite.webp?v=2",\n  "./art/v2-style/animation-test-frames/dracula/dracula-attack-sprite.svg?v=1",
+  "./v2-dracula-frames.js?v=3",
+  "./art/v2-style/animation-sheets/uploaded-raw/dracula-attack.webp?v=1",
+  "./art/v2-style/animation-test-frames/vampire/vampire-motion-sprite.webp?v=2",
+  "./art/v2-style/animation-test-frames/dracula/dracula-attack-sprite.svg?v=1",
   "./art/v2-style/animation-test-frames/dracula/attack-01.svg",
   "./art/v2-style/animation-test-frames/dracula/attack-02.svg",
   "./art/v2-style/animation-test-frames/dracula/attack-03.svg",

@@ -1,0 +1,11 @@
+{
+  "name": "necromancer-and-dice",
+  "private": true,
+  "scripts": {
+    "test": "node scripts/test-v2-all.js",
+    "test:browser": "node scripts/check-v2-browser.js"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}

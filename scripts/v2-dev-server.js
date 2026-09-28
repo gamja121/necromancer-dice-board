@@ -7,7 +7,7 @@ const port = Number(process.env.PORT || 8788);
 const mime = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
   ".webmanifest": "application/manifest+json", ".css": "text/css; charset=utf-8", ".json": "application/json; charset=utf-8",
-  ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+  ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".svg": "image/svg+xml", ".webp": "image/webp",
   ".mp3": "audio/mpeg", ".ogg": "audio/ogg"
 };
 

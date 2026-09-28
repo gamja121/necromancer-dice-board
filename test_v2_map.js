@@ -48,7 +48,15 @@ assert(source.includes('from: "map",') && source.includes('allies: selectedUnits
 assert(css.includes("@keyframes map-deck-window-drop") && css.includes("@keyframes map-deck-roster-rise"), "Deck board and roster entrance animations are missing.");
 assert(css.includes(".map-deck-overlay") && css.includes("background: transparent"), "The board map must remain visible behind deck selection.");
 assert(source.includes("const tileEventScenes") && source.includes("openTileEvent(currentTiles[heroIndex], heroIndex + 1)"), "Landing on a supported tile must open its centered event scene.");
-assert(source.includes('tile.id === "rare-monster"') && source.includes('tiles/monster.png?v=') && source.includes('tile.id === "boss"') && source.includes('tiles/boss.png?v='), "Malformed monster state art must fall back to known-good monster/boss artwork.");
+const tileContext = { ROOT: "art/v2-style/map-test/", TILE_ASSET_VERSION: "test", cleared: false };
+tileContext.isMonsterTileCleared = () => tileContext.cleared;
+vm.runInNewContext(source.slice(source.indexOf("  function getTileImage("),source.indexOf("  function createPool(")),tileContext);
+for(const id of ["monster","rare-monster","boss"]){
+  for(const cleared of [false,true]){
+    tileContext.cleared=cleared;
+    assert(tileContext.getTileImage({id},1) === `art/v2-style/map-test/tiles/${id}${cleared?"-cleared":""}.png?v=test`, "Monster tile must display its own uncleared/cleared artwork");
+  }
+}
 assert(css.includes(".tile-event-overlay") && css.includes("place-items: center"), "Tile event scene must be centered over the map.");
 assert(tileCount(source) === 24, "Tile distribution must total 24.");
 
@@ -95,10 +103,9 @@ for (let index = 1; index <= 4; index += 1) {
 assert(source.includes('scene.animation === "treasure"') && source.includes("async function playTreasureChestAnimation()") && source.includes('eventTreasure.classList.add("is-burst")'), "Treasure animation must restart through the current four-frame sequence.");
 assert(source.includes("async function warpToOtherWarp()") && source.includes('tile.id === "warp" && index !== heroIndex'), "Warp must move to the other warp tile.");
 assert(source.includes('currentTiles[heroIndex]?.id === "warp"') && source.includes("await warpToOtherWarp()"), "Landing on a warp tile must trigger teleportation.");
-assert(html.includes("v2-map-practice.js?v=60") && html.includes("v2-map-practice.css?v=42") && html.includes("v2-sfx.js?v=3"), "The map page must load the current map, styling, and mobile sound scripts.");
+require("./scripts/assert-linked-cache")(html, worker, ["v2-map-practice.js","v2-map-practice.css","v2-sfx.js","v2-world-tree-prayer-digits.js"]);
 assert(worker.includes("v2-map-practice.html"), "Map test page is not cached.");
 assert(worker.includes("v2-landscape.js?v=1"), "Landscape helper is not cached.");
-assert(worker.includes("v2-map-practice.js?v=60") && worker.includes("v2-map-practice.css?v=42") && worker.includes("v2-sfx.js?v=3"), "The current map, styling, and mobile sound logic is not cached.");
 assert(html.includes('id="diceControlHand"') && html.includes('v2-dice-control.js?v=1'), "The five-card dice control hand and ability engine must load on the map.");
 assert(source.includes("V2DiceControl.canUse") && source.includes("V2DiceControl.resolve") && source.includes("pendingDiceControlId"), "Dice control cards must arm and resolve on the next roll.");
 assert(source.includes("previousDiceRoll") && source.includes("previousDiceControlId"), "Repeat and effect reactivation history must be tracked.");
@@ -115,7 +122,7 @@ assert(html.includes('class="tile-event-scene"') && html.includes('class="tile-e
 assert(html.includes('id="tileEventEnter"') && source.includes('el.eventEnter.addEventListener("click", enterHome)') && source.includes('el.eventEnter.hidden = tile.id !== "home"'), "Only the home tile must show an enter button above exit.");
 assert(source.includes('events/home-interior.jpg') && worker.includes('art/v2-style/map-test/events/home-interior.jpg'), "Entering home must show the supplied interior art, including offline cache.");
 assert(html.includes('id="tileEventInheritance"') && source.includes('el.eventInheritance.hidden = false') && source.includes('V2HomeInheritance.open()'), "The home interior must open the inheritance board.");
-assert(html.includes('id="tileEventPray"') && html.includes('id="tileEventPrayerResult"') && html.includes('id="tileEventContaminationChange"') && !html.includes('v2-damage-digits.js?v=4') && source.includes('activeEventTileId !== "unknown"') && source.includes('result === 6') && source.includes('result >= 4') && source.includes('contaminationDelta = -5') && source.includes('contaminationDelta = -3') && source.includes('contaminationDelta = 1') && source.includes('host.dataset.result = delta === -5 ? "great-blessing"') && css.includes('world-tree-prayer-digits.webp?v=1') && worker.includes('world-tree-prayer-digits.webp?v=1') && source.includes('WORLD_TREE_PRAYER_KEY'), "World tree prayer must roll a die and render +5/+3/-1 with the supplied custom digit sprite.");
+assert(html.includes('id="tileEventPray"') && html.includes('id="tileEventPrayerResult"') && html.includes('id="tileEventContaminationChange"') && source.includes('activeEventTileId !== "unknown"') && source.includes('result === 6') && source.includes('result >= 4') && source.includes('contaminationDelta = -5') && source.includes('contaminationDelta = -3') && source.includes('contaminationDelta = 1') && source.includes('host.dataset.result = delta === -5 ? "great-blessing"') && source.includes('globalThis.V2WorldTreePrayerDigits.src') && source.includes('WORLD_TREE_PRAYER_KEY'), "World tree prayer must roll a die and render +5/+3/-1 with the supplied custom digit sprite.");
 assert(html.includes('id="homeInheritanceOverlay"') && html.includes('id="homeInheritanceCards"') && worker.includes('events/inheritance-board.png'), "The two-panel inheritance image and rising owned cards must be available on the map.");
 assert(css.includes('enter-parchment.png') && css.includes('bottom: 29%') && css.includes('.tile-event-enter[hidden]'), "Home enter must use a different supplied parchment button above exit.");
 assert(html.includes('href="v2-tile-practice.html"') && worker.includes('v2-tile-practice.html'), "The dedicated tile test must be reachable from the map.");

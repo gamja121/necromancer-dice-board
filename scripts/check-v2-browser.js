@@ -6,7 +6,7 @@ const os = require("node:os");
 const path = require("node:path");
 const base = process.env.GAME_TEST_URL || "http://localhost:8788/";
 (async () => {
-  const browser = await chromium.launch({ channel: "msedge", headless: true });
+  const browser = await chromium.launch({ ...(process.env.CI ? {} : { channel: "msedge" }), headless: true });
   try {
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
     const page = await context.newPage();

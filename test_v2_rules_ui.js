@@ -19,8 +19,9 @@ assert(source.includes('V2Sfx.play("diceTick"'));assert(source.includes('V2Sfx.p
 source=source.replace('  resetBattle(true);','  globalThis.testUI={resetBattle,openUnitInfo,startTurn,performAttack,finishBattle,makeState,toggleRosterUnit,renderRosterSelection,roster:ROSTER,get selectedDeck(){return [...selectedAllySlugs];},get units(){return units;},get state(){return rulesState;},get token(){return battleToken;},ready(){running=true; awaitingRoll=true;},setRoll(n){lastDiceRoll=n;},get queue(){return turnQueue;}};\n  resetBattle(true);');
 vm.createContext(context);vm.runInContext(source,context);
 const ui=context.testUI;
-assert.equal(ui.roster.length,45);
-assert.equal(nodes.get('unitRoster').children.length,11);
+assert.equal(new Set(ui.roster.map(u=>u.slug)).size,ui.roster.length,'Roster IDs must be unique');
+assert.equal(ui.roster.length,Object.keys(context.V2DesignData.units).filter(slug=>slug!=='guardian-seed').length);
+assert.equal(nodes.get('unitRoster').children.length,12,'11 map species plus battlefield-only Dracula');
 for(const slug of ['death-knight','skeleton-spear','ghoul','ancient-treant'])ui.toggleRosterUnit(slug);
 assert.equal(JSON.stringify(ui.selectedDeck),JSON.stringify(['death-knight','skeleton-spear','ghoul','ancient-treant']));
 assert.equal(nodes.get('selectedLineup').children.length,4);assert(nodes.get('selectedLineup').children.every(slot=>slot.children[0]?.src?.includes('unit-card-')));
@@ -30,6 +31,12 @@ for(const data of ui.roster){
  ui.ready();ui.openUnitInfo(u);assert.equal(nodes.get('unitInfoHp').textContent,`${u.hp} / ${u.maxHp}`);
  assert(!nodes.get('unitInfoBrands').innerHTML.includes('축복 ['));assert(nodes.get('legionInfoContent').innerHTML.includes('패시브 효과'));
  for(const kind of ['attack','hit','death'])for(let i=1;i<=data.frames[kind];i++){
+  if(data.slug==='dracula'){
+    const frames=require('./v2-dracula-frames');
+    assert.equal(data.frames.attack,frames.FRAME_COUNT);
+    assert(fs.existsSync(frames.SHEET.split('?')[0]));
+    continue;
+  }
   const special=['goblin-soldier','ice-princess','bone-golem','abyss-harpy','hydra','bone-hound','scorpion-knight','hell-mantis'];if(special.includes(data.slug))continue;
   const number=data.frameNumbers?.[kind]?.[i-1]||i;
   assert(fs.existsSync(`art/v2-style/animation-test-frames/${data.slug}/${kind}-${String(number).padStart(2,'0')}.png`));
@@ -58,5 +65,5 @@ assert(nodes.get('unitInfoBrands').innerHTML.includes('brand-icons-extra-sheet.j
  assert(source.includes('const TEST_DECK_SLUGS = Object.freeze(['));assert(source.includes('selectedAllySlugs.length >= 1 && selectedAllySlugs.length <= 4'));assert(source.includes('selectedAllySlugs.length === 4 && selectedEnemySlugs.length === 4'));
  assert(source.includes('unit-card-${entry.slug}.png?v=19'));assert(source.includes('"death-knight", "skeleton-spear", "skeleton-archer", "ghoul", "ancient-treant", "goblin-rider"'));
  assert(html.indexOf('v2-rules.js')<html.indexOf('v2-auto-battle-practice.js'));
- console.log('PASS: actual UI controller, 45 roster entries, 3-slot info, new icons, real round/attack handlers');
+ console.log('PASS: actual UI controller, current roster, 3-slot info, new icons, real round/attack handlers');
 })().catch(e=>{console.error(e);process.exitCode=1;});

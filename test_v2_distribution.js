@@ -12,6 +12,7 @@ const files = fs.readdirSync(root).filter(f => /^(?:v2.*|launch.*|index.html|ser
 const cacheContext = { self: { addEventListener() {} } };
 vm.runInNewContext(read("service-worker.js") + ";globalThis.shell = APP_SHELL;", cacheContext);
 const shell = new Set(cacheContext.shell.map(f => f.replace(/^\.\//, "")));
+assert.equal(shell.size, cacheContext.shell.length, "Duplicate precache entries");
 for (const f of shell) assert(exists(f), `Missing precache resource: ${f}`);
 for (const f of files) {
   const source = read(f);
