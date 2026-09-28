@@ -43,7 +43,7 @@
       </div>
       <div id="altarRitualCards" class="altar-ritual-cards" aria-label="보유 마물"></div>
     </div>`;
-  document.querySelector(".map-shell")?.append(overlay);
+  document.getElementById("mapBoard")?.append(overlay);
 
   const el = {
     backdrop: overlay.querySelector(".altar-ritual-backdrop"),
@@ -178,7 +178,8 @@
     const oldMaxHp = target.maxHp;
     target.attack = Math.max(1, Number(target.attack) || 1) + ATTACK_BONUS;
     target.maxHp = Math.max(1, Number(target.maxHp) || 1) + MAX_HP_BONUS;
-    target.currentHp = Math.min(target.maxHp, Math.max(0, Number(target.currentHp) || oldMaxHp) + MAX_HP_BONUS);
+    const currentHp = Number.isFinite(target.currentHp) ? target.currentHp : oldMaxHp;
+    target.currentHp = Math.min(target.maxHp, Math.max(0, currentHp) + MAX_HP_BONUS);
     target.altarEnhancements = enhancementLevel(target) + 1;
 
     const donorInstanceId = material.instanceId;
