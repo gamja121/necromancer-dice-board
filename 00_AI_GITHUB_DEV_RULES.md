@@ -284,8 +284,9 @@ AI가 작업하기 전 아래 7개를 확인한다.
 
 - `AI_PROJECT_PROGRESS.md`
 - `GITHUB_IMAGE_UPLOAD_WORKFLOW.md`
+- `CODEX_DEVELOPMENT_WORKFLOW.md`
 - `GAME_DESIGN_RULES.md`
 - `DICE_CONTROL_CARD_STYLE_GUIDE.md`
 - `README.md`
 
-이 문서는 **외부 개발 환경 운영 규칙의 최상위 기준**으로 사용한다.
+이 문서는 **외부 개발 환경 운영 규칙의 최상위 기준**으로 사용한다. 게임 개발 순서, Codex 역할, 원본/Runtime 자산 분리, 저장소 용량 정책, Unity 이관 방식은 `CODEX_DEVELOPMENT_WORKFLOW.md`를 따른다.
