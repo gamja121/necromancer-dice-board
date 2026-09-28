@@ -15,7 +15,7 @@
     "bone-hound": { name: "뼈 사냥개", runtimeSheet: true, counts: { attack: 5, hit: 4, death: 6 } },
     "scorpion-knight": { name: "전갈 기사", runtimeSheet: true, counts: { attack: 5, hit: 3, death: 5 } },
     "hell-mantis": { name: "지옥 사마귀", runtimeSheet: true, counts: { attack: 5, hit: 4, death: 6 } },
-    "dracula": { name: "드라큘라", runtimeSheet: true, attackOnly: true, counts: { attack: 10, hit: 1, death: 1 } },
+    "vampire": { name: "뱀파이어", runtimeSheet: true, counts: { attack: 10, hit: 7, death: 8 } },
     "death-knight": { name: "데스나이트", root: "art/v2-style/animation-test-frames/death-knight/", counts: { attack: 5, hit: 4, death: 6 } },
     "skeleton-spear": { name: "해골 창병", root: "art/v2-style/animation-test-frames/skeleton-spear/", counts: { attack: 5, hit: 4, death: 5 } },
     "ancient-treant": { name: "고대 트렌트", root: "art/v2-style/animation-test-frames/ancient-treant/", counts: { attack: 5, hit: 4, death: 6 } },
@@ -131,7 +131,7 @@
     const unit = state.unit, token = state.token;
     if (UNITS[unit].runtimeSheet) {
       const prepared = unit === "goblin-soldier" ? await V2GoblinFrames.prepare() : unit === "ice-princess" ? await V2PrincessFrames.prepare() : unit === "bone-golem" ? await V2BloodFrames.prepare() : unit === "guardian-seed" ? await V2SeedFrames.prepare() : unit === "abyss-harpy" ? await V2HarpyFrames.prepare() : unit === "hydra" ? await V2HydraFrames.prepare() : unit === "bone-hound" ? await V2HoundFrames.prepare()
-        : unit === "scorpion-knight" ? await V2ScorpionFrames.prepare() : unit === "dracula" ? await V2DraculaFrames.prepare() : await V2MantisFrames.prepare();
+        : unit === "scorpion-knight" ? await V2ScorpionFrames.prepare() : unit === "vampire" ? await V2VampireFrames.prepare() : await V2MantisFrames.prepare();
       if (token !== state.token || unit !== state.unit) return;
       delete frameSets.attack;
       delete frameSets.hit;
@@ -146,7 +146,7 @@
     setIdle();
     setButtons(false);
     el.attack.textContent = UNITS[unit].attackLabel ? "공격 모션 · 개화 테스트" : "⚔ 공격 모션";
-    el.status.textContent = UNITS[unit].attackOnly ? "드라큘라 · 현재 공격 모션 10프레임만 테스트합니다." : UNITS[unit].isSummon ? "공격하지 않는 소환물 · 공격 버튼은 개화 연출 테스트입니다." : `버튼을 누르면 ${UNITS[state.unit].name} 모션이 재생됩니다.`;
+    el.status.textContent = UNITS[unit].isSummon ? "공격하지 않는 소환물 · 공격 버튼은 개화 연출 테스트입니다." : `버튼을 누르면 ${UNITS[state.unit].name} 모션이 재생됩니다.`;
   }
   async function selectUnit(unit) {
     if (!UNITS[unit] || state.busy || unit === state.unit) return;
