@@ -114,6 +114,7 @@
     eventHeal: document.getElementById("tileEventHeal"),
     eventPray: document.getElementById("tileEventPray"),
     eventPrayerResult: document.getElementById("tileEventPrayerResult"),
+    eventContaminationChange: document.getElementById("tileEventContaminationChange"),
     eventClose: document.getElementById("tileEventClose"),
     bookButton: document.getElementById("mapBookButton"),
     cardDeckButton: document.getElementById("mapCardDeckButton"),
@@ -190,6 +191,26 @@
     return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
   }
 
+  function showWorldTreeContaminationChange(delta) {
+    if (!el.eventContaminationChange || !Number.isFinite(delta) || delta === 0) return;
+    const amount = Math.abs(Math.round(delta));
+    const host = el.eventContaminationChange;
+    host.className = "tile-event-contamination-change";
+    host.dataset.direction = delta < 0 ? "down" : "up";
+    host.textContent = delta < 0 ? `-${amount}` : `+${amount}`;
+    host.setAttribute("aria-label", `오염도 ${delta < 0 ? "감소" : "증가"} ${amount}`);
+
+    if (typeof V2DamageDigits !== "undefined") {
+      if (delta < 0) V2DamageDigits.render(host, amount);
+      else V2DamageDigits.renderHealing(host, amount);
+    }
+
+    host.hidden = false;
+    host.classList.remove("is-showing");
+    void host.offsetWidth;
+    host.classList.add("is-showing");
+  }
+
   function createUnitInstanceId(slug = "unit") {
     if (globalThis.crypto?.randomUUID) return `${slug}-${globalThis.crypto.randomUUID()}`;
     return `${slug}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
@@ -256,7 +277,11 @@
     try {
       if (typeof sessionStorage !== "undefined") sessionStorage.setItem(CONTAMINATION_KEY, String(contamination));
     } catch (_) { /* Keep the live run usable without storage. */ }
-    renderContamination();
+    if (typeof V2DamageDigits !== "undefined") {
+    V2DamageDigits.prepare().catch(error => console.warn(error));
+    V2DamageDigits.prepareHealing().catch(error => console.warn(error));
+  }
+  renderContamination();
     return contamination;
   }
 
@@ -1291,6 +1316,9 @@
     el.eventPray.hidden = tile.id !== "unknown" || worldTreePrayed;
     el.eventPrayerResult.hidden = true;
     el.eventPrayerResult.textContent = "";
+    el.eventContaminationChange.hidden = true;
+    el.eventContaminationChange.className = "tile-event-contamination-change";
+    el.eventContaminationChange.textContent = "";
     el.eventClose.hidden = treasure;
     if (treasure) {
       el.eventImage.removeAttribute("src");
@@ -1353,6 +1381,7 @@
     }
 
     addContamination(contaminationDelta);
+    showWorldTreeContaminationChange(contaminationDelta);
     el.eventPrayerResult.textContent = label;
     el.eventPrayerResult.dataset.result = label === "실패" ? "failure" : label === "대축복" ? "great-blessing" : "blessing";
     el.eventPrayerResult.hidden = false;
@@ -1444,6 +1473,9 @@
     el.eventPray.hidden = true;
     el.eventPrayerResult.hidden = true;
     el.eventPrayerResult.textContent = "";
+    el.eventContaminationChange.hidden = true;
+    el.eventContaminationChange.className = "tile-event-contamination-change";
+    el.eventContaminationChange.textContent = "";
     el.eventClose.disabled = false;
     worldTreePrayerRolling = false;
     el.board.classList.remove("is-world-tree-praying");
