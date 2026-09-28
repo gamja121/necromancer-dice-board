@@ -196,15 +196,9 @@
     const amount = Math.abs(Math.round(delta));
     const host = el.eventContaminationChange;
     host.className = "tile-event-contamination-change";
-    host.dataset.direction = delta < 0 ? "down" : "up";
-    host.textContent = delta < 0 ? `-${amount}` : `+${amount}`;
+    host.dataset.result = delta === -5 ? "great-blessing" : delta === -3 ? "blessing" : "failure";
+    host.textContent = delta < 0 ? `+${amount}` : `-${amount}`;
     host.setAttribute("aria-label", `오염도 ${delta < 0 ? "감소" : "증가"} ${amount}`);
-
-    if (typeof V2DamageDigits !== "undefined") {
-      if (delta < 0) V2DamageDigits.render(host, amount);
-      else V2DamageDigits.renderHealing(host, amount);
-    }
-
     host.hidden = false;
     host.classList.remove("is-showing");
     void host.offsetWidth;
@@ -277,11 +271,7 @@
     try {
       if (typeof sessionStorage !== "undefined") sessionStorage.setItem(CONTAMINATION_KEY, String(contamination));
     } catch (_) { /* Keep the live run usable without storage. */ }
-    if (typeof V2DamageDigits !== "undefined") {
-    V2DamageDigits.prepare().catch(error => console.warn(error));
-    V2DamageDigits.prepareHealing().catch(error => console.warn(error));
-  }
-  renderContamination();
+    renderContamination();
     return contamination;
   }
 
