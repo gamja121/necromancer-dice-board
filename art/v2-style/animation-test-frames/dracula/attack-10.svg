@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 307 307">
   <defs>
     <filter id="cut" x="-5%" y="-5%" width="110%" height="110%" color-interpolation-filters="sRGB">
-      <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  -2 -2 -2 1 6 0"/>
+      <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  -2 -2 -2 0 6 0"/>
     </filter>
   </defs>
   <image href="data:image/webp;base64,UklGRmStAQBXRUJQVlA4IFitAQAwqQKdASoABlACPrFam0ilo6KhpmkIALAS
