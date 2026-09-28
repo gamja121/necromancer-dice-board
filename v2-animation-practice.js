@@ -15,7 +15,7 @@
     "bone-hound": { name: "뼈 사냥개", runtimeSheet: true, counts: { attack: 5, hit: 4, death: 6 } },
     "scorpion-knight": { name: "전갈 기사", runtimeSheet: true, counts: { attack: 5, hit: 3, death: 5 } },
     "hell-mantis": { name: "지옥 사마귀", runtimeSheet: true, counts: { attack: 5, hit: 4, death: 6 } },
-    "dracula": { name: "드라큘라", runtimeSheet: true, attackOnly: true, counts: { attack: 10, hit: 1, death: 1 } },
+    "dracula": { name: "드라큘라", root: "art/v2-style/animation-test-frames/dracula/", extension: "svg", attackOnly: true, counts: { attack: 10 } },
     "death-knight": { name: "데스나이트", root: "art/v2-style/animation-test-frames/death-knight/", counts: { attack: 5, hit: 4, death: 6 } },
     "skeleton-spear": { name: "해골 창병", root: "art/v2-style/animation-test-frames/skeleton-spear/", counts: { attack: 5, hit: 4, death: 5 } },
     "ancient-treant": { name: "고대 트렌트", root: "art/v2-style/animation-test-frames/ancient-treant/", counts: { attack: 5, hit: 4, death: 6 } },
@@ -71,13 +71,20 @@
     const unit = UNITS[state.unit];
     const frameNumber = motion === "death" && unit.deathFrames ? unit.deathFrames[index] : index + 1;
     const revision = ["death-knight", "ancient-treant", "skeleton-spear", "stone-golem", "goblin-rider"].includes(state.unit) ? "?v=20260907-size2" : ["goblin-commoner", "ice-lord"].includes(state.unit) ? "?v=20260907" : "";
-    return `${unit.root}${motion}-${String(frameNumber).padStart(2, "0")}.png${revision}`;
+    const extension = unit.extension || "png";
+    return `${unit.root}${motion}-${String(frameNumber).padStart(2, "0")}.${extension}${revision}`;
   }
   function buildFrames() {
+    delete frameSets.attack;
+    delete frameSets.hit;
+    delete frameSets.death;
+    delete frameSets.idle;
     Object.entries(UNITS[state.unit].counts).forEach(([motion, count]) => {
       frameSets[motion] = Array.from({ length: count }, (_, index) => pathFor(motion, index));
     });
     frameSets.idle = frameSets.attack[0];
+    if (!frameSets.hit) frameSets.hit = [frameSets.idle];
+    if (!frameSets.death) frameSets.death = [frameSets.idle];
   }
   function loadImage(url) {
     return new Promise((resolve, reject) => {
