@@ -87,7 +87,15 @@
       image.src = url;
     });
   }
-  function setButtons(disabled) { [el.attack, el.hit, el.death, el.reset, el.effect, el.effectSelect].forEach((button) => { button.disabled = disabled; }); }
+  function setButtons(disabled) {
+    [el.attack, el.hit, el.death, el.reset, el.effect, el.effectSelect].forEach((button) => { button.disabled = disabled; });
+    if (!disabled && UNITS[state.unit]?.attackOnly) {
+      el.hit.disabled = true;
+      el.death.disabled = true;
+      el.effect.disabled = true;
+      el.effectSelect.disabled = true;
+    }
+  }
   function showStage() { el.stage.scrollIntoView?.({ behavior: "instant", block: "start" }); }
   function setIdle() {
     el.sprite.src = frameSets.idle;
@@ -110,19 +118,18 @@
       const prepared = unit === "goblin-soldier" ? await V2GoblinFrames.prepare() : unit === "ice-princess" ? await V2PrincessFrames.prepare() : unit === "bone-golem" ? await V2BloodFrames.prepare() : unit === "guardian-seed" ? await V2SeedFrames.prepare() : unit === "abyss-harpy" ? await V2HarpyFrames.prepare() : unit === "hydra" ? await V2HydraFrames.prepare() : unit === "bone-hound" ? await V2HoundFrames.prepare()
         : unit === "scorpion-knight" ? await V2ScorpionFrames.prepare() : unit === "dracula" ? await V2DraculaFrames.prepare() : await V2MantisFrames.prepare();
       if (token !== state.token || unit !== state.unit) return;
+      delete frameSets.attack;
+      delete frameSets.hit;
+      delete frameSets.death;
+      delete frameSets.idle;
       Object.assign(frameSets, prepared);
+      frameSets.idle = frameSets.attack?.[0] || "";
     } else buildFrames();
     const urls = [...frameSets.attack, ...frameSets.hit, ...frameSets.death];
     await Promise.all(urls.map(loadImage));
     if (token !== state.token || unit !== state.unit) return;
     setIdle();
     setButtons(false);
-    if (UNITS[unit].attackOnly) {
-      el.hit.disabled = true;
-      el.death.disabled = true;
-      el.effect.disabled = true;
-      el.effectSelect.disabled = true;
-    }
     el.attack.textContent = UNITS[unit].attackLabel ? "공격 모션 · 개화 테스트" : "⚔ 공격 모션";
     el.status.textContent = UNITS[unit].attackOnly ? "드라큘라 · 현재 공격 모션 10프레임만 테스트합니다." : UNITS[unit].isSummon ? "공격하지 않는 소환물 · 공격 버튼은 개화 연출 테스트입니다." : `버튼을 누르면 ${UNITS[state.unit].name} 모션이 재생됩니다.`;
   }
