@@ -1,7 +1,7 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const { execFileSync } = require("node:child_process");
+const jpeg = require("jpeg-js");
 const goblin = process.argv.includes("--goblin");
 const princess = process.argv.includes("--princess");
 const blood = process.argv.includes("--blood");
@@ -19,8 +19,13 @@ const api = require(goblin ? "./v2-goblin-frames.js" : princess ? "./v2-princess
 function decode(relative) {
 const sheet = path.join(__dirname, relative);
 // Decode the actual JPEG read-only, then run the browser crop/key/flip code.
-const command = `Add-Type -AssemblyName System.Drawing; $b = [System.Drawing.Bitmap]::new('${sheet.replace(/'/g, "''")}'); try { if ($b.Width -ne 1280 -or $b.Height -ne ${sourceHeight}) { throw 'Wrong sheet dimensions' }; $r = [System.Drawing.Rectangle]::new(0,0,1280,${sourceHeight}); $d = $b.LockBits($r,[System.Drawing.Imaging.ImageLockMode]::ReadOnly,[System.Drawing.Imaging.PixelFormat]::Format32bppArgb); try { $p = [byte[]]::new(1280*${sourceHeight}*4); [System.Runtime.InteropServices.Marshal]::Copy($d.Scan0,$p,0,$p.Length); [Convert]::ToBase64String($p) } finally { $b.UnlockBits($d) } } finally { $b.Dispose() }`;
-const bgra = Buffer.from(execFileSync("powershell.exe", ["-NoProfile", "-Command", command], { maxBuffer: 16 * 1024 * 1024 }).toString().trim(), "base64");
+const decoded = jpeg.decode(fs.readFileSync(sheet), { useTArray: true, formatAsRGBA: true });
+assert.equal(decoded.width, 1280);
+assert.equal(decoded.height, sourceHeight);
+const bgra = Buffer.from(decoded.data);
+for (let i=0; i<bgra.length; i+=4) {
+  [bgra[i],bgra[i+2]] = [bgra[i+2],bgra[i]];
+}
 assert.equal(bgra.length, 1280 * sourceHeight * 4);
 return bgra;
 }

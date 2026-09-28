@@ -6,6 +6,7 @@
     "test:browser": "node scripts/check-v2-browser.js"
   },
   "devDependencies": {
+    "jpeg-js": "0.4.4",
     "playwright": "1.62.1"
   }
 }
