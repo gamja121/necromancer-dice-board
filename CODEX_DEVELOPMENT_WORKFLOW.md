@@ -846,3 +846,188 @@ Codex는 다음을 모두 만족해야 작업 완료로 보고한다.
 - 2027년 1월 완성은 목표이며 보장 일정이 아니다. Unity 소규모 시험과 통합 원정 검증 결과에 따라 범위를 재평가한다.
 - 진행 기록은 과거 이력, 현재 코드/검사는 구현 상태, GAME_DESIGN_RULES.md는 규칙 기준으로 구분한다.
 - 다음 작업은 통합 저장 설계다. 이번 안전망 작업에서 게임 규칙·저장 키·자산 포맷을 대규모로 바꾸지 않는다.
+
+
+---
+
+## 20. 2026-09-29 검토 보완 — 저장 구조·애니메이션·CI 우선순위
+
+이 절은 최신 Codex 제안과 실제 GitHub Actions 실행 결과를 다시 검토한 뒤 추가한 운영 의견이다.
+
+### 20-1. 현재 CI 문제를 먼저 해결한다
+
+최신 `Verify and deploy` 워크플로의 첫 실행은 게임 코드 자체가 아니라 `test_v2_mantis.js`의 Windows 전용 `powershell.exe` 의존 때문에 실패했다.
+
+- GitHub Actions는 Ubuntu runner에서 실행된다.
+- `test_v2_mantis.js`는 `System.Drawing`과 `powershell.exe`를 호출한다.
+- 그 결과 실제 CI에서는 `spawnSync powershell.exe ENOENT`로 실패했다.
+- 다른 검사는 26/27 통과했다.
+
+따라서 다음 개발 전에 이 테스트를 OS 독립적으로 바꾼다.
+
+권장 방향:
+- 가능하면 Node 기반 이미지 검사로 교체
+- 픽셀 디코딩이 꼭 필요하지 않다면 시그니처/해상도/메타데이터 검사로 축소
+- 테스트 때문에 Windows 전용 도구를 CI 필수 경로에 두지 않는다
+
+**CI가 실패하는 상태에서 다음 기능을 계속 쌓지 않는다.**
+
+### 20-2. 지금 가장 중요한 구현은 RunState다
+
+현재 프로젝트에서 저장 구조가 늦어질수록 이후 전투·보상·계승·사건 기능을 다시 뜯어고칠 가능성이 커진다.
+
+다음 구조를 우선 확정한다.
+
+```text
+RunState
+ ├─ saveVersion
+ ├─ runId
+ ├─ currentMap
+ ├─ contamination
+ ├─ ownedMonsters[]
+ │    └─ instanceId
+ ├─ diceCards[]
+ ├─ brands / inheritance
+ ├─ clearedTiles
+ ├─ claimedRewards
+ ├─ eventFlags
+ └─ rngState
+```
+
+특히 중요:
+
+- `instanceId`: 같은 종류의 마물이 여러 마리 있어도 개체를 구분
+- `claimedRewards`: 새로고침/복귀 중 같은 보상을 두 번 받는 문제 방지
+- `saveVersion`: 이후 구조 변경 시 migration 가능
+- `rngState`: 게임 판정 재현과 저장 복구 검증에 사용
+
+게임 연출용 난수와 판정용 난수는 분리한다.
+
+### 20-3. 애니메이션은 지금 공통 구조를 확정한다
+
+몬스터가 늘어나기 전에 attack / hit / death 공통 구조를 고정한다.
+
+예시:
+
+```text
+Monster
+ ├─ id
+ ├─ stats
+ ├─ passive
+ └─ animations
+      ├─ attack
+      ├─ hit
+      └─ death
+```
+
+각 애니메이션 데이터는 최소한 다음을 가진다.
+
+- src
+- frameCount
+- fps
+- scale
+- pivot
+- loop 여부
+
+원칙:
+
+- 캐릭터마다 if문을 추가하지 않는다.
+- 같은 animation player를 모든 마물이 사용한다.
+- 캐릭터별 차이는 데이터에서 처리한다.
+- 마루타 → 실제 몬스터 1종 → 실제 몬스터 3종 순으로 검증한 뒤 전체 확장한다.
+
+**마물 수십 종을 먼저 만들고 나중에 공통 시스템을 고치는 방식은 피한다.**
+
+### 20-4. 자산 등록부는 최소한으로 시작한다
+
+기존 제안의 자산 등록부는 방향은 맞지만, 초기부터 너무 많은 필드를 요구하면 관리 자체가 일이 될 수 있다.
+
+초기 필수 필드:
+
+```text
+assetId
+runtimePath
+frameCount
+pivot
+scale
+approved
+```
+
+선택 필드:
+
+- sourcePath
+- sourceHash
+- runtimeHash
+- license/source note
+
+중요 캐릭터나 외부 사용권 확인이 필요한 자산부터 확장한다.
+
+### 20-5. PR을 모든 작업에 강제하지 않는다
+
+큰 변경은 PR을 권장하지만, 다음까지 전부 PR로 강제하면 현재 개발 속도가 과도하게 느려질 수 있다.
+
+- 이미지 한 장 교체
+- 작은 CSS 조정
+- 단순 캐시 버전 변경
+
+현 단계 운영:
+
+- 저장 구조/전투 구조/대형 리팩터링 → PR 권장
+- 작은 안전 수정 → main 직접 반영 가능
+- 단, 자동 테스트 실패 시 배포 금지
+- 성공한 main만 Pages에 배포
+
+즉 **검증은 강하게, 절차는 작업 크기에 맞게** 적용한다.
+
+### 20-6. 저장소 용량은 지금 '청소'보다 '증가 방지'가 중요하다
+
+현재 Git history에는 이미 과거 PNG가 누적되어 있다.
+
+따라서:
+
+- 지금 당장 history 대수술을 우선하지 않는다.
+- 오늘부터 중간 생성본을 더 이상 main에 넣지 않는 것을 우선한다.
+- 핵심 원본은 Git 밖 Source Vault에 보관한다.
+- Unity 저장소는 새 Git history로 시작한다.
+
+웹 저장소의 과거 history 정리는 필요 시 별도 백업 후 독립 작업으로 수행한다.
+
+### 20-7. 현재 우선순위 재정의
+
+다음 순서를 따른다.
+
+1. **CI의 Windows 전용 PowerShell 테스트 제거/교체**
+2. **RunState 저장 구조 설계 및 migration 계획**
+3. **공통 attack / hit / death animation player 확정**
+4. **한 원정 전체 저장·복구 검증**
+5. **Event Lab의 실제 사건 시스템 연결**
+6. **Unity 소규모 이전 시험**
+7. **전체 Unity 이전**
+
+현재 시점에서는 기존 Git 용량 정리나 전 자산 일괄 최적화보다 **저장 구조와 공통 애니메이션 구조가 우선**이다.
+
+### 20-8. 원본 이미지 보관에 대한 실무 원칙
+
+게임 실행에는 원본 생성 이미지가 없어도 된다.
+
+다만 재작업과 Unity 이전을 위해 각 주요 캐릭터는 최소한 다음 정도를 Git 밖에 보관하는 것을 권장한다.
+
+```text
+<monster>/
+ ├─ original.png
+ ├─ character-reference.png
+ └─ animation-source/
+```
+
+반면 다음과 같은 중간본은 장기 보관 필수가 아니다.
+
+```text
+test1.png
+head-fix2.png
+spacing-test.png
+green-bg-temp.png
+```
+
+즉:
+
+> **게임에는 최종 runtime 파일만 필요하고, 원본은 재작업용 보험으로 Git 밖에 최소 보관한다.**
