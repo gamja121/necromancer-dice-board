@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20260928-21";
+const CACHE_NAME = "necromancer-and-dice-v2-20260928-22";
 const APP_SHELL = [
   "./art/v2-style/processed/192/grave-worm.png",
   "./art/v2-style/processed/192/flesh-golem.png",
@@ -48,7 +48,7 @@ const APP_SHELL = [
   "./v2-princess-frames.js?v=1",
   "./v2-goblin-frames.js?v=1",
   "./v2-hit-effects.js?v=9",
-  "./v2-animation-practice.js?v=77",
+  "./v2-animation-practice.js?v=78",
   "./v2-auto-battle-practice.css?v=59",
   "./v2-landscape.js?v=1",
   "./v2-music.js?v=1",
@@ -105,6 +105,16 @@ const APP_SHELL = [
   "./art/v2-style/animation-sheets/green-raw/scorpion-knight-animation-sheet.jpg",
   "./art/v2-style/animation-sheets/green-raw/hell-mantis-animation-sheet.jpg",
   "./art/v2-style/animation-sheets/uploaded-raw/dracula-attack.webp",
+  "./art/v2-style/animation-test-frames/dracula/attack-01.svg",
+  "./art/v2-style/animation-test-frames/dracula/attack-02.svg",
+  "./art/v2-style/animation-test-frames/dracula/attack-03.svg",
+  "./art/v2-style/animation-test-frames/dracula/attack-04.svg",
+  "./art/v2-style/animation-test-frames/dracula/attack-05.svg",
+  "./art/v2-style/animation-test-frames/dracula/attack-06.svg",
+  "./art/v2-style/animation-test-frames/dracula/attack-07.svg",
+  "./art/v2-style/animation-test-frames/dracula/attack-08.svg",
+  "./art/v2-style/animation-test-frames/dracula/attack-09.svg",
+  "./art/v2-style/animation-test-frames/dracula/attack-10.svg",
   "./art/v2-style/ui/info-portraits/dracula.png",
   "./v2-image-test.html",
   "./v2-map-practice.html",
