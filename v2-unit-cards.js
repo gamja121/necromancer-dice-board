@@ -42,7 +42,7 @@
           art.classList.add('has-card-art');
           if (CUTOUT_ART.has(unit.slug)) {
             art.classList.add('has-cutout-card');
-            art.style.backgroundImage = 'url("art/v2-style/ui/unit-card-' + unit.slug + '.png?v=19")';
+            art.style.backgroundImage = 'url("' + (unit.cardArt || ('art/v2-style/ui/unit-card-' + unit.slug + '.png?v=19')) + '")';
           } else {
             // Crop the supplied 1280x575 photo to the card only, without changing the original.
             art.style.backgroundImage = 'url("art/v2-style/ui/unit-card-' + unit.slug + '.jpg?v=9")';
