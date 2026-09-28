@@ -2,7 +2,7 @@
   "use strict";
 
   const ROOT = "art/v2-style/map-test/";
-  const TILE_ASSET_VERSION = "20260927-2";
+  const TILE_ASSET_VERSION = "20260929-1";
   const EVENT_ASSET_VERSION = "20260927-2";
   const DICE_ROOT = "art/v2-style/dice-test/frames/";
   const rollingFrames = Array.from({ length: 12 }, (_, index) => `${DICE_ROOT}roll-${String(index + 1).padStart(2, "0")}.png`);
@@ -492,12 +492,16 @@
   }
 
   function getTileImage(tile, step) {
-    // The four state-specific monster PNGs added on 2026-09-27 are currently
-    // malformed and fail to decode on browsers. Keep the files in the repo for
-    // replacement, but render known-good base artwork so monster tiles never vanish.
-    if (tile.id === "rare-monster") return `${ROOT}tiles/monster.png?v=${TILE_ASSET_VERSION}`;
-    if (tile.id === "boss") return `${ROOT}tiles/boss.png?v=${TILE_ASSET_VERSION}`;
-    if (tile.id === "monster") return `${ROOT}tiles/monster.png?v=${TILE_ASSET_VERSION}`;
+    const cleared = isMonsterTileCleared(step);
+    if (tile.id === "monster") {
+      return `${ROOT}tiles/${cleared ? "monster-cleared" : "monster"}.png?v=${TILE_ASSET_VERSION}`;
+    }
+    if (tile.id === "rare-monster") {
+      return `${ROOT}tiles/${cleared ? "rare-monster-cleared" : "rare-monster"}.png?v=${TILE_ASSET_VERSION}`;
+    }
+    if (tile.id === "boss") {
+      return `${ROOT}tiles/${cleared ? "boss-cleared" : "boss"}.png?v=${TILE_ASSET_VERSION}`;
+    }
     return `${ROOT}tiles/${tile.id}.png?v=${TILE_ASSET_VERSION}`;
   }
 

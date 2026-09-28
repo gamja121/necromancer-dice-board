@@ -1097,3 +1097,15 @@
 - 별도 테스트 `test_v2_altar_ritual.js`를 추가해 자산 연결, 재물 제거, 능력치 강화, 3회 제한, 서비스워커 캐시 연결을 검사한다.
 
 - 제단 의식 오버레이가 존재하지 않는 `.map-shell`에 붙으려던 연결 오류를 수정해 실제 `#mapBoard` 내부에 마운트되도록 했다. 모바일 캐시 버전도 함께 갱신했다.
+
+
+## 2026-09-29: 마물 처치 타일 교체 복구
+
+- 사용자가 새로 제공한 4개 타일 원화를 바탕으로 흰 배경을 제거한 투명 PNG 자산으로 교체했다.
+- 일반 마물 처치: `monster-cleared.png`
+- 희귀 마물 미처치: `rare-monster.png`
+- 희귀 마물 처치: `rare-monster-cleared.png`
+- 보스 처치: `boss-cleared.png`
+- `getTileImage(tile, step)`가 이제 `isMonsterTileCleared(step)`를 실제로 확인해 승리 후 cleared 이미지를 선택한다.
+- 기존의 임시 fallback(희귀/처치 상태를 일반 monster.png 또는 boss.png로 강제 표시)을 제거했다.
+- 타일 자산 버전은 `20260929-1`, 서비스워커 캐시는 `necromancer-and-dice-v2-20260929-04`로 갱신했다.
