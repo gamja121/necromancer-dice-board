@@ -15,8 +15,9 @@ for (const file of assets) {
   if (!worker.includes(file)) throw Error("Altar ritual asset is not cached: " + file);
 }
 if (!html.includes("v2-altar-ritual.css?v=1")) throw Error("Altar ritual CSS is not linked");
-if (!html.includes("v2-altar-ritual.js?v=1")) throw Error("Altar ritual JS is not linked");
+if (!html.includes("v2-altar-ritual.js?v=2")) throw Error("Altar ritual JS is not linked");
 if (!js.includes('OWNED_ROSTER_KEY = "necromancer-map-roster-v2"')) throw Error("Ritual must use current roster storage");
+if (!js.includes('document.getElementById("mapBoard")?.append(overlay)')) throw Error("Ritual overlay must mount inside mapBoard");
 if (!js.includes("roster.delete(donorInstanceId)")) throw Error("Sacrifice must permanently remove donor");
 if (!js.includes("target.attack") || !js.includes("ATTACK_BONUS = 1")) throw Error("Attack enhancement is missing");
 if (!js.includes("target.maxHp") || !js.includes("MAX_HP_BONUS = 2")) throw Error("HP enhancement is missing");
