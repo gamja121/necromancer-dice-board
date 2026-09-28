@@ -1503,6 +1503,7 @@
         { key: "__new__", unit: captured, isNew: true }
       ];
       captureOverflowCards.replaceChildren();
+      captureOverflowCards.scrollLeft = 0;
       captureOverflowStatus.textContent = "새 마물을 받으려면 버릴 마물 카드 1장을 선택하세요.";
       captureOverflowConfirm.disabled = true;
 
@@ -1514,7 +1515,11 @@
         button.className = "capture-overflow-card";
         button.dataset.key = candidate.key;
         image.src = `art/v2-style/ui/unit-card-${candidate.unit.slug}.png?v=19`;
-        image.alt = "";
+        image.alt = candidate.unit.name || V2DesignData.units[candidate.unit.slug]?.name || candidate.unit.slug;
+        image.addEventListener("error", () => {
+          image.src = candidate.unit.portrait || `art/v2-style/processed/192/${candidate.unit.slug}.png`;
+          image.classList.add("is-fallback-portrait");
+        }, { once: true });
         label.textContent = candidate.unit.name || V2DesignData.units[candidate.unit.slug]?.name || candidate.unit.slug;
         button.append(image, label);
         if (candidate.isNew) {
@@ -1692,9 +1697,13 @@
   });
 
   const mapLineupReady = fromMap && selectedAllySlugs.length >= 1 && selectedAllySlugs.length <= 4;
-  if (mapLineupReady) { resetBattle(false); startSelectedBattle(); }
-  else {
-  resetBattle(true);
+  if (mapLineupReady) {
+    // Do not render the default/demo teams first. startSelectedBattle() prepares
+    // the real map lineup and only then calls resetBattle(false).
+    startOverlay.hidden = true;
+    startSelectedBattle();
+  } else {
+    resetBattle(true);
   }
   if (typeof V2DamageDigits !== "undefined") V2DamageDigits.prepare().catch(error => console.warn(error));
   if (typeof V2DamageDigits !== "undefined") V2DamageDigits.prepareLabels().catch(error => console.warn(error));
