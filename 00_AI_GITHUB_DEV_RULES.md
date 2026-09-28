@@ -15,6 +15,7 @@
 1. 최신 `main` 기준으로 작업한다.
 2. 이미 정확한 파일 경로를 알고 있으면 저장소 전체를 다시 스캔하지 않는다.
 3. 작업 종류별 기준 문서를 먼저 확인한다.
+   - **Codex 개발 절차·자산 파이프라인·Unity 이전: `CODEX_DEVELOPMENT_WORKFLOW.md`**
    - 프로젝트 진행: `AI_PROJECT_PROGRESS.md`
    - 이미지 업로드/교체: `GITHUB_IMAGE_UPLOAD_WORKFLOW.md`
    - 게임 규칙: `GAME_DESIGN_RULES.md`
@@ -282,6 +283,7 @@ AI가 작업하기 전 아래 7개를 확인한다.
 
 ## 관련 기준 문서
 
+- `CODEX_DEVELOPMENT_WORKFLOW.md`
 - `AI_PROJECT_PROGRESS.md`
 - `GITHUB_IMAGE_UPLOAD_WORKFLOW.md`
 - `CODEX_DEVELOPMENT_WORKFLOW.md`
