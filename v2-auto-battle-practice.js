@@ -269,6 +269,8 @@
   })();
 
   const battlefield = document.getElementById("battlefield");
+  const initialBattlefield = mapBattlefield || BATTLEFIELDS[Math.floor(Math.random() * BATTLEFIELDS.length)];
+  battlefield.style.backgroundImage = `url("${initialBattlefield}")`;
   // Optional demonstration lineup; the normal 4v4 lineup stays unchanged.
   if (typeof location !== "undefined" && new URLSearchParams(location.search).get("effects") === "pixie-siren") {
     TEAM_DATA.ally.splice(0, 2,
@@ -498,7 +500,7 @@
     turnDiceImage.src = DICE_ROLL_FRAMES[0];
     unitInfoOverlay.hidden = true;
     battlefield.classList.remove("is-between-turns");
-    battlefield.style.backgroundImage = `url("${mapBattlefield || BATTLEFIELDS[Math.floor(Math.random() * BATTLEFIELDS.length)]}")`;
+    battlefield.style.backgroundImage = `url("${initialBattlefield}")`;
     units = [
       ...selectedAllyTeam.map((data, slot) => makeState(data, "ally", slot)),
       ...selectedEnemyTeam.map((data, slot) => makeState(data, "enemy", slot))
