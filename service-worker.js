@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20260928-22";
+const CACHE_NAME = "necromancer-and-dice-v2-20260928-23";
 const APP_SHELL = [
   "./art/v2-style/processed/192/grave-worm.png",
   "./art/v2-style/processed/192/flesh-golem.png",
