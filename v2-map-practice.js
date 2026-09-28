@@ -113,6 +113,7 @@
     eventInheritance: document.getElementById("tileEventInheritance"),
     eventHeal: document.getElementById("tileEventHeal"),
     eventPray: document.getElementById("tileEventPray"),
+    eventRitual: document.getElementById("tileEventRitual"),
     eventPrayerResult: document.getElementById("tileEventPrayerResult"),
     eventContaminationChange: document.getElementById("tileEventContaminationChange"),
     eventClose: document.getElementById("tileEventClose"),
@@ -1309,6 +1310,7 @@
     el.eventInheritance.hidden = true;
     el.eventHeal.hidden = tile.id !== "rest" || !hasInjuredOwnedUnits();
     el.eventPray.hidden = tile.id !== "unknown" || worldTreePrayed;
+    el.eventRitual.hidden = tile.id !== "altar";
     el.eventPrayerResult.hidden = true;
     el.eventPrayerResult.textContent = "";
     el.eventContaminationChange.hidden = true;
@@ -1353,6 +1355,7 @@
     worldTreePrayerRolling = true;
     markWorldTreePrayed();
     el.eventPray.hidden = true;
+    el.eventRitual.hidden = true;
     el.eventPrayerResult.hidden = true;
     el.eventClose.disabled = true;
     el.board.classList.add("is-world-tree-praying");
@@ -1466,6 +1469,7 @@
     el.eventInheritance.hidden = true;
     el.eventHeal.hidden = true;
     el.eventPray.hidden = true;
+    el.eventRitual.hidden = true;
     el.eventPrayerResult.hidden = true;
     el.eventPrayerResult.textContent = "";
     el.eventContaminationChange.hidden = true;
