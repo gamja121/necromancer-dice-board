@@ -45,6 +45,15 @@
     "forest-fairy": "forestFairy", "mummy-guardian": "mummyGuardian", "soul-reaper": "soulReaper",
     "bone-hound": "boneHound", mimic: "mimic", "ice-princess": "icePrincess", siren: "siren"
   };
+
+  // Battlefield-test-only unit. This intentionally does not touch the map roster.
+  if (globalThis.V2DesignData?.units && !V2DesignData.units.dracula) {
+    V2DesignData.units.dracula = Object.freeze({
+      slug: "dracula", name: "드라큘라", hp: 14, attack: 3, speed: 4,
+      grade: "hero", legions: ["demon"], brands: ["vampire", "critical"],
+      passives: [], chance: 0, bonus: "hp", amount: 0
+    });
+  }
   const GRADE_LABELS = { normal: "일반", advanced: "고급", hero: "영웅", special: "소환물" };
   const LEGION_LABELS = { skeleton: "언데드", corpse: "시체", beast: "야수", plague: "역병", ice: "얼음", summon: "소환", demon: "악마", insect: "벌래", plant: "식물", element: "원소" };
   const INFO_PORTRAIT_ROOT = "art/v2-style/ui/info-portraits/";
@@ -163,19 +172,25 @@
     ["orc-warrior", "troll", 5, 4, 5, "troll"], ["bone-golem", "boneGolem", 5, 4, 5],
     ["forest-fairy", "forestFairy", 5, 4, 7], ["mummy-guardian", "mummyGuardian", 5, 4, 5],
     ["soul-reaper", "soulReaper", 6, 4, 6], ["bone-hound", "boneHound", 5, 4, 6],
-    ["mimic", "mimic", 5, 4, 6], ["ice-princess", "icePrincess", 6, 4, 5], ["siren", "siren", 5, 4, 7]
+    ["mimic", "mimic", 5, 4, 6], ["ice-princess", "icePrincess", 6, 4, 5], ["siren", "siren", 5, 4, 7],
+    ["dracula", "dracula", 10, 1, 1, "dracula", "드라큘라"]
   ]);
   const RUNTIME_PREPARERS = Object.freeze({
     "guardian-seed": () => V2SeedFrames.prepare(),
     "goblin-soldier": () => V2GoblinFrames.prepare(), "ice-princess": () => V2PrincessFrames.prepare(),
     "bone-golem": () => V2BloodFrames.prepare(), "abyss-harpy": () => V2HarpyFrames.prepare(),
     hydra: () => V2HydraFrames.prepare(), "bone-hound": () => V2HoundFrames.prepare(),
-    "scorpion-knight": () => V2ScorpionFrames.prepare(), "hell-mantis": () => V2MantisFrames.prepare()
+    "scorpion-knight": () => V2ScorpionFrames.prepare(), "hell-mantis": () => V2MantisFrames.prepare(),
+    dracula: () => V2DraculaFrames.prepare()
   });
   const DEFAULT_ALLY_BY_SLUG = new Map([...TEAM_DATA.ally, ...TEAM_DATA.enemy].map(entry => [entry.slug, entry]));
   const ROSTER = ROSTER_SPECS.map(([slug, type, attackFrames, hitFrames, deathFrames, portraitSlug = slug, name]) => {
     if (DEFAULT_ALLY_BY_SLUG.has(slug)) return { ...DEFAULT_ALLY_BY_SLUG.get(slug) };
     const definition = UNIT_TYPES[type];
+    const design = V2DesignData.units[slug];
+    if (!definition && design) {
+      return unit(slug, name || design.name, design.hp, design.attack, design.speed, attackFrames, hitFrames, deathFrames, portraitSlug);
+    }
     const gradePower = definition.grade === "hero" ? 3 : definition.grade === "advanced" ? 3 : definition.grade === "special" ? 1 : 2;
     const speed = Math.max(1, 6 - Math.min(5, definition.hp));
     const result = unit(slug, name || definition.label, definition.hp * 2 + 4, gradePower, speed, attackFrames, hitFrames, deathFrames, portraitSlug);
@@ -185,7 +200,7 @@
   const ROSTER_BY_SLUG = new Map(ROSTER.map(entry => [entry.slug, entry]));
   const TEST_DECK_SLUGS = Object.freeze([
     "death-knight", "skeleton-spear", "skeleton-archer", "ghoul", "ancient-treant", "goblin-rider",
-    "minotaur", "plague-doctor", "spider-knight", "hydra", "siren"
+    "minotaur", "plague-doctor", "spider-knight", "hydra", "siren", "dracula"
   ]);
 
   function weightedChoice(values, weights) {
@@ -411,7 +426,8 @@
     const grade = definition?.grade;
     const legions = definition?.legion == null ? [] : [].concat(definition.legion);
     const design = V2DesignData.units[slug];
-    return { slug, name: design?.name || name, maxHp: design?.hp ?? maxHp, attack: design?.attack ?? attack, speed: design?.speed ?? speed, grade: design?.grade || grade, legions: design?.legions || legions, portrait: `art/v2-style/processed/192/${portraitSlug}.png`, infoPortrait: INFO_PORTRAIT_ART[slug] || null, portraitBounds: PORTRAIT_BOUNDS[portraitSlug] || [0, 0, 192, 192], frames: { attack: attackFrames, hit: hitFrames, death: deathFrames } };
+    const customPortrait = slug === "dracula" ? "art/v2-style/ui/info-portraits/dracula.png?v=1" : null;
+    return { slug, name: design?.name || name, maxHp: design?.hp ?? maxHp, attack: design?.attack ?? attack, speed: design?.speed ?? speed, grade: design?.grade || grade, legions: design?.legions || legions, portrait: customPortrait || `art/v2-style/processed/192/${portraitSlug}.png`, infoPortrait: customPortrait || INFO_PORTRAIT_ART[slug] || null, cardArt: customPortrait, portraitBounds: PORTRAIT_BOUNDS[portraitSlug] || [0, 0, 192, 192], frames: { attack: attackFrames, hit: hitFrames, death: deathFrames } };
   }
 
   function frame(unitState, motion, index) {
@@ -720,7 +736,7 @@
         slot.className = selected ? "selected-slot" : "selected-slot is-empty";
         if (selected) {
           const card = document.createElement("img");
-          card.src = `art/v2-style/ui/unit-card-${selected.slug}.png?v=19`;
+          card.src = selected.cardArt || `art/v2-style/ui/unit-card-${selected.slug}.png?v=19`;
           card.alt = `${index + 1}번째 ${selected.name}`;
           slot.title = `${selected.name} 선택 해제`;
           slot.addEventListener("click", () => toggleRosterUnit(selected.slug));
@@ -752,7 +768,7 @@
       const order = document.createElement("b");
       order.textContent = selectedIndex >= 0 ? String(selectedIndex + 1) : "";
       const image = document.createElement("img");
-      image.src = `art/v2-style/ui/unit-card-${entry.slug}.png?v=19`;
+      image.src = entry.cardArt || `art/v2-style/ui/unit-card-${entry.slug}.png?v=19`;
       image.alt = "";
       const name = document.createElement("span");
       name.textContent = entry.name;
