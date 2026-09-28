@@ -15,7 +15,7 @@
     "bone-hound": { name: "뼈 사냥개", runtimeSheet: true, counts: { attack: 5, hit: 4, death: 6 } },
     "scorpion-knight": { name: "전갈 기사", runtimeSheet: true, counts: { attack: 5, hit: 3, death: 5 } },
     "hell-mantis": { name: "지옥 사마귀", runtimeSheet: true, counts: { attack: 5, hit: 4, death: 6 } },
-    "dracula": { name: "드라큘라", root: "art/v2-style/animation-test-frames/dracula/", extension: "svg", attackOnly: true, counts: { attack: 10 } },
+    "dracula": { name: "드라큘라", spriteSheet: "art/v2-style/animation-test-frames/dracula/dracula-attack-sprite.svg?v=1", spriteCols: 5, spriteRows: 2, attackOnly: true, counts: { attack: 10 } },
     "death-knight": { name: "데스나이트", root: "art/v2-style/animation-test-frames/death-knight/", counts: { attack: 5, hit: 4, death: 6 } },
     "skeleton-spear": { name: "해골 창병", root: "art/v2-style/animation-test-frames/skeleton-spear/", counts: { attack: 5, hit: 4, death: 5 } },
     "ancient-treant": { name: "고대 트렌트", root: "art/v2-style/animation-test-frames/ancient-treant/", counts: { attack: 5, hit: 4, death: 6 } },
@@ -79,8 +79,11 @@
     delete frameSets.hit;
     delete frameSets.death;
     delete frameSets.idle;
-    Object.entries(UNITS[state.unit].counts).forEach(([motion, count]) => {
-      frameSets[motion] = Array.from({ length: count }, (_, index) => pathFor(motion, index));
+    const unit = UNITS[state.unit];
+    Object.entries(unit.counts).forEach(([motion, count]) => {
+      frameSets[motion] = unit.spriteSheet
+        ? Array.from({ length: count }, (_, index) => index)
+        : Array.from({ length: count }, (_, index) => pathFor(motion, index));
     });
     frameSets.idle = frameSets.attack[0];
     if (!frameSets.hit) frameSets.hit = [frameSets.idle];
@@ -104,8 +107,32 @@
     }
   }
   function showStage() { el.stage.scrollIntoView?.({ behavior: "instant", block: "start" }); }
+  const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+  function applyFrame(frame) {
+    const unit = UNITS[state.unit];
+    if (unit.spriteSheet) {
+      const index = Number(frame) || 0;
+      const column = index % unit.spriteCols;
+      const row = Math.floor(index / unit.spriteCols);
+      const x = unit.spriteCols > 1 ? (column / (unit.spriteCols - 1)) * 100 : 0;
+      const y = unit.spriteRows > 1 ? (row / (unit.spriteRows - 1)) * 100 : 0;
+      el.sprite.src = TRANSPARENT_PIXEL;
+      el.sprite.style.backgroundImage = `url("${unit.spriteSheet}")`;
+      el.sprite.style.backgroundRepeat = "no-repeat";
+      el.sprite.style.backgroundSize = `${unit.spriteCols * 100}% ${unit.spriteRows * 100}%`;
+      el.sprite.style.backgroundPosition = `${x}% ${y}%`;
+      el.sprite.style.filter = "none";
+    } else {
+      el.sprite.style.backgroundImage = "";
+      el.sprite.style.backgroundRepeat = "";
+      el.sprite.style.backgroundSize = "";
+      el.sprite.style.backgroundPosition = "";
+      el.sprite.style.filter = "";
+      el.sprite.src = frame;
+    }
+  }
   function setIdle() {
-    el.sprite.src = frameSets.idle;
+    applyFrame(frameSets.idle);
     el.sprite.className = "";
     el.sprite.style.transform = "";
     el.sprite.style.transformOrigin = "";
@@ -132,7 +159,9 @@
       Object.assign(frameSets, prepared);
       frameSets.idle = frameSets.attack?.[0] || "";
     } else buildFrames();
-    const urls = [...frameSets.attack, ...frameSets.hit, ...frameSets.death];
+    const urls = UNITS[unit].spriteSheet
+      ? [UNITS[unit].spriteSheet]
+      : [...frameSets.attack, ...frameSets.hit, ...frameSets.death];
     await Promise.all(urls.map(loadImage));
     if (token !== state.token || unit !== state.unit) return;
     setIdle();
@@ -167,7 +196,7 @@
     el.status.textContent = `${label} 모션 재생 중`;
     for (let index = 0; index < frames.length; index += 1) {
       if (token !== state.token) return;
-      el.sprite.src = frames[index];
+      applyFrame(frames[index]);
       const deathKnightScale = state.unit === "death-knight" && motion === "attack"
         && (index === 1 || index === 2) ? 1.1 : 1;
       const boulderOgreScale = state.unit === "boulder-ogre" && motion === "attack"
