@@ -175,6 +175,21 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .tile-event-prayer-result { position: absolute; z-index: 6; left: 50%; top: 18%; min-width: 28%; padding: 2.2% 4%; transform: translateX(-50%); border: 2px solid #4a3421; border-radius: 4px; background: rgba(225, 199, 151, .94); color: #3b291d; font: 1000 clamp(20px, 3.1vw, 42px)/1 Georgia, "Malgun Gothic", serif; text-align: center; text-shadow: 0 1px #fff2d2; box-shadow: 0 7px 14px #0008, inset 0 0 0 1px #f4deb6; pointer-events: none; }
 .tile-event-prayer-result[hidden] { display: none; }
 .tile-event-prayer-result[data-result="failure"] { filter: grayscale(.35) brightness(.78); }
+.tile-event-contamination-change { position: absolute; z-index: 7; left: 50%; top: 42%; display: flex; align-items: center; justify-content: center; gap: 0; min-width: 16%; transform: translateX(-50%); pointer-events: none; opacity: 0; }
+.tile-event-contamination-change[hidden] { display: none; }
+.tile-event-contamination-change.is-showing { animation: contamination-change-float 1150ms cubic-bezier(.15,.72,.25,1) forwards; }
+.tile-event-contamination-change canvas { width: auto; }
+.tile-event-contamination-change .damage-digit { height: clamp(42px, 6.2vw, 76px); }
+.tile-event-contamination-change .damage-minus { height: clamp(12px, 1.7vw, 20px); }
+.tile-event-contamination-change .healing-plus, .tile-event-contamination-change .healing-digit { height: clamp(42px, 6.2vw, 76px); margin-right: clamp(-10px, -.75vw, -4px); }
+.tile-event-contamination-change[data-direction="down"] { filter: hue-rotate(105deg) saturate(1.25) brightness(1.18) drop-shadow(0 2px 2px #031b00) drop-shadow(0 0 6px #48e35d); }
+.tile-event-contamination-change[data-direction="up"] { filter: hue-rotate(250deg) saturate(1.35) brightness(.95) drop-shadow(0 2px 2px #260000) drop-shadow(0 0 6px #ff493d); }
+@keyframes contamination-change-float {
+  0% { opacity: 0; transform: translate(-50%, 18%) scale(.82); }
+  18% { opacity: 1; transform: translate(-50%, 0) scale(1.08); }
+  72% { opacity: 1; transform: translate(-50%, -10%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -24%) scale(.94); }
+}
 .map-board.is-tile-event-open.is-world-tree-praying .dice-controller { z-index: 55; visibility: visible; }
 .map-board.is-tile-event-open.is-world-tree-praying .dice-controller > button { pointer-events: none; }
 .map-deck-overlay { position: absolute; z-index: 45; inset: 0; display: block; overflow: hidden; background: transparent; pointer-events: auto; }
