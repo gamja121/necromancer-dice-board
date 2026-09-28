@@ -200,8 +200,9 @@
   const ROSTER_BY_SLUG = new Map(ROSTER.map(entry => [entry.slug, entry]));
   const TEST_DECK_SLUGS = Object.freeze([
     "death-knight", "skeleton-spear", "skeleton-archer", "ghoul", "ancient-treant", "goblin-rider",
-    "minotaur", "plague-doctor", "spider-knight", "hydra", "siren", "dracula"
+    "minotaur", "plague-doctor", "spider-knight", "hydra", "siren"
   ]);
+  const BATTLE_TEST_ROSTER_SLUGS = Object.freeze([...TEST_DECK_SLUGS, "dracula"]);
 
   function weightedChoice(values, weights) {
     let roll = Math.random() * weights.reduce((sum, weight) => sum + weight, 0);
@@ -755,7 +756,7 @@
     enemyLineupSummary.classList.toggle("is-active", lineupSide === "enemy");
     const activeSlugs = lineupSide === "ally" ? selectedAllySlugs : selectedEnemySlugs;
     unitRoster.replaceChildren();
-    for (const slug of TEST_DECK_SLUGS) {
+    for (const slug of (fromMap ? TEST_DECK_SLUGS : BATTLE_TEST_ROSTER_SLUGS)) {
       const entry = ROSTER_BY_SLUG.get(slug);
       const selectedIndex = activeSlugs.indexOf(entry.slug);
       const button = document.createElement("button");
