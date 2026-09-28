@@ -269,8 +269,33 @@
   })();
 
   const battlefield = document.getElementById("battlefield");
-  const initialBattlefield = mapBattlefield || BATTLEFIELDS[Math.floor(Math.random() * BATTLEFIELDS.length)];
-  battlefield.style.backgroundImage = `url("${initialBattlefield}")`;
+  const initialBattlefield = fromMap
+    ? (mapBattlefield || MAP_BATTLEFIELDS.default)
+    : BATTLEFIELDS[Math.floor(Math.random() * BATTLEFIELDS.length)];
+
+  function prepareBattlefieldBackground(src) {
+    battlefield.classList.add("is-background-loading");
+    battlefield.style.backgroundImage = "none";
+    return new Promise((resolve) => {
+      const image = new Image();
+      let finished = false;
+      const apply = () => {
+        if (finished) return;
+        finished = true;
+        battlefield.style.backgroundImage = `url("${src}")`;
+        battlefield.classList.remove("is-background-loading");
+        resolve(src);
+      };
+      image.onload = () => {
+        if (typeof image.decode === "function") image.decode().then(apply).catch(apply);
+        else apply();
+      };
+      image.onerror = apply;
+      image.src = src;
+    });
+  }
+
+  const battlefieldBackgroundReady = prepareBattlefieldBackground(initialBattlefield);
   // Optional demonstration lineup; the normal 4v4 lineup stays unchanged.
   if (typeof location !== "undefined" && new URLSearchParams(location.search).get("effects") === "pixie-siren") {
     TEAM_DATA.ally.splice(0, 2,
@@ -500,7 +525,9 @@
     turnDiceImage.src = DICE_ROLL_FRAMES[0];
     unitInfoOverlay.hidden = true;
     battlefield.classList.remove("is-between-turns");
-    battlefield.style.backgroundImage = `url("${initialBattlefield}")`;
+    if (!battlefield.classList.contains("is-background-loading")) {
+      battlefield.style.backgroundImage = `url("${initialBattlefield}")`;
+    }
     units = [
       ...selectedAllyTeam.map((data, slot) => makeState(data, "ally", slot)),
       ...selectedEnemyTeam.map((data, slot) => makeState(data, "enemy", slot))
@@ -791,7 +818,10 @@
       await Promise.all([...preparedAllyTeam, ...preparedEnemyTeam].map(prepareSelectedMotion));
       if (request !== lineupRequest) return;
       lineupStatus.textContent = "전투 애니메이션과 타격 효과를 준비하고 있습니다.";
-      await preloadBattleVisuals([...preparedAllyTeam, ...preparedEnemyTeam]);
+      await Promise.all([
+        preloadBattleVisuals([...preparedAllyTeam, ...preparedEnemyTeam]),
+        battlefieldBackgroundReady
+      ]);
       if (request !== lineupRequest) return;
       selectedAllyTeam = preparedAllyTeam;
       selectedEnemyTeam = preparedEnemyTeam;
