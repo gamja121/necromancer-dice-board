@@ -199,6 +199,11 @@
     host.dataset.result = delta === -5 ? "great-blessing" : delta === -3 ? "blessing" : "failure";
     host.textContent = delta < 0 ? `+${amount}` : `-${amount}`;
     host.setAttribute("aria-label", `오염도 ${delta < 0 ? "감소" : "증가"} ${amount}`);
+    if (globalThis.V2WorldTreePrayerDigits?.src) {
+      host.style.backgroundImage = `url("${globalThis.V2WorldTreePrayerDigits.src}")`;
+    } else {
+      host.style.removeProperty("background-image");
+    }
     host.hidden = false;
     host.classList.remove("is-showing");
     void host.offsetWidth;
