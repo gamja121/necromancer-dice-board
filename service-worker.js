@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20260929-01";
+const CACHE_NAME = "necromancer-and-dice-v2-20260929-02";
 const APP_SHELL = [
   "./art/v2-style/processed/192/grave-worm.png",
   "./art/v2-style/processed/192/flesh-golem.png",
@@ -70,7 +70,9 @@ const APP_SHELL = [
   "./v2-event-lab.js?v=1",
   "./v2-map-practice.css?v=47",
   "./v2-home-inheritance.css?v=5",
+  "./v2-altar-ritual.css?v=1",
   "./v2-home-inheritance.js?v=8",
+  "./v2-altar-ritual.js?v=1",
   "./v2-dice-control.js?v=1",
   "./v2-world-tree-prayer-digits.js?v=2",
   "./v2-map-practice.js?v=62",
@@ -278,6 +280,8 @@ const APP_SHELL = [
   "./art/v2-style/map-test/events/village.jpg?v=20260927-2",
   "./art/v2-style/map-test/events/camp.jpg?v=20260927-2",
   "./art/v2-style/map-test/events/altar.jpg?v=20260928-2",
+  "./art/v2-style/map-test/events/altar-ritual-slots.jpg",
+  "./art/v2-style/map-test/events/altar-ritual-info.jpg",
   "./art/v2-style/map-test/events/world-tree.jpg?v=20260928-2",
   "./art/v2-style/map-test/events/forest.jpg?v=20260927-2",
   "./art/v2-style/map-test/events/treasure-chest-sprite.png",
