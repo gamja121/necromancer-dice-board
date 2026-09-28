@@ -1,0 +1,38 @@
+.altar-ritual-overlay { position: absolute; z-index: 63; inset: 0; overflow: hidden; }
+.altar-ritual-overlay[hidden] { display: none; }
+.altar-ritual-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #080503e8; backdrop-filter: blur(3px); cursor: pointer; }
+.altar-ritual-shell { position: absolute; z-index: 1; inset: 3% 5% 2%; display: grid; grid-template-rows: auto minmax(0, 1.05fr) minmax(0, .72fr) minmax(120px, .8fr); gap: 1.5%; }
+.altar-ritual-header { display: flex; align-items: center; justify-content: space-between; color: #f1d29d; text-shadow: 0 2px 4px #000; }
+.altar-ritual-header strong { font-size: clamp(20px, 3vw, 34px); }
+.altar-ritual-header button { min-width: 72px; padding: 7px 16px; border: 1px solid #ae824c; border-radius: 4px; background: #2b1b12; color: #ffe0a6; font-weight: 900; cursor: pointer; }
+.altar-ritual-slots { position: relative; width: min(100%, 880px); margin: 0 auto; aspect-ratio: 520 / 234; background: #000 center / contain no-repeat url("art/v2-style/map-test/events/altar-ritual-slots.jpg?v=1"); filter: drop-shadow(0 8px 10px #000c); }
+.altar-ritual-slot { position: absolute; top: 6%; width: 31%; height: 86%; display: grid; place-items: center; grid-template-rows: auto minmax(0, 1fr) auto; gap: 2%; padding: 2.5% 3%; box-sizing: border-box; }
+.altar-ritual-material { left: 13%; }
+.altar-ritual-target { right: 13%; }
+.altar-ritual-slot b { color: #e9cc94; font-size: clamp(13px, 1.7vw, 22px); text-shadow: 0 2px 4px #000; }
+.altar-ritual-slot img { width: 88%; height: 100%; min-height: 0; object-fit: contain; filter: drop-shadow(0 5px 5px #000c); }
+.altar-ritual-slot img[hidden] { display: none; }
+.altar-ritual-slot span { color: #d4c3a4; font-size: clamp(9px, 1vw, 13px); font-weight: 800; text-align: center; text-shadow: 0 2px 3px #000; }
+.altar-ritual-info { position: relative; width: min(92%, 820px); margin: 0 auto; padding: 6% 12% 5%; box-sizing: border-box; background: #000 center / 100% 100% no-repeat url("art/v2-style/map-test/events/altar-ritual-info.jpg?v=1"); color: #3a271b; text-align: center; filter: drop-shadow(0 7px 9px #000b); }
+.altar-ritual-info strong { display: block; margin-bottom: 1%; font: 1000 clamp(16px, 2vw, 26px)/1 Georgia, "Malgun Gothic", serif; }
+.altar-ritual-info p { margin: 0 auto 1.5%; max-width: 82%; font-size: clamp(10px, 1.2vw, 15px); font-weight: 800; line-height: 1.35; }
+.altar-ritual-info small { display: block; font-size: clamp(9px, 1vw, 13px); font-weight: 900; }
+.altar-ritual-info button { position: absolute; right: 9%; bottom: 8%; width: 19%; min-width: 90px; aspect-ratio: 2.7; border: 0; background: transparent url("art/v2-style/map-test/events/enter-parchment.png") center / 100% 100% no-repeat; color: #49301d; font-size: clamp(11px, 1.2vw, 16px); font-weight: 900; cursor: pointer; filter: drop-shadow(0 4px 5px #0009); }
+.altar-ritual-info button:disabled { opacity: .45; cursor: not-allowed; }
+.altar-ritual-cards { display: flex; gap: 8px; align-items: end; width: min(96%, 980px); margin: 0 auto; padding: 6px 4px 12px; overflow-x: auto; overflow-y: hidden; }
+.altar-ritual-cards button { flex: 0 0 clamp(88px, 12vw, 132px); display: grid; grid-template-rows: minmax(0,1fr) auto auto; gap: 2px; min-width: 0; padding: 5px; border: 2px solid #61452e; border-radius: 5px; background: #1b120e; color: #ead8b9; cursor: pointer; box-shadow: 0 5px 9px #000a; transform: translateY(0); transition: transform 140ms ease, filter 140ms ease, border-color 140ms ease; }
+.altar-ritual-cards button.is-selected { border-color: #ffd36d; filter: brightness(1.16); transform: translateY(-5px); }
+.altar-ritual-cards img { width: 100%; height: 100%; max-height: 150px; object-fit: contain; }
+.altar-ritual-cards span { overflow: hidden; font-size: clamp(9px, 1vw, 12px); font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
+.altar-ritual-cards small { color: #c7a878; font-size: 9px; }
+.altar-ritual-overlay.is-open .altar-ritual-shell { animation: altar-ritual-rise 220ms ease-out; }
+@keyframes altar-ritual-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 680px) {
+  .altar-ritual-shell { inset: 2% 2% 1%; grid-template-rows: auto minmax(0,.9fr) minmax(0,.7fr) minmax(110px,.8fr); }
+  .altar-ritual-slots { width: 100%; }
+  .altar-ritual-info { width: 98%; padding: 7% 10% 5%; }
+  .altar-ritual-info p { max-width: 76%; }
+  .altar-ritual-info button { right: 6%; width: 22%; min-width: 72px; }
+  .altar-ritual-cards button { flex-basis: 86px; }
+}
+@media (prefers-reduced-motion: reduce) { .altar-ritual-overlay.is-open .altar-ritual-shell { animation-duration: 1ms; } }
