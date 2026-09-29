@@ -118,6 +118,8 @@
     eventHeal: document.getElementById("tileEventHeal"),
     eventPray: document.getElementById("tileEventPray"),
     eventRitual: document.getElementById("tileEventRitual"),
+    eventProphecy: document.getElementById("tileEventProphecy"),
+    fortuneProphecyUi: document.getElementById("fortuneProphecyUi"),
     eventPrayerResult: document.getElementById("tileEventPrayerResult"),
     eventContaminationChange: document.getElementById("tileEventContaminationChange"),
     storyPanel: document.getElementById("tileStoryEventPanel"),
@@ -1505,6 +1507,8 @@
     el.eventHeal.hidden = tile.id !== "rest" || !hasInjuredOwnedUnits();
     el.eventPray.hidden = tile.id !== "unknown" || worldTreePrayed;
     el.eventRitual.hidden = tile.id !== "altar";
+    el.eventProphecy.hidden = tile.id !== "fortune-teller-camp";
+    el.fortuneProphecyUi.hidden = true;
     el.eventPrayerResult.hidden = true;
     el.eventPrayerResult.textContent = "";
     el.eventContaminationChange.hidden = true;
@@ -1518,6 +1522,7 @@
       el.eventHeal.hidden = true;
       el.eventPray.hidden = true;
       el.eventRitual.hidden = true;
+      el.eventProphecy.hidden = true;
     }
     el.eventClose.hidden = treasure;
     if (treasure) {
@@ -1559,6 +1564,8 @@
     markWorldTreePrayed();
     el.eventPray.hidden = true;
     el.eventRitual.hidden = true;
+    el.eventProphecy.hidden = true;
+    el.fortuneProphecyUi.hidden = true;
     el.eventPrayerResult.hidden = true;
     el.eventClose.disabled = true;
     el.board.classList.add("is-world-tree-praying");
@@ -1590,6 +1597,14 @@
     el.diceButton.classList.remove("is-rolling");
     worldTreePrayerRolling = false;
     el.eventClose.disabled = false;
+    el.eventClose.focus();
+  }
+
+  function showFortuneProphecy() {
+    if (!eventOpen || activeEventTileId !== "fortune-teller-camp") return;
+    el.eventProphecy.hidden = true;
+    el.fortuneProphecyUi.hidden = false;
+    el.diceResult.textContent = "점술가 · 예언";
     el.eventClose.focus();
   }
 
@@ -2141,6 +2156,7 @@
   el.eventEnter.addEventListener("click", enterHome);
   el.eventHeal.addEventListener("click", healAtRestTile);
   el.eventPray.addEventListener("click", prayAtWorldTree);
+  el.eventProphecy.addEventListener("click", showFortuneProphecy);
   el.eventInheritance.addEventListener("click", async () => {
     if (eventOpen && activeEventTileId === "home") {
       if (globalThis.V2RunStateRuntime?.available) await V2RunStateRuntime.flush();
