@@ -15,6 +15,18 @@
   const DB_NAME="necromancer-dice-runs";
   let unlocked=false,soundOn=true,leaving=false,installPrompt=null,toastTimer,selectedMenu=null;
 
+  async function forceLandscape(){
+    try{
+      if(screen.orientation?.lock) await screen.orientation.lock("landscape-primary");
+    }catch(_){}
+  }
+
+  forceLandscape();
+  window.addEventListener("pageshow",forceLandscape);
+  window.addEventListener("orientationchange",()=>{
+    if(matchMedia("(orientation: portrait)").matches) forceLandscape();
+  });
+
   video.volume=.72;
   bgm.volume=.34;
   video.muted=true;
@@ -34,7 +46,7 @@
     unlocked=true;
     document.body.classList.remove("is-locked");
     document.body.classList.add("is-unlocked");
-    try{await screen.orientation?.lock?.("landscape")}catch(_){}
+    await forceLandscape();
     await startAudio(true);
   }
   unlock.addEventListener("click",unlockTitle);
