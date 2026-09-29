@@ -29,6 +29,12 @@
   }
 
   function load() {
+    const run = root.V2RunStateRuntime?.snapshot?.();
+    if (run && Array.isArray(run.brandCards)) {
+      return run.brandCards.map((card) => ({ id: card.instanceId, brand: {
+        type: card.brand.type, bless: [...card.brand.bless], curse: [...card.brand.curse]
+      }})).filter(validateCard);
+    }
     let saved = [];
     try {
       if (typeof sessionStorage !== "undefined") {
@@ -65,6 +71,30 @@
     return save(next);
   }
 
+  async function addAsync(card) {
+    if (!validateCard(card)) return false;
+    const cards = load();
+    const copy = JSON.parse(JSON.stringify(card));
+    if (cards.some((item) => item.id === copy.id)) copy.id = createId();
+    cards.push(copy);
+    if (root.V2RunStateRuntime?.available) {
+      const result = await root.V2RunStateRuntime.replaceBrandCards(cards, "brand-card-add");
+      return result?.ok ? copy : false;
+    }
+    return save(cards) ? copy : false;
+  }
+
+  async function removeAsync(cardId) {
+    const cards = load();
+    const next = cards.filter((card) => card.id !== cardId);
+    if (next.length === cards.length) return false;
+    if (root.V2RunStateRuntime?.available) {
+      const result = await root.V2RunStateRuntime.replaceBrandCards(next, "brand-card-remove");
+      return Boolean(result?.ok);
+    }
+    return save(next);
+  }
+
   function label(card) {
     if (!validateCard(card)) return "알 수 없는 낙인";
     const definition = R.definitions[card.brand.type];
@@ -76,7 +106,7 @@
   }
 
   const api = Object.freeze({
-    STORAGE_KEY, IMAGE_PATH, create, validateCard, load, save, add, remove, label,
+    STORAGE_KEY, IMAGE_PATH, create, validateCard, load, save, add, remove, addAsync, removeAsync, label,
     imagePath: () => IMAGE_PATH
   });
   if (typeof module !== "undefined" && module.exports) module.exports = api;
