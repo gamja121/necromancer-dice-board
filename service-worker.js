@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20260929-9";
+const CACHE_NAME = "necromancer-and-dice-v2-20260929-10";
 const APP_SHELL = [
   "./art/v2-style/processed/192/grave-worm.png",
   "./art/v2-style/processed/192/flesh-golem.png",
@@ -77,7 +77,7 @@ const APP_SHELL = [
   "./v2-altar-ritual.js?v=3",
   "./v2-dice-control.js?v=1",
   "./v2-world-tree-prayer-digits.js?v=2",
-  "./v2-map-practice.js?v=63",
+  "./v2-map-practice.js?v=64",
   "./v2-tile-practice.css?v=1",
   "./v2-tile-practice.js?v=2",
   "./v2-battle.css?v=7",
