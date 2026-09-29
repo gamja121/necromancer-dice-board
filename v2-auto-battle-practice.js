@@ -823,23 +823,57 @@
     if (typeof V2UnitCards !== "undefined") V2UnitCards.update(unitState);
   }
 
-  function updateBrandIndicator(unitState) {
+  function updateBrandIndicator(unitState, pulse = false) {
     if (!unitState.element) return;
     const label = unitState.element.querySelector(".brand-indicator");
     const previewRoll = 'brandPreviewRoll' in unitState ? unitState.brandPreviewRoll : lastDiceRoll;
-    const effects = (unitState.brands || []).map(b=>({brand:V2Rules.definitions[b.type],mode:V2Rules.mode(b,previewRoll)})).filter(x=>x.mode!=='normal');
-    const mode = effects.some(x=>x.mode==='curse')?'curse':'blessing';
-    const visible = unitState.alive && effects.length;
+    const effects = (unitState.brands || [])
+      .map((brandState) => ({
+        definition: V2Rules.definitions[brandState.type],
+        mode: V2Rules.mode(brandState, previewRoll)
+      }))
+      .filter((effect) => effect.definition && effect.mode !== "normal");
+    const visible = unitState.alive && Number.isInteger(previewRoll) && effects.length;
     label.hidden = !visible;
-    label.className = visible ? `brand-indicator is-${mode}` : "brand-indicator";
-    label.textContent = visible ? effects.map(x=>`${x.brand.name.replace('의 낙인','')} ${x.mode==='blessing'?'축복':'저주'}`).join(' · ') : '';
+    label.replaceChildren();
+    if (!visible) {
+      label.className = "brand-indicator";
+      return;
+    }
+
+    label.className = "brand-indicator";
+    for (const effect of effects) {
+      const chip = document.createElement("span");
+      chip.className = `brand-cause-chip is-${effect.mode}`;
+      const trigger = document.createElement("b");
+      const arrow = document.createElement("i");
+      const effectName = document.createElement("strong");
+      trigger.textContent = `${effect.mode === "blessing" ? "✦" : "☠"} ${previewRoll}`;
+      arrow.textContent = "→";
+      effectName.textContent = effect.definition.name.replace("의 낙인", "");
+      chip.append(trigger, arrow, effectName);
+      label.append(chip);
+    }
+
+    if (pulse) {
+      label.classList.remove("is-triggered");
+      void label.offsetWidth;
+      label.classList.add("is-triggered");
+      unitState.element.classList.remove("has-brand-trigger");
+      void unitState.element.offsetWidth;
+      unitState.element.classList.add("has-brand-trigger");
+      window.setTimeout(() => {
+        label.classList.remove("is-triggered");
+        unitState.element?.classList.remove("has-brand-trigger");
+      }, Math.max(700, 1100 / speedMultiplier));
+    }
   }
 
   function showRolledBrands(roll) {
     for (const unitState of units) {
       unitState.brandPreviewRoll = roll;
       unitState.brandDisplayMode = V2Rules.mode(unitState.brands[0], roll);
-      updateBrandIndicator(unitState);
+      updateBrandIndicator(unitState, Number.isInteger(roll));
     }
   }
 
