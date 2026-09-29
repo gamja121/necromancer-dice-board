@@ -9,9 +9,10 @@ global.sessionStorage = {
   getItem: (key) => store[key] ?? null,
   setItem: (key, value) => { store[key] = value; }
 };
-global.crypto = { randomUUID: () => "test-uuid" };
 delete require.cache[require.resolve("./v2-brand-cards.js")];
 const V2BrandCards = require("./v2-brand-cards.js");
+const brandCardSource = fs.readFileSync(path.join(root, "v2-brand-cards.js"), "utf8");
+if (!brandCardSource.includes("rng() >= 0.5")) throw Error("Brand card blessing-only vs blessing+curse split must remain exactly 50:50");
 
 function sequence(values) {
   let index = 0;
