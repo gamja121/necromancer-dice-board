@@ -23,7 +23,7 @@ for (const file of ["v2-run-state.js?v=1", "v2-run-state-runtime.js?v=1"]) {
 }
 assert(mapHtml.indexOf("v2-run-state-runtime.js?v=1") < mapHtml.indexOf("v2-brand-cards.js?v=4"),
   "RunState runtime must load before brand/home/map consumers.");
-assert(battleHtml.indexOf("v2-run-state-runtime.js?v=1") < battleHtml.indexOf("v2-auto-battle-practice.js?v=102"),
+assert(battleHtml.indexOf("v2-run-state-runtime.js?v=1") < battleHtml.indexOf("v2-auto-battle-practice.js?v=103"),
   "RunState runtime must load before the battle controller.");
 
 for (const token of ["ensureFreshDefaults", "projectLegacy", "commitExact", "applyBattleOutcome", "setMapLayout", "setMapProgress", "setBattleCheckpoint", "clearBattleCheckpoint", "atomicRosterAndBrands"]) {
