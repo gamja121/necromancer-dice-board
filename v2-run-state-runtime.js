@@ -239,6 +239,29 @@
     });
   }
 
+  function atomicMonsterShopTrade(monsters, diceCardIds, brands, prefix = "monster-shop") {
+    const roster = clone(monsters || []);
+    const diceIds = clone(diceCardIds || []);
+    const cards = (brands || []).map((card) => ({
+      instanceId: card.id || card.instanceId,
+      brand: clone(card.brand)
+    }));
+    return commit(prefix, (draft) => {
+      draft.ownedMonsters = roster;
+      const existing = new Map((draft.diceCards || []).map((card) => [card.instanceId, card]));
+      const poolByType = new Map();
+      for (const card of existing.values()) {
+        if (!poolByType.has(card.cardId)) poolByType.set(card.cardId, []);
+        poolByType.get(card.cardId).push(card);
+      }
+      draft.diceCards = diceIds.map((cardId) => {
+        const reuse = poolByType.get(cardId)?.shift();
+        return reuse ? clone(reuse) : { instanceId: opId("dice-card"), cardId };
+      });
+      draft.brandCards = cards;
+    });
+  }
+
   async function ensureFreshDefaults(defaults = {}) {
     await bootstrap();
     if (!current || current.revision !== 0) return snapshot();
@@ -276,6 +299,7 @@
     clearBattleCheckpoint,
     setClearedSteps,
     atomicRosterAndBrands,
+    atomicMonsterShopTrade,
     applyBattleOutcome,
     commitExact,
     projectLegacy
