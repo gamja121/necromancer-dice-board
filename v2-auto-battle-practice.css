@@ -89,10 +89,27 @@ button, a { font: inherit; }
 .enemy-team .unit:nth-child(5) { --depth-scale: 1.14; --depth-y: 11%; --unit-layer: 18; --action-shift-x: -192%; }
 .bar { position: absolute; z-index: 5; left: 7%; right: 7%; height: 4px; overflow: hidden; border-radius: 3px; background: #050404dd; }
 .hp-bar { top: 12%; height: 5px; }
-.brand-indicator { position: absolute; z-index: 6; left: 0; bottom: calc(88% + 6px); width: 100%; overflow: hidden; font-size: clamp(8px, .95vw, 12px); font-weight: 900; line-height: 1.35; text-align: center; text-overflow: ellipsis; white-space: nowrap; pointer-events: none; text-shadow: 0 1px 3px #000, 0 0 5px #000; animation: brand-reveal 240ms ease-out; }
+.brand-indicator { position: absolute; z-index: 8; left: 50%; bottom: calc(88% + 7px); display: flex; flex-direction: column; align-items: center; gap: 3px; width: max-content; max-width: 150%; pointer-events: none; transform: translateX(-50%); }
 .brand-indicator[hidden] { display: none; }
-.brand-indicator.is-blessing { color: #8ee69a; }
-.brand-indicator.is-curse { color: #ff827a; }
+.brand-cause-chip { display: inline-flex; align-items: center; gap: 4px; min-height: 20px; padding: 3px 7px; border: 1px solid #dbc895aa; border-radius: 999px; background: #18130fd9; box-shadow: 0 2px 5px #000b, inset 0 0 0 1px #0008; font-size: clamp(8px, .9vw, 12px); font-weight: 900; line-height: 1; white-space: nowrap; text-shadow: 0 1px 2px #000; }
+.brand-cause-chip b { font-size: 1.08em; }
+.brand-cause-chip i { opacity: .78; font-style: normal; }
+.brand-cause-chip strong { font-weight: 1000; }
+.brand-cause-chip.is-blessing { color: #aef5b5; border-color: #8fe39daa; box-shadow: 0 2px 5px #000b, 0 0 8px #76da8a55, inset 0 0 0 1px #163a1f; }
+.brand-cause-chip.is-curse { color: #ffaaa3; border-color: #e88c83aa; box-shadow: 0 2px 5px #000b, 0 0 8px #dd5b5555, inset 0 0 0 1px #4a1715; }
+.brand-indicator.is-triggered { animation: brand-cause-pop 700ms cubic-bezier(.16,.8,.24,1); }
+.unit.has-brand-trigger .sprite-wrap { animation: brand-source-pulse 700ms ease-out; }
+@keyframes brand-cause-pop {
+  0% { opacity: 0; transform: translateX(-50%) translateY(7px) scale(.72); }
+  34% { opacity: 1; transform: translateX(-50%) translateY(-4px) scale(1.12); }
+  68% { transform: translateX(-50%) translateY(0) scale(.98); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+@keyframes brand-source-pulse {
+  0%, 100% { filter: none; }
+  30% { filter: brightness(1.18) drop-shadow(0 0 9px #a8efb699); }
+  60% { filter: brightness(1.06) drop-shadow(0 0 4px #a8efb655); }
+}
 .persistent-statuses { position: absolute; z-index: 9; top: -6%; left: 0; display: flex; align-items: center; justify-content: center; gap: 3px; width: 100%; pointer-events: none; }
 .unit-status[hidden] { display: none; }
 .unit-status-freeze { width: clamp(46px, 6.3vw, 78px); filter: drop-shadow(0 2px 2px #00172d) drop-shadow(0 0 5px #63aaff); }
