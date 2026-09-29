@@ -41,7 +41,7 @@
         <small id="altarRitualLevel">강화 대상 선택 전</small>
         <button id="altarRitualConfirm" type="button" disabled>의식 실행</button>
       </div>
-      <div id="altarRitualCards" class="altar-ritual-cards" aria-label="보유 마물"></div>
+      <div id="altarRitualCards" class="altar-ritual-cards map-deck-roster" aria-label="보유 마물"></div>
     </div>`;
   document.getElementById("mapBoard")?.append(overlay);
 
