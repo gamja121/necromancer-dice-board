@@ -6,6 +6,31 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .map-lab { display: grid; place-items: center; width: 100vw; height: 100dvh; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
 .map-board { position: relative; width: min(100vw, 179.28dvh); height: min(100dvh, 55.78vw); overflow: hidden; background: #1b1712 url("art/v2-style/map-test/maps/default-map.jpg") center / 100% 100% no-repeat; box-shadow: 0 0 36px #000, inset 0 0 0 2px #c5a56b55; isolation: isolate; }
 .map-shade { position: absolute; z-index: 1; inset: 0; background: radial-gradient(ellipse at center, transparent 30%, #120b0640 76%, #05030299 100%); pointer-events: none; }
+
+.corruption-visuals { position: absolute; z-index: 2; inset: 0; overflow: hidden; pointer-events: none; --corruption-level: 0; --corruption-normalized: calc(var(--corruption-level) / 100); }
+.corruption-layer { position: absolute; inset: -4%; pointer-events: none; opacity: 0; transition: opacity 500ms ease, filter 500ms ease; }
+.corruption-tint { background: radial-gradient(circle at 50% 40%, transparent 32%, rgba(78, 22, 20, .16) 72%, rgba(37, 6, 9, .38) 100%), linear-gradient(180deg, rgba(64, 28, 52, .08), rgba(105, 18, 20, .22)); mix-blend-mode: multiply; opacity: calc(var(--corruption-normalized) * .72); }
+.corruption-cracks { background:
+  linear-gradient(118deg, transparent 0 46%, rgba(118, 29, 32, .18) 46.5% 47%, transparent 47.5% 100%),
+  linear-gradient(62deg, transparent 0 58%, rgba(141, 35, 28, .14) 58.5% 59%, transparent 59.5% 100%),
+  repeating-linear-gradient(152deg, transparent 0 11%, rgba(91, 20, 26, .08) 11.5% 12%, transparent 12.5% 22%);
+  filter: blur(.2px) saturate(1.15);
+  opacity: clamp(0, calc((var(--corruption-level) - 25) / 75), .62);
+  transform: scale(1.04);
+}
+.corruption-fog { inset: -8%; background:
+  radial-gradient(ellipse at 16% 78%, rgba(54, 22, 49, .34), transparent 38%),
+  radial-gradient(ellipse at 82% 68%, rgba(73, 22, 37, .28), transparent 40%),
+  linear-gradient(0deg, rgba(20, 11, 18, .28), transparent 45%);
+  filter: blur(12px);
+  opacity: clamp(0, calc((var(--corruption-level) - 45) / 55), .72);
+  animation: corruption-fog-drift 10s ease-in-out infinite alternate;
+}
+@keyframes corruption-fog-drift {
+  from { transform: translate3d(-1.5%, .5%, 0) scale(1.03); }
+  to { transform: translate3d(1.5%, -1%, 0) scale(1.06); }
+}
+
 .map-toolbar { display: none !important; }
 .map-toolbar a, .map-toolbar button { display: grid; place-items: center; min-width: 38px; height: 30px; padding: 0 9px; border: 1px solid #6c543e; border-radius: 2px; background: #2a1c14; color: #e9d5b4; font-size: clamp(9px, 1.25vw, 12px); font-weight: 900; text-decoration: none; white-space: nowrap; }
 .map-tabs { display: flex; gap: 3px; }
@@ -244,7 +269,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 @keyframes map-deck-window-drop { from { transform: translate(-50%, -118%); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
 @keyframes map-deck-roster-rise { from { transform: translateY(125%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @keyframes map-deck-controls-rise { from { transform: translateY(32px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } .map-deck-overlay.is-open .map-deck-window, .map-deck-overlay.is-open .map-deck-roster, .map-deck-overlay.is-open #mapDeckStatus, .map-deck-overlay.is-open .map-deck-confirm { animation-duration: 1ms; animation-delay: 0ms; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } .corruption-fog { animation: none; } .map-deck-overlay.is-open .map-deck-window, .map-deck-overlay.is-open .map-deck-roster, .map-deck-overlay.is-open #mapDeckStatus, .map-deck-overlay.is-open .map-deck-confirm { animation-duration: 1ms; animation-delay: 0ms; } }
 
 .map-cloud-transition { position: absolute; z-index: 90; inset: 0; overflow: hidden; pointer-events: auto; }
 .map-cloud-transition[hidden] { display: none; }
