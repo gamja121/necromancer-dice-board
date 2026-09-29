@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#101914">
+  <meta name="theme-color" content="#050807">
   <meta name="description" content="네크로멘서 앤드 다이스 — 주사위로 원정을 이어가고 마물과 낙인을 조합하는 덱빌딩 TRPG.">
   <meta name="apple-mobile-web-app-title" content="네크로멘서 앤드 다이스">
   <meta name="mobile-web-app-capable" content="yes">
@@ -11,17 +11,64 @@
   <title>네크로멘서 앤드 다이스</title>
   <link rel="manifest" href="manifest.webmanifest?v=20260927-v2">
   <link rel="apple-touch-icon" href="assets/app-icon-192.png">
-  <link rel="stylesheet" href="launch.css?v=1">
+  <link rel="stylesheet" href="launch.css?v=2">
 </head>
-<body>
-  <main>
-    <p class="eyebrow">NECROMANCER AND DICE</p>
-    <h1>네크로멘서<br>앤드 다이스</h1>
-    <p>주사위가 이끄는 원정.<br>마물을 모으고, 낙인을 계승하고, 운명에 맞서세요.</p>
-    <a class="play" href="v2-map-practice.html">원정으로</a>
-    <p class="note">현재 브라우저 탭의 원정 상태를 이어갑니다.</p>
-    <button id="installAppButton" type="button" hidden>앱으로 설치</button>
-    <details>
+<body class="title-page is-locked">
+  <video id="titleVideo" class="title-video" autoplay muted loop playsinline preload="auto" poster="art/v2-style/map-test/maps/default-map.jpg" aria-hidden="true">
+    <source src="assets/title/title-loop.mp4" type="video/mp4">
+  </video>
+  <audio id="titleBgm" loop preload="auto">
+    <source src="assets/title/title-theme.mp3" type="audio/mpeg">
+    <source src="assets/music/map-board.mp3" type="audio/mpeg">
+  </audio>
+  <div class="title-vignette" aria-hidden="true"></div>
+
+  <button id="titleUnlock" class="title-unlock" type="button" aria-label="타이틀 사운드 시작">
+    <span>NECROMANCER AND DICE</span>
+    <strong>화면을 눌러 시작</strong>
+    <small>주사위 · 모닥불 환경음과 타이틀 음악</small>
+  </button>
+
+  <main class="title-shell">
+    <section class="title-copy" aria-labelledby="gameTitle">
+      <img class="title-logo-art" src="assets/title/title-logo.webp" alt="네크로멘서 앤드 다이스">
+      <h1 id="gameTitle" class="title-logo-fallback">네크로멘서<br><span>앤드 다이스</span></h1>
+      <p class="tagline">죽은 자를 거느리고, 주사위가 정한 길을 걸어라.</p>
+
+      <nav class="title-menu" aria-label="타이틀 메뉴">
+        <a id="titlePlay" class="title-menu-button" href="v2-map-practice.html" aria-label="게임 시작">
+          <img src="assets/title/new-game.webp" alt="NEW GAME">
+          <span>게임 시작</span>
+        </a>
+        <a id="titleContinue" class="title-menu-button" href="v2-map-practice.html" aria-label="이어하기">
+          <img src="assets/title/continue.webp" alt="CONTINUE">
+          <span>이어하기</span>
+        </a>
+        <button id="titleOptions" class="title-menu-button" type="button" aria-label="설정">
+          <img src="assets/title/options.webp" alt="OPTIONS">
+          <span>설정</span>
+        </button>
+        <button id="titleExit" class="title-menu-button title-menu-button-subtle" type="button" aria-label="나가기">
+          <img src="assets/title/exit.webp" alt="EXIT">
+          <span>나가기</span>
+        </button>
+      </nav>
+
+      <p class="note">현재 원정 기록이 있다면 이어하기로 복귀합니다.</p>
+    </section>
+
+    <div class="title-utility">
+      <button id="titleSoundToggle" class="sound-toggle" type="button" aria-pressed="true">소리 ON</button>
+      <button id="installAppButton" type="button" hidden>앱으로 설치</button>
+    </div>
+
+    <section id="titleOptionsPanel" class="title-options-panel" hidden aria-label="타이틀 설정">
+      <strong>OPTIONS</strong>
+      <button id="titleOptionsSound" type="button">사운드 ON</button>
+      <button id="titleOptionsClose" type="button">닫기</button>
+    </section>
+
+    <details class="dev-tools">
       <summary>개발 · 테스트</summary>
       <nav aria-label="개발 테스트 화면">
         <a href="v2-event-lab.html">이벤트 테스트</a>
@@ -35,6 +82,7 @@
     </details>
     <footer>웹 프로토타입 · 개발 중</footer>
   </main>
-  <script src="launch.js?v=1"></script>
+
+  <script src="launch.js?v=2"></script>
 </body>
 </html>
