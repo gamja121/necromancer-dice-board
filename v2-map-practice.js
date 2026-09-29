@@ -1276,6 +1276,7 @@
       const badge = document.createElement("span");
       card.type = "button";
       card.className = "treasure-reward-card";
+      if (reward.type === "brand") card.classList.add("is-brand");
       card.setAttribute("aria-label", `${reward.label} 선택`);
       card.setAttribute("aria-pressed", "false");
       image.src = reward.image;
