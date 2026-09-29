@@ -103,7 +103,7 @@ for (let index = 1; index <= 4; index += 1) {
 }
 assert(source.includes('scene.animation === "treasure"') && source.includes("async function playTreasureChestAnimation()") && source.includes('eventTreasure.classList.add("is-burst")'), "Treasure animation must restart through the current four-frame sequence.");
 assert(html.includes('v2-brand-cards.js?v=4') && worker.includes('v2-brand-cards.js?v=4'), "Brand card inventory module must load before map reward logic.");
-assert(fs.existsSync(path.join(root, "art/v2-style/ui/brand-card.png")) && worker.includes("art/v2-style/ui/brand-card.png?v=3"), "Transparent brand card art must exist and be cached.");
+assert(fs.existsSync(path.join(root, "art/v2-style/ui/brand-card.png")) && worker.includes("art/v2-style/ui/brand-card.png?v=4"), "Transparent brand card art must exist and be cached.");
 assert(source.includes("V2BrandCards.create()") && source.includes('type: "brand"') && source.includes("V2BrandCards.addAsync(reward.brandCard)"), "Brand cards must join treasure rewards and persist as their own inventory.");
 assert(source.includes("const otherRewards = shuffle([...unitRewards, ...diceRewards]).slice(0, 2)") &&
   source.includes("return shuffle([brandReward, ...otherRewards])"),
