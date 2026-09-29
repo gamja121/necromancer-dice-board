@@ -453,6 +453,9 @@
     try {
       if (typeof sessionStorage !== "undefined") sessionStorage.setItem(FORTUNE_PROPHECY_KEY, JSON.stringify(stack));
     } catch (_) { /* Keep prophecy usable when storage is blocked. */ }
+    if (globalThis.V2RunStateRuntime?.available) {
+      V2RunStateRuntime.setMapProgress({ fortuneProphecy: stack, prefix: "fortune-prophecy-stack" });
+    }
     return stack;
   }
 
@@ -1255,6 +1258,14 @@
     if (prophecy.allyHp) params.set("prophecyAllyHp", String(prophecy.allyHp));
     if (prophecy.allySpeed) params.set("prophecyAllySpeed", String(prophecy.allySpeed));
     if (prophecy.enemyAttack) params.set("prophecyEnemyAttack", String(prophecy.enemyAttack));
+    if (prophecy.allyAttack || prophecy.allyHp || prophecy.allySpeed || prophecy.enemyAttack) {
+      const clearedProphecy = emptyProphecyStack();
+      try { if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(FORTUNE_PROPHECY_KEY); } catch (_) {}
+      if (globalThis.V2RunStateRuntime?.available) {
+        await V2RunStateRuntime.setMapProgress({ fortuneProphecy: clearedProphecy, prefix: "fortune-prophecy-consume" });
+        await V2RunStateRuntime.flush();
+      }
+    }
     if (typeof V2Music !== "undefined") V2Music.handoff("battle");
     window.location.assign(`v2-auto-battle-practice.html?${params}`);
   }
