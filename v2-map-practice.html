@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
   <title>네크로멘서 앤드 다이스 · 외곽 타일 맵 테스트</title>
-  <link rel="stylesheet" href="v2-map-practice.css?v=51">
+  <link rel="stylesheet" href="v2-map-practice.css?v=52">
   <link rel="stylesheet" href="v2-home-inheritance.css?v=9">
   <link rel="stylesheet" href="v2-altar-ritual.css?v=3">
 </head>
@@ -57,7 +57,8 @@
           <span id="contaminationValue">0 / 100</span>
         </div>
       </section>
-      <aside id="contaminationTestControl" class="contamination-test-control" aria-label="오염도 시각 테스트">
+      <button id="contaminationTestToggle" class="contamination-test-toggle" type="button" aria-controls="contaminationTestControl" aria-expanded="false">TEST</button>
+      <aside id="contaminationTestControl" class="contamination-test-control" aria-label="오염도 시각 테스트" hidden>
         <div class="contamination-test-head">
           <strong>오염 테스트</strong>
           <span id="contaminationTestValue">실제 0</span>
@@ -200,6 +201,6 @@
   <script src="v2-altar-ritual.js?v=4"></script>
   <script src="v2-dice-control.js?v=1"></script>
   <script src="v2-world-tree-prayer-digits.js?v=2"></script>
-  <script src="v2-map-practice.js?v=69"></script>
+  <script src="v2-map-practice.js?v=70"></script>
 </body>
 </html>
