@@ -21,6 +21,7 @@
     legacyMapLayout: "necromancer-map-layout-v1",
     clearedTiles: "necromancer-map-cleared-monsters-v1",
     worldTreePrayed: "necromancer-map-world-tree-prayed-v1",
+    fortuneProphecy: "necromancer-fortune-prophecy-v1",
     battle: "necromancer-v2-battle-v1",
     contaminationWinPrefix: "necromancer-map-contamination-win-v1:"
   });
@@ -59,7 +60,8 @@
         tiles: [],
         heroIndex: null,
         lapReadyForRefresh: false,
-        worldTreePrayed: false
+        worldTreePrayed: false,
+        fortuneProphecy: { allyAttack: 0, allyHp: 0, allySpeed: 0, enemyAttack: 0, rolls: [] }
       },
       contamination: 0,
       ownedMonsters: [],
@@ -120,6 +122,13 @@
       if (!Array.isArray(map.tiles) || ![0, 24].includes(map.tiles.length)) errors.push("currentMap.tiles:length");
       if (!Number.isInteger(map.lap) || map.lap < 0) errors.push("currentMap.lap:invalid");
       if (typeof map.worldTreePrayed !== "boolean") errors.push("currentMap.worldTreePrayed:invalid");
+      if (map.fortuneProphecy != null) {
+        const prophecy = map.fortuneProphecy;
+        const validProphecy = isPlainObject(prophecy) &&
+          ["allyAttack","allyHp","allySpeed","enemyAttack"].every((key) => Number.isInteger(prophecy[key]) && prophecy[key] >= 0) &&
+          Array.isArray(prophecy.rolls) && prophecy.rolls.every((value) => Number.isInteger(value) && value >= 1 && value <= 6);
+        if (!validProphecy) errors.push("currentMap.fortuneProphecy:invalid");
+      }
     }
 
     if (!Array.isArray(state.ownedMonsters)) errors.push("ownedMonsters:invalid");
@@ -237,6 +246,16 @@
     }
 
     state.currentMap.worldTreePrayed = raw[LEGACY_KEYS.worldTreePrayed] === "1";
+    const fortune = parseJson(raw[LEGACY_KEYS.fortuneProphecy], LEGACY_KEYS.fortuneProphecy, warnings);
+    if (fortune && isPlainObject(fortune)) {
+      state.currentMap.fortuneProphecy = {
+        allyAttack: Math.max(0, Math.floor(Number(fortune.allyAttack) || 0)),
+        allyHp: Math.max(0, Math.floor(Number(fortune.allyHp) || 0)),
+        allySpeed: Math.max(0, Math.floor(Number(fortune.allySpeed) || 0)),
+        enemyAttack: Math.max(0, Math.floor(Number(fortune.enemyAttack) || 0)),
+        rolls: Array.isArray(fortune.rolls) ? fortune.rolls.filter((value) => Number.isInteger(value) && value >= 1 && value <= 6).slice(-24) : []
+      };
+    }
 
     const cleared = parseJson(raw[LEGACY_KEYS.clearedTiles], LEGACY_KEYS.clearedTiles, warnings);
     if (Array.isArray(cleared) && state.currentMap.tiles.length === 24) {
