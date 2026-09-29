@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
   <title>네크로멘서 앤드 다이스 · 외곽 타일 맵 테스트</title>
-  <link rel="stylesheet" href="v2-map-practice.css?v=57">
+  <link rel="stylesheet" href="v2-map-practice.css?v=58">
   <link rel="stylesheet" href="v2-home-inheritance.css?v=9">
   <link rel="stylesheet" href="v2-altar-ritual.css?v=4">
 </head>
@@ -146,15 +146,25 @@
               <strong>마물 상점</strong>
               <button id="monsterShopClose" type="button">닫기</button>
             </div>
-            <p class="monster-shop-guide">보유 마물을 판매해 교환가를 만들고, 주사위 컨트롤 카드나 낙인 카드를 구매하는 상점입니다.</p>
-            <div class="monster-shop-columns">
-              <section class="monster-shop-column">
-                <h3>마물 판매</h3>
-                <div id="monsterShopSellList" class="monster-shop-placeholder">판매 기능 준비 중</div>
+            <p class="monster-shop-guide">마물 카드 1장을 거래대에 올리면 상인이 그 가치에 맞는 물건을 제시합니다. 제안 중 1개를 고르는 순간 거래가 확정됩니다.</p>
+            <div class="monster-shop-layout">
+              <section class="monster-shop-column monster-shop-roster">
+                <h3>내 마물</h3>
+                <div id="monsterShopSellList" class="monster-shop-sell-list"></div>
               </section>
-              <section class="monster-shop-column">
-                <h3>교환 상품</h3>
-                <div class="monster-shop-placeholder">주사위 컨트롤 · 낙인 카드</div>
+              <section class="monster-shop-trade">
+                <h3>거래대</h3>
+                <div id="monsterShopTradeSlot" class="monster-shop-trade-slot">
+                  <span>마물을 선택하세요</span>
+                </div>
+                <button id="monsterShopCancelTrade" class="monster-shop-cancel" type="button" hidden>거래대에서 내리기</button>
+              </section>
+              <section class="monster-shop-column monster-shop-offers">
+                <h3>상인의 제안</h3>
+                <div id="monsterShopOffers" class="monster-shop-offer-list">
+                  <div class="monster-shop-placeholder">마물을 올리면 교환품이 나타납니다.</div>
+                </div>
+                <p id="monsterShopStatus" class="monster-shop-status"></p>
               </section>
             </div>
           </section>
@@ -236,6 +246,6 @@
   <script src="v2-world-tree-prayer-digits.js?v=2"></script>
   <script src="v2-event-data.js?v=1"></script>
   <script src="v2-map-events.js?v=1"></script>
-  <script src="v2-map-practice.js?v=75"></script>
+  <script src="v2-map-practice.js?v=76"></script>
 </body>
 </html>
