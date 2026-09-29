@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
   <title>네크로멘서 앤드 다이스 · 외곽 타일 맵 테스트</title>
-  <link rel="stylesheet" href="v2-map-practice.css?v=50">
+  <link rel="stylesheet" href="v2-map-practice.css?v=51">
   <link rel="stylesheet" href="v2-home-inheritance.css?v=9">
   <link rel="stylesheet" href="v2-altar-ritual.css?v=3">
 </head>
@@ -57,6 +57,21 @@
           <span id="contaminationValue">0 / 100</span>
         </div>
       </section>
+      <aside id="contaminationTestControl" class="contamination-test-control" aria-label="오염도 시각 테스트">
+        <div class="contamination-test-head">
+          <strong>오염 테스트</strong>
+          <span id="contaminationTestValue">실제 0</span>
+        </div>
+        <input id="contaminationTestSlider" type="range" min="0" max="100" step="1" value="0" aria-label="테스트 오염도">
+        <div class="contamination-test-presets" aria-label="오염도 빠른 선택">
+          <button type="button" data-contamination-preview="0">0</button>
+          <button type="button" data-contamination-preview="25">25</button>
+          <button type="button" data-contamination-preview="50">50</button>
+          <button type="button" data-contamination-preview="75">75</button>
+          <button type="button" data-contamination-preview="100">100</button>
+          <button type="button" data-contamination-preview="actual">실제값</button>
+        </div>
+      </aside>
       <button id="mapBookButton" class="map-book-button" type="button" aria-label="책 열기" aria-pressed="false">
         <span id="mapMonsterCount" class="map-inventory-count" aria-live="polite">2/10</span>
         <img id="mapBookImage" data-v2-src="art/v2-style/ui/map-book-closed.png" alt="">
@@ -185,6 +200,6 @@
   <script src="v2-altar-ritual.js?v=4"></script>
   <script src="v2-dice-control.js?v=1"></script>
   <script src="v2-world-tree-prayer-digits.js?v=2"></script>
-  <script src="v2-map-practice.js?v=68"></script>
+  <script src="v2-map-practice.js?v=69"></script>
 </body>
 </html>
