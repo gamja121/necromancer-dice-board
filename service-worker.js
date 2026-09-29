@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20260929-13";
+const CACHE_NAME = "necromancer-and-dice-v2-20260929-14";
 const APP_SHELL = [
   "./art/v2-style/processed/192/grave-worm.png",
   "./art/v2-style/processed/192/flesh-golem.png",
@@ -63,12 +63,12 @@ const APP_SHELL = [
   "./v2-unit-size.js?v=5",
   "./v2-unit-cards.js?v=24",
   "./v2-design-data.js?v=1",
-  "./v2-rules.js?v=6",
+  "./v2-rules.js?v=7",
   "./v2-run-state.js?v=1",
   "./v2-run-state-runtime.js?v=1",
   "./v2-brand-cards.js?v=4",
   "./v2-sfx.js?v=3",
-  "./v2-auto-battle-practice.js?v=102",
+  "./v2-auto-battle-practice.js?v=103",
   "./v2-event-lab.css?v=1",
   "./v2-event-data.js?v=1",
   "./v2-event-lab.js?v=1",
