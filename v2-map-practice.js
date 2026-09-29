@@ -1055,10 +1055,10 @@
       image: V2BrandCards.imagePath(),
       brandCard
     };
-    // One independently generated brand card joins the existing treasure pool.
-    // Its appearance among the three choices stays random; its own face is
-    // 50% blessing-only / 50% blessing+curse in V2BrandCards.create().
-    return shuffle([...unitRewards, ...diceRewards, brandReward]).slice(0, 3);
+    // Always show exactly one brand card among the three treasure choices.
+    // The other two remain random picks from monster and dice-control rewards.
+    const otherRewards = shuffle([...unitRewards, ...diceRewards]).slice(0, 2);
+    return shuffle([brandReward, ...otherRewards]);
   }
 
   async function animateTreasureRewardToTarget(reward, selectedCard) {
