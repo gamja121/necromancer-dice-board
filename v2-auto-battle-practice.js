@@ -378,6 +378,19 @@
     2: 2.25,
     3: 3
   });
+  const PRESENTATION_SPEED_CAP = 1.2;
+  function battleDuration(milliseconds, minimum = 0) {
+    return Math.max(minimum, milliseconds / speedMultiplier);
+  }
+  function presentationDuration(milliseconds, minimum = 0) {
+    return Math.max(minimum, milliseconds / Math.min(speedMultiplier, PRESENTATION_SPEED_CAP));
+  }
+  function battleWait(milliseconds, minimum = 0) {
+    return wait(battleDuration(milliseconds, minimum));
+  }
+  function presentationWait(milliseconds, minimum = 0) {
+    return wait(presentationDuration(milliseconds, minimum));
+  }
   let speedLevel = 1;
   let speedMultiplier = SPEED_PRESETS[speedLevel];
   let battleToken = 0;
@@ -872,7 +885,7 @@
       window.setTimeout(() => {
         label.classList.remove("is-triggered");
         unitState.element?.classList.remove("has-brand-trigger");
-      }, Math.max(700, 1100 / speedMultiplier));
+      }, presentationDuration(1100, 700));
     }
   }
 
@@ -1142,7 +1155,7 @@
       units.forEach(updateUnit);
       undeadHealing.forEach(event => showHealing(event.unit, event.amount));
       message.textContent = `언데드 군단 · 체력 ${undeadHealing.reduce((sum, event) => sum + event.amount, 0)} 회복`;
-      await wait(Math.max(220, 380 / speedMultiplier));
+      await battleWait(380, 220);
       if (token !== battleToken || !running) return;
     }
     for (const plan of plans) await summonFromPlan(plan, token);
@@ -1234,7 +1247,7 @@
     turnDiceButton.classList.remove("is-rolling");
     turnDiceButton.setAttribute("aria-label", `주사위 결과 ${lastDiceRoll}`);
     message.textContent = `${turnNumber + 1}턴 공통 주사위 결과 ${lastDiceRoll}`;
-    await wait(Math.max(320, 620 / speedMultiplier));
+    await presentationWait(620, 320);
     if (token !== battleToken || !running || !awaitingRoll) return;
     turnDiceButton.disabled = false;
     diceRolling = false;
@@ -1344,7 +1357,7 @@
         }
       }
       message.textContent = `${actor.name} 중독 피해 ${poisonDamage}`;
-      await wait(Math.max(260, 460 / speedMultiplier));
+      await battleWait(460, 260);
       if (token !== battleToken || !running) return;
       if (!actor.alive) {
         await playMotion(actor, "death", actor.frames.death, token, true);
@@ -1362,7 +1375,7 @@
       const healed = 0;
       updateUnit(actor);
       showHealing(actor, healed);
-      await wait(Math.max(250, 420 / speedMultiplier));
+      await battleWait(420, 250);
       if (token !== battleToken || !running) return;
       actionCount += 1;
       actionBusy = false;
@@ -1381,7 +1394,7 @@
     const cinematic = true;
     if (cinematic) {
       battlefield.classList.add("is-cinematic");
-      await wait(Math.max(180, 320 / speedMultiplier));
+      await presentationWait(320, 180);
       if (token !== battleToken || !running) return;
     }
     const hitFrames = typeof V2CombatEffects !== "undefined" ? await V2CombatEffects.prepare(actor.slug) : null;
@@ -1392,7 +1405,7 @@
     if (typeof V2Sfx !== "undefined") V2Sfx.play("attack", { variant: soundProfile.attack, rate: .92 + Math.min(6, actor.speed) * .025 });
     let attackPlayback = playMotion(actor, "attack", actor.frames.attack, token, false, signalImpact);
     attackPlayback.then(signalImpact, signalImpact);
-    await Promise.race([impactReady, wait(Math.max(900, 1600 / speedMultiplier))]);
+    await Promise.race([impactReady, battleWait(1600, 900)]);
     if (token !== battleToken || !running) return;
 
     const poisonStacksBefore = Array.isArray(target.poisonStacks) ? target.poisonStacks.length : Number(target.poison || 0);
@@ -1440,7 +1453,7 @@
           if (typeof V2Sfx !== "undefined") V2Sfx.play("attack", { variant: soundProfile.attack, rate: .96 + Math.min(6, actor.speed) * .02 });
           attackPlayback = playMotion(actor, "attack", actor.frames.attack, token, false, signalNextImpact);
           attackPlayback.then(signalNextImpact, signalNextImpact);
-          await Promise.race([nextImpactReady, wait(Math.max(900, 1600 / speedMultiplier))]);
+          await Promise.race([nextImpactReady, battleWait(1600, 900)]);
           if (token !== battleToken || !running) return;
         }
         const hitAmount = hitAmounts[hitIndex];
@@ -1461,7 +1474,7 @@
         if (token !== battleToken || !running) return;
         target.element.classList.remove("is-hit");
       }
-    } else await wait(250 / speedMultiplier);
+    } else await battleWait(250);
     if (token !== battleToken || !running) return;
     target.hp = targetFinalHp;
     target.alive = targetFinalAlive;
@@ -1481,7 +1494,7 @@
       if (typeof V2Sfx !== "undefined") V2Sfx.play("attack", { variant: counterSoundProfile.attack, rate: .95 + Math.min(6, target.speed) * .02 });
       const counterPlayback = playMotion(target, "attack", target.frames.attack, token, false, signalCounterImpact);
       counterPlayback.then(signalCounterImpact, signalCounterImpact);
-      await Promise.race([counterImpactReady, wait(Math.max(900, 1600 / speedMultiplier))]);
+      await Promise.race([counterImpactReady, battleWait(1600, 900)]);
       if (token !== battleToken || !running) return;
 
       if (typeof V2Sfx !== "undefined") V2Sfx.play("hit", { variant: counterSoundProfile.hit, rate: Math.max(.72, 1.08 - outcome.counterDamage * .045), volume: Math.min(1.25, .82 + outcome.counterDamage * .07) });
@@ -1517,7 +1530,7 @@
     if (!actor.alive) await playMotion(actor, "death", actor.frames.death, token, true);
     else actor.image.src = frame(actor, "attack", 1);
     if (cinematic) {
-      await wait(Math.max(160, 240 / speedMultiplier));
+      await presentationWait(240, 160);
       if (token !== battleToken || !running) return;
       battlefield.classList.remove("is-cinematic");
     }
