@@ -90,12 +90,25 @@
     displayUnitCard(materialCard, materialHint, materialInstanceId, "재료");
   }
 
+  function compactBrandMarks(brand) {
+    return [
+      brand.bless.length ? `✦ ${brand.bless.join("·")}` : "",
+      brand.curse.length ? `☠ ${brand.curse.join("·")}` : ""
+    ].filter(Boolean).join("   ");
+  }
+
   function appendBrand(brand, origin) {
     const row = document.createElement("li");
     const name = document.createElement("strong");
     const marks = document.createElement("small");
-    name.textContent = `${origin} · ${V2Rules.definitions[brand.type]?.name || brand.type}`;
-    marks.textContent = [brand.bless.length ? `축 ${brand.bless.join(",")}` : "", brand.curse.length ? `저 ${brand.curse.join(",")}` : ""].filter(Boolean).join("  ");
+    const brandName = (V2Rules.definitions[brand.type]?.name || brand.type).replace(/의 낙인$/, "");
+    name.textContent = brandName;
+    marks.textContent = compactBrandMarks(brand);
+    marks.setAttribute("aria-label", [
+      brand.bless.length ? `축복 ${brand.bless.join(", ")}` : "",
+      brand.curse.length ? `저주 ${brand.curse.join(", ")}` : ""
+    ].filter(Boolean).join(", "));
+    row.dataset.origin = origin;
     row.append(name, marks);
     brandList.append(row);
   }
@@ -130,15 +143,10 @@
     if (material) appendBrands(material, "재료");
     if (sourceCard) appendBrand(sourceCard.brand, "낙인 카드");
     brandList.hidden = !brandList.childElementCount;
-    brandHint.hidden = false;
+    brandHint.hidden = !(notice || completed);
 
     if (notice) brandHint.textContent = notice;
-    else if (completed) brandHint.textContent = `적용 완료 · ${V2Rules.definitions[inheritedBrand?.type]?.name || "낙인"} ${inheritedPart === "bless" ? "축복" : inheritedPart === "both" ? "축복+저주" : "저주"}`;
-    else if (sourceCard && !result) brandHint.textContent = `${V2BrandCards.label(sourceCard)} · 적용할 마물을 선택하세요`;
-    else if (sourceCard && result) brandHint.textContent = `${V2BrandCards.label(sourceCard)} · 적용 준비`;
-    else if (!material) brandHint.textContent = "재료 마물 또는 왼쪽 낙인 카드를 선택하세요";
-    else if (!result) brandHint.textContent = "다음으로 결과 카드를 선택하세요";
-    else brandHint.textContent = "마물 계승: 축복 50% · 둘 다 30% · 저주 20%";
+    else if (completed) brandHint.textContent = "✓ 계승 완료";
 
     inheritButton.disabled = sourceCard
       ? !result || result.brands.length >= 3
@@ -221,7 +229,8 @@
       image.src = V2BrandCards.imagePath();
       image.alt = "";
       description.className = "home-inheritance-brand-card-text";
-      description.textContent = V2BrandCards.label(item).replaceAll(" · ", " ");
+      description.textContent = compactBrandMarks(item.brand);
+      description.setAttribute("aria-hidden", "true");
       card.append(image, description);
       card.addEventListener("click", () => selectBrandCard(item.id));
       brandCards.append(card);
