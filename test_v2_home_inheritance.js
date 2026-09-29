@@ -9,12 +9,13 @@ const source = fs.readFileSync(path.join(root, "v2-home-inheritance.js"), "utf8"
 const worker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
 const board = "art/v2-style/map-test/events/inheritance-board.png";
 if (!fs.existsSync(path.join(root, board))) throw Error("Two-panel inheritance image is missing");
-for (const file of [board, "v2-home-inheritance.css?v=5", "v2-home-inheritance.js?v=8"]) {
+for (const file of [board, "v2-home-inheritance.css?v=6", "v2-home-inheritance.js?v=9"]) {
   if (!worker.includes(file)) throw Error(`Inheritance resource is not cached: ${file}`);
 }
 if (!html.includes('class="home-inheritance-material"') && !html.includes('home-inheritance-material"')) throw Error("Material panel is missing");
-if (!html.includes('home-inheritance-result"') || !html.includes('id="homeInheritanceBrandList"') || !html.includes('<h3>낙인</h3>') || html.includes('id="homeInheritanceParts"') || !html.includes('id="homeInheritanceConfirm"') || !css.includes("legion-info-window-hd.png") || !css.includes("height: 91%") || !html.includes('v2-home-inheritance.js?v=8')) throw Error("Tall, compact brand information frame or automatic inheritance controls are missing");
-if (!css.includes("home-inheritance-cards-rise")) throw Error("Owned cards must still rise from below");
+if (!html.includes('home-inheritance-result"') || !html.includes('id="homeInheritanceBrandList"') || !html.includes('<h3>낙인</h3>') || html.includes('id="homeInheritanceParts"') || !html.includes('id="homeInheritanceConfirm"') || !css.includes("legion-info-window-hd.png") || !css.includes("height: 91%") || !html.includes('v2-home-inheritance.js?v=9')) throw Error("Tall, compact brand information frame or automatic inheritance controls are missing");
+if (!css.includes("home-inheritance-cards-rise") || !css.includes("home-inheritance-brand-cards") || !css.includes("is-inheritance-source")) throw Error("Owned monsters and left-pile brand fan animations must exist");
+if (!source.includes('mapCardDeckButton.hidden = true') || !source.includes('diceControlOverlay.hidden = true')) throw Error("Dice-control cards must be hidden while inheritance is open");
 
 function classList() {
   const values = new Set();
@@ -25,7 +26,7 @@ function classList() {
 }
 function node() {
   return {
-    children: [], classList: classList(), attributes: {}, dataset: {},
+    children: [], classList: classList(), attributes: {}, dataset: {}, style: { setProperty() {} },
     get childElementCount() { return this.children.length; },
     append(...items) { this.children.push(...items); },
     replaceChildren(...items) { this.children = items; },
@@ -39,6 +40,7 @@ function node() {
 const backdrop = node();
 const overlay = Object.assign(node(), { hidden: true, offsetWidth: 100, querySelector: () => backdrop });
 const cards = node();
+const brandCards = node();
 const closeButton = node();
 const materialCard = Object.assign(node(), { hidden: true });
 const materialHint = node();
@@ -61,7 +63,7 @@ let rosterEvent;
 const randomValues = [.4, .2];
 const globals = {
   document: {
-    getElementById: (id) => ({ homeInheritanceOverlay: overlay, homeInheritanceCards: cards, homeInheritanceClose: closeButton,
+    getElementById: (id) => ({ homeInheritanceOverlay: overlay, homeInheritanceCards: cards, homeInheritanceBrandCards: brandCards, homeInheritanceClose: closeButton,
       homeInheritanceMaterialCard: materialCard, homeInheritanceMaterialHint: materialHint,
       homeInheritanceResultCard: resultCard, homeInheritanceResultHint: resultHint,
       homeInheritanceBrandHint: brandHint, homeInheritanceBrandList: brandList,
@@ -76,7 +78,7 @@ const globals = {
 };
 vm.runInNewContext(source, globals);
 globals.window.V2HomeInheritance.open();
-if (overlay.hidden || !overlay.classList.contains("is-open") || cards.children.length !== saved.length || !closeButton.focused) throw Error("Opening inheritance must reveal the board and every stored owned card");
+if (overlay.hidden || !overlay.classList.contains("is-open") || cards.children.length !== saved.length || brandCards.children.length !== 4 || !closeButton.focused) throw Error("Opening inheritance must reveal owned monsters and fan owned brand cards from the left pile");
 const donorInstanceId = cards.children[0].dataset.instanceId;
 const recipientInstanceId = cards.children[1].dataset.instanceId;
 if (!donorInstanceId || !recipientInstanceId || donorInstanceId === recipientInstanceId) throw Error("Inheritance cards must keep distinct instance ids");
