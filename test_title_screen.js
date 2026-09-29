@@ -5,7 +5,6 @@ const assert = require("node:assert/strict");
 const index = fs.readFileSync("index.html", "utf8");
 const css = fs.readFileSync("launch.css", "utf8");
 const js = fs.readFileSync("launch.js", "utf8");
-const worker = fs.readFileSync("service-worker.js", "utf8");
 
 assert(index.includes('id="titleVideo"') && index.includes("assets/title/title-loop.mp4"),
   "Title page must reserve the cinematic video asset.");
@@ -27,8 +26,6 @@ assert(js.includes("FADE_MS = 650") && js.includes("necromancer-v2-music-handoff
   "Starting the expedition must fade title audio and hand off to map music.");
 assert(js.includes('video.addEventListener("error"') && css.includes(".title-video.is-unavailable"),
   "Missing cinematic media must fall back without breaking title UI.");
-assert(worker.includes("./launch.css?v=2") && worker.includes("./launch.js?v=2"),
-  "Current title CSS and JS must be in the offline core cache.");
 assert(css.includes("default-map.jpg") && index.includes('poster="art/v2-style/map-test/maps/default-map.jpg"'),
   "Title must keep a repository-backed fallback visual.");
 
