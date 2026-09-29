@@ -394,6 +394,17 @@
   let speedLevel = 1;
   let speedMultiplier = SPEED_PRESETS[speedLevel];
   let battleToken = 0;
+  const presentation = typeof V2Presentation !== "undefined"
+    ? V2Presentation.create({
+        guard: (event) => event.token == null || (event.token === battleToken && running)
+      })
+    : Object.freeze({
+        play: async (_event, presenter) => typeof presenter === "function" ? presenter() : undefined,
+        sequence: async () => undefined,
+        flush: async () => undefined,
+        clear: () => {},
+        snapshot: () => []
+      });
   let actionCount = 0;
   let turnNumber = 0;
   let turnQueue = [];
@@ -661,6 +672,7 @@
   }
 
   function resetBattle(showStart) {
+    presentation.clear();
     battlefield.classList.remove("is-cinematic");
     if (showStart) {
       lineupRequest += 1;
@@ -1103,6 +1115,7 @@
   }
 
   function recoverBattleFlow(error, phase = "전투 처리") {
+    presentation.clear();
     console.error(`${phase} 오류`, error);
     if (!running) return;
     actionBusy = false;
@@ -1241,12 +1254,45 @@
     if (token !== battleToken || !running || !awaitingRoll) return;
     lastDiceRoll = Math.floor(battleRandom() * 6) + 1;
     if (typeof V2Sfx !== "undefined") V2Sfx.play("diceLand", { rate: .94 + lastDiceRoll * .015 });
-    showRolledBrands(lastDiceRoll);
-    turnDiceImage.src = DICE_RESULT_FRAMES[lastDiceRoll - 1];
-    turnDiceImage.alt = `주사위 결과 ${lastDiceRoll}`;
-    turnDiceButton.classList.remove("is-rolling");
-    turnDiceButton.setAttribute("aria-label", `주사위 결과 ${lastDiceRoll}`);
-    message.textContent = `${turnNumber + 1}턴 공통 주사위 결과 ${lastDiceRoll}`;
+
+    await presentation.play({
+      type: "dice-result",
+      token,
+      roll: lastDiceRoll,
+      value: lastDiceRoll
+    }, () => {
+      turnDiceImage.src = DICE_RESULT_FRAMES[lastDiceRoll - 1];
+      turnDiceImage.alt = `주사위 결과 ${lastDiceRoll}`;
+      turnDiceButton.classList.remove("is-rolling");
+      turnDiceButton.setAttribute("aria-label", `주사위 결과 ${lastDiceRoll}`);
+      message.textContent = `${turnNumber + 1}턴 공통 주사위 결과 ${lastDiceRoll}`;
+    });
+
+    const triggeredBrands = units.flatMap((unitState) =>
+      (unitState.brands || []).map((brandState) => ({
+        unitState,
+        brandState,
+        definition: V2Rules.definitions[brandState.type],
+        mode: V2Rules.mode(brandState, lastDiceRoll)
+      })).filter((entry) => entry.definition && entry.mode !== "normal")
+    );
+    await presentation.play({
+      type: "brand-trigger",
+      token,
+      roll: lastDiceRoll,
+      brand: triggeredBrands.length === 1 ? triggeredBrands[0].brandState.type : null,
+      mode: triggeredBrands.length === 1 ? triggeredBrands[0].mode : null,
+      triggers: triggeredBrands.map((entry) => ({
+        source: entry.unitState.instanceId || entry.unitState.slug,
+        sourceName: entry.unitState.name,
+        brand: entry.brandState.type,
+        brandName: entry.definition.name,
+        mode: entry.mode
+      }))
+    }, () => {
+      showRolledBrands(lastDiceRoll);
+    });
+
     await presentationWait(620, 320);
     if (token !== battleToken || !running || !awaitingRoll) return;
     turnDiceButton.disabled = false;
@@ -1389,14 +1435,23 @@
     if (!target) return finishBattle();
 
     message.textContent = `${turnNumber}턴 · ${actor.name}(속도 ${actor.speed}) → ${target.name}`;
-    actor.element.classList.add("is-attacking");
-    target.element.classList.add("is-targeted");
     const cinematic = true;
-    if (cinematic) {
-      battlefield.classList.add("is-cinematic");
-      await presentationWait(320, 180);
-      if (token !== battleToken || !running) return;
-    }
+    await presentation.play({
+      type: "attack",
+      token,
+      source: actor.instanceId || actor.slug,
+      sourceName: actor.name,
+      target: target.instanceId || target.slug,
+      targetName: target.name
+    }, async () => {
+      actor.element.classList.add("is-attacking");
+      target.element.classList.add("is-targeted");
+      if (cinematic) {
+        battlefield.classList.add("is-cinematic");
+        await presentationWait(320, 180);
+      }
+    });
+    if (token !== battleToken || !running) return;
     const hitFrames = typeof V2CombatEffects !== "undefined" ? await V2CombatEffects.prepare(actor.slug) : null;
     const soundProfile = combatSoundProfile(actor);
     if (token !== battleToken || !running) return;
@@ -1465,14 +1520,25 @@
         if (hitAmount > 0 && typeof V2Sfx !== "undefined") V2Sfx.play("hit", { variant: soundProfile.hit, rate: Math.max(.72, 1.08 - hitAmount * .045), volume: Math.min(1.25, .82 + hitAmount * .07) });
         if (hitAmount > 0) showDamage(target, hitAmount);
         else if (typeof V2DamageDigits !== "undefined") V2DamageDigits.showLabel(target, "immune");
-        target.element.classList.add("is-hit");
-        await Promise.all([
-          playMotion(target, "hit", target.frames.hit, token),
-          hitAmount > 0 && typeof V2CombatEffects !== "undefined" ? V2CombatEffects.play(target.element.querySelector(".sprite-wrap"), hitFrames,
-            {guard: () => token === battleToken && running, wait, speed: speedMultiplier}) : Promise.resolve()
-        ]);
+        await presentation.play({
+          type: "hit",
+          token,
+          source: actor.instanceId || actor.slug,
+          sourceName: actor.name,
+          target: target.instanceId || target.slug,
+          targetName: target.name,
+          value: hitAmount,
+          hitIndex
+        }, async () => {
+          target.element.classList.add("is-hit");
+          await Promise.all([
+            playMotion(target, "hit", target.frames.hit, token),
+            hitAmount > 0 && typeof V2CombatEffects !== "undefined" ? V2CombatEffects.play(target.element.querySelector(".sprite-wrap"), hitFrames,
+              {guard: () => token === battleToken && running, wait, speed: speedMultiplier}) : Promise.resolve()
+          ]);
+          target.element.classList.remove("is-hit");
+        });
         if (token !== battleToken || !running) return;
-        target.element.classList.remove("is-hit");
       }
     } else await battleWait(250);
     if (token !== battleToken || !running) return;
