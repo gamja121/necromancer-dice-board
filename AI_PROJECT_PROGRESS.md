@@ -1,5 +1,20 @@
 # AI 프로젝트 진행 상황 — 네크로멘서 앤드 다이스
 
+## 2026-09-29: 원정 세이브 시스템 2단계 — 실제 맵·집·제단·전투 결과 연결
+
+- 기준/rollback SHA: `7f54506a727f29c897cad436cf07f8f38b6a983b`.
+- 1단계의 `v2-run-state.js`를 실제 게임에 연결하기 위해 `v2-run-state-runtime.js`를 추가했다. IndexedDB의 active run을 불러오고, 없으면 기존 분산 저장을 백업·이행한 뒤 메모리 snapshot과 revision 기반 commit queue를 제공한다.
+- 맵은 시작 전에 RunState를 bootstrap하고 현재 위치, 맵 배치, 오염도, 세계수 사용 여부, 보유 마물, 주사위 카드, 낙인 카드, 직전 주사위/효과를 RunState에서 읽고 저장한다.
+- 기존 sessionStorage 값은 새 저장의 진실 원천이 아니라 RunState에서 생성되는 호환 projection으로 유지한다. 아직 전환되지 않은 코드가 같은 값을 읽을 수 있게 하기 위한 임시 출력이다.
+- 보물상자 낙인 카드는 `addAsync`로 저장 완료를 확인한 뒤 획득 처리한다.
+- 집의 마물→마물 계승은 donor 제거와 recipient 변경을 RunState roster에 저장한다. 독립 낙인 카드 적용은 **recipient 낙인 추가 + 낙인 카드 1장 소비를 하나의 RunState commit**으로 처리한다.
+- 제단 의식은 재물 영구 제거와 대상 공격력/최대HP/강화횟수 변경을 저장 성공 후 확정한다. 실패하면 화면 roster를 이전 정상본으로 되돌린다.
+- 맵 전투 종료 시 아군 HP/사망, 승리 오염도 -1, 처치 타일을 `battle-outcome:<encounterId>` operation으로 한 번만 반영한다. 같은 조우 결과가 재호출되어도 중복 감소·중복 처치가 발생하지 않는다.
+- 영혼 수확 마물 획득도 `capture-reward:<encounterId>` receipt를 사용해 같은 조우 보상이 중복 지급되지 않도록 했다.
+- 맵과 전투 HTML에서 RunState core/runtime을 선로드하고 서비스워커 캐시를 갱신했다.
+- 자동 검증: JS 문법 **79개 통과**, 전체 회귀 **30/30 통과**, Chromium browser smoke 통과. PR 검증 성공 기준이다.
+- 아직 남은 범위: 전투 **행동 중간 checkpoint/capture 선택 중단 복구**, 전투 RNG 직렬화, 완전한 브라우저 종료/재실행 한 바퀴 검증. 전투 중 이어하기는 기존 localStorage snapshot을 유지한다.
+
 ## 2026-09-29: 원정 세이브 시스템 1단계 — RunState 계약·legacy 이행 어댑터
 
 - 기준/rollback SHA: `24477d04634200752c37c2093ada24f378b745d9`.
