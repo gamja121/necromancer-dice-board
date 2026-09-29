@@ -230,6 +230,18 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 
 .fortune-prophecy-ui { position: absolute; z-index: 10; left: 50%; top: 50%; display: grid; place-items: center; width: 54%; height: 62%; transform: translate(-50%, -50%); pointer-events: none; animation: fortune-prophecy-in 260ms cubic-bezier(.18,.84,.25,1.08) both; }
 .fortune-prophecy-ui[hidden] { display: none; }
+
+.monster-shop-panel { position: absolute; z-index: 12; left: 50%; top: 50%; width: min(78%, 760px); min-height: 52%; padding: 2.2% 2.6%; transform: translate(-50%, -50%); border: 1px solid #73543a; border-radius: 8px; background: linear-gradient(180deg, rgba(35,22,15,.98), rgba(17,11,8,.98)); color: #ead9bb; box-shadow: 0 10px 26px #000d, inset 0 0 0 1px #c9a06a33; pointer-events: auto; }
+.monster-shop-panel[hidden] { display: none; }
+.monster-shop-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 1.5%; }
+.monster-shop-head strong { font: 1000 clamp(15px, 1.8vw, 26px)/1 Georgia, "Malgun Gothic", serif; color: #f1d3a2; }
+.monster-shop-head button { min-width: 70px; height: 32px; border: 1px solid #7f5a3c; border-radius: 4px; background: #3a2518; color: #f2d8ad; font-weight: 900; cursor: pointer; }
+.monster-shop-guide { margin: 0 0 2%; color: #cdb995; font-size: clamp(9px, 1vw, 13px); line-height: 1.4; }
+.monster-shop-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 2%; }
+.monster-shop-column { min-height: 150px; padding: 3%; border: 1px solid #5c432f; border-radius: 6px; background: #21150f; }
+.monster-shop-column h3 { margin: 0 0 8px; color: #e8c58f; font-size: clamp(11px, 1.2vw, 16px); }
+.monster-shop-placeholder { display: grid; place-items: center; min-height: 110px; border: 1px dashed #6e5038; border-radius: 5px; color: #9f8b72; font-size: clamp(9px, .95vw, 12px); text-align: center; }
+
 .fortune-prophecy-ui::before { content: ""; position: absolute; width: 58%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(154,85,218,.38), rgba(91,41,150,.12) 48%, transparent 70%); filter: blur(10px); }
 .fortune-prophecy-ui img { position: relative; z-index: 1; display: block; width: min(62%, 240px); max-height: 90%; object-fit: contain; image-rendering: auto; filter: drop-shadow(0 12px 14px #000c) drop-shadow(0 0 12px #9b63d288); }
 @keyframes fortune-prophecy-in {
@@ -241,9 +253,9 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .tile-event-enter { position: absolute; right: 1%; bottom: 29%; width: 18%; min-width: 66px; min-height: 36px; aspect-ratio: 2.7; padding: 0 8px; border: 0; background: url("art/v2-style/map-test/events/enter-parchment.png") center / 100% 100% no-repeat; color: #49301d; font-size: clamp(12px, 1.5vw, 20px); font-weight: 900; text-shadow: 0 1px #fff7df; cursor: pointer; filter: drop-shadow(0 5px 5px #0009); pointer-events: auto; }
 .tile-event-enter[hidden] { display: none; }
 .tile-event-enter:hover { filter: brightness(1.15); }
-.tile-event-heal, .tile-event-pray, .tile-event-ritual, .tile-event-prophecy { position: absolute; right: 1%; bottom: 29%; width: 18%; min-width: 66px; min-height: 36px; aspect-ratio: 2.7; padding: 0 8px; border: 0; background: url("art/v2-style/map-test/events/enter-parchment.png") center / 100% 100% no-repeat; color: #49301d; font-size: clamp(12px, 1.5vw, 20px); font-weight: 900; text-shadow: 0 1px #fff7df; cursor: pointer; filter: drop-shadow(0 5px 5px #0009); pointer-events: auto; }
-.tile-event-heal[hidden], .tile-event-pray[hidden], .tile-event-ritual[hidden], .tile-event-prophecy[hidden] { display: none; }
-.tile-event-heal:hover, .tile-event-pray:hover, .tile-event-ritual:hover, .tile-event-prophecy:hover { filter: brightness(1.15); }
+.tile-event-heal, .tile-event-pray, .tile-event-ritual, .tile-event-prophecy, .tile-event-monster-shop { position: absolute; right: 1%; bottom: 29%; width: 18%; min-width: 66px; min-height: 36px; aspect-ratio: 2.7; padding: 0 8px; border: 0; background: url("art/v2-style/map-test/events/enter-parchment.png") center / 100% 100% no-repeat; color: #49301d; font-size: clamp(12px, 1.5vw, 20px); font-weight: 900; text-shadow: 0 1px #fff7df; cursor: pointer; filter: drop-shadow(0 5px 5px #0009); pointer-events: auto; }
+.tile-event-heal[hidden], .tile-event-pray[hidden], .tile-event-ritual[hidden], .tile-event-prophecy[hidden], .tile-event-monster-shop[hidden] { display: none; }
+.tile-event-heal:hover, .tile-event-pray:hover, .tile-event-ritual:hover, .tile-event-prophecy:hover, .tile-event-monster-shop:hover { filter: brightness(1.15); }
 .tile-event-exit:focus-visible, .tile-event-enter:focus-visible, .tile-event-heal:focus-visible, .tile-event-pray:focus-visible, .tile-event-ritual:focus-visible, .tile-event-prophecy:focus-visible { outline: 2px solid #ffd77e; outline-offset: 2px; }
 .tile-event-prayer-result { position: absolute; z-index: 6; left: 50%; top: 18%; min-width: 28%; padding: 2.2% 4%; transform: translateX(-50%); border: 2px solid #4a3421; border-radius: 4px; background: rgba(225, 199, 151, .94); color: #3b291d; font: 1000 clamp(20px, 3.1vw, 42px)/1 Georgia, "Malgun Gothic", serif; text-align: center; text-shadow: 0 1px #fff2d2; box-shadow: 0 7px 14px #0008, inset 0 0 0 1px #f4deb6; pointer-events: none; }
 .tile-event-prayer-result[hidden] { display: none; }
