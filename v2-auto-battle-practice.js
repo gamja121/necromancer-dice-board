@@ -481,7 +481,7 @@
       try { localStorage.setItem(BATTLE_SAVE_KEY, JSON.stringify(checkpoint)); }
       catch(error) { console.warn('전투 저장 실패',error); message.textContent += ' · 저장 실패'; }
     }
-    if (phase !== "complete" && fromMap && globalThis.V2RunStateRuntime?.available) {
+    if (phase !== "complete" && phase !== "capture-complete" && fromMap && globalThis.V2RunStateRuntime?.available) {
       V2RunStateRuntime.setBattleCheckpoint(checkpoint, `battle-${phase}`);
     }
     return checkpoint;
@@ -507,7 +507,10 @@
       for(const u of units){revealUnit(u);if(!u.alive)u.image.src=frame(u,'death',u.frames.death);}
       updateHud();speedButton.disabled=false;
       document.getElementById('resumeBattleButton').hidden = true;
-      if (saved.phase?.startsWith("capture-")) {
+      if (saved.phase === "capture-complete") {
+        running = false;
+        await returnToMap();
+      } else if (saved.phase?.startsWith("capture-")) {
         running = false;
         pauseButton.disabled = true;
         speedButton.disabled = true;
@@ -1866,6 +1869,7 @@
       return false;
     }
     captureStatus.textContent = captureSummary(selectedCorpse, captureOutcome.keptReward ? "획득 완료" : "신규 카드 버림");
+    saveBattle("capture-complete");
     selectedCorpse.element?.classList.remove("is-capture-selected");
     battlefield.classList.remove("is-capture-rolling");
     diceRolling = false;
