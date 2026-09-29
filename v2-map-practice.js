@@ -104,6 +104,9 @@
     contaminationFill: document.getElementById("contaminationFill"),
     contaminationStage: document.getElementById("contaminationStage"),
     contaminationValue: document.getElementById("contaminationValue"),
+    contaminationTest: document.getElementById("contaminationTestControl"),
+    contaminationTestSlider: document.getElementById("contaminationTestSlider"),
+    contaminationTestValue: document.getElementById("contaminationTestValue"),
     eventOverlay: document.getElementById("tileEventOverlay"),
     eventScene: document.querySelector(".tile-event-scene"),
     eventImage: document.getElementById("tileEventImage"),
@@ -306,22 +309,33 @@
     return CONTAMINATION_STAGES[0];
   }
 
-  function renderContamination() {
-    const stage = contaminationStage();
-    const percent = (contamination / CONTAMINATION_MAX) * 100;
+  function renderContaminationVisual(value, preview = false) {
+    const visualValue = Math.max(0, Math.min(CONTAMINATION_MAX, Math.round(Number(value) || 0)));
+    const stage = contaminationStage(visualValue);
+    const percent = (visualValue / CONTAMINATION_MAX) * 100;
     if (el.contaminationFill) el.contaminationFill.style.width = `${percent}%`;
     if (el.contaminationStage) el.contaminationStage.textContent = stage.label;
-    if (el.contaminationValue) el.contaminationValue.textContent = `${contamination} / ${CONTAMINATION_MAX}`;
+    if (el.contaminationValue) el.contaminationValue.textContent = `${visualValue} / ${CONTAMINATION_MAX}${preview ? " · 테스트" : ""}`;
     if (el.contaminationHud) el.contaminationHud.dataset.stage = stage.id;
     if (el.board) {
-      const normalized = contamination / CONTAMINATION_MAX;
-      const crackOpacity = Math.min(.62, Math.max(0, (contamination - 25) / 75 * .62));
-      const fogOpacity = Math.min(.72, Math.max(0, (contamination - 45) / 55 * .72));
+      const normalized = visualValue / CONTAMINATION_MAX;
+      const crackOpacity = Math.min(.62, Math.max(0, (visualValue - 25) / 75 * .62));
+      const fogOpacity = Math.min(.72, Math.max(0, (visualValue - 45) / 55 * .72));
       el.board.style.setProperty("--corruption-tint-opacity", String(normalized * .72));
       el.board.style.setProperty("--corruption-crack-opacity", String(crackOpacity));
       el.board.style.setProperty("--corruption-fog-opacity", String(fogOpacity));
       el.board.dataset.corruptionStage = stage.id;
     }
+    if (el.contaminationTestSlider && !preview) el.contaminationTestSlider.value = String(visualValue);
+    if (el.contaminationTestValue) el.contaminationTestValue.textContent = preview ? `미리보기 ${visualValue}` : `실제 ${visualValue}`;
+    document.querySelectorAll("[data-contamination-preview]").forEach((button) => {
+      const requested = button.dataset.contaminationPreview;
+      button.classList.toggle("is-active", preview ? requested === String(visualValue) : requested === "actual");
+    });
+  }
+
+  function renderContamination() {
+    renderContaminationVisual(contamination, false);
   }
 
   function setContamination(value) {
@@ -2047,6 +2061,24 @@
   });
 
   renderContamination();
+
+  if (el.contaminationTestSlider) {
+    el.contaminationTestSlider.addEventListener("input", () => {
+      renderContaminationVisual(el.contaminationTestSlider.value, true);
+    });
+  }
+  document.querySelectorAll("[data-contamination-preview]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const requested = button.dataset.contaminationPreview;
+      if (requested === "actual") {
+        renderContamination();
+        return;
+      }
+      const previewValue = Number(requested);
+      if (el.contaminationTestSlider) el.contaminationTestSlider.value = String(previewValue);
+      renderContaminationVisual(previewValue, true);
+    });
+  });
 
   el.diceButton.addEventListener("click", rollAndMove);
   el.eventClose.addEventListener("click", handleTileEventExit);
