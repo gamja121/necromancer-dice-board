@@ -58,6 +58,7 @@ saved[0].brands.push(V2Rules.brand("poison"), V2Rules.brand("guard"));
 saved[2].brands.push(V2Rules.brand("poison"), V2Rules.brand("guard"));
 const donorBrands = JSON.stringify(saved[0].brands);
 const recipientBrands = JSON.stringify(saved[1].brands);
+const expectedBrandCardCount = saved.reduce((total, unit) => total + unit.brands.length, 0);
 let stored = JSON.stringify(saved);
 let rosterEvent;
 const randomValues = [.4, .2];
@@ -78,7 +79,7 @@ const globals = {
 };
 vm.runInNewContext(source, globals);
 globals.window.V2HomeInheritance.open();
-if (overlay.hidden || !overlay.classList.contains("is-open") || cards.children.length !== saved.length || brandCards.children.length !== 4 || !closeButton.focused) throw Error("Opening inheritance must reveal owned monsters and fan owned brand cards from the left pile");
+if (overlay.hidden || !overlay.classList.contains("is-open") || cards.children.length !== saved.length || brandCards.children.length !== expectedBrandCardCount || !closeButton.focused) throw Error("Opening inheritance must reveal owned monsters and fan owned brand cards from the left pile");
 const donorInstanceId = cards.children[0].dataset.instanceId;
 const recipientInstanceId = cards.children[1].dataset.instanceId;
 if (!donorInstanceId || !recipientInstanceId || donorInstanceId === recipientInstanceId) throw Error("Inheritance cards must keep distinct instance ids");
