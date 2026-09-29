@@ -15,8 +15,8 @@ for (const file of assets) {
   if (!worker.includes(file)) throw Error("Altar ritual asset is not cached: " + file);
 }
 if (!html.includes("v2-altar-ritual.css?v=3")) throw Error("Altar ritual CSS is not linked");
-if (!html.includes("v2-altar-ritual.js?v=3")) throw Error("Altar ritual JS is not linked");
-if (!js.includes('OWNED_ROSTER_KEY = "necromancer-map-roster-v2"')) throw Error("Ritual must use current roster storage");
+if (!html.includes("v2-altar-ritual.js?v=4")) throw Error("Altar ritual JS is not linked");
+if (!js.includes('V2RunStateRuntime?.snapshot') || !js.includes('V2RunStateRuntime.replaceOwnedMonsters')) throw Error("Ritual must read and atomically persist the current RunState roster");
 if (!js.includes('document.getElementById("mapBoard")?.append(overlay)')) throw Error("Ritual overlay must mount inside mapBoard");
 if (!js.includes('class="altar-ritual-cards map-deck-roster"')) throw Error("Ritual cards must reuse the map/home roster footprint");
 if (!js.includes("roster.delete(donorInstanceId)")) throw Error("Sacrifice must permanently remove donor");

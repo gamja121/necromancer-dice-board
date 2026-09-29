@@ -36,8 +36,10 @@
 
   function loadOwnedUnits() {
     if (ownedUnits) return ownedUnits;
-    let saved;
-    try { if (typeof sessionStorage !== "undefined") saved = JSON.parse(sessionStorage.getItem(OWNED_ROSTER_KEY)); } catch (_) {}
+    let saved = globalThis.V2RunStateRuntime?.snapshot?.()?.ownedMonsters;
+    if (!Array.isArray(saved)) {
+      try { if (typeof sessionStorage !== "undefined") saved = JSON.parse(sessionStorage.getItem(OWNED_ROSTER_KEY)); } catch (_) {}
+    }
     const valid = Array.isArray(saved) && saved.length <= 100 && saved.every((unit) =>
       SLUGS.includes(unit?.slug) && Number.isFinite(unit.maxHp) && Number.isFinite(unit.attack) &&
       Number.isFinite(unit.speed) && Array.isArray(unit.brands) && unit.brands.length <= 3 &&
@@ -52,14 +54,21 @@
       copy.currentHp = Math.max(0, Math.min(copy.maxHp, Number.isFinite(copy.currentHp) ? copy.currentHp : copy.maxHp));
       return copy;
     });
-    try { if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify(roster)); } catch (_) {}
+    if (!globalThis.V2RunStateRuntime?.available) {
+      try { if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify(roster)); } catch (_) {}
+    }
     ownedUnits = new Map(roster.map((unit) => [unit.instanceId, unit]));
     return ownedUnits;
   }
 
-  function saveOwnedUnits() {
+  async function saveOwnedUnits(prefix = "home-inheritance") {
+    const roster = [...loadOwnedUnits().values()].map((unit) => JSON.parse(JSON.stringify(unit)));
+    if (globalThis.V2RunStateRuntime?.available) {
+      const result = await V2RunStateRuntime.replaceOwnedMonsters(roster, prefix);
+      return Boolean(result?.ok);
+    }
     try {
-      if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify([...loadOwnedUnits().values()]));
+      if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify(roster));
       return true;
     } catch (_) { return false; }
   }
@@ -239,8 +248,10 @@
     brandCards.setAttribute("aria-label", inventory.length ? `보유 낙인 카드 ${inventory.length}장` : "보유 낙인 카드 없음");
   }
 
-  function open() {
+  async function open() {
     if (!overlay) return;
+    if (globalThis.V2RunStateRuntime?.available) await V2RunStateRuntime.flush();
+    ownedUnits = null;
     materialInstanceId = null;
     resultInstanceId = null;
     selectedBrandCardId = null;
@@ -285,7 +296,7 @@
     renderSelection();
   }
 
-  function inherit() {
+  async function inherit() {
     const owned = loadOwnedUnits();
     const result = owned.get(resultInstanceId);
     const sourceCard = selectedBrandCard();
@@ -294,16 +305,21 @@
       if (!result || result.brands.length >= 3 || !V2Rules.validateBrand(sourceCard.brand)) return;
       const applied = JSON.parse(JSON.stringify(sourceCard.brand));
       result.brands.push(applied);
-      if (!saveOwnedUnits()) {
+      const nextBrandCards = V2BrandCards.load().filter((card) => card.id !== sourceCard.id);
+      let saved = false;
+      if (globalThis.V2RunStateRuntime?.available) {
+        const write = await V2RunStateRuntime.atomicRosterAndBrands(
+          [...owned.values()],
+          nextBrandCards,
+          "brand-card-inheritance"
+        );
+        saved = Boolean(write?.ok);
+      } else {
+        saved = await saveOwnedUnits("brand-card-inheritance") && V2BrandCards.remove(sourceCard.id);
+      }
+      if (!saved) {
         result.brands.pop();
         notice = "낙인 카드 적용 저장에 실패했습니다";
-        renderSelection();
-        return;
-      }
-      if (!V2BrandCards.remove(sourceCard.id)) {
-        result.brands.pop();
-        saveOwnedUnits();
-        notice = "낙인 카드 소비 저장에 실패했습니다";
         renderSelection();
         return;
       }
@@ -323,11 +339,20 @@
     if (!material || !result || !material.brands.length || result.brands.length >= 3) return;
     const randomIndex = Math.floor(Math.random() * material.brands.length);
     const part = V2Rules.inheritancePart(material.brands[randomIndex], Math.random);
+    const backupRoster = [...owned.values()].map((unit) => JSON.parse(JSON.stringify(unit)));
     V2Rules.inherit(result, material, randomIndex, part);
     inheritedBrand = result.brands[result.brands.length - 1];
     inheritedPart = part;
     owned.delete(materialInstanceId);
-    if (!saveOwnedUnits()) return;
+    if (!(await saveOwnedUnits("monster-inheritance"))) {
+      ownedUnits = new Map(backupRoster.map((unit) => [unit.instanceId, unit]));
+      inheritedBrand = null;
+      inheritedPart = null;
+      notice = "계승 저장에 실패했습니다";
+      renderCards();
+      renderSelection();
+      return;
+    }
     const donorInstanceId = materialInstanceId;
     materialInstanceId = null;
     completed = true;

@@ -1,4 +1,4 @@
-(() => {
+(async () => {
   "use strict";
 
   const ROOT = "art/v2-style/map-test/";
@@ -162,6 +162,21 @@
   const requestedResumeStep = Number(mapQuery.get("resume"));
   let resumeHeroIndex = Number.isInteger(requestedResumeStep) && requestedResumeStep >= 1 && requestedResumeStep <= 24 ? requestedResumeStep - 1 : null;
   let activeMapId = maps[requestedMapId] ? requestedMapId : "default";
+  if (globalThis.V2RunStateRuntime?.available) {
+    await V2RunStateRuntime.bootstrap();
+    const starterUnits = STARTING_UNIT_SLUGS.map((slug) => normalizeOwnedUnit(V2Rules.individual(slug)));
+    const starterPool = V2DiceControl.cards.filter((card) => !STARTING_DICE_EXCLUDED_IDS.has(card.id));
+    const starterCard = starterPool[Math.floor(Math.random() * Math.max(1, starterPool.length))];
+    await V2RunStateRuntime.ensureFreshDefaults({
+      ownedMonsters: starterUnits,
+      diceCardIds: starterCard ? [starterCard.id] : [],
+      regionId: activeMapId,
+      heroIndex: HOME_INDEX
+    });
+    const restoredRun = V2RunStateRuntime.snapshot();
+    if (restoredRun?.currentMap?.regionId && maps[restoredRun.currentMap.regionId]) activeMapId = restoredRun.currentMap.regionId;
+    if (resumeHeroIndex === null && Number.isInteger(restoredRun?.currentMap?.heroIndex)) resumeHeroIndex = restoredRun.currentMap.heroIndex;
+  }
   let enteringBattle = false;
   let eventOpen = false;
   let activeEventTileId = null;
@@ -223,10 +238,15 @@
     return normalized;
   }
 
-  function saveOwnedRoster() {
-    try {
-      if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify([...ownedUnits.values()]));
-    } catch (_) { /* Keep the current run usable without storage. */ }
+  function saveOwnedRoster(prefix = "map-roster") {
+    const roster = [...ownedUnits.values()].map((unit) => JSON.parse(JSON.stringify(unit)));
+    if (globalThis.V2RunStateRuntime?.available) {
+      V2RunStateRuntime.replaceOwnedMonsters(roster, prefix);
+    } else {
+      try {
+        if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify(roster));
+      } catch (_) { /* Keep the current run usable without storage. */ }
+    }
     renderInventoryCounts();
   }
 
@@ -247,6 +267,8 @@
   }
 
   function loadContamination() {
+    const runValue = globalThis.V2RunStateRuntime?.snapshot?.()?.contamination;
+    if (Number.isFinite(runValue)) return Math.max(0, Math.min(CONTAMINATION_MAX, runValue));
     try {
       if (typeof sessionStorage !== "undefined") {
         const saved = Number(sessionStorage.getItem(CONTAMINATION_KEY));
@@ -274,9 +296,13 @@
 
   function setContamination(value) {
     contamination = Math.max(0, Math.min(CONTAMINATION_MAX, Math.round(Number(value) || 0)));
-    try {
-      if (typeof sessionStorage !== "undefined") sessionStorage.setItem(CONTAMINATION_KEY, String(contamination));
-    } catch (_) { /* Keep the live run usable without storage. */ }
+    if (globalThis.V2RunStateRuntime?.available) {
+      V2RunStateRuntime.setContamination(contamination, "map-contamination");
+    } else {
+      try {
+        if (typeof sessionStorage !== "undefined") sessionStorage.setItem(CONTAMINATION_KEY, String(contamination));
+      } catch (_) { /* Keep the live run usable without storage. */ }
+    }
     renderContamination();
     return contamination;
   }
@@ -297,8 +323,10 @@
   }
 
   function loadOwnedRoster() {
-    let saved;
-    try { if (typeof sessionStorage !== "undefined") saved = JSON.parse(sessionStorage.getItem(OWNED_ROSTER_KEY)); } catch (_) { /* Private browsing can block storage. */ }
+    let saved = globalThis.V2RunStateRuntime?.snapshot?.()?.ownedMonsters;
+    if (!Array.isArray(saved)) {
+      try { if (typeof sessionStorage !== "undefined") saved = JSON.parse(sessionStorage.getItem(OWNED_ROSTER_KEY)); } catch (_) { /* Private browsing can block storage. */ }
+    }
     const valid = Array.isArray(saved) && saved.length <= 100 && saved.every((unit) =>
       TEST_DECK.some((entry) => entry.slug === unit?.slug) && Number.isFinite(unit.maxHp) &&
       Number.isFinite(unit.attack) && Number.isFinite(unit.speed) && Array.isArray(unit.brands) &&
@@ -311,15 +339,20 @@
       usedIds.add(normalized.instanceId);
       return normalized;
     });
-    try { if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify(roster)); } catch (_) { /* The current map still works without storage. */ }
+    if (globalThis.V2RunStateRuntime?.available) V2RunStateRuntime.replaceOwnedMonsters(roster, "map-roster-normalize");
+    else {
+      try { if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify(roster)); } catch (_) { /* The current map still works without storage. */ }
+    }
     return new Map(roster.map((unit) => [unit.instanceId, unit]));
   }
 
-  function syncInventoryStateFromStorage() {
+  async function syncInventoryStateFromStorage() {
     try {
-      if (typeof sessionStorage === "undefined") return;
-
-      const savedRoster = JSON.parse(sessionStorage.getItem(OWNED_ROSTER_KEY));
+      if (globalThis.V2RunStateRuntime?.available) await V2RunStateRuntime.flush();
+      const run = globalThis.V2RunStateRuntime?.snapshot?.();
+      const savedRoster = Array.isArray(run?.ownedMonsters)
+        ? run.ownedMonsters
+        : (typeof sessionStorage !== "undefined" ? JSON.parse(sessionStorage.getItem(OWNED_ROSTER_KEY)) : null);
       if (Array.isArray(savedRoster)) {
         const refreshed = savedRoster
           .filter((unit) => TEST_DECK.some((entry) => entry.slug === unit?.slug))
@@ -330,7 +363,9 @@
         selectedDeck = selectedDeck.filter((instanceId) => refreshedIds.has(instanceId));
       }
 
-      const savedDice = JSON.parse(sessionStorage.getItem(DICE_CONTROL_INVENTORY_KEY));
+      const savedDice = Array.isArray(run?.diceCards)
+        ? run.diceCards.map((card) => card.cardId)
+        : (typeof sessionStorage !== "undefined" ? JSON.parse(sessionStorage.getItem(DICE_CONTROL_INVENTORY_KEY)) : null);
       if (Array.isArray(savedDice) && savedDice.every((id) => V2DiceControl.cards.some((card) => card.id === id))) {
         diceControlHand = savedDice.slice(0, DICE_CONTROL_CAPACITY)
           .map((id) => V2DiceControl.cards.find((card) => card.id === id))
@@ -414,8 +449,10 @@
   function loadSavedMapLayout() {
     if (resumeHeroIndex === null) return null;
     try {
-      sessionStorage.removeItem(LEGACY_MAP_LAYOUT_KEY);
-      const ids = JSON.parse(sessionStorage.getItem(MAP_LAYOUT_KEY));
+      const runTiles = globalThis.V2RunStateRuntime?.snapshot?.()?.currentMap?.tiles;
+      const ids = Array.isArray(runTiles) && runTiles.length === 24
+        ? runTiles.map((tile) => tile.typeId)
+        : JSON.parse(sessionStorage.getItem(MAP_LAYOUT_KEY));
       if (!Array.isArray(ids) || ids.length !== 24) {
         sessionStorage.removeItem(MAP_LAYOUT_KEY);
         return null;
@@ -435,15 +472,31 @@
     }
   }
 
-  function saveMapLayout(tiles = currentTiles) {
+  function saveMapLayout(tiles = currentTiles, prefix = "map-layout") {
+    const ids = tiles.map((tile) => tile.id);
+    if (globalThis.V2RunStateRuntime?.available) {
+      return V2RunStateRuntime.setMapLayout(ids, {
+        prefix,
+        regionId: activeMapId,
+        heroIndex,
+        lapReadyForRefresh,
+        worldTreePrayed
+      });
+    }
     try {
-      if (typeof sessionStorage !== "undefined") sessionStorage.setItem(MAP_LAYOUT_KEY, JSON.stringify(tiles.map((tile) => tile.id)));
+      if (typeof sessionStorage !== "undefined") sessionStorage.setItem(MAP_LAYOUT_KEY, JSON.stringify(ids));
     } catch (_) { /* Keep the live map usable without storage. */ }
+    return Promise.resolve({ ok: true });
   }
 
   function loadClearedMonsterSteps() {
     try {
-      const saved = JSON.parse(sessionStorage.getItem(MAP_CLEARED_MONSTER_KEY));
+      const run = globalThis.V2RunStateRuntime?.snapshot?.();
+      const runTiles = run?.currentMap?.tiles || [];
+      const cleared = new Set(run?.clearedTiles || []);
+      const saved = runTiles.length === 24
+        ? runTiles.map((tile, index) => cleared.has(tile.tileInstanceId) ? index + 1 : null).filter(Boolean)
+        : JSON.parse(sessionStorage.getItem(MAP_CLEARED_MONSTER_KEY));
       clearedMonsterSteps = new Set(
         Array.isArray(saved)
           ? saved.filter((step) => Number.isInteger(step) && step >= 1 && step <= 24)
@@ -456,12 +509,20 @@
 
   function resetClearedMonsterSteps() {
     clearedMonsterSteps = new Set();
-    try {
-      if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(MAP_CLEARED_MONSTER_KEY);
-    } catch (_) { /* A fresh map still works without storage. */ }
+    if (globalThis.V2RunStateRuntime?.available) V2RunStateRuntime.setClearedSteps([], "map-clear-reset");
+    else {
+      try {
+        if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(MAP_CLEARED_MONSTER_KEY);
+      } catch (_) { /* A fresh map still works without storage. */ }
+    }
   }
 
   function loadWorldTreePrayer() {
+    const runValue = globalThis.V2RunStateRuntime?.snapshot?.()?.currentMap?.worldTreePrayed;
+    if (typeof runValue === "boolean") {
+      worldTreePrayed = runValue;
+      return;
+    }
     try {
       worldTreePrayed = typeof sessionStorage !== "undefined" && sessionStorage.getItem(WORLD_TREE_PRAYER_KEY) === "1";
     } catch (_) {
@@ -478,9 +539,12 @@
 
   function markWorldTreePrayed() {
     worldTreePrayed = true;
-    try {
-      if (typeof sessionStorage !== "undefined") sessionStorage.setItem(WORLD_TREE_PRAYER_KEY, "1");
-    } catch (_) { /* Prayer still works without storage persistence. */ }
+    if (globalThis.V2RunStateRuntime?.available) V2RunStateRuntime.setMapProgress({ worldTreePrayed: true, prefix: "world-tree-prayed" });
+    else {
+      try {
+        if (typeof sessionStorage !== "undefined") sessionStorage.setItem(WORLD_TREE_PRAYER_KEY, "1");
+      } catch (_) { /* Prayer still works without storage persistence. */ }
+    }
   }
 
   function isMonsterBattleTile(tile) {
@@ -605,12 +669,14 @@
     return { previousRoll: previousDiceRoll, previousCardId: previousDiceControlId };
   }
 
-  function saveDiceControlInventory() {
-    try {
-      if (typeof sessionStorage !== "undefined") {
-        sessionStorage.setItem(DICE_CONTROL_INVENTORY_KEY, JSON.stringify(diceControlHand.map((card) => card.id)));
-      }
-    } catch (_) { /* Keep the current run usable without storage. */ }
+  function saveDiceControlInventory(prefix = "dice-inventory") {
+    const ids = diceControlHand.map((card) => card.id);
+    if (globalThis.V2RunStateRuntime?.available) V2RunStateRuntime.replaceDiceCards(ids, prefix);
+    else {
+      try {
+        if (typeof sessionStorage !== "undefined") sessionStorage.setItem(DICE_CONTROL_INVENTORY_KEY, JSON.stringify(ids));
+      } catch (_) { /* Keep the current run usable without storage. */ }
+    }
     renderInventoryCounts();
   }
 
@@ -626,20 +692,25 @@
 
   function loadDiceControlInventory() {
     let saved;
-    try {
-      if (typeof sessionStorage !== "undefined") saved = JSON.parse(sessionStorage.getItem(DICE_CONTROL_INVENTORY_KEY));
-    } catch (_) { /* Storage can be unavailable. */ }
+    const runCards = globalThis.V2RunStateRuntime?.snapshot?.()?.diceCards;
+    if (Array.isArray(runCards)) saved = runCards.map((card) => card.cardId);
+    else {
+      try {
+        if (typeof sessionStorage !== "undefined") saved = JSON.parse(sessionStorage.getItem(DICE_CONTROL_INVENTORY_KEY));
+      } catch (_) { /* Storage can be unavailable. */ }
+    }
     if (Array.isArray(saved) && saved.every((id) => V2DiceControl.cards.some((card) => card.id === id))) {
       return saved.map((id) => V2DiceControl.cards.find((card) => card.id === id)).filter(Boolean);
     }
     const startingPool = V2DiceControl.cards.filter((card) => !STARTING_DICE_EXCLUDED_IDS.has(card.id));
     const startingCard = startingPool[Math.floor(Math.random() * startingPool.length)];
     const inventory = startingCard ? [startingCard] : [];
-    try {
-      if (typeof sessionStorage !== "undefined") {
-        sessionStorage.setItem(DICE_CONTROL_INVENTORY_KEY, JSON.stringify(inventory.map((card) => card.id)));
-      }
-    } catch (_) { /* Keep the current run usable without storage. */ }
+    if (globalThis.V2RunStateRuntime?.available) V2RunStateRuntime.replaceDiceCards(inventory.map((card) => card.id), "dice-inventory-default");
+    else {
+      try {
+        if (typeof sessionStorage !== "undefined") sessionStorage.setItem(DICE_CONTROL_INVENTORY_KEY, JSON.stringify(inventory.map((card) => card.id)));
+      } catch (_) { /* Keep the current run usable without storage. */ }
+    }
     return inventory;
   }
 
@@ -1007,12 +1078,24 @@
     bookAnimating = false;
   }
 
-  function confirmMonsterBattle() {
+  async function confirmMonsterBattle() {
     if (selectedDeck.length < 1 || selectedDeck.length > 4) return;
     el.deckConfirm.disabled = true;
     el.deckStatus.textContent = "전장으로 이동 중…";
     const encounterId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-    saveMapLayout();
+    await saveMapLayout(currentTiles, "battle-entry-map");
+    if (globalThis.V2RunStateRuntime?.available) {
+      await V2RunStateRuntime.setMapProgress({
+        heroIndex,
+        lapReadyForRefresh,
+        worldTreePrayed,
+        previousRoll: previousDiceRoll,
+        previousEffectiveCardId: previousDiceControlId,
+        pendingCardInstanceId: null,
+        prefix: "battle-entry-progress"
+      });
+      await V2RunStateRuntime.flush();
+    }
     const selectedUnits = selectedDeck.map((instanceId) => ownedUnits.get(instanceId)).filter(Boolean);
     const params = new URLSearchParams({
       from: "map",
@@ -1129,8 +1212,9 @@
     return new Promise((resolve) => {
       const type = reward.type;
       if (type === "brand") {
-        const acquired = V2BrandCards.add(reward.brandCard);
-        resolve({ acquired: Boolean(acquired), keptReward: Boolean(acquired) });
+        V2BrandCards.addAsync(reward.brandCard).then((acquired) => {
+          resolve({ acquired: Boolean(acquired), keptReward: Boolean(acquired) });
+        });
         return;
       }
       const isUnit = type === "unit";
@@ -1444,6 +1528,17 @@
     placeHero(true);
     selectTile(currentButtons[heroIndex], currentTiles[heroIndex], heroIndex + 1);
     el.diceResult.textContent = `${heroIndex + 1}번 워프로 이동 완료`;
+    if (globalThis.V2RunStateRuntime?.available) {
+      await V2RunStateRuntime.setMapProgress({
+        heroIndex,
+        lapReadyForRefresh,
+        worldTreePrayed,
+        previousRoll: previousDiceRoll,
+        previousEffectiveCardId: previousDiceControlId,
+        pendingCardInstanceId: null,
+        prefix: "map-warp"
+      });
+    }
     await wait(420);
     return true;
   }
@@ -1593,11 +1688,23 @@
       return button;
     });
     el.ring.replaceChildren(...currentButtons);
+    saveMapLayout(pool, restoredPool ? "map-layout-restore" : "map-layout-generate");
     const startingIndex = resumeHeroIndex === null ? HOME_INDEX : resumeHeroIndex;
     resumeHeroIndex = null;
     heroIndex = startingIndex;
     placeHero();
     selectTile(currentButtons[heroIndex], currentTiles[heroIndex], heroIndex + 1);
+    if (globalThis.V2RunStateRuntime?.available) {
+      V2RunStateRuntime.setMapProgress({
+        heroIndex,
+        lapReadyForRefresh,
+        worldTreePrayed,
+        previousRoll: previousDiceRoll,
+        previousEffectiveCardId: previousDiceControlId,
+        pendingCardInstanceId: null,
+        prefix: restoredPool ? "map-resume" : "map-start"
+      });
+    }
     el.diceResult.textContent = "주사위 굴리기";
     resetMapDicePosition();
   }
@@ -1847,6 +1954,17 @@
     el.diceResult.textContent = reachedHome
       ? `${result}${controlText} · 집 도착 (${stepsMoved}칸 이동)`
       : `${result}${controlText} · 이동 완료`;
+    if (globalThis.V2RunStateRuntime?.available) {
+      await V2RunStateRuntime.setMapProgress({
+        heroIndex,
+        lapReadyForRefresh,
+        worldTreePrayed,
+        previousRoll: previousDiceRoll,
+        previousEffectiveCardId: previousDiceControlId,
+        pendingCardInstanceId: null,
+        prefix: "map-move"
+      });
+    }
     if (isMonsterBattleTile(currentTiles[heroIndex])) {
       const landedStep = heroIndex + 1;
       if (isMonsterTileCleared(landedStep)) {
@@ -1899,8 +2017,11 @@
   el.eventEnter.addEventListener("click", enterHome);
   el.eventHeal.addEventListener("click", healAtRestTile);
   el.eventPray.addEventListener("click", prayAtWorldTree);
-  el.eventInheritance.addEventListener("click", () => {
-    if (eventOpen && activeEventTileId === "home") V2HomeInheritance.open();
+  el.eventInheritance.addEventListener("click", async () => {
+    if (eventOpen && activeEventTileId === "home") {
+      if (globalThis.V2RunStateRuntime?.available) await V2RunStateRuntime.flush();
+      await V2HomeInheritance.open();
+    }
   });
   window.addEventListener("v2-roster-changed", (event) => {
     if (event.detail.donorInstanceId) ownedUnits.delete(event.detail.donorInstanceId);
@@ -1916,7 +2037,7 @@
   el.infoClose.addEventListener("click", closeBookUnitInfo);
   el.infoBackdrop.addEventListener("click", closeBookUnitInfo);
   window.addEventListener("resize", () => { if (eventOpen) fitTileEventScene(); });
-  window.addEventListener("pageshow", () => syncInventoryStateFromStorage());
+  window.addEventListener("pageshow", () => { syncInventoryStateFromStorage(); });
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible" && !rolling && !enteringBattle) syncInventoryStateFromStorage();
   });

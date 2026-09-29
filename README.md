@@ -14,7 +14,7 @@
 
 로컬 서버: `node scripts/v2-dev-server.js` → http://localhost:8788/
 
-현재 원정은 브라우저 탭의 sessionStorage, 전투 이어하기는 localStorage를 사용합니다. 완전한 원정 영구 저장은 별도 개발 항목입니다.
+현재 원정의 맵·오염도·보유 마물·주사위/낙인 카드·집 계승·제단 결과·전투 종료 결과는 IndexedDB 기반 RunState에 저장합니다. 기존 sessionStorage 키는 전환 호환용 사본으로 유지하며, 전투 도중 행동 단위 이어하기는 아직 기존 localStorage 전투 스냅샷을 사용합니다.
 
 ## 현재 구현과 남은 작업
 
