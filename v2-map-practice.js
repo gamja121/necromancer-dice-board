@@ -206,14 +206,23 @@
     ...Object.values(fixedTiles).map((tile) => tile.id),
     "monster-cleared", "rare-monster-cleared", "boss-cleared"
   ];
-  [
+  const mapRuntimeAssets = [
     ...rollingFrames,
     ...resultFrames,
     ...treasureChestFrames,
+    ...Object.values(maps).map((map) => map.image),
     ...Object.values(tileEventScenes).map((scene) => scene.image).filter(Boolean),
     `${ROOT}events/home-interior.jpg?v=${EVENT_ASSET_VERSION}`,
     ...[...new Set(tilePreloadIds)].map((id) => `${ROOT}tiles/${id}.png?v=${TILE_ASSET_VERSION}`)
-  ].forEach((src) => { const image = new Image(); image.src = src; });
+  ];
+
+  if (globalThis.V2Assets?.documentReady) await V2Assets.documentReady;
+  if (globalThis.V2Assets?.preload) {
+    const preloadReport = await V2Assets.preload(mapRuntimeAssets, { retries: 2, timeout: 9000 });
+    if (!preloadReport.ok) console.warn("[map] unavailable runtime assets", preloadReport.failed);
+  } else {
+    mapRuntimeAssets.forEach((src) => { const image = new Image(); image.src = src; });
+  }
 
   function wait(milliseconds) {
     return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
@@ -1671,27 +1680,19 @@
       const cleared = isMonsterTileCleared(tileStep);
       button.setAttribute("aria-label", `${tileStep}번 ${tile.name}${cleared ? " · 처치 완료" : ""}`);
       button.classList.toggle("is-cleared-monster", cleared);
-      image.src = getTileImage(tile, tileStep);
       image.alt = "";
-      image.addEventListener("error", () => {
-        const attempt = Number(image.dataset.fallbackAttempt || "0");
-        if (attempt === 0) {
-          // Retry the same asset once without cache-busting in case a stale
-          // service-worker/cache entry failed.
-          image.dataset.fallbackAttempt = "1";
-          image.src = image.src.split("?")[0];
-          return;
-        }
-        if (attempt === 1) {
-          // Never leave a broken-image icon on the board. Keep the tile's
-          // gameplay identity, but show the neutral basic tile art.
-          image.dataset.fallbackAttempt = "2";
-          image.src = `${ROOT}tiles/basic.png?v=${TILE_ASSET_VERSION}`;
-          return;
-        }
-        image.dataset.fallbackAttempt = "3";
-        image.removeAttribute("src");
-      });
+      const tileImageSrc = getTileImage(tile, tileStep);
+      const tileFallbackSrc = `${ROOT}tiles/basic.png?v=${TILE_ASSET_VERSION}`;
+      if (globalThis.V2Assets?.setImage) {
+        V2Assets.setImage(image, tileImageSrc, {
+          fallback: tileFallbackSrc,
+          retries: 2,
+          timeout: 9000,
+          hideOnFail: false
+        });
+      } else {
+        image.src = tileImageSrc;
+      }
       step.className = "step";
       step.textContent = String(index + 1);
       button.append(image, step);
