@@ -1,5 +1,19 @@
 # AI 프로젝트 진행 상황 — 네크로멘서 앤드 다이스
 
+## 2026-09-29: 원정 세이브 시스템 3단계-2 — 전투 RNG 상태 저장/복구
+
+- 기준/rollback SHA: `90b5bfabcd3b42b8b577bf0442e89c83d8326af5`.
+- 3단계-1의 전투 중간 체크포인트 다음 작업으로 **전투 판정용 RNG 직렬화만 분리해서 구현**했다. 영혼수확 선택 중단 복구는 아직 포함하지 않는다.
+- `v2-battle-rng.js`에 저장 가능한 `xorshift32` RNG를 추가했다. 체크포인트는 알고리즘/version과 현재 32비트 state를 저장한다.
+- 새 전투 시작 시 RNG seed를 생성하고, `V2Rules.create()`에 같은 RNG 함수를 주입한다. 따라서 턴 행동순서 동률, 군단/소환의 무작위 선택, 전투 대상 선택 등 rules 내부 난수는 한 스트림을 사용한다.
+- 전투 턴 주사위의 실제 1~6 판정도 같은 gameplay RNG를 사용한다. 주사위 애니메이션 프레임 수와 SFX 피치 같은 **연출용 난수는 Math.random을 유지**해 전투 판정 RNG를 소모하지 않게 했다.
+- ready/acting checkpoint에 `rng` snapshot을 같이 저장하고, 재개할 때 RNG를 먼저 복원한 뒤 `V2Rules.restore(saved.state, battleRandom)`으로 연결한다.
+- 이전 버전 checkpoint에 rng가 없는 경우에는 새 RNG로 복구하는 하위 호환 fallback을 유지한다. 새 체크포인트 version은 3이다.
+- `test_v2_battle_rng.js`에서 같은 seed 재현성과 snapshot 이후 정확한 다음 난수 12개가 일치하는지 검사한다.
+- 브라우저 smoke는 공격 후 저장된 checkpoint의 rng state를 확인하고, reload→resume 뒤 같은 rng snapshot이 유지되는지 검증하도록 확장했다.
+- 서비스워커에 RNG 모듈을 선캐시하고 battle controller보다 먼저 로드한다.
+- 이번 단계의 범위 밖: 영혼수확 시체 선택/필요 눈금/수확 주사위 중단 복구. 이는 다음 3단계-3에서 별도 처리한다.
+
 ## 2026-09-29: 원정 세이브 시스템 3단계-1 — 전투 도중 체크포인트 복구
 
 - 기준/rollback SHA: `0ba992664b15f161f9f95d1f9a1d2892263b7579`.
