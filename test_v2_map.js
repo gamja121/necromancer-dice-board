@@ -150,7 +150,7 @@ assert(source.includes('el.bookButton.offsetLeft') && source.includes('translate
 assert(css.includes('.map-deck-roster.map-book-roster button.is-inspecting') && css.includes('translateY(-22%)') && source.includes('clearBookSelection()'), "Book cards must rise slightly on selection and lower on deselection.");
 assert(html.includes('id="mapUnitInfoOverlay"') && html.includes('class="map-unit-info-panel"') && !html.includes('class="legion-info-panel"'), "Only the basic unit information window should appear in the map center.");
 assert(css.includes('.map-unit-info-overlay { position: absolute; z-index: 60; inset: 0; display: grid; place-items: center; }') && source.includes('openBookUnitInfo(ownedUnits.get(owned.instanceId))'), "Selecting an owned card must open centered instance-based information.");
-assert(html.includes('v2-design-data.js?v=1') && html.includes('v2-rules.js?v=6') && source.includes('normalizeOwnedUnit(V2Rules.individual(slug))'), "Owned-card stats and brands must use battle rules.");
+assert(html.includes('v2-design-data.js?v=1') && html.includes('v2-rules.js?v=7') && source.includes('normalizeOwnedUnit(V2Rules.individual(slug))'), "Owned-card stats and brands must use battle rules.");
 assert(battleSource.includes('V2RunStateRuntime?.snapshot') && battleSource.includes('V2RunStateRuntime.applyBattleOutcome') &&
   battleSource.includes('mapOwnedRoster.get(data.instanceId)') && battleSource.includes('mapOwnedRoster.get(unitState.instanceId)'),
   "Battle must restore instanceId-based cards from RunState and atomically persist battle outcomes.");
