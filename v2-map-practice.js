@@ -1827,6 +1827,8 @@
     el.eventPray.hidden = true;
     el.eventRitual.hidden = true;
     el.eventProphecy.hidden = true;
+    el.eventMonsterShop.hidden = true;
+    el.monsterShopPanel.hidden = true;
     el.fortuneProphecyUi.hidden = true;
     el.eventPrayerResult.hidden = true;
     el.eventPrayerResult.textContent = "";
