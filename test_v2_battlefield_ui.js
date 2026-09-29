@@ -9,7 +9,6 @@ const root = __dirname;
 const html = fs.readFileSync(path.join(root, "v2.html"), "utf8");
 const css = fs.readFileSync(path.join(root, "v2-battle.css"), "utf8");
 const battle = fs.readFileSync(path.join(root, "v2-battle.js"), "utf8");
-const serviceWorker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
 
 const battlefields = [
   "wasteland-chasm-battlefield.jpg",
@@ -27,7 +26,6 @@ assert(battle.includes("selectBattlefield();"), "Battle start does not select a 
 
 battlefields.forEach((file) => {
   assert(battle.includes(file), `Battlefield registry is missing ${file}.`);
-  assert(serviceWorker.includes(file), `Offline cache is missing ${file}.`);
   assert(fs.existsSync(path.join(root, "art", "v2-style", "battle-backgrounds", "uploaded-raw", file)), `Battlefield file is missing: ${file}.`);
 });
 

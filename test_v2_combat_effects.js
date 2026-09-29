@@ -54,6 +54,8 @@ async function main(){
       V2Legions:{consumeFreeze:()=>false,beforeAttack:()=>({}),afterAttack:()=>({}),afterAction:()=>0},legionState:{},
       summonBeforeAttack:async()=>{}, V2SummonRules:require('./v2-summon-rules'), battlefield:{classList:{add(){},remove(){}}},
       V2CombatEffects:{prepare:async type=>{assert.equal(type,slug);assert.equal(api.ATTACK_EFFECTS[type],effect);return ['a'];},play:async (node,frames)=>{assert.equal(node,host);events.push('effect');}},
+      presentation:{play:async (_event,presenter)=>typeof presenter==='function'?presenter():undefined},
+      triggerImpactFeedback(){},honorHitStop:async()=>{},
       updateUnit(){},updateHud(){},showDamage(){events.push('damage');},showHealing(){},aliveUnits:team=>[team==='enemy'?target:actor],
       playMotion:async (unit,motion)=>events.push(motion),wait:async()=>{},frame:()=>'',finishBattle(){throw Error('unexpected finish');}};
     vm.createContext(ctx);

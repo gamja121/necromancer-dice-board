@@ -5,14 +5,12 @@ const root = __dirname;
 const html = fs.readFileSync(path.join(root, "v2-map-practice.html"), "utf8");
 const js = fs.readFileSync(path.join(root, "v2-altar-ritual.js"), "utf8");
 const css = fs.readFileSync(path.join(root, "v2-altar-ritual.css"), "utf8");
-const worker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
 const assets = [
   "art/v2-style/map-test/events/altar-ritual-slots.png",
   "art/v2-style/map-test/events/altar-ritual-info.png"
 ];
 for (const file of assets) {
   if (!fs.existsSync(path.join(root, file))) throw Error("Missing altar ritual asset: " + file);
-  if (!worker.includes(file)) throw Error("Altar ritual asset is not cached: " + file);
 }
 if (!html.includes("v2-altar-ritual.css?v=3")) throw Error("Altar ritual CSS is not linked");
 if (!html.includes("v2-altar-ritual.js?v=4")) throw Error("Altar ritual JS is not linked");

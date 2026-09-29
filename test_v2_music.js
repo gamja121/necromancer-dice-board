@@ -17,5 +17,5 @@ assert(mapHtml.includes('data-v2-music="map"') && mapHtml.includes('v2-music.js?
 assert(battleHtml.includes('data-v2-music="battle"') && battleHtml.includes('v2-music.js?v=1'));
 assert(mapJs.includes('V2Music.handoff("battle")'));
 assert(battleJs.includes('V2Music.handoff("map")'));
-assert(worker.includes('assets/music/map-board.mp3') && worker.includes('assets/music/battle.mp3'));
+assert(worker.includes('"image", "audio", "video", "font"') && worker.includes('cacheFirst(event.request)'));
 console.log('PASS: map and battle BGM files, mobile unlock, looping, and page handoff');
