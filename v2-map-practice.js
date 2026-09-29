@@ -54,6 +54,7 @@
     ["plague-doctor", "역병술사"], ["spider-knight", "거미여왕"], ["hydra", "히드라"], ["siren", "세이렌"]
   ].map(([slug, name]) => Object.freeze({ slug, name })));
   const OWNED_ROSTER_KEY = "necromancer-map-roster-v2";
+  const FORTUNE_PROPHECY_KEY = "necromancer-fortune-prophecy-v1";
   const STARTING_UNIT_SLUGS = Object.freeze(["skeleton-spear", "skeleton-archer"]);
   const DICE_CONTROL_INVENTORY_KEY = "necromancer-map-dice-control-v1";
   const MONSTER_CAPACITY = 10;
@@ -402,6 +403,24 @@
     saveOwnedRoster();
     renderBookRoster();
     if (!el.deckOverlay.hidden) renderDeckSelection();
+  }
+
+  function setPendingProphecy(result) {
+    try {
+      if (typeof sessionStorage === "undefined") return;
+      if (result === 2 || !Number.isInteger(result)) sessionStorage.removeItem(FORTUNE_PROPHECY_KEY);
+      else sessionStorage.setItem(FORTUNE_PROPHECY_KEY, String(result));
+    } catch (_) { /* Keep prophecy usable when storage is blocked. */ }
+  }
+
+  function pendingProphecy() {
+    try {
+      if (typeof sessionStorage === "undefined") return null;
+      const value = Number(sessionStorage.getItem(FORTUNE_PROPHECY_KEY));
+      return Number.isInteger(value) && value >= 1 && value <= 6 ? value : null;
+    } catch (_) {
+      return null;
+    }
   }
 
   function loadOwnedRoster() {
@@ -1189,6 +1208,8 @@
       encounterType: battleTileType,
       contamination: String(contamination)
     });
+    const prophecy = pendingProphecy();
+    if (prophecy) params.set("prophecy", String(prophecy));
     if (typeof V2Music !== "undefined") V2Music.handoff("battle");
     window.location.assign(`v2-auto-battle-practice.html?${params}`);
   }
@@ -1600,11 +1621,58 @@
     el.eventClose.focus();
   }
 
-  function showFortuneProphecy() {
-    if (!eventOpen || activeEventTileId !== "fortune-teller-camp") return;
+  async function showFortuneProphecy() {
+    if (!eventOpen || activeEventTileId !== "fortune-teller-camp" || worldTreePrayerRolling) return;
+    worldTreePrayerRolling = true;
     el.eventProphecy.hidden = true;
     el.fortuneProphecyUi.hidden = false;
-    el.diceResult.textContent = "점술가 · 예언";
+    el.eventPrayerResult.hidden = true;
+    el.eventPrayerResult.textContent = "";
+    el.eventClose.disabled = true;
+    el.board.classList.add("is-fortune-prophesying");
+    resetMapDicePosition();
+    el.diceButton.classList.add("is-rolling");
+
+    const result = Math.floor(Math.random() * 6) + 1;
+    await animateMapDiceRoll(result);
+
+    let label = "";
+    let detail = "";
+    if (result === 1) {
+      label = "저주";
+      detail = "다음 전투 적 전체 공격력 +1";
+      setPendingProphecy(result);
+    } else if (result === 2) {
+      label = "축복";
+      detail = "아군 전체 완전 회복";
+      healOwnedRosterFull();
+      setPendingProphecy(null);
+    } else if (result === 3) {
+      label = "축복";
+      detail = "다음 전투 아군 전체 속도 +1";
+      setPendingProphecy(result);
+    } else if (result === 4) {
+      label = "축복";
+      detail = "다음 전투 아군 전체 체력 +2";
+      setPendingProphecy(result);
+    } else if (result === 5) {
+      label = "축복";
+      detail = "다음 전투 아군 전체 공격력 +1";
+      setPendingProphecy(result);
+    } else {
+      label = "대축복";
+      detail = "다음 전투 아군 전체 공격력 +1 · 체력 +2";
+      setPendingProphecy(result);
+    }
+
+    el.eventPrayerResult.textContent = `${label} · ${detail}`;
+    el.eventPrayerResult.dataset.result = result === 1 ? "failure" : result === 6 ? "great-blessing" : "blessing";
+    el.eventPrayerResult.hidden = false;
+    el.diceResult.textContent = `점술가 예언 · 주사위 ${result} · ${label} · ${detail}`;
+    el.diceButton.classList.remove("is-rolling");
+    el.board.classList.remove("is-fortune-prophesying");
+    worldTreePrayerRolling = false;
+    el.eventClose.disabled = false;
     el.eventClose.focus();
   }
 
@@ -1710,7 +1778,7 @@
     mapStoryEvents?.close();
     el.eventClose.disabled = false;
     worldTreePrayerRolling = false;
-    el.board.classList.remove("is-world-tree-praying");
+    el.board.classList.remove("is-world-tree-praying", "is-fortune-prophesying");
     V2HomeInheritance.close();
     el.eventTreasure.hidden = true;
     el.eventTreasure.classList.remove("is-burst");
