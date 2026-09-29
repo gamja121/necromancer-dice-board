@@ -96,7 +96,7 @@ const donorInstanceId = cards.children[0].dataset.instanceId;
 const recipientInstanceId = cards.children[1].dataset.instanceId;
 if (!donorInstanceId || !recipientInstanceId || donorInstanceId === recipientInstanceId) throw Error("Inheritance cards must keep distinct instance ids");
 cards.children[0].on_click();
-if (materialCard.hidden || !materialCard.src.includes("death-knight") || brandList.hidden || brandList.children.length !== 3 || !brandList.children[0].children[1].textContent.includes("축")) throw Error("Selecting material must show all three brands without scrolling or choice buttons");
+if (materialCard.hidden || !materialCard.src.includes("death-knight") || brandList.hidden || brandList.children.length !== 3 || !brandList.children[0].children[1].textContent.includes("✦")) throw Error("Selecting material must show all three brands without scrolling or choice buttons");
 cards.children[0].on_click();
 if (!materialCard.hidden || cards.children[0].classList.contains("is-selected") || !confirm.disabled) throw Error("Tapping the material again must cancel it and lower the card");
 cards.children[0].on_click();
