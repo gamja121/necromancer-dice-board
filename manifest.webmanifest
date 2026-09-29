@@ -10,7 +10,7 @@
     "standalone",
     "minimal-ui"
   ],
-  "orientation": "any",
+  "orientation": "landscape-primary",
   "background_color": "#101914",
   "theme_color": "#101914",
   "icons": [
