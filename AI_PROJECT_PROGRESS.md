@@ -1,5 +1,19 @@
 # AI 프로젝트 진행 상황 — 네크로멘서 앤드 다이스
 
+## 2026-09-29: 원정 세이브 시스템 1단계 — RunState 계약·legacy 이행 어댑터
+
+- 기준/rollback SHA: `24477d04634200752c37c2093ada24f378b745d9`.
+- 기존 분산 저장을 즉시 덮어쓰지 않고, 먼저 UI와 분리된 `v2-run-state.js`를 추가했다.
+- saveVersion 1 RunState에 runId/revision/phase/currentMap/오염도/보유 마물/주사위 카드/낙인 카드/처치 타일/사건 플래그/battle/pendingOperation/claimedRewards/appliedOperations/rngState/migration 필드를 정의했다.
+- legacy session/localStorage를 지정된 게임 키만 원문 백업한 뒤 변환한다. 기존 정상 monster instanceId는 유지하고, 중복 ID는 임의 병합하지 않고 이행 실패로 처리한다.
+- 기존 전투 저장은 runId/encounter 연결 근거가 없으므로 새 원정에 자동 결합하지 않고 legacy backup에만 보존한다.
+- IndexedDB backend는 runs/metadata/backups 3개 store를 사용한다. 새 run 생성 전에 legacy backup 저장과 재읽기 검증을 요구한다.
+- commit은 expectedRevision 충돌을 검사하고, 같은 operationId 재호출은 이미 적용된 결과를 반환해 중복 적용을 막는 기반을 추가했다. 성공 commit은 이전 정상 revision을 backup으로 보존한다.
+- `test_v2_run_state.js`를 추가해 정상 이행, 손상 JSON, 중복 개체 ID, backup, revision 충돌, operation 멱등성, invalid commit 롤백을 검사한다.
+- 이번 단계는 의도적으로 **런타임 미연결**이다. 기존 map/battle/home/altar writer와 서비스워커/HTML을 바꾸지 않아 현재 플레이 저장 동작과 사용자 데이터에는 영향이 없다.
+- 상세 계약과 다음 전환 순서는 `RUN_STATE_DESIGN.md`에 기록했다.
+- 다음: PR 자동 검증 통과 후 map/home/altar writer를 새 어댑터 뒤로 옮기고, 그 다음 전투 checkpoint/capture를 연결한다.
+
 ## 2026-09-29: 보물상자 낙인 카드 인벤토리·집 적용 연결
 
 - 사용자 확정 아트의 투명 PNG를 `art/v2-style/ui/brand-card.png`로 추가하고 보물상자/집 낙인 카드의 공통 틀로 사용한다.
