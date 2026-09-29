@@ -1183,7 +1183,7 @@
       else if (event.type === "damage") showDamage(event.unit, event.amount);
     }
     if (supportEvents.length) {
-      await wait(Math.max(220, 380 / speedMultiplier));
+      await battleWait(380, 220);
       if (token !== battleToken || !running) return;
     }
     await Promise.all(fallen.map(unitState => playMotion(unitState, "death", unitState.frames.death, token, true)));
