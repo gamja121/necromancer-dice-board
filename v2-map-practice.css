@@ -231,17 +231,46 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .fortune-prophecy-ui { position: absolute; z-index: 10; left: 50%; top: 50%; display: grid; place-items: center; width: 54%; height: 62%; transform: translate(-50%, -50%); pointer-events: none; animation: fortune-prophecy-in 260ms cubic-bezier(.18,.84,.25,1.08) both; }
 .fortune-prophecy-ui[hidden] { display: none; }
 
-.monster-shop-panel { position: absolute; z-index: 12; left: 50%; top: 50%; width: min(78%, 760px); min-height: 52%; padding: 2.2% 2.6%; transform: translate(-50%, -50%); border: 1px solid #73543a; border-radius: 8px; background: linear-gradient(180deg, rgba(35,22,15,.98), rgba(17,11,8,.98)); color: #ead9bb; box-shadow: 0 10px 26px #000d, inset 0 0 0 1px #c9a06a33; pointer-events: auto; }
+.monster-shop-panel { position: absolute; z-index: 12; left: 50%; top: 50%; width: min(86%, 860px); min-height: 58%; padding: 2.2% 2.4%; transform: translate(-50%, -50%); border: 1px solid #73543a; border-radius: 8px; background: linear-gradient(180deg, rgba(35,22,15,.98), rgba(17,11,8,.98)); color: #ead9bb; box-shadow: 0 10px 26px #000d, inset 0 0 0 1px #c9a06a33; pointer-events: auto; }
 .monster-shop-panel[hidden] { display: none; }
-.monster-shop-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 1.5%; }
+.monster-shop-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 1.2%; }
 .monster-shop-head strong { font: 1000 clamp(15px, 1.8vw, 26px)/1 Georgia, "Malgun Gothic", serif; color: #f1d3a2; }
 .monster-shop-head button { min-width: 70px; height: 32px; border: 1px solid #7f5a3c; border-radius: 4px; background: #3a2518; color: #f2d8ad; font-weight: 900; cursor: pointer; }
-.monster-shop-guide { margin: 0 0 2%; color: #cdb995; font-size: clamp(9px, 1vw, 13px); line-height: 1.4; }
-.monster-shop-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 2%; }
-.monster-shop-column { min-height: 150px; padding: 3%; border: 1px solid #5c432f; border-radius: 6px; background: #21150f; }
-.monster-shop-column h3 { margin: 0 0 8px; color: #e8c58f; font-size: clamp(11px, 1.2vw, 16px); }
+.monster-shop-guide { margin: 0 0 1.5%; color: #cdb995; font-size: clamp(9px, 1vw, 13px); line-height: 1.4; }
+.monster-shop-layout { display: grid; grid-template-columns: 1.05fr .72fr 1.45fr; gap: 1.5%; align-items: stretch; }
+.monster-shop-column, .monster-shop-trade { min-height: 210px; padding: 2.4%; border: 1px solid #5c432f; border-radius: 6px; background: #21150f; box-sizing: border-box; }
+.monster-shop-column h3, .monster-shop-trade h3 { margin: 0 0 8px; color: #e8c58f; font-size: clamp(10px, 1.15vw, 16px); text-align: center; }
+.monster-shop-sell-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; max-height: 190px; overflow: auto; padding-right: 2px; }
+.monster-shop-monster { min-width: 0; padding: 4px; border: 1px solid #5f4633; border-radius: 5px; background: #2b1b12; color: #e8d1ac; cursor: pointer; }
+.monster-shop-monster img { display: block; width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 3px; }
+.monster-shop-monster span { display: block; margin-top: 3px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: clamp(8px, .82vw, 11px); font-weight: 900; }
+.monster-shop-monster small { display: block; color: #ad9575; font-size: clamp(7px, .72vw, 10px); }
+.monster-shop-monster.is-selected { border-color: #d4aa67; box-shadow: 0 0 0 1px #d4aa6755, 0 0 12px #d4aa6733; }
+.monster-shop-monster:disabled { opacity: .42; cursor: not-allowed; }
+.monster-shop-trade { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
+.monster-shop-trade-slot { display: grid; place-items: center; width: 78%; min-height: 142px; padding: 6px; border: 2px dashed #725339; border-radius: 8px; background: #160f0b; color: #8f7a63; text-align: center; box-sizing: border-box; }
+.monster-shop-trade-slot img { width: min(78%, 118px); aspect-ratio: 2 / 3; object-fit: cover; border-radius: 4px; filter: drop-shadow(0 6px 6px #000a); }
+.monster-shop-trade-slot strong, .monster-shop-trade-slot small { display: block; }
+.monster-shop-trade-slot strong { margin-top: 4px; color: #ecd0a5; font-size: clamp(9px, .9vw, 12px); }
+.monster-shop-trade-slot small { color: #ab9272; font-size: clamp(7px, .72vw, 10px); }
+.monster-shop-cancel { margin-top: 7px; min-width: 108px; min-height: 30px; border: 1px solid #6c4e37; border-radius: 4px; background: #382317; color: #e6c89d; font-weight: 900; cursor: pointer; }
+.monster-shop-cancel[hidden] { display: none; }
+.monster-shop-offer-list { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 7px; align-items: stretch; }
+.monster-shop-offer { min-width: 0; padding: 5px; border: 1px solid #664932; border-radius: 5px; background: #2d1c12; color: #ead4b0; cursor: pointer; text-align: center; }
+.monster-shop-offer img { display: block; width: 100%; max-height: 130px; aspect-ratio: 2 / 3; object-fit: contain; margin: 0 auto 4px; }
+.monster-shop-offer strong { display: block; font-size: clamp(8px, .84vw, 11px); line-height: 1.25; }
+.monster-shop-offer small { display: block; margin-top: 3px; color: #ae9675; font-size: clamp(7px, .7vw, 9px); line-height: 1.25; }
+.monster-shop-offer:hover:not(:disabled) { filter: brightness(1.15); border-color: #d2a362; }
+.monster-shop-offer:disabled { opacity: .4; cursor: not-allowed; }
 .monster-shop-placeholder { display: grid; place-items: center; min-height: 110px; border: 1px dashed #6e5038; border-radius: 5px; color: #9f8b72; font-size: clamp(9px, .95vw, 12px); text-align: center; }
-
+.monster-shop-status { min-height: 2.4em; margin: 7px 0 0; color: #d7b47f; font-size: clamp(8px, .8vw, 11px); line-height: 1.3; text-align: center; }
+@media (max-height: 420px) and (orientation: landscape) {
+  .monster-shop-panel { width: 90%; min-height: 64%; padding: 1.4% 1.8%; }
+  .monster-shop-column, .monster-shop-trade { min-height: 170px; padding: 1.6%; }
+  .monster-shop-sell-list { max-height: 145px; }
+  .monster-shop-trade-slot { min-height: 112px; }
+  .monster-shop-offer img { max-height: 94px; }
+}
 .fortune-prophecy-ui::before { content: ""; position: absolute; width: 58%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(154,85,218,.38), rgba(91,41,150,.12) 48%, transparent 70%); filter: blur(10px); }
 .fortune-prophecy-ui img { position: relative; z-index: 1; display: block; width: min(62%, 240px); max-height: 90%; object-fit: contain; image-rendering: auto; filter: drop-shadow(0 12px 14px #000c) drop-shadow(0 0 12px #9b63d288); }
 @keyframes fortune-prophecy-in {
