@@ -76,18 +76,31 @@
   }
 
   function loadRoster() {
-    let saved = [];
-    try {
-      const parsed = JSON.parse(sessionStorage.getItem(OWNED_ROSTER_KEY));
-      if (Array.isArray(parsed)) saved = parsed;
-    } catch (_) {}
+    let saved = globalThis.V2RunStateRuntime?.snapshot?.()?.ownedMonsters;
+    if (!Array.isArray(saved)) {
+      saved = [];
+      try {
+        const parsed = JSON.parse(sessionStorage.getItem(OWNED_ROSTER_KEY));
+        if (Array.isArray(parsed)) saved = parsed;
+      } catch (_) {}
+    }
     roster = new Map(saved.filter(unit => unit && typeof unit.instanceId === "string" && unit.instanceId)
       .map(unit => [unit.instanceId, unit]));
     return roster;
   }
 
-  function saveRoster() {
-    sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify([...roster.values()]));
+  async function saveRoster(prefix = "altar-ritual") {
+    const next = [...roster.values()].map(clone);
+    if (globalThis.V2RunStateRuntime?.available) {
+      const result = await V2RunStateRuntime.replaceOwnedMonsters(next, prefix);
+      return Boolean(result?.ok);
+    }
+    try {
+      sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify(next));
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   function setPreview(image, hint, unit, emptyText) {
@@ -170,11 +183,12 @@
     render();
   }
 
-  function performRitual() {
+  async function performRitual() {
     const material = roster.get(materialId);
     const target = roster.get(targetId);
     if (!material || !target || material.instanceId === target.instanceId || enhancementLevel(target) >= MAX_ENHANCEMENTS) return;
 
+    const backupRoster = [...roster.values()].map(clone);
     const oldMaxHp = target.maxHp;
     target.attack = Math.max(1, Number(target.attack) || 1) + ATTACK_BONUS;
     target.maxHp = Math.max(1, Number(target.maxHp) || 1) + MAX_HP_BONUS;
@@ -184,7 +198,12 @@
 
     const donorInstanceId = material.instanceId;
     roster.delete(donorInstanceId);
-    saveRoster();
+    if (!(await saveRoster("altar-ritual"))) {
+      roster = new Map(backupRoster.map((unit) => [unit.instanceId, unit]));
+      el.message.textContent = "제단 의식 저장에 실패했습니다. 다시 시도하세요.";
+      render();
+      return;
+    }
     materialId = null;
     completed = true;
     render();
@@ -194,7 +213,8 @@
     }));
   }
 
-  function open() {
+  async function open() {
+    if (globalThis.V2RunStateRuntime?.available) await V2RunStateRuntime.flush();
     loadRoster();
     materialId = null;
     targetId = null;
