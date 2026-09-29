@@ -273,6 +273,8 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 @media (orientation: portrait) {
   .map-lab { position: fixed; left: 50%; top: 50%; width: 100dvh; height: 100vw; padding: 0; transform: translate(-50%, -50%) rotate(90deg); transform-origin: center; }
   .map-board { width: 100dvh; height: 55.78dvh; max-height: 100vw; }
+  .contamination-test-toggle { left: auto; right: 2.4%; top: auto; bottom: 3%; transform: none; min-width: 64px; height: 34px; border-width: 2px; background: #7b2117f2; color: #fff4c8; box-shadow: 0 4px 14px #000d, 0 0 12px #e05b3f88; }
+  .contamination-test-control { left: auto; right: 2.4%; top: auto; bottom: 10.5%; width: min(56%, 560px); transform: none; }
 }
 @media (max-height: 420px) and (orientation: landscape) {
   .map-toolbar a, .map-toolbar button { height: 26px; min-width: 34px; padding: 0 7px; }
