@@ -12,7 +12,7 @@
 .altar-ritual-header button:focus-visible { outline: 2px solid #ffd77e; outline-offset: 2px; }
 
 /* Home inheritance uses left:15% / width:70%; altar now uses the exact same board width. */
-.altar-ritual-slots { position: absolute; z-index: 2; top: 5%; left: 15%; width: 70%; aspect-ratio: 520 / 234; background: transparent center / contain no-repeat url("art/v2-style/map-test/events/altar-ritual-slots.jpg?v=1"); filter: drop-shadow(0 10px 10px #000b); }
+.altar-ritual-slots { position: absolute; z-index: 2; top: 5%; left: 15%; width: 70%; aspect-ratio: 520 / 234; background: transparent center / contain no-repeat url("art/v2-style/map-test/events/altar-ritual-slots.png?v=1"); filter: drop-shadow(0 10px 10px #000b); }
 .altar-ritual-slot { position: absolute; top: 6%; width: 31%; height: 86%; display: grid; place-items: center; grid-template-rows: auto minmax(0, 1fr) auto; gap: 2%; padding: 2.5% 3%; box-sizing: border-box; }
 .altar-ritual-material { left: 13%; }
 .altar-ritual-target { right: 13%; }
@@ -22,7 +22,7 @@
 .altar-ritual-slot span { color: #d4c3a4; font-size: clamp(8px, .9vw, 12px); font-weight: 800; text-align: center; text-shadow: 0 2px 3px #000; }
 
 /* The info plaque floats over the lower middle of the ritual board rather than becoming a second screen section. */
-.altar-ritual-info { position: absolute; z-index: 4; top: 47%; left: 30%; width: 40%; min-height: 19%; padding: 4.3% 6% 3.4%; box-sizing: border-box; background: transparent center / 100% 100% no-repeat url("art/v2-style/map-test/events/altar-ritual-info.jpg?v=1"); color: #3a271b; text-align: center; filter: drop-shadow(0 7px 9px #000b); }
+.altar-ritual-info { position: absolute; z-index: 4; top: 47%; left: 30%; width: 40%; min-height: 19%; padding: 4.3% 6% 3.4%; box-sizing: border-box; background: transparent center / 100% 100% no-repeat url("art/v2-style/map-test/events/altar-ritual-info.png?v=1"); color: #3a271b; text-align: center; filter: drop-shadow(0 7px 9px #000b); }
 .altar-ritual-info strong { display: block; margin-bottom: 1%; font: 1000 clamp(12px, 1.25vw, 18px)/1 Georgia, "Malgun Gothic", serif; }
 .altar-ritual-info p { margin: 0 auto 1.5%; max-width: 78%; font-size: clamp(8px, .82vw, 11px); font-weight: 800; line-height: 1.3; }
 .altar-ritual-info small { display: block; font-size: clamp(8px, .78vw, 10px); font-weight: 900; }
