@@ -12,11 +12,12 @@
 .home-inheritance-panel-hint[hidden] { display: none; }
 .home-inheritance-brand-box { box-sizing: border-box; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; align-self: end; width: 100%; height: 91%; min-width: 0; padding: 7% 6%; overflow: hidden; border: 16px solid transparent; border-image: url("art/v2-style/ui/legion-info-window-hd.png?v=2") 54 38 54 fill / 1; background: #c9aa94; color: #34251c; filter: drop-shadow(0 8px 10px #0009); text-align: center; }
 .home-inheritance-brand-box h3 { margin: 0 0 3%; color: #3b2d25; font-size: clamp(12px, 1.25vw, 18px); }
-.home-inheritance-brand-box p { margin: 0 0 2%; font-size: clamp(9px, .85vw, 12px); font-weight: 800; line-height: 1.3; }
+.home-inheritance-brand-box p { margin: 0 0 2%; font-size: clamp(10px, 1vw, 14px); font-weight: 1000; line-height: 1.2; color: #5b2a21; }
 .home-inheritance-brand-box ul { display: grid; align-content: start; gap: 2px; min-height: 0; margin: 0; padding: 0; overflow: hidden; list-style: none; }
 .home-inheritance-brand-box ul[hidden] { display: none; }
-.home-inheritance-brand-box li { display: grid; gap: 1px; padding: 2px 0; border-bottom: 1px solid #6c504866; font-size: clamp(9px, .9vw, 12px); }
-.home-inheritance-brand-box li small { color: #5a4333; font-size: clamp(8px, .72vw, 10px); }
+.home-inheritance-brand-box li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 5px 2px; border-bottom: 1px solid #6c504866; font-size: clamp(9px, .9vw, 12px); }
+.home-inheritance-brand-box li strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+.home-inheritance-brand-box li small { display: inline-flex; align-items: center; justify-content: flex-end; min-width: 72px; padding: 3px 7px; border-radius: 999px; background: #2a211bbb; color: #ffe8b0; font-size: clamp(9px, .82vw, 12px); font-weight: 1000; letter-spacing: .06em; text-shadow: 0 1px 2px #000; }
 .home-inheritance-close { position: absolute; z-index: 4; top: 4%; right: 5%; min-width: 72px; padding: 7px 16px; border: 1px solid #ae824c; border-radius: 4px; background: #2b1b12; color: #ffe0a6; font-weight: 900; cursor: pointer; box-shadow: 0 4px 8px #000a; }
 .home-inheritance-close:focus-visible { outline: 2px solid #ffd77e; outline-offset: 2px; }
 .home-inheritance-confirm { position: absolute; z-index: 4; top: 58%; left: 43%; width: 14%; aspect-ratio: 2.5; border: 0; background: transparent url("art/v2-style/map-test/events/enter-parchment.png") center / 100% 100% no-repeat; color: #3a271b; font-size: clamp(12px, 1.45vw, 20px); font-weight: 900; cursor: pointer; filter: drop-shadow(0 4px 5px #000a); }
@@ -44,8 +45,8 @@
 .home-inheritance-brand-card img { display: block; width: 100%; height: auto; max-height: 100%; object-fit: contain; pointer-events: none; }
 .home-inheritance-brand-card-text {
   position: absolute; right: 13%; bottom: 8.5%; left: 13%; height: 19%; display: grid; place-items: center;
-  overflow: hidden; color: #101b2c; font-size: clamp(6px, .62vw, 9px); font-weight: 1000; line-height: 1.18;
-  text-align: center; text-shadow: 0 1px #d9efff; pointer-events: none;
+  overflow: hidden; color: #101b2c; font-size: clamp(8px, .82vw, 12px); font-weight: 1000; line-height: 1.18;
+  text-align: center; letter-spacing: .04em; text-shadow: 0 1px #d9efff; pointer-events: none;
 }
 .home-inheritance-overlay.is-open .home-inheritance-brand-card { opacity: 1; transform: translate(var(--brand-x), var(--brand-y)) rotate(var(--brand-rot)) scale(1); pointer-events: auto; }
 .home-inheritance-brand-card.is-selected { z-index: 20; transform: translate(var(--brand-x), calc(var(--brand-y) - 15%)) rotate(0deg) scale(1.08) !important; filter: drop-shadow(0 0 10px #d3f3ff) drop-shadow(0 10px 10px #000d); }
