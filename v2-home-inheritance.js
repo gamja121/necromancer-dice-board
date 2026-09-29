@@ -238,6 +238,7 @@
     materialInstanceId = null;
     completed = true;
     renderCards();
+    renderBrandCards();
     renderSelection();
     window.dispatchEvent?.(new CustomEvent("v2-roster-changed", { detail: { donorInstanceId, recipient: JSON.parse(JSON.stringify(result)) } }));
   }
