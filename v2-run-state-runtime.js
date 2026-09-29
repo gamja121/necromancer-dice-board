@@ -89,8 +89,7 @@
     return clone(current);
   }
 
-  function commit(prefix, reducer) {
-    const operationId = opId(prefix);
+  function commitExact(operationId, reducer) {
     queue = queue.then(async () => {
       if (!current) return { ok: false, reason: "runtime-unavailable" };
       const result = await store.commit(current.runId, current.revision, operationId, reducer);
@@ -108,6 +107,10 @@
       return result;
     });
     return queue;
+  }
+
+  function commit(prefix, reducer) {
+    return commitExact(opId(prefix), reducer);
   }
 
   function replaceOwnedMonsters(monsters, prefix = "roster") {
@@ -188,6 +191,26 @@
     });
   }
 
+  function applyBattleOutcome(options = {}) {
+    const encounterId = String(options.encounterId || "");
+    if (!encounterId) return Promise.resolve({ ok: false, reason: "encounter-id-required" });
+    const roster = clone(options.ownedMonsters || []);
+    const step = Number(options.clearedStep);
+    return commitExact("battle-outcome:" + encounterId, (draft) => {
+      draft.ownedMonsters = roster;
+      if (options.won) {
+        draft.contamination = Math.max(0, (Number(draft.contamination) || 0) - 1);
+        if (Number.isInteger(step) && step >= 1 && step <= 24) {
+          const tile = draft.currentMap?.tiles?.[step - 1];
+          if (tile?.tileInstanceId && !draft.clearedTiles.includes(tile.tileInstanceId)) {
+            draft.clearedTiles.push(tile.tileInstanceId);
+          }
+        }
+      }
+      draft.phase = "capture";
+    });
+  }
+
   function atomicRosterAndBrands(monsters, brands, prefix = "inheritance") {
     const roster = clone(monsters || []);
     const cards = (brands || []).map((card) => ({
@@ -235,6 +258,8 @@
     setMapProgress,
     setClearedSteps,
     atomicRosterAndBrands,
+    applyBattleOutcome,
+    commitExact,
     projectLegacy
   });
 })(globalThis);
