@@ -531,9 +531,16 @@
   async function prepareSelectedMotion(entry) {
     const prepare = RUNTIME_PREPARERS[entry.slug];
     if (!prepare || entry.motionFrames) return entry;
-    const motionFrames = await prepare();
-    entry.motionFrames = motionFrames;
-    entry.frames = { attack: motionFrames.attack.length, hit: motionFrames.hit.length, death: motionFrames.death.length };
+    try {
+      const motionFrames = await prepare();
+      entry.motionFrames = motionFrames;
+      entry.frames = { attack: motionFrames.attack.length, hit: motionFrames.hit.length, death: motionFrames.death.length };
+    } catch (error) {
+      // Map battles must not be blocked by an optional runtime motion asset.
+      // Keep the unit's normal frame paths/counts and continue into combat.
+      console.warn(`유닛 모션 준비 실패 · 기본 프레임으로 진행: ${entry.slug}`, error);
+      delete entry.motionFrames;
+    }
     return entry;
   }
 
@@ -585,7 +592,10 @@
         const effectId = V2CombatEffects.ATTACK_EFFECTS?.[entry.slug];
         if (effectId && !effectRepresentatives.has(effectId)) effectRepresentatives.set(effectId, entry.slug);
       }
-      for (const slug of effectRepresentatives.values()) await V2CombatEffects.prepare(slug);
+      for (const slug of effectRepresentatives.values()) {
+        try { await V2CombatEffects.prepare(slug); }
+        catch (error) { console.warn(`타격 효과 준비 실패 · 효과 없이 진행: ${slug}`, error); }
+      }
     }
 
     if (typeof V2Sfx !== "undefined") V2Sfx.preload();
@@ -937,8 +947,15 @@
       if (request !== lineupRequest) return;
       loadingLineup = false;
       console.error(error);
-      startOverlay.hidden = false;
-      renderRosterSelection("유닛 모션을 불러오지 못했습니다. 다시 시도해 주세요.");
+      if (fromMap) {
+        // The deck was already selected on the map. Never reopen the battle
+        // deck-selection overlay as an error screen.
+        startOverlay.hidden = true;
+        message.textContent = "전투 준비 중 일부 자산을 불러오지 못했습니다.";
+      } else {
+        startOverlay.hidden = false;
+        renderRosterSelection("전투 자산을 불러오지 못했습니다. 다시 시도해 주세요.");
+      }
     } finally {
       if (request !== lineupRequest) return;
       loadingLineup = false;
