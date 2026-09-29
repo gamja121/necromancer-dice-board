@@ -386,8 +386,10 @@
   let loadingLineup = false;
   let legionState = null;
   let rulesState = null;
+  let battleRng = V2BattleRng.create();
+  const battleRandom = () => battleRng.next();
   const BATTLE_SAVE_KEY = 'necromancer-v2-battle-v1';
-  const BATTLE_CHECKPOINT_VERSION = 2;
+  const BATTLE_CHECKPOINT_VERSION = 3;
 
   function battleCheckpointContext() {
     return {
@@ -446,6 +448,7 @@
       savedAt: new Date().toISOString(),
       context: battleCheckpointContext(),
       state: V2Rules.snapshot(rulesState),
+      rng: battleRng.snapshot(),
       phase,
       roll: lastDiceRoll,
       actions: actionCount,
@@ -471,7 +474,8 @@
       if (globalThis.V2RunStateRuntime?.available) await V2RunStateRuntime.flush();
       const saved = loadBattleCheckpoint();
       if (!saved) return false;
-      const restored=V2Rules.restore(saved.state);
+      battleRng = saved.rng ? V2BattleRng.restore(saved.rng) : V2BattleRng.create();
+      const restored=V2Rules.restore(saved.state, battleRandom);
       for (const u of restored.units) {
         const data=u.slug==='guardian-seed'?unit('guardian-seed','씨앗',6,0,1,5,3,4):{...ROSTER_BY_SLUG.get(u.slug)};
         await prepareSelectedMotion(data);
@@ -648,7 +652,8 @@
       ...selectedAllyTeam.map((data, slot) => makeState(data, "ally", slot)),
       ...selectedEnemyTeam.map((data, slot) => makeState(data, "enemy", slot))
     ];
-    rulesState = V2Rules.create(units);
+    battleRng = V2BattleRng.create();
+    rulesState = V2Rules.create(units, battleRandom);
     legionState = rulesState.legions;
     if (fromMap) {
       for (const unitState of units.filter((unit) => unit.team === "ally" && !unit.isSummon)) {
@@ -1144,7 +1149,7 @@
       await wait(42 + Math.round(progress * progress * 62));
     }
     if (token !== battleToken || !running || !awaitingRoll) return;
-    lastDiceRoll = Math.floor(Math.random() * 6) + 1;
+    lastDiceRoll = Math.floor(battleRandom() * 6) + 1;
     if (typeof V2Sfx !== "undefined") V2Sfx.play("diceLand", { rate: .94 + lastDiceRoll * .015 });
     showRolledBrands(lastDiceRoll);
     turnDiceImage.src = DICE_RESULT_FRAMES[lastDiceRoll - 1];
