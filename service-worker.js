@@ -125,7 +125,7 @@ self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
     const results = await Promise.allSettled(CORE_ASSETS.map(async (path) => {
-      const request = new Request(path, { cache: "reload" });
+      const request = new Request(new URL(path, self.location.href).href, { cache: "reload" });
       const key = normalizedAssetRequest(request);
       const response = await fetch(request);
       if (!response.ok) throw new Error(`${response.status} ${path}`);
