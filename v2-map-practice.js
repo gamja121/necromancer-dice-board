@@ -74,6 +74,7 @@
   const LEGACY_MAP_LAYOUT_KEY = "necromancer-map-layout-v1";
   const MAP_CLEARED_MONSTER_KEY = "necromancer-map-cleared-monsters-v1";
   const WORLD_TREE_PRAYER_KEY = "necromancer-map-world-tree-prayed-v1";
+  const FORTUNE_USED_KEY = "necromancer-map-fortune-used-v1";
   const MONSTER_BATTLE_TILE_IDS = Object.freeze(new Set(["monster", "rare-monster", "boss"]));
   const GRADE_LABELS = Object.freeze({ normal: "일반", advanced: "고급", hero: "영웅", special: "소환물" });
   const LEGION_LABELS = Object.freeze({ skeleton: "언데드", corpse: "시체", beast: "야수", plague: "역병", ice: "얼음", summon: "소환", demon: "악마", insect: "벌레", plant: "식물", element: "원소" });
@@ -201,6 +202,7 @@
   let battleTileType = "monster";
   let clearedMonsterSteps = new Set();
   let worldTreePrayed = false;
+  let fortuneProphesied = false;
   let worldTreePrayerRolling = false;
   let selectedDeck = [];
   let bookOpen = false;
@@ -646,6 +648,28 @@
         if (typeof sessionStorage !== "undefined") sessionStorage.setItem(WORLD_TREE_PRAYER_KEY, "1");
       } catch (_) { /* Prayer still works without storage persistence. */ }
     }
+  }
+
+  function loadFortuneUse() {
+    try {
+      fortuneProphesied = typeof sessionStorage !== "undefined" && sessionStorage.getItem(FORTUNE_USED_KEY) === "1";
+    } catch (_) {
+      fortuneProphesied = false;
+    }
+  }
+
+  function resetFortuneUse() {
+    fortuneProphesied = false;
+    try {
+      if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(FORTUNE_USED_KEY);
+    } catch (_) { /* Fresh lap still works without storage. */ }
+  }
+
+  function markFortuneUsed() {
+    fortuneProphesied = true;
+    try {
+      if (typeof sessionStorage !== "undefined") sessionStorage.setItem(FORTUNE_USED_KEY, "1");
+    } catch (_) { /* Prophecy still works without persistence. */ }
   }
 
   function isMonsterBattleTile(tile) {
@@ -1528,7 +1552,7 @@
     el.eventHeal.hidden = tile.id !== "rest" || !hasInjuredOwnedUnits();
     el.eventPray.hidden = tile.id !== "unknown" || worldTreePrayed;
     el.eventRitual.hidden = tile.id !== "altar";
-    el.eventProphecy.hidden = tile.id !== "fortune-teller-camp";
+    el.eventProphecy.hidden = tile.id !== "fortune-teller-camp" || fortuneProphesied;
     el.fortuneProphecyUi.hidden = true;
     el.eventPrayerResult.hidden = true;
     el.eventPrayerResult.textContent = "";
@@ -1624,6 +1648,7 @@
   async function showFortuneProphecy() {
     if (!eventOpen || activeEventTileId !== "fortune-teller-camp" || worldTreePrayerRolling) return;
     worldTreePrayerRolling = true;
+    markFortuneUsed();
     el.eventProphecy.hidden = true;
     el.fortuneProphecyUi.hidden = false;
     el.eventPrayerResult.hidden = true;
@@ -1812,9 +1837,11 @@
     if (restoredPool) {
       loadClearedMonsterSteps();
       loadWorldTreePrayer();
+      loadFortuneUse();
     } else {
       resetClearedMonsterSteps();
       resetWorldTreePrayer();
+      resetFortuneUse();
     }
     const pool = restoredPool || createPool();
     positions = perimeterPositions();
