@@ -102,7 +102,7 @@
           current = latest;
           projectLegacy(current);
         }
-        console.warn("원정 세이브 커밋 실패", prefix, result);
+        console.warn("원정 세이브 커밋 실패", operationId, result);
       }
       return result;
     });
