@@ -120,6 +120,9 @@
     eventPray: document.getElementById("tileEventPray"),
     eventRitual: document.getElementById("tileEventRitual"),
     eventProphecy: document.getElementById("tileEventProphecy"),
+    eventMonsterShop: document.getElementById("tileEventMonsterShop"),
+    monsterShopPanel: document.getElementById("monsterShopPanel"),
+    monsterShopClose: document.getElementById("monsterShopClose"),
     fortuneProphecyUi: document.getElementById("fortuneProphecyUi"),
     eventPrayerResult: document.getElementById("tileEventPrayerResult"),
     eventContaminationChange: document.getElementById("tileEventContaminationChange"),
@@ -1563,6 +1566,8 @@
     el.eventPray.hidden = tile.id !== "unknown" || worldTreePrayed;
     el.eventRitual.hidden = tile.id !== "altar";
     el.eventProphecy.hidden = tile.id !== "fortune-teller-camp";
+    el.eventMonsterShop.hidden = tile.id !== "village";
+    el.monsterShopPanel.hidden = true;
     el.fortuneProphecyUi.hidden = true;
     el.eventPrayerResult.hidden = true;
     el.eventPrayerResult.textContent = "";
@@ -1578,6 +1583,7 @@
       el.eventPray.hidden = true;
       el.eventRitual.hidden = true;
       el.eventProphecy.hidden = true;
+      el.eventMonsterShop.hidden = tile.id !== "village";
     }
     el.eventClose.hidden = treasure;
     if (treasure) {
@@ -1620,6 +1626,8 @@
     el.eventPray.hidden = true;
     el.eventRitual.hidden = true;
     el.eventProphecy.hidden = true;
+    el.eventMonsterShop.hidden = true;
+    el.monsterShopPanel.hidden = true;
     el.fortuneProphecyUi.hidden = true;
     el.eventPrayerResult.hidden = true;
     el.eventClose.disabled = true;
@@ -1653,6 +1661,21 @@
     worldTreePrayerRolling = false;
     el.eventClose.disabled = false;
     el.eventClose.focus();
+  }
+
+  function openMonsterShop() {
+    if (!eventOpen || activeEventTileId !== "village") return;
+    el.monsterShopPanel.hidden = false;
+    el.eventMonsterShop.hidden = true;
+    el.diceResult.textContent = "마을 · 마물 상점";
+    el.monsterShopClose.focus();
+  }
+
+  function closeMonsterShop() {
+    if (!eventOpen || activeEventTileId !== "village") return;
+    el.monsterShopPanel.hidden = true;
+    el.eventMonsterShop.hidden = false;
+    el.eventMonsterShop.focus();
   }
 
   async function showFortuneProphecy() {
@@ -2262,6 +2285,8 @@
   el.eventHeal.addEventListener("click", healAtRestTile);
   el.eventPray.addEventListener("click", prayAtWorldTree);
   el.eventProphecy.addEventListener("click", showFortuneProphecy);
+  el.eventMonsterShop.addEventListener("click", openMonsterShop);
+  el.monsterShopClose.addEventListener("click", closeMonsterShop);
   el.eventInheritance.addEventListener("click", async () => {
     if (eventOpen && activeEventTileId === "home") {
       if (globalThis.V2RunStateRuntime?.available) await V2RunStateRuntime.flush();
