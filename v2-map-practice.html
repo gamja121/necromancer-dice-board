@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
   <title>네크로멘서 앤드 다이스 · 외곽 타일 맵 테스트</title>
-  <link rel="stylesheet" href="v2-map-practice.css?v=56">
+  <link rel="stylesheet" href="v2-map-practice.css?v=57">
   <link rel="stylesheet" href="v2-home-inheritance.css?v=9">
   <link rel="stylesheet" href="v2-altar-ritual.css?v=4">
 </head>
@@ -135,11 +135,29 @@
           <button id="tileEventPray" class="tile-event-pray" type="button" hidden>기도</button>
           <button id="tileEventRitual" class="tile-event-ritual" type="button" hidden>의식</button>
           <button id="tileEventProphecy" class="tile-event-prophecy" type="button" hidden>예언</button>
+          <button id="tileEventMonsterShop" class="tile-event-monster-shop" type="button" hidden>마물 상점</button>
           <div id="fortuneProphecyUi" class="fortune-prophecy-ui" hidden>
             <img src="art/v2-style/map-test/events/fortune-prophecy-ui.png?v=1" alt="점술가의 수정구 예언 UI">
           </div>
           <div id="tileEventPrayerResult" class="tile-event-prayer-result" role="status" aria-live="polite" hidden></div>
           <div id="tileEventContaminationChange" class="tile-event-contamination-change" role="status" aria-live="polite" hidden></div>
+          <section id="monsterShopPanel" class="monster-shop-panel" aria-live="polite" hidden>
+            <div class="monster-shop-head">
+              <strong>마물 상점</strong>
+              <button id="monsterShopClose" type="button">닫기</button>
+            </div>
+            <p class="monster-shop-guide">보유 마물을 판매해 교환가를 만들고, 주사위 컨트롤 카드나 낙인 카드를 구매하는 상점입니다.</p>
+            <div class="monster-shop-columns">
+              <section class="monster-shop-column">
+                <h3>마물 판매</h3>
+                <div id="monsterShopSellList" class="monster-shop-placeholder">판매 기능 준비 중</div>
+              </section>
+              <section class="monster-shop-column">
+                <h3>교환 상품</h3>
+                <div class="monster-shop-placeholder">주사위 컨트롤 · 낙인 카드</div>
+              </section>
+            </div>
+          </section>
           <section id="tileStoryEventPanel" class="tile-story-event-panel" aria-live="polite" hidden>
             <h2 id="tileStoryEventTitle">사건</h2>
             <p id="tileStoryEventText"></p>
@@ -218,6 +236,6 @@
   <script src="v2-world-tree-prayer-digits.js?v=2"></script>
   <script src="v2-event-data.js?v=1"></script>
   <script src="v2-map-events.js?v=1"></script>
-  <script src="v2-map-practice.js?v=74"></script>
+  <script src="v2-map-practice.js?v=75"></script>
 </body>
 </html>
