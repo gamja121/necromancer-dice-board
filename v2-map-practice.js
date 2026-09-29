@@ -74,7 +74,6 @@
   const LEGACY_MAP_LAYOUT_KEY = "necromancer-map-layout-v1";
   const MAP_CLEARED_MONSTER_KEY = "necromancer-map-cleared-monsters-v1";
   const WORLD_TREE_PRAYER_KEY = "necromancer-map-world-tree-prayed-v1";
-  const FORTUNE_USED_KEY = "necromancer-map-fortune-used-v1";
   const MONSTER_BATTLE_TILE_IDS = Object.freeze(new Set(["monster", "rare-monster", "boss"]));
   const GRADE_LABELS = Object.freeze({ normal: "일반", advanced: "고급", hero: "영웅", special: "소환물" });
   const LEGION_LABELS = Object.freeze({ skeleton: "언데드", corpse: "시체", beast: "야수", plague: "역병", ice: "얼음", summon: "소환", demon: "악마", insect: "벌레", plant: "식물", element: "원소" });
@@ -202,7 +201,6 @@
   let battleTileType = "monster";
   let clearedMonsterSteps = new Set();
   let worldTreePrayed = false;
-  let fortuneProphesied = false;
   let worldTreePrayerRolling = false;
   let selectedDeck = [];
   let bookOpen = false;
@@ -407,22 +405,53 @@
     if (!el.deckOverlay.hidden) renderDeckSelection();
   }
 
-  function setPendingProphecy(result) {
-    try {
-      if (typeof sessionStorage === "undefined") return;
-      if (result === 2 || !Number.isInteger(result)) sessionStorage.removeItem(FORTUNE_PROPHECY_KEY);
-      else sessionStorage.setItem(FORTUNE_PROPHECY_KEY, String(result));
-    } catch (_) { /* Keep prophecy usable when storage is blocked. */ }
+  function emptyProphecyStack() {
+    return { allyAttack: 0, allyHp: 0, allySpeed: 0, enemyAttack: 0, rolls: [] };
   }
 
   function pendingProphecy() {
     try {
-      if (typeof sessionStorage === "undefined") return null;
-      const value = Number(sessionStorage.getItem(FORTUNE_PROPHECY_KEY));
-      return Number.isInteger(value) && value >= 1 && value <= 6 ? value : null;
+      if (typeof sessionStorage === "undefined") return emptyProphecyStack();
+      const raw = sessionStorage.getItem(FORTUNE_PROPHECY_KEY);
+      if (!raw) return emptyProphecyStack();
+      const parsed = JSON.parse(raw);
+      return {
+        allyAttack: Math.max(0, Math.floor(Number(parsed?.allyAttack) || 0)),
+        allyHp: Math.max(0, Math.floor(Number(parsed?.allyHp) || 0)),
+        allySpeed: Math.max(0, Math.floor(Number(parsed?.allySpeed) || 0)),
+        enemyAttack: Math.max(0, Math.floor(Number(parsed?.enemyAttack) || 0)),
+        rolls: Array.isArray(parsed?.rolls) ? parsed.rolls.filter((value) => Number.isInteger(value) && value >= 1 && value <= 6).slice(-24) : []
+      };
     } catch (_) {
-      return null;
+      return emptyProphecyStack();
     }
+  }
+
+  function addPendingProphecy(result) {
+    if (!Number.isInteger(result) || result < 1 || result > 6 || result === 2) return pendingProphecy();
+    const stack = pendingProphecy();
+    if (result === 1) stack.enemyAttack += 1;
+    if (result === 3) stack.allySpeed += 1;
+    if (result === 4) stack.allyHp += 2;
+    if (result === 5) stack.allyAttack += 1;
+    if (result === 6) {
+      stack.allyAttack += 1;
+      stack.allyHp += 2;
+    }
+    stack.rolls.push(result);
+    try {
+      if (typeof sessionStorage !== "undefined") sessionStorage.setItem(FORTUNE_PROPHECY_KEY, JSON.stringify(stack));
+    } catch (_) { /* Keep prophecy usable when storage is blocked. */ }
+    return stack;
+  }
+
+  function prophecyStackLabel(stack = pendingProphecy()) {
+    const parts = [];
+    if (stack.allyAttack) parts.push(`아군 공격 +${stack.allyAttack}`);
+    if (stack.allyHp) parts.push(`아군 체력 +${stack.allyHp}`);
+    if (stack.allySpeed) parts.push(`아군 속도 +${stack.allySpeed}`);
+    if (stack.enemyAttack) parts.push(`적 공격 +${stack.enemyAttack}`);
+    return parts.length ? parts.join(" · ") : "누적 없음";
   }
 
   function loadOwnedRoster() {
@@ -648,28 +677,6 @@
         if (typeof sessionStorage !== "undefined") sessionStorage.setItem(WORLD_TREE_PRAYER_KEY, "1");
       } catch (_) { /* Prayer still works without storage persistence. */ }
     }
-  }
-
-  function loadFortuneUse() {
-    try {
-      fortuneProphesied = typeof sessionStorage !== "undefined" && sessionStorage.getItem(FORTUNE_USED_KEY) === "1";
-    } catch (_) {
-      fortuneProphesied = false;
-    }
-  }
-
-  function resetFortuneUse() {
-    fortuneProphesied = false;
-    try {
-      if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(FORTUNE_USED_KEY);
-    } catch (_) { /* Fresh lap still works without storage. */ }
-  }
-
-  function markFortuneUsed() {
-    fortuneProphesied = true;
-    try {
-      if (typeof sessionStorage !== "undefined") sessionStorage.setItem(FORTUNE_USED_KEY, "1");
-    } catch (_) { /* Prophecy still works without persistence. */ }
   }
 
   function isMonsterBattleTile(tile) {
@@ -1233,7 +1240,10 @@
       contamination: String(contamination)
     });
     const prophecy = pendingProphecy();
-    if (prophecy) params.set("prophecy", String(prophecy));
+    if (prophecy.allyAttack) params.set("prophecyAllyAttack", String(prophecy.allyAttack));
+    if (prophecy.allyHp) params.set("prophecyAllyHp", String(prophecy.allyHp));
+    if (prophecy.allySpeed) params.set("prophecyAllySpeed", String(prophecy.allySpeed));
+    if (prophecy.enemyAttack) params.set("prophecyEnemyAttack", String(prophecy.enemyAttack));
     if (typeof V2Music !== "undefined") V2Music.handoff("battle");
     window.location.assign(`v2-auto-battle-practice.html?${params}`);
   }
@@ -1552,7 +1562,7 @@
     el.eventHeal.hidden = tile.id !== "rest" || !hasInjuredOwnedUnits();
     el.eventPray.hidden = tile.id !== "unknown" || worldTreePrayed;
     el.eventRitual.hidden = tile.id !== "altar";
-    el.eventProphecy.hidden = tile.id !== "fortune-teller-camp" || fortuneProphesied;
+    el.eventProphecy.hidden = tile.id !== "fortune-teller-camp";
     el.fortuneProphecyUi.hidden = true;
     el.eventPrayerResult.hidden = true;
     el.eventPrayerResult.textContent = "";
@@ -1648,7 +1658,6 @@
   async function showFortuneProphecy() {
     if (!eventOpen || activeEventTileId !== "fortune-teller-camp" || worldTreePrayerRolling) return;
     worldTreePrayerRolling = true;
-    markFortuneUsed();
     el.eventProphecy.hidden = true;
     el.fortuneProphecyUi.hidden = false;
     el.eventPrayerResult.hidden = true;
@@ -1666,34 +1675,35 @@
     if (result === 1) {
       label = "저주";
       detail = "다음 전투 적 전체 공격력 +1";
-      setPendingProphecy(result);
+      addPendingProphecy(result);
     } else if (result === 2) {
       label = "축복";
       detail = "아군 전체 완전 회복";
       healOwnedRosterFull();
-      setPendingProphecy(null);
+      // 즉시 회복은 기존 누적 예언을 지우지 않는다.
     } else if (result === 3) {
       label = "축복";
       detail = "다음 전투 아군 전체 속도 +1";
-      setPendingProphecy(result);
+      addPendingProphecy(result);
     } else if (result === 4) {
       label = "축복";
       detail = "다음 전투 아군 전체 체력 +2";
-      setPendingProphecy(result);
+      addPendingProphecy(result);
     } else if (result === 5) {
       label = "축복";
       detail = "다음 전투 아군 전체 공격력 +1";
-      setPendingProphecy(result);
+      addPendingProphecy(result);
     } else {
       label = "대축복";
       detail = "다음 전투 아군 전체 공격력 +1 · 체력 +2";
-      setPendingProphecy(result);
+      addPendingProphecy(result);
     }
 
-    el.eventPrayerResult.textContent = `${label} · ${detail}`;
+    const stackText = result === 2 ? prophecyStackLabel() : prophecyStackLabel(pendingProphecy());
+    el.eventPrayerResult.textContent = `${label} · ${detail} · 누적: ${stackText}`;
     el.eventPrayerResult.dataset.result = result === 1 ? "failure" : result === 6 ? "great-blessing" : "blessing";
     el.eventPrayerResult.hidden = false;
-    el.diceResult.textContent = `점술가 예언 · 주사위 ${result} · ${label} · ${detail}`;
+    el.diceResult.textContent = `점술가 예언 · 주사위 ${result} · ${label} · ${detail} · 누적 ${stackText}`;
     el.diceButton.classList.remove("is-rolling");
     el.board.classList.remove("is-fortune-prophesying");
     worldTreePrayerRolling = false;
@@ -1837,11 +1847,9 @@
     if (restoredPool) {
       loadClearedMonsterSteps();
       loadWorldTreePrayer();
-      loadFortuneUse();
     } else {
       resetClearedMonsterSteps();
       resetWorldTreePrayer();
-      resetFortuneUse();
     }
     const pool = restoredPool || createPool();
     positions = perimeterPositions();
