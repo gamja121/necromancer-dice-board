@@ -373,7 +373,13 @@
   let running = false;
   let paused = false;
   let actionBusy = false;
-  let speedMultiplier = 1;
+  const SPEED_PRESETS = Object.freeze({
+    1: 1.5,
+    2: 2.25,
+    3: 3
+  });
+  let speedLevel = 1;
+  let speedMultiplier = SPEED_PRESETS[speedLevel];
   let battleToken = 0;
   let actionCount = 0;
   let turnNumber = 0;
@@ -664,7 +670,8 @@
     selectedCorpse = null;
     captureAttemptsLeft = 0;
     captureTargetLocked = false;
-    speedMultiplier = 1;
+    speedLevel = 1;
+    speedMultiplier = SPEED_PRESETS[speedLevel];
     speedButton.textContent = "속도 ×1";
     pauseButton.textContent = "일시정지";
     pauseButton.disabled = true;
@@ -1988,8 +1995,9 @@
     message.textContent = paused ? "전투 일시정지" : "전투 재개";
   });
   speedButton.addEventListener("click", () => {
-    speedMultiplier = speedMultiplier === 1 ? 2 : speedMultiplier === 2 ? 3 : 1;
-    speedButton.textContent = `속도 ×${speedMultiplier}`;
+    speedLevel = speedLevel === 1 ? 2 : speedLevel === 2 ? 3 : 1;
+    speedMultiplier = SPEED_PRESETS[speedLevel];
+    speedButton.textContent = `속도 ×${speedLevel}`;
   });
 
   const mapLineupReady = fromMap && selectedAllySlugs.length >= 1 && selectedAllySlugs.length <= 4;
