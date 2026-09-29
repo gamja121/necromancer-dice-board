@@ -228,14 +228,23 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .tile-story-event-outcome { padding: 8px 10px; border: 1px solid #7a5a3d; border-radius: 4px; background: #ead1aa; color: #40291c; font-size: clamp(9px, 1vw, 13px); font-weight: 900; line-height: 1.4; }
 .tile-story-event-outcome[hidden] { display: none; }
 
+.fortune-prophecy-ui { position: absolute; z-index: 10; left: 50%; top: 50%; display: grid; place-items: center; width: 54%; height: 62%; transform: translate(-50%, -50%); pointer-events: none; animation: fortune-prophecy-in 260ms cubic-bezier(.18,.84,.25,1.08) both; }
+.fortune-prophecy-ui[hidden] { display: none; }
+.fortune-prophecy-ui::before { content: ""; position: absolute; width: 58%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(154,85,218,.38), rgba(91,41,150,.12) 48%, transparent 70%); filter: blur(10px); }
+.fortune-prophecy-ui img { position: relative; z-index: 1; display: block; width: min(62%, 240px); max-height: 90%; object-fit: contain; image-rendering: auto; filter: drop-shadow(0 12px 14px #000c) drop-shadow(0 0 12px #9b63d288); }
+@keyframes fortune-prophecy-in {
+  from { opacity: 0; transform: translate(-50%, -45%) scale(.78); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
 .tile-event-exit { position: absolute; right: 1%; bottom: 7%; width: 18%; min-width: 66px; min-height: 36px; aspect-ratio: 2.25; padding: 0 8px; border: 0; background: url("art/v2-style/map-test/events/exit-parchment.png") center / 100% 100% no-repeat; color: #49301d; font-size: clamp(12px, 1.5vw, 20px); font-weight: 900; text-shadow: 0 1px #fff7df; cursor: pointer; filter: drop-shadow(0 5px 5px #0009); pointer-events: auto; }
 .tile-event-enter { position: absolute; right: 1%; bottom: 29%; width: 18%; min-width: 66px; min-height: 36px; aspect-ratio: 2.7; padding: 0 8px; border: 0; background: url("art/v2-style/map-test/events/enter-parchment.png") center / 100% 100% no-repeat; color: #49301d; font-size: clamp(12px, 1.5vw, 20px); font-weight: 900; text-shadow: 0 1px #fff7df; cursor: pointer; filter: drop-shadow(0 5px 5px #0009); pointer-events: auto; }
 .tile-event-enter[hidden] { display: none; }
 .tile-event-enter:hover { filter: brightness(1.15); }
-.tile-event-heal, .tile-event-pray, .tile-event-ritual { position: absolute; right: 1%; bottom: 29%; width: 18%; min-width: 66px; min-height: 36px; aspect-ratio: 2.7; padding: 0 8px; border: 0; background: url("art/v2-style/map-test/events/enter-parchment.png") center / 100% 100% no-repeat; color: #49301d; font-size: clamp(12px, 1.5vw, 20px); font-weight: 900; text-shadow: 0 1px #fff7df; cursor: pointer; filter: drop-shadow(0 5px 5px #0009); pointer-events: auto; }
-.tile-event-heal[hidden], .tile-event-pray[hidden], .tile-event-ritual[hidden] { display: none; }
-.tile-event-heal:hover, .tile-event-pray:hover, .tile-event-ritual:hover { filter: brightness(1.15); }
-.tile-event-exit:focus-visible, .tile-event-enter:focus-visible, .tile-event-heal:focus-visible, .tile-event-pray:focus-visible, .tile-event-ritual:focus-visible { outline: 2px solid #ffd77e; outline-offset: 2px; }
+.tile-event-heal, .tile-event-pray, .tile-event-ritual, .tile-event-prophecy { position: absolute; right: 1%; bottom: 29%; width: 18%; min-width: 66px; min-height: 36px; aspect-ratio: 2.7; padding: 0 8px; border: 0; background: url("art/v2-style/map-test/events/enter-parchment.png") center / 100% 100% no-repeat; color: #49301d; font-size: clamp(12px, 1.5vw, 20px); font-weight: 900; text-shadow: 0 1px #fff7df; cursor: pointer; filter: drop-shadow(0 5px 5px #0009); pointer-events: auto; }
+.tile-event-heal[hidden], .tile-event-pray[hidden], .tile-event-ritual[hidden], .tile-event-prophecy[hidden] { display: none; }
+.tile-event-heal:hover, .tile-event-pray:hover, .tile-event-ritual:hover, .tile-event-prophecy:hover { filter: brightness(1.15); }
+.tile-event-exit:focus-visible, .tile-event-enter:focus-visible, .tile-event-heal:focus-visible, .tile-event-pray:focus-visible, .tile-event-ritual:focus-visible, .tile-event-prophecy:focus-visible { outline: 2px solid #ffd77e; outline-offset: 2px; }
 .tile-event-prayer-result { position: absolute; z-index: 6; left: 50%; top: 18%; min-width: 28%; padding: 2.2% 4%; transform: translateX(-50%); border: 2px solid #4a3421; border-radius: 4px; background: rgba(225, 199, 151, .94); color: #3b291d; font: 1000 clamp(20px, 3.1vw, 42px)/1 Georgia, "Malgun Gothic", serif; text-align: center; text-shadow: 0 1px #fff2d2; box-shadow: 0 7px 14px #0008, inset 0 0 0 1px #f4deb6; pointer-events: none; }
 .tile-event-prayer-result[hidden] { display: none; }
 .tile-event-prayer-result[data-result="failure"] { filter: grayscale(.35) brightness(.78); }
