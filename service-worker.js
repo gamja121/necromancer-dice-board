@@ -1,630 +1,150 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20260929-18";
-const APP_SHELL = [
-  "./art/v2-style/processed/192/grave-worm.png",
-  "./art/v2-style/processed/192/flesh-golem.png",
-  "./art/v2-style/processed/192/plague-doctor.png",
-  "./art/v2-style/processed/192/plague-frog.png",
-  "./art/v2-style/processed/192/hydra.png",
-  "./art/v2-style/processed/192/yeti.png",
-  "./art/v2-style/processed/192/ice-lord.png",
-  "./art/v2-style/processed/192/spiderling.png",
-  "./art/v2-style/processed/192/goblin-chief.png",
-  "./art/v2-style/processed/192/goblin-commoner.png",
-  "./art/v2-style/processed/192/skeleton-summoner.png",
-  "./art/v2-style/processed/192/doom-executor.png",
-  "./art/v2-style/processed/192/abyss-eye.png",
-  "./art/v2-style/processed/192/guardian-seed.png",
-  "./art/v2-style/processed/192/raging-treant.png",
-  "./art/v2-style/processed/192/cerberus.png",
-  "./art/v2-style/processed/192/poison-mushroom.png",
-  "./art/v2-style/processed/192/abyss-harpy.png",
-  "./art/v2-style/processed/192/mummy-guardian.png",
-  "./art/v2-style/processed/192/soul-reaper.png",
-  "./art/v2-style/processed/192/bone-hound.png",
-  "./art/v2-style/processed/192/mimic.png",
-  "./art/v2-style/processed/192/ice-princess.png",
-  "./art/v2-style/processed/192/siren.png",
-  "./assets/sfx/book-cards-open.mp3",
-  "./assets/sfx/poison.ogg",
-  "./assets/sfx/summon.ogg",
-  "./assets/sfx/treasure-chest-open.mp3",
-  "./assets/sfx/ui.ogg",
-  "./assets/sfx/victory.ogg",
-  "./art/v2-style/ui/map-cloud-transition.png",
-  "./art/v2-style/ui/map-cloud-transition-2.png",
-  "./art/v2-style/ui/map-cloud-transition-3.png",
-  "./art/v2-style/ui/map-cloud-transition-4.png",
-  "./art/v2-style/ui/brand-card.png?v=4",
-  "./launch.css?v=1",
-  "./launch.js?v=1",
-  "./v2-animation-practice.css?v=7",
-  "./v2-mantis-frames.js?v=5",
-  "./v2-vampire-frames.js?v=2",
-  "./v2-scorpion-frames.js?v=1",
-  "./v2-hound-frames.js?v=1",
-  "./v2-hydra-frames.js?v=1",
-  "./v2-harpy-frames.js?v=1",
-  "./v2-seed-frames.js?v=1",
-  "./v2-blood-frames.js?v=1",
-  "./v2-princess-frames.js?v=1",
-  "./v2-goblin-frames.js?v=1",
-  "./v2-hit-effects.js?v=9",
-  "./v2-animation-practice.js?v=82",
+const CACHE_NAME = "necromancer-and-dice-v2-20260929-19";
+
+const CORE_ASSETS = [
+  "./",
+  "./index.html",
+  "./v2-map-practice.html",
+  "./v2-auto-battle-practice.html",
+  "./v2-map-practice.css?v=49",
+  "./v2-home-inheritance.css?v=9",
+  "./v2-altar-ritual.css?v=3",
   "./v2-auto-battle-practice.css?v=60",
+  "./v2-asset-loader.js?v=1",
+  "./v2-map-practice.js?v=67",
+  "./v2-auto-battle-practice.js?v=108",
   "./v2-landscape.js?v=1",
   "./v2-music.js?v=1",
-  "./v2-unit-data.js?v=1",
-  "./v2-summon-rules.js?v=1",
-  "./v2-battle-brands.js?v=3",
-  "./v2-legions.js?v=3",
-  "./v2-summon-effect.js?v=3",
-  "./v2-combat-effects.js?v=9",
-  "./v2-damage-digits.js?v=4",
-  "./v2-unit-size.js?v=5",
-  "./v2-unit-cards.js?v=24",
+  "./v2-sfx.js?v=3",
   "./v2-design-data.js?v=1",
   "./v2-rules.js?v=7",
   "./v2-run-state.js?v=1",
   "./v2-run-state-runtime.js?v=1",
-  "./v2-battle-rng.js?v=1",
   "./v2-brand-cards.js?v=4",
-  "./v2-sfx.js?v=3",
-  "./v2-auto-battle-practice.js?v=108",
-  "./v2-event-lab.css?v=1",
-  "./v2-event-data.js?v=1",
-  "./v2-event-lab.js?v=1",
-  "./v2-map-practice.css?v=49",
-  "./v2-home-inheritance.css?v=9",
-  "./v2-altar-ritual.css?v=3",
   "./v2-home-inheritance.js?v=14",
   "./v2-altar-ritual.js?v=4",
   "./v2-dice-control.js?v=1",
   "./v2-world-tree-prayer-digits.js?v=2",
-  "./v2-map-practice.js?v=66",
-  "./v2-tile-practice.css?v=1",
-  "./v2-tile-practice.js?v=2",
-  "./v2-battle.css?v=7",
-  "./v2-motion.js?v=5",
-  "./v2-battle.js?v=13",
-  "./",
-  "./index.html",
-  "./v2.html",
-  "./v2-animation-practice.html",
-  "./art/v2-style/ui/toxic-liquid-hit-sheet.jpg",
-  "./art/v2-style/ui/bite-hit-sheet.jpg",
-  "./art/v2-style/ui/music-hit-sheet.jpg",
-  "./art/v2-style/ui/wind-hit-sheet.jpg",
-  "./art/v2-style/ui/poison-gas-hit-sheet.jpg",
-  "./art/v2-style/ui/magic-hit-sheet.jpg",
-  "./art/v2-style/ui/slash-hit-sheet.jpg",
-  "./art/v2-style/ui/claw-hit-sheet.jpg",
-  "./art/v2-style/ui/basic-physical-hit-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/goblin-soldier-1.jpg",
-  "./art/v2-style/animation-sheets/green-raw/goblin-soldier-2.jpg",
-  "./art/v2-style/animation-sheets/green-raw/goblin-soldier-3.jpg",
-  "./art/v2-style/animation-sheets/green-raw/ice-princess-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/bone-golem-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/guardian-seed-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/abyss-harpy-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/hydra-1.jpg",
-  "./art/v2-style/animation-sheets/green-raw/hydra-2.jpg",
-  "./art/v2-style/animation-sheets/green-raw/bone-hound-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/scorpion-knight-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/hell-mantis-animation-sheet.jpg",
-  "./v2-dracula-frames.js?v=3",
-  "./art/v2-style/animation-sheets/uploaded-raw/dracula-attack.webp?v=1",
-  "./art/v2-style/animation-test-frames/vampire/vampire-motion-sprite.webp?v=2",
-  "./art/v2-style/animation-test-frames/dracula/dracula-attack-sprite.svg?v=1",
-  "./art/v2-style/animation-test-frames/dracula/attack-01.svg",
-  "./art/v2-style/animation-test-frames/dracula/attack-02.svg",
-  "./art/v2-style/animation-test-frames/dracula/attack-03.svg",
-  "./art/v2-style/animation-test-frames/dracula/attack-04.svg",
-  "./art/v2-style/animation-test-frames/dracula/attack-05.svg",
-  "./art/v2-style/animation-test-frames/dracula/attack-06.svg",
-  "./art/v2-style/animation-test-frames/dracula/attack-07.svg",
-  "./art/v2-style/animation-test-frames/dracula/attack-08.svg",
-  "./art/v2-style/animation-test-frames/dracula/attack-09.svg",
-  "./art/v2-style/animation-test-frames/dracula/attack-10.svg",
-  "./art/v2-style/ui/info-portraits/dracula.png",
-  "./v2-image-test.html",
-  "./v2-map-practice.html",
-  "./v2-tile-practice.html",
-  "./v2-event-lab.html",
+  "./art/v2-style/map-test/maps/default-map.jpg",
+  "./art/v2-style/map-test/maps/winter-map.jpg",
+  "./art/v2-style/map-test/maps/hell-map.jpg",
+  "./art/v2-style/map-test/hero/necromancer-hero.png",
+  "./art/v2-style/ui/contamination/contamination-hud.png",
   "./art/v2-style/ui/map-book-closed.png",
   "./art/v2-style/ui/map-book-open.png",
   "./art/v2-style/ui/map-card-deck.png",
   "./art/v2-style/ui/map-card-deck-open.png",
-  "./art/v2-style/ui/dice-control-ko-1.png",
-  "./art/v2-style/ui/dice-control-ko-2.png",
-  "./art/v2-style/ui/dice-control-ko-3.png",
-  "./art/v2-style/ui/dice-control-ko-4.png",
-  "./art/v2-style/ui/dice-control-ko-5.png",
-  "./art/v2-style/ui/dice-control-ko-6.png",
-  "./art/v2-style/ui/dice-control-ko-low.png",
-  "./art/v2-style/ui/dice-control-ko-high.png",
-  "./art/v2-style/ui/dice-control-ko-odd.png",
-  "./art/v2-style/ui/dice-control-ko-even.png",
-  "./art/v2-style/ui/dice-control-ko-exclude-1.png",
-  "./art/v2-style/ui/dice-control-ko-exclude-2.png",
-  "./art/v2-style/ui/dice-control-ko-exclude-3.png",
-  "./art/v2-style/ui/dice-control-ko-exclude-4.png",
-  "./art/v2-style/ui/dice-control-ko-exclude-5.png",
-  "./art/v2-style/ui/dice-control-ko-exclude-6.png",
-  "./art/v2-style/ui/dice-control-ko-repeat.png",
-  "./art/v2-style/ui/dice-control-ko-echo.png",
-  "./art/v2-style/ui/dice-control-1.png",
-  "./art/v2-style/ui/dice-control-2.png",
-  "./art/v2-style/ui/dice-control-3.png",
-  "./art/v2-style/ui/dice-control-4.png",
-  "./art/v2-style/ui/dice-control-5.png",
-  "./art/v2-style/ui/dice-control-6.png",
-  "./art/v2-style/ui/dice-control-low.png",
-  "./art/v2-style/ui/dice-control-high.png",
-  "./art/v2-style/ui/dice-control-odd.png",
-  "./art/v2-style/ui/dice-control-even.png",
-  "./art/v2-style/ui/dice-control-exclude-1.png",
-  "./art/v2-style/ui/dice-control-exclude-2.png",
-  "./art/v2-style/ui/dice-control-exclude-3.png",
-  "./art/v2-style/ui/dice-control-exclude-4.png",
-  "./art/v2-style/ui/dice-control-exclude-5.png",
-  "./art/v2-style/ui/dice-control-exclude-6.png",
-  "./art/v2-style/ui/dice-control-repeat.png",
-  "./art/v2-style/ui/dice-control-echo.png",
-  "./art/v2-style/map-test/events/exit-parchment.png",
-  "./art/v2-style/map-test/events/enter-parchment.png",
-  "./art/v2-style/map-test/events/inheritance-board.png",
-  "./v2-auto-battle-practice.html",
-  "./v2-sfx-sampler.html",
-  "./assets/sfx/dice-tick.ogg",
-  "./assets/sfx/dice-land.ogg",
-  "./assets/sfx/move.ogg",
-  "./assets/sfx/attack.ogg",
-  "./assets/sfx/hit.ogg",
-  "./assets/sfx/arrow.ogg",
-  "./assets/sfx/claw.ogg",
-  "./assets/sfx/death.ogg",
-  "./assets/sfx/freeze.ogg",
-  "./assets/sfx/heavy.ogg",
-  "./assets/sfx/magic.ogg",
-  "./assets/music/map-board.mp3",
-  "./assets/music/battle.mp3",
   "./art/v2-style/ui/battle-deck-selection-board.png",
-  "./art/v2-style/ui/freeze-status-label.png?v=2",
-  "./art/v2-style/ui/legion-slot-frame.png",
-  "./art/v2-style/ui/legion-info-window-hd.png?v=2",
-  "./art/v2-style/ui/corpse-selection-arrow.png",
-  "./art/v2-style/ui/healing-digits-sheet.jpg",
-  "./art/v2-style/ui/unit-card-corpse-slime.png?v=19",
-  "./art/v2-style/ui/unit-card-minotaur.png?v=19",
-  "./art/v2-style/ui/unit-card-plague-frog.png?v=19",
-  "./art/v2-style/ui/unit-card-ice-lord.png?v=19",
-  "./art/v2-style/ui/unit-card-yeti.png?v=19",
-  "./art/v2-style/ui/unit-card-guardian-seed.png?v=19",
-  "./art/v2-style/ui/unit-card-plague-doctor.png?v=19",
-  "./art/v2-style/ui/unit-card-ghoul.png?v=19",
-  "./art/v2-style/ui/unit-card-goblin-chief.png?v=19",
-  "./art/v2-style/ui/unit-card-goblin-soldier.png?v=19",
-  "./art/v2-style/ui/unit-card-goblin-commoner.png?v=19",
-  "./art/v2-style/ui/unit-card-sea-wolf.png?v=19",
-  "./art/v2-style/ui/unit-card-grave-priest.png?v=19",
-  "./art/v2-style/ui/unit-card-abyss-eye.png?v=19",
-  "./art/v2-style/ui/unit-card-doom-executor.png?v=19",
-  "./art/v2-style/ui/unit-card-death-knight.png?v=19",
-  "./art/v2-style/ui/unit-card-hell-mantis.png?v=19",
-  "./art/v2-style/ui/unit-card-scorpion-knight.png?v=19",
-  "./art/v2-style/ui/unit-card-ancient-treant.png?v=19",
-  "./art/v2-style/ui/unit-card-stone-golem.png?v=19",
-  "./art/v2-style/ui/unit-card-kraken.png?v=19",
-  "./art/v2-style/ui/unit-card-crystal-devourer.png?v=19",
-  "./art/v2-style/ui/unit-card-skeleton-spear.png?v=19",
-  "./art/v2-style/ui/unit-card-skeleton-archer.png?v=19",
-  "./art/v2-style/ui/unit-card-spider-knight.png?v=19",
-  "./art/v2-style/ui/unit-card-raging-treant.png?v=19",
-  "./art/v2-style/ui/unit-card-cerberus.png?v=19",
-  "./art/v2-style/ui/unit-card-mushroom-soldier.png?v=19",
-  "./art/v2-style/ui/unit-card-goblin-rider.png?v=19",
-  "./art/v2-style/ui/unit-card-orc-warrior.png?v=19",
-  "./art/v2-style/ui/unit-card-boulder-ogre.png?v=19",
-  "./art/v2-style/ui/unit-card-bone-golem.png?v=19",
-  "./art/v2-style/ui/unit-card-forest-fairy.png?v=19",
-  "./art/v2-style/ui/unit-card-flesh-golem.png?v=19",
-  "./art/v2-style/ui/unit-card-hydra.png?v=19",
-  "./art/v2-style/ui/unit-card-ice-princess.png?v=19",
-  "./art/v2-style/ui/unit-card-mimic.png?v=19",
-  "./art/v2-style/ui/unit-card-bone-hound.png?v=19",
-  "./art/v2-style/ui/unit-card-soul-reaper.png?v=19",
-  "./art/v2-style/ui/unit-card-mummy-guardian.png?v=19",
-  "./art/v2-style/ui/unit-card-skeleton-cavalry.png?v=19",
-  "./art/v2-style/ui/unit-card-spiderling.png?v=19",
-  "./art/v2-style/ui/unit-card-grave-worm.png?v=19",
-  "./art/v2-style/ui/unit-card-abyss-harpy.png?v=19",
-  "./art/v2-style/ui/unit-card-siren.png?v=19",
-  "./art/v2-style/ui/unit-card-abyss-claw-hunter.png?v=19",
-  "./art/v2-style/ui/unit-card-guardian-seed.jpg",
-  "./art/v2-style/ui/unit-card-spiderling.jpg",
-  "./art/v2-style/ui/status-labels-sheet.jpg",
-  "./art/v2-style/battle-backgrounds/uploaded-raw/lava-forest.jpg",
-  "./art/v2-style/battle-backgrounds/uploaded-raw/snow-forest.jpg",
-  "./art/v2-style/battle-backgrounds/uploaded-raw/dark-forest.jpg",
-  "./art/v2-style/ui/combat-labels-sheet.jpg",
-  "./art/v2-style/ui/damage-digits-sheet.jpg",
-  "./art/v2-style/ui/summon-effect-sheet.jpg",
-  "./art/v2-style/ui/brand-icons-sheet.jpg",
-  "./art/v2-style/ui/brand-icons-extra-sheet.jpg",
-  "./art/v2-style/processed/192/corpse-slime.png",
-  "./art/v2-style/animation-sheets/green-raw/corpse-slime-animation-sheet.jpg",
-  "./art/v2-style/processed/192/abyss-claw-hunter.png",
-  "./art/v2-style/animation-sheets/green-raw/abyss-claw-hunter-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/abyss-claw-hunter-attack-03-generated.png",
-  "./manifest.webmanifest?v=20260927-v2",
-  "./assets/app-icon-192.png",
-  "./assets/app-icon-512.png",
-  "./art/v2-style/map-test/maps/default-map.jpg",
-  "./art/v2-style/map-test/maps/winter-map.jpg",
-  "./art/v2-style/map-test/maps/hell-map.jpg",
-  "./art/v2-style/map-test/tiles/basic.png?v=20260929-1",
-  "./art/v2-style/map-test/tiles/graveyard.png?v=20260929-1",
-  "./art/v2-style/map-test/tiles/altar.png?v=20260929-1",
-  "./art/v2-style/map-test/tiles/unknown.png?v=20260929-1",
-  "./art/v2-style/map-test/tiles/forest.png?v=20260929-1",
-  "./art/v2-style/map-test/tiles/rest.png?v=20260929-1",
-  "./art/v2-style/map-test/tiles/monster.png?v=20260929-1",
-  "./art/v2-style/map-test/tiles/monster-cleared.png?v=20260929-1",
-  "./art/v2-style/map-test/tiles/rare-monster.png?v=20260929-1",
-  "./art/v2-style/map-test/tiles/rare-monster-cleared.png?v=20260929-1",
-  "./art/v2-style/map-test/tiles/gem.png?v=20260929-1",
-  "./art/v2-style/map-test/tiles/event.png?v=20260929-1",
-  "./art/v2-style/map-test/tiles/warp.png?v=20260929-1",
-  "./art/v2-style/map-test/tiles/home.png?v=20260929-1",
-  "./art/v2-style/map-test/tiles/village.png?v=20260929-1",
-  "./art/v2-style/map-test/tiles/fortune-teller-camp.png?v=20260929-1",
-  "./art/v2-style/map-test/tiles/boss.png?v=20260929-1",
-  "./art/v2-style/map-test/tiles/boss-cleared.png?v=20260929-1",
-  "./art/v2-style/map-test/events/graveyard.jpg?v=20260927-2",
-  "./art/v2-style/map-test/events/home.jpg?v=20260927-2",
-  "./art/v2-style/map-test/events/home-interior.jpg?v=20260927-2",
-  "./art/v2-style/map-test/events/fortune-teller.jpg?v=20260927-2",
-  "./art/v2-style/map-test/events/village.jpg?v=20260927-2",
-  "./art/v2-style/map-test/events/camp.jpg?v=20260927-2",
-  "./art/v2-style/map-test/events/altar.jpg?v=20260928-2",
-  "./art/v2-style/map-test/events/altar-ritual-slots.png",
-  "./art/v2-style/map-test/events/altar-ritual-info.png",
-  "./art/v2-style/map-test/events/world-tree.jpg?v=20260928-2",
-  "./art/v2-style/map-test/events/forest.jpg?v=20260927-2",
-  "./art/v2-style/map-test/events/treasure-chest-sprite.png",
+  "./art/v2-style/ui/unit-info-window-no-portrait.png",
+  "./art/v2-style/ui/map-cloud-transition.png",
+  "./art/v2-style/ui/map-cloud-transition-2.png",
+  "./art/v2-style/ui/map-cloud-transition-3.png",
+  "./art/v2-style/ui/map-cloud-transition-4.png",
   "./art/v2-style/map-test/events/treasure-chest-frame-1.png",
   "./art/v2-style/map-test/events/treasure-chest-frame-2.png",
   "./art/v2-style/map-test/events/treasure-chest-frame-3.png",
   "./art/v2-style/map-test/events/treasure-chest-frame-4.png",
-  "./art/v2-style/map-test/hero/necromancer-hero.png",
-  "./art/v2-style/animation-sheets/green-raw/death-knight-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/skeleton-spear-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/ancient-treant-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/stone-golem-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/goblin-rider-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/orc-warrior-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/boulder-ogre-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/goblin-commoner-animation-sheet.png",
-  "./art/v2-style/animation-sheets/green-raw/ice-lord-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/yeti-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/ghoul-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/minotaur-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/skeleton-cavalry-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/soul-reaper-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/mummy-guardian-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/doom-executor-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/plague-frog-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/plague-doctor-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/goblin-chief-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/grave-priest-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/forest-fairy-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/mushroom-soldier-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/spider-knight-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/skeleton-archer-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/sea-wolf-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/abyss-eye-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/kraken-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/raging-treant-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/crystal-devourer-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/grave-worm-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/siren-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/mimic-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/cerberus-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/spiderling-animation-sheet.jpg",
-  "./art/v2-style/animation-sheets/green-raw/flesh-golem-animation-sheet.jpg",
-  "./assets/v2-battle-castle.png",
-  "./art/v2-style/battle-backgrounds/uploaded-raw/wasteland-chasm-battlefield.jpg",
-  "./art/v2-style/battle-backgrounds/uploaded-raw/haunted-forest-ruins-battlefield.jpg",
-  "./art/v2-style/battle-backgrounds/uploaded-raw/necropolis-pyramids-battlefield.jpg",
-  "./art/v2-style/ui/unit-info-window-no-portrait.png?v=3",
-  "./art/v2-style/ui/info-portraits/abyss-claw-hunter.png?v=1",
-  "./art/v2-style/ui/info-portraits/corpse-slime.png?v=1",
-  "./art/v2-style/ui/info-portraits/medusa.png?v=1",
-  "./art/v2-style/ui/info-portraits/siren.png?v=3",
-  "./art/v2-style/ui/info-portraits/abyss-harpy.png?v=1",
-  "./art/v2-style/ui/info-portraits/grave-worm.png?v=1",
-  "./art/v2-style/ui/info-portraits/goblin-commoner.png?v=1",
-  "./art/v2-style/ui/info-portraits/spiderling.png?v=1",
-  "./art/v2-style/ui/info-portraits/skeleton-cavalry.png?v=1",
-  "./art/v2-style/ui/info-portraits/mummy-guardian.png?v=1",
-  "./art/v2-style/ui/info-portraits/soul-reaper.png?v=1",
-  "./art/v2-style/ui/info-portraits/bone-hound.png?v=1",
-  "./art/v2-style/ui/info-portraits/mimic.png?v=1",
-  "./art/v2-style/ui/info-portraits/ice-princess.png?v=1",
-  "./art/v2-style/ui/info-portraits/hydra.png?v=1",
-  "./art/v2-style/ui/info-portraits/flesh-golem.png?v=1",
-  "./art/v2-style/ui/info-portraits/forest-fairy.png?v=1",
-  "./art/v2-style/ui/info-portraits/bone-golem.png?v=1",
-  "./art/v2-style/ui/info-portraits/boulder-ogre.png?v=1",
-  "./art/v2-style/ui/info-portraits/orc-warrior.png?v=1",
-  "./art/v2-style/ui/info-portraits/goblin-rider.png?v=1",
-  "./art/v2-style/ui/info-portraits/mushroom-soldier.png?v=1",
-  "./art/v2-style/ui/info-portraits/cerberus.png?v=1",
-  "./art/v2-style/ui/info-portraits/raging-treant.png?v=1",
-  "./art/v2-style/ui/info-portraits/spider-knight.png?v=1",
-  "./art/v2-style/ui/info-portraits/skeleton-archer.png?v=1",
-  "./art/v2-style/ui/info-portraits/skeleton-spear.png?v=1",
-  "./art/v2-style/ui/info-portraits/crystal-devourer.png?v=1",
-  "./art/v2-style/ui/info-portraits/kraken.png?v=1",
-  "./art/v2-style/ui/info-portraits/stone-golem.png?v=1",
-  "./art/v2-style/ui/info-portraits/ancient-treant.png?v=1",
-  "./art/v2-style/ui/info-portraits/scorpion-knight.png?v=1",
-  "./art/v2-style/ui/info-portraits/hell-mantis.png?v=1",
-  "./art/v2-style/ui/info-portraits/death-knight.png?v=1",
-  "./art/v2-style/ui/info-portraits/doom-executor.png?v=1",
-  "./art/v2-style/ui/info-portraits/abyss-eye.png?v=1",
-  "./art/v2-style/ui/info-portraits/grave-priest.png?v=1",
-  "./art/v2-style/ui/info-portraits/sea-wolf.png?v=1",
-  "./art/v2-style/ui/info-portraits/goblin-soldier.png?v=1",
-  "./art/v2-style/ui/info-portraits/goblin-chief.png?v=1",
-  "./art/v2-style/ui/info-portraits/ghoul.png?v=1",
-  "./art/v2-style/ui/info-portraits/plague-doctor.png?v=1",
-  "./art/v2-style/ui/info-portraits/yeti.png?v=1",
-  "./art/v2-style/ui/info-portraits/ice-lord.png?v=1",
-  "./art/v2-style/ui/info-portraits/plague-frog.png?v=1",
-  "./art/v2-style/ui/info-portraits/minotaur.png?v=2",
-  "./art/v2-style/ui/info-portraits/guardian-seed.png?v=2",
-  "./art/v2-style/processed/192/ghoul.png",
-  "./art/v2-style/processed/192/goblin-rider.png",
-  "./art/v2-style/processed/192/ogre.png",
-  "./art/v2-style/processed/192/minotaur.png",
-  "./art/v2-style/processed/192/ancient-treant.png",
-  "./art/v2-style/processed/192/bone-golem.png",
-  "./art/v2-style/processed/192/crystal-devourer.png",
-  "./art/v2-style/processed/192/death-knight.png",
-  "./art/v2-style/processed/192/demon-death-knight.png",
-  "./art/v2-style/processed/192/forest-fairy.png",
-  "./art/v2-style/processed/192/goblin-soldier.png",
-  "./art/v2-style/processed/192/troll.png",
-  "./art/v2-style/processed/192/hell-mantis.png",
-  "./art/v2-style/processed/192/kraken.png",
-  "./art/v2-style/processed/192/scorpion-knight.png",
-  "./art/v2-style/processed/192/sea-wolf.png",
-  "./art/v2-style/processed/192/skeleton-archer.png",
-  "./art/v2-style/processed/192/skeleton-spear.png",
-  "./art/v2-style/processed/192/spider-queen.png",
-  "./art/v2-style/processed/192/stone-golem.png",
-  "./art/v2-style/processed/192/totem-ice.png",
-  "./art/v2-style/processed/192/totem-plague.png",
-  "./art/v2-style/processed/192/totem-plant.png"
+  "./art/v2-style/map-test/tiles/basic.png",
+  "./art/v2-style/map-test/tiles/graveyard.png",
+  "./art/v2-style/map-test/tiles/altar.png",
+  "./art/v2-style/map-test/tiles/unknown.png",
+  "./art/v2-style/map-test/tiles/forest.png",
+  "./art/v2-style/map-test/tiles/rest.png",
+  "./art/v2-style/map-test/tiles/monster.png",
+  "./art/v2-style/map-test/tiles/monster-cleared.png",
+  "./art/v2-style/map-test/tiles/rare-monster.png",
+  "./art/v2-style/map-test/tiles/rare-monster-cleared.png",
+  "./art/v2-style/map-test/tiles/gem.png",
+  "./art/v2-style/map-test/tiles/event.png",
+  "./art/v2-style/map-test/tiles/warp.png",
+  "./art/v2-style/map-test/tiles/home.png",
+  "./art/v2-style/map-test/tiles/village.png",
+  "./art/v2-style/map-test/tiles/fortune-teller-camp.png",
+  "./art/v2-style/map-test/tiles/boss.png",
+  "./art/v2-style/map-test/tiles/boss-cleared.png"
 ];
 
-for (let index = 1; index <= 12; index += 1) {
-  APP_SHELL.push(`./art/v2-style/dice-test/frames/roll-${String(index).padStart(2, "0")}.png`);
+for (let i = 1; i <= 12; i += 1) {
+  CORE_ASSETS.push(`./art/v2-style/dice-test/frames/roll-${String(i).padStart(2, "0")}.png`);
 }
-for (let value = 1; value <= 6; value += 1) {
-  APP_SHELL.push(`./art/v2-style/dice-test/frames/result-${String(value).padStart(2, "0")}.png`);
+for (let i = 1; i <= 6; i += 1) {
+  CORE_ASSETS.push(`./art/v2-style/dice-test/frames/result-${String(i).padStart(2, "0")}.png`);
 }
 
-Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/death-knight/${motion}-${String(index).padStart(2, "0")}.png`);
+function normalizedAssetRequest(request) {
+  const url = new URL(request.url);
+  if (["image", "audio", "video", "font"].includes(request.destination)) {
+    url.search = "";
+    url.hash = "";
+    return new Request(url.href, { method: "GET", credentials: "same-origin" });
   }
-});
-Object.entries({ attack: 6, hit: 4, death: 7 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/yeti/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/ghoul/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 6, hit: 4, death: 6 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/minotaur/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/skeleton-cavalry/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 6, hit: 4, death: 6 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/soul-reaper/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 5 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/mummy-guardian/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
+  return request;
+}
 
-Object.entries({ attack: 7, hit: 4, death: 5 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/corpse-slime/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 5 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/doom-executor/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 5 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/plague-frog/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 5 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/plague-doctor/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 5 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/goblin-chief/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 5 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/skeleton-spear/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/goblin-commoner/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/ice-lord/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 5 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/goblin-rider/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 5 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/orc-warrior/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 5 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/boulder-ogre/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/ancient-treant/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 5 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/stone-golem/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/grave-priest/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 7 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/forest-fairy/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/mushroom-soldier/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 5 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/spider-knight/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/skeleton-archer/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/sea-wolf/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/abyss-eye/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/kraken/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/raging-treant/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 7 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/crystal-devourer/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/grave-worm/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 7 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/siren/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
-Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/mimic/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
+async function safeCachePut(cache, key, response) {
+  if (!response || !response.ok) return response;
+  try { await cache.put(key, response.clone()); }
+  catch (error) { console.warn("[sw] cache put failed", key.url || key, error); }
+  return response;
+}
 
-Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/cerberus/${motion}-${String(index).padStart(2, "0")}.png`);
+async function fetchAndCache(request, key = request) {
+  const response = await fetch(request);
+  if (response.ok) {
+    const cache = await caches.open(CACHE_NAME);
+    await safeCachePut(cache, key, response);
   }
-});
+  return response;
+}
 
-Object.entries({ attack: 5, hit: 4, death: 6 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/spiderling/${motion}-${String(index).padStart(2, "0")}.png`);
+async function cacheFirst(request) {
+  const key = normalizedAssetRequest(request);
+  const cached = await caches.match(key);
+  if (cached) {
+    // Refresh in the background without making rendering depend on the network.
+    fetchAndCache(request, key).catch(() => {});
+    return cached;
   }
-});
+  return fetchAndCache(request, key);
+}
 
-Object.entries({ attack: 5, hit: 5, death: 6 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    if (motion === "death" && index === 4) continue;
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/flesh-golem/${motion}-${String(index).padStart(2, "0")}.png`);
+async function networkFirst(request) {
+  try {
+    return await fetchAndCache(request, request);
+  } catch (error) {
+    const cached = await caches.match(request);
+    if (cached) return cached;
+    if (request.mode === "navigate") {
+      const page = await caches.match("./index.html");
+      if (page) return page;
+    }
+    throw error;
   }
-});
-
-Object.entries({ attack: 5, hit: 4, death: 5 }).forEach(([motion, count]) => {
-  for (let index = 1; index <= count; index += 1) {
-    APP_SHELL.push(`./art/v2-style/animation-test-frames/abyss-claw-hunter/${motion}-${String(index).padStart(2, "0")}.png`);
-  }
-});
+}
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(APP_SHELL.map(path =>
-        path.includes("/abyss-claw-hunter/") ? new Request(path, { cache: "reload" }) : path)))
-      .then(() => self.skipWaiting())
-  );
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const results = await Promise.allSettled(CORE_ASSETS.map(async (path) => {
+      const request = new Request(path, { cache: "reload" });
+      const key = normalizedAssetRequest(request);
+      const response = await fetch(request);
+      if (!response.ok) throw new Error(`${response.status} ${path}`);
+      await safeCachePut(cache, key, response);
+    }));
+    const failed = results.filter((result) => result.status === "rejected");
+    if (failed.length) console.warn("[sw] optional core assets failed to precache", failed.length);
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(
-        keys.filter((key) => key !== CACHE_NAME && (key.startsWith("necromancer-expedition-") || key.startsWith("necromancer-and-dice-"))).map((key) => caches.delete(key))
-      ))
-      .then(() => self.clients.claim())
-  );
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys
+      .filter((key) => key !== CACHE_NAME && (key.startsWith("necromancer-expedition-") || key.startsWith("necromancer-and-dice-")))
+      .map((key) => caches.delete(key)));
+    await self.clients.claim();
+  })());
 });
 
 self.addEventListener("fetch", (event) => {
@@ -632,22 +152,15 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
-  const networkRequest = event.request.mode === "navigate"
-    ? new Request(event.request, { cache: "reload" })
-    : event.request;
+  if (event.request.mode === "navigate") {
+    event.respondWith(networkFirst(new Request(event.request, { cache: "reload" })));
+    return;
+  }
 
-  event.respondWith(
-    fetch(networkRequest)
-      .then((response) => {
-        if (response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-        }
-        return response;
-      })
-      .catch(async () => (
-        await caches.match(event.request)
-        || (event.request.mode === "navigate" ? caches.match("./index.html") : undefined)
-      ))
-  );
+  if (["image", "audio", "video", "font"].includes(event.request.destination)) {
+    event.respondWith(cacheFirst(event.request));
+    return;
+  }
+
+  event.respondWith(networkFirst(event.request));
 });
