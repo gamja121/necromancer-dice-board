@@ -260,8 +260,10 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   72% { opacity: 1; transform: translate(-50%, -10%) scale(1); }
   100% { opacity: 0; transform: translate(-50%, -24%) scale(.94); }
 }
-.map-board.is-tile-event-open.is-world-tree-praying .dice-controller { z-index: 55; visibility: visible; }
-.map-board.is-tile-event-open.is-world-tree-praying .dice-controller > button { pointer-events: none; }
+.map-board.is-tile-event-open.is-world-tree-praying .dice-controller,
+.map-board.is-tile-event-open.is-fortune-prophesying .dice-controller { z-index: 55; visibility: visible; }
+.map-board.is-tile-event-open.is-world-tree-praying .dice-controller > button,
+.map-board.is-tile-event-open.is-fortune-prophesying .dice-controller > button { pointer-events: none; }
 .map-deck-overlay { position: absolute; z-index: 45; inset: 0; display: block; overflow: hidden; background: transparent; pointer-events: auto; }
 .map-deck-overlay[hidden] { display: none; }
 .map-deck-overlay.is-preview .map-deck-confirm { display: none; }
