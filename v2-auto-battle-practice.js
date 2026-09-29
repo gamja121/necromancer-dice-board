@@ -1,4 +1,4 @@
-(function () {
+(async function () {
   const BATTLEFIELDS = [
     "art/v2-style/battle-backgrounds/uploaded-raw/lava-forest.jpg",
     "art/v2-style/battle-backgrounds/uploaded-raw/snow-forest.jpg",
@@ -258,6 +258,11 @@
   const requestedAllyInstanceIds = (battleQuery.get("allyIds") || "").split(",").filter(Boolean);
   let mapVictoryContaminationApplied = false;
 
+  if (fromMap && globalThis.V2RunStateRuntime?.available) {
+    await V2RunStateRuntime.bootstrap();
+    await V2RunStateRuntime.flush();
+  }
+
   function applyMapVictoryContamination() {
     if (!fromMap || mapVictoryContaminationApplied) return;
     mapVictoryContaminationApplied = true;
@@ -273,9 +278,12 @@
   }
 
   const mapOwnedRoster = (() => {
-    if (!fromMap || typeof sessionStorage === "undefined") return new Map();
+    if (!fromMap) return new Map();
     try {
-      const saved = JSON.parse(sessionStorage.getItem(MAP_ROSTER_KEY));
+      const runRoster = globalThis.V2RunStateRuntime?.snapshot?.()?.ownedMonsters;
+      const saved = Array.isArray(runRoster)
+        ? runRoster
+        : JSON.parse(sessionStorage.getItem(MAP_ROSTER_KEY));
       if (!Array.isArray(saved)) return new Map();
       return new Map(saved.filter((unit) => TEST_DECK_SLUGS.includes(unit?.slug) &&
         Number.isFinite(unit.maxHp) && Number.isFinite(unit.attack) && Number.isFinite(unit.speed) &&
@@ -1388,10 +1396,13 @@
   }
 
   function persistMapAllyOutcome() {
-    if (!fromMap || typeof sessionStorage === "undefined") return;
+    if (!fromMap) return [];
     try {
-      const saved = JSON.parse(sessionStorage.getItem(MAP_ROSTER_KEY));
-      if (!Array.isArray(saved)) return;
+      const runRoster = globalThis.V2RunStateRuntime?.snapshot?.()?.ownedMonsters;
+      const saved = Array.isArray(runRoster)
+        ? JSON.parse(JSON.stringify(runRoster))
+        : JSON.parse(sessionStorage.getItem(MAP_ROSTER_KEY));
+      if (!Array.isArray(saved)) return [];
       const byInstance = new Map(saved.map((unit) => [unit.instanceId || unit.slug, unit]));
       for (const unitState of units.filter((unit) => unit.team === "ally" && !unit.isSummon && unit.slot < 4)) {
         const key = unitState.instanceId || unitState.slug;
@@ -1404,8 +1415,14 @@
         const temporaryMaxBonus = Math.max(0, unitState.maxHp - owned.maxHp);
         owned.currentHp = Math.max(1, Math.min(owned.maxHp, unitState.hp - temporaryMaxBonus));
       }
-      sessionStorage.setItem(MAP_ROSTER_KEY, JSON.stringify(saved.filter((unit) => byInstance.has(unit.instanceId || unit.slug)).map((unit) => byInstance.get(unit.instanceId || unit.slug))));
-    } catch (_) { /* Battle completion still works if storage is blocked. */ }
+      const next = saved.filter((unit) => byInstance.has(unit.instanceId || unit.slug)).map((unit) => byInstance.get(unit.instanceId || unit.slug));
+      if (!globalThis.V2RunStateRuntime?.available && typeof sessionStorage !== "undefined") {
+        sessionStorage.setItem(MAP_ROSTER_KEY, JSON.stringify(next));
+      }
+      return next;
+    } catch (_) {
+      return [];
+    }
   }
 
   function markMapBattleTileCleared() {
@@ -1420,7 +1437,7 @@
     } catch (_) { /* Victory still completes if storage is unavailable. */ }
   }
 
-  function finishBattle() {
+  async function finishBattle() {
     if (typeof V2UnitCards !== "undefined") V2UnitCards.setPhase("locked");
     battlefield.classList.remove("is-cinematic");
     running = false;
@@ -1433,8 +1450,23 @@
     pauseButton.disabled = true;
     speedButton.disabled = true;
     const won = aliveUnits("ally").length > 0;
-    persistMapAllyOutcome();
-    if (won) {
+    const rosterOutcome = persistMapAllyOutcome();
+    if (fromMap && globalThis.V2RunStateRuntime?.available) {
+      const clearedStep = Number(battleQuery.get("tile"));
+      const stored = await V2RunStateRuntime.applyBattleOutcome({
+        encounterId: mapEncounterId || `tile-${clearedStep}`,
+        ownedMonsters: rosterOutcome,
+        won,
+        clearedStep
+      });
+      if (!stored?.ok) {
+        resultTitle.textContent = "저장 오류";
+        resultBody.textContent = "전투 결과를 원정 세이브에 반영하지 못했습니다. 다시 시도하세요.";
+        resultOverlay.hidden = false;
+        message.textContent = "전투 결과 저장 실패";
+        return;
+      }
+    } else if (won) {
       applyMapVictoryContamination();
       markMapBattleTileCleared();
     }
@@ -1518,34 +1550,50 @@
     return captured;
   }
 
-  function resolveCapturedMonsterReward(slug) {
-    return new Promise((resolve) => {
-      if (!fromMap || typeof sessionStorage === "undefined") { resolve({ acquired: false, keptReward: false }); return; }
-      let roster;
+  async function resolveCapturedMonsterReward(slug) {
+    if (!fromMap) return { acquired: false, keptReward: false };
+    let roster;
+    try {
+      const runRoster = globalThis.V2RunStateRuntime?.snapshot?.()?.ownedMonsters;
+      const saved = Array.isArray(runRoster)
+        ? runRoster
+        : JSON.parse(sessionStorage.getItem(MAP_ROSTER_KEY));
+      roster = Array.isArray(saved) ? JSON.parse(JSON.stringify(saved)) : [];
+    } catch (_) {
+      return { acquired: false, keptReward: false };
+    }
+
+    const captured = createCapturedMonster(slug);
+    if (!captured) return { acquired: false, keptReward: false };
+    const usedIds = new Set(roster.map((unit) => unit?.instanceId).filter(Boolean));
+    while (usedIds.has(captured.instanceId)) {
+      captured.instanceId = `${slug}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    }
+
+    async function persistCapture(nextRoster) {
+      if (globalThis.V2RunStateRuntime?.available) {
+        const operationId = `capture-reward:${mapEncounterId || battleQuery.get("tile") || "map"}`;
+        const result = await V2RunStateRuntime.commitExact(operationId, (draft) => {
+          draft.ownedMonsters = JSON.parse(JSON.stringify(nextRoster));
+          draft.phase = "returning";
+        });
+        return Boolean(result?.ok);
+      }
       try {
-        const saved = JSON.parse(sessionStorage.getItem(MAP_ROSTER_KEY));
-        roster = Array.isArray(saved) ? saved : [];
+        sessionStorage.setItem(MAP_ROSTER_KEY, JSON.stringify(nextRoster));
+        return true;
       } catch (_) {
-        resolve({ acquired: false, keptReward: false });
-        return;
+        return false;
       }
+    }
 
-      const captured = createCapturedMonster(slug);
-      if (!captured) { resolve({ acquired: false, keptReward: false }); return; }
-      const usedIds = new Set(roster.map((unit) => unit?.instanceId).filter(Boolean));
-      while (usedIds.has(captured.instanceId)) {
-        captured.instanceId = `${slug}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-      }
+    if (roster.length < MONSTER_CAPACITY) {
+      roster.push(captured);
+      const saved = await persistCapture(roster);
+      return { acquired: saved, keptReward: saved };
+    }
 
-      if (roster.length < MONSTER_CAPACITY) {
-        roster.push(captured);
-        try {
-          sessionStorage.setItem(MAP_ROSTER_KEY, JSON.stringify(roster));
-          resolve({ acquired: true, keptReward: true });
-        } catch (_) { resolve({ acquired: false, keptReward: false }); }
-        return;
-      }
-
+    return new Promise((resolve) => {
       let selectedKey = null;
       const candidates = [
         ...roster.map((unit) => ({ key: unit.instanceId, unit, isNew: false })),
@@ -1588,19 +1636,19 @@
 
       captureOverflowOverlay.hidden = false;
       captureOverflowConfirm.focus();
-      captureOverflowConfirm.onclick = () => {
+      captureOverflowConfirm.onclick = async () => {
         if (!selectedKey) return;
-        let keptReward = selectedKey !== "__new__";
+        const keptReward = selectedKey !== "__new__";
+        let nextRoster = roster;
         if (keptReward) {
-          roster = roster.filter((unit) => unit.instanceId !== selectedKey);
-          roster.push(captured);
+          nextRoster = roster.filter((unit) => unit.instanceId !== selectedKey);
+          nextRoster.push(captured);
         }
-        try {
-          sessionStorage.setItem(MAP_ROSTER_KEY, JSON.stringify(roster));
-        } catch (_) {
+        if (!(await persistCapture(nextRoster))) {
           captureOverflowStatus.textContent = "저장 실패 · 다시 시도하세요.";
           return;
         }
+        roster = nextRoster;
         captureOverflowOverlay.hidden = true;
         captureOverflowCards.replaceChildren();
         captureOverflowConfirm.onclick = null;
@@ -1609,12 +1657,13 @@
     });
   }
 
-  function returnToMap() {
+  async function returnToMap() {
     const map = battleQuery.get("map");
     const tile = Math.max(1, Math.min(24, Number(battleQuery.get("tile")) || 1));
     const params = new URLSearchParams();
     if (MAP_BATTLEFIELDS[map]) params.set("map", map);
     params.set("resume", String(tile));
+    if (globalThis.V2RunStateRuntime?.available) await V2RunStateRuntime.flush();
     if (typeof V2Music !== "undefined") V2Music.handoff("map");
     window.location.assign(`v2-map-practice.html?${params.toString()}`);
   }
