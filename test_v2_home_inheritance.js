@@ -79,7 +79,8 @@ const globals = {
 };
 vm.runInNewContext(source, globals);
 globals.window.V2HomeInheritance.open();
-if (overlay.hidden || !overlay.classList.contains("is-open") || cards.children.length !== saved.length || brandCards.children.length !== expectedBrandCardCount || !closeButton.focused) throw Error("Opening inheritance must reveal owned monsters and fan owned brand cards from the left pile");
+if (overlay.hidden || !overlay.classList.contains("is-open") || cards.children.length !== saved.length || brandCards.children.length !== Math.min(8, expectedBrandCardCount) || !closeButton.focused) throw Error("Opening inheritance must reveal owned monsters and fan up to eight preview brand cards from the left pile");
+if (brandCards.attributes["aria-label"] !== `보유 낙인 카드 ${expectedBrandCardCount}개` || JSON.parse(stored).reduce((total, unit) => total + unit.brands.length, 0) !== expectedBrandCardCount) throw Error("Preview limit must not truncate stored brands or the accessible total");
 const donorInstanceId = cards.children[0].dataset.instanceId;
 const recipientInstanceId = cards.children[1].dataset.instanceId;
 if (!donorInstanceId || !recipientInstanceId || donorInstanceId === recipientInstanceId) throw Error("Inheritance cards must keep distinct instance ids");
@@ -97,6 +98,8 @@ if (!resultCard.hidden || !confirm.disabled || cards.children[1].classList.conta
 cards.children[1].on_click();
 confirm.on_click();
 const after = JSON.parse(stored);
+const remainingBrandCount = after.reduce((total, unit) => total + unit.brands.length, 0);
+if (brandCards.children.length !== Math.min(8, remainingBrandCount) || brandCards.attributes["aria-label"] !== `보유 낙인 카드 ${remainingBrandCount}개`) throw Error("Brand preview and total must refresh after inheritance");
 if (after.length !== 9 || after.some((unit) => unit.instanceId === donorInstanceId) ||
     !after.some((unit) => unit.instanceId === "test-owned-9" && unit.slug === "death-knight") ||
     JSON.stringify(after.find((unit) => unit.slug === "skeleton-spear").brands) !==
