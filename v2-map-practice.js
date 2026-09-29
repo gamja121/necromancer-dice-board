@@ -123,6 +123,11 @@
     eventMonsterShop: document.getElementById("tileEventMonsterShop"),
     monsterShopPanel: document.getElementById("monsterShopPanel"),
     monsterShopClose: document.getElementById("monsterShopClose"),
+    monsterShopSellList: document.getElementById("monsterShopSellList"),
+    monsterShopTradeSlot: document.getElementById("monsterShopTradeSlot"),
+    monsterShopCancelTrade: document.getElementById("monsterShopCancelTrade"),
+    monsterShopOffers: document.getElementById("monsterShopOffers"),
+    monsterShopStatus: document.getElementById("monsterShopStatus"),
     fortuneProphecyUi: document.getElementById("fortuneProphecyUi"),
     eventPrayerResult: document.getElementById("tileEventPrayerResult"),
     eventContaminationChange: document.getElementById("tileEventContaminationChange"),
@@ -217,6 +222,9 @@
   let previousDiceControlId = null;
   let treasureRewardChosen = false;
   let selectedTreasureRewardId = null;
+  let monsterShopSelectedId = null;
+  let monsterShopOffers = [];
+  let monsterShopTrading = false;
   let contamination = loadContamination();
   const ownedUnits = loadOwnedRoster();
 
@@ -1663,16 +1671,228 @@
     el.eventClose.focus();
   }
 
+  function monsterShopGrade(unit) {
+    return unit?.grade || globalThis.V2DesignData?.units?.[unit?.slug]?.grade || "normal";
+  }
+
+  function monsterShopOfferCount(grade) {
+    return grade === "hero" ? 5 : grade === "advanced" ? 4 : 3;
+  }
+
+  function monsterShopDicePool(grade) {
+    return V2DiceControl.cards.filter((card) => {
+      if (grade === "hero") return true;
+      if (grade === "advanced") return card.id !== "echo";
+      return !["repeat", "echo"].includes(card.id);
+    });
+  }
+
+  function createMonsterShopBrand(grade) {
+    let card = V2BrandCards.create();
+    if (grade === "normal") return card;
+    if (grade === "advanced") {
+      for (let attempt = 0; attempt < 6 && card.brand.curse.length; attempt += 1) card = V2BrandCards.create();
+      return card;
+    }
+    const clean = { ...card, brand: { ...card.brand, bless: [...card.brand.bless], curse: [] } };
+    return V2BrandCards.validateCard(clean) ? clean : card;
+  }
+
+  function createMonsterShopOffers(unit) {
+    const grade = monsterShopGrade(unit);
+    const count = monsterShopOfferCount(grade);
+    const dicePool = monsterShopDicePool(grade).slice();
+    const offers = [];
+    const usedDice = new Set();
+    for (let index = 0; index < count; index += 1) {
+      const wantBrand = index % 2 === (grade === "hero" ? 0 : 1);
+      if (wantBrand || !dicePool.length) {
+        offers.push({ id: `offer-${index}-brand`, kind: "brand", card: createMonsterShopBrand(grade) });
+        continue;
+      }
+      const available = dicePool.filter((card) => !usedDice.has(card.id));
+      const source = available.length ? available : dicePool;
+      const card = source[Math.floor(Math.random() * source.length)];
+      usedDice.add(card.id);
+      offers.push({ id: `offer-${index}-dice-${card.id}`, kind: "dice", card });
+    }
+    if (!offers.some((offer) => offer.kind === "brand")) {
+      offers[offers.length - 1] = { id: `offer-${offers.length - 1}-brand`, kind: "brand", card: createMonsterShopBrand(grade) };
+    }
+    return offers;
+  }
+
+  function renderMonsterShopTradeSlot() {
+    el.monsterShopTradeSlot.replaceChildren();
+    const unit = monsterShopSelectedId ? ownedUnits.get(monsterShopSelectedId) : null;
+    if (!unit) {
+      const hint = document.createElement("span");
+      hint.textContent = "마물을 선택하세요";
+      el.monsterShopTradeSlot.append(hint);
+      el.monsterShopCancelTrade.hidden = true;
+      return;
+    }
+    const image = document.createElement("img");
+    const name = document.createElement("strong");
+    const grade = document.createElement("small");
+    image.src = `art/v2-style/ui/unit-card-${unit.slug}.png?v=19`;
+    image.alt = unit.name || globalThis.V2DesignData?.units?.[unit.slug]?.name || unit.slug;
+    name.textContent = image.alt;
+    grade.textContent = GRADE_LABELS[monsterShopGrade(unit)] || monsterShopGrade(unit);
+    el.monsterShopTradeSlot.append(image, name, grade);
+    el.monsterShopCancelTrade.hidden = false;
+  }
+
+  function renderMonsterShopOffers() {
+    el.monsterShopOffers.replaceChildren();
+    if (!monsterShopSelectedId || !monsterShopOffers.length) {
+      const empty = document.createElement("div");
+      empty.className = "monster-shop-placeholder";
+      empty.textContent = "마물을 올리면 교환품이 나타납니다.";
+      el.monsterShopOffers.append(empty);
+      return;
+    }
+    for (const offer of monsterShopOffers) {
+      const button = document.createElement("button");
+      const image = document.createElement("img");
+      const title = document.createElement("strong");
+      const detail = document.createElement("small");
+      button.type = "button";
+      button.className = "monster-shop-offer";
+      button.disabled = monsterShopTrading || (offer.kind === "dice" && diceControlHand.length >= DICE_CONTROL_CAPACITY);
+      if (offer.kind === "dice") {
+        image.src = V2DiceControl.imagePath(offer.card, "ko");
+        image.alt = offer.card.label;
+        title.textContent = offer.card.label;
+        detail.textContent = diceControlHand.length >= DICE_CONTROL_CAPACITY ? "주사위 카드 보관함 가득" : offer.card.description;
+      } else {
+        image.src = V2BrandCards.imagePath();
+        image.alt = V2BrandCards.label(offer.card);
+        title.textContent = V2BrandCards.label(offer.card).split(" · ")[0];
+        detail.textContent = V2BrandCards.label(offer.card).split(" · ").slice(1).join(" · ");
+      }
+      button.append(image, title, detail);
+      button.addEventListener("click", () => confirmMonsterShopTrade(offer));
+      el.monsterShopOffers.append(button);
+    }
+  }
+
+  function renderMonsterShopRoster() {
+    el.monsterShopSellList.replaceChildren();
+    for (const unit of ownedUnits.values()) {
+      const button = document.createElement("button");
+      const image = document.createElement("img");
+      const name = document.createElement("span");
+      const grade = document.createElement("small");
+      button.type = "button";
+      button.className = "monster-shop-monster";
+      button.classList.toggle("is-selected", unit.instanceId === monsterShopSelectedId);
+      button.disabled = monsterShopTrading || ownedUnits.size <= 1;
+      image.src = `art/v2-style/ui/unit-card-${unit.slug}.png?v=19`;
+      image.alt = "";
+      name.textContent = unit.name || globalThis.V2DesignData?.units?.[unit.slug]?.name || unit.slug;
+      grade.textContent = GRADE_LABELS[monsterShopGrade(unit)] || monsterShopGrade(unit);
+      button.append(image, name, grade);
+      button.addEventListener("click", () => {
+        if (monsterShopTrading || ownedUnits.size <= 1) return;
+        monsterShopSelectedId = unit.instanceId;
+        monsterShopOffers = createMonsterShopOffers(unit);
+        el.monsterShopStatus.textContent = `${name.textContent}을 거래대에 올렸습니다. 제안 ${monsterShopOffers.length}개 중 하나를 선택하세요.`;
+        renderMonsterShopRoster();
+        renderMonsterShopTradeSlot();
+        renderMonsterShopOffers();
+      });
+      el.monsterShopSellList.append(button);
+    }
+    if (ownedUnits.size <= 1) el.monsterShopStatus.textContent = "마지막 마물 1장은 거래할 수 없습니다.";
+  }
+
+  function resetMonsterShopTrade() {
+    monsterShopSelectedId = null;
+    monsterShopOffers = [];
+    monsterShopTrading = false;
+    if (el.monsterShopStatus) el.monsterShopStatus.textContent = "";
+    renderMonsterShopTradeSlot();
+    renderMonsterShopOffers();
+    renderMonsterShopRoster();
+  }
+
+  async function confirmMonsterShopTrade(offer) {
+    const unit = monsterShopSelectedId ? ownedUnits.get(monsterShopSelectedId) : null;
+    if (!unit || monsterShopTrading || ownedUnits.size <= 1 || !offer) return;
+    if (offer.kind === "dice" && diceControlHand.length >= DICE_CONTROL_CAPACITY) {
+      el.monsterShopStatus.textContent = "주사위 컨트롤 카드 보관함이 가득 찼습니다.";
+      return;
+    }
+
+    monsterShopTrading = true;
+    renderMonsterShopRoster();
+    renderMonsterShopOffers();
+    el.monsterShopStatus.textContent = "거래 중…";
+
+    const nextRoster = [...ownedUnits.values()]
+      .filter((entry) => entry.instanceId !== unit.instanceId)
+      .map((entry) => JSON.parse(JSON.stringify(entry)));
+    const nextDiceIds = diceControlHand.map((card) => card.id);
+    const nextBrands = V2BrandCards.load();
+    if (offer.kind === "dice") nextDiceIds.push(offer.card.id);
+    else nextBrands.push(JSON.parse(JSON.stringify(offer.card)));
+
+    let saved = true;
+    if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.atomicMonsterShopTrade === "function") {
+      const result = await V2RunStateRuntime.atomicMonsterShopTrade(nextRoster, nextDiceIds, nextBrands, "monster-shop-trade");
+      saved = Boolean(result?.ok);
+    } else {
+      try {
+        sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify(nextRoster));
+        sessionStorage.setItem(DICE_CONTROL_INVENTORY_KEY, JSON.stringify(nextDiceIds));
+        saved = V2BrandCards.save(nextBrands);
+      } catch (_) {
+        saved = false;
+      }
+    }
+
+    if (!saved) {
+      monsterShopTrading = false;
+      el.monsterShopStatus.textContent = "거래 저장에 실패했습니다. 다시 시도하세요.";
+      renderMonsterShopRoster();
+      renderMonsterShopOffers();
+      return;
+    }
+
+    ownedUnits.delete(unit.instanceId);
+    selectedDeck = selectedDeck.filter((instanceId) => instanceId !== unit.instanceId);
+    if (offer.kind === "dice") {
+      const acquired = V2DiceControl.cards.find((card) => card.id === offer.card.id);
+      if (acquired) diceControlHand.push(acquired);
+    }
+    renderBookRoster();
+    renderDiceControlHand();
+    renderInventoryCounts();
+    if (!el.deckOverlay.hidden) renderDeckSelection();
+
+    const rewardName = offer.kind === "dice" ? offer.card.label : V2BrandCards.label(offer.card).split(" · ")[0];
+    el.monsterShopStatus.textContent = `${unit.name || unit.slug} ↔ ${rewardName} 거래 완료`;
+    monsterShopSelectedId = null;
+    monsterShopOffers = [];
+    monsterShopTrading = false;
+    renderMonsterShopTradeSlot();
+    renderMonsterShopOffers();
+    renderMonsterShopRoster();
+  }
+
   function openMonsterShop() {
     if (!eventOpen || activeEventTileId !== "village") return;
     el.monsterShopPanel.hidden = false;
     el.eventMonsterShop.hidden = true;
+    resetMonsterShopTrade();
     el.diceResult.textContent = "마을 · 마물 상점";
     el.monsterShopClose.focus();
   }
 
   function closeMonsterShop() {
-    if (!eventOpen || activeEventTileId !== "village") return;
+    if (!eventOpen || activeEventTileId !== "village" || monsterShopTrading) return;
+    resetMonsterShopTrade();
     el.monsterShopPanel.hidden = true;
     el.eventMonsterShop.hidden = false;
     el.eventMonsterShop.focus();
@@ -2289,6 +2509,7 @@
   el.eventProphecy.addEventListener("click", showFortuneProphecy);
   el.eventMonsterShop.addEventListener("click", openMonsterShop);
   el.monsterShopClose.addEventListener("click", closeMonsterShop);
+  el.monsterShopCancelTrade.addEventListener("click", resetMonsterShopTrade);
   el.eventInheritance.addEventListener("click", async () => {
     if (eventOpen && activeEventTileId === "home") {
       if (globalThis.V2RunStateRuntime?.available) await V2RunStateRuntime.flush();
