@@ -865,40 +865,46 @@
         mode: V2Rules.mode(brandState, previewRoll)
       }))
       .filter((effect) => effect.definition && effect.mode !== "normal");
-    const visible = unitState.alive && Number.isInteger(previewRoll) && effects.length;
-    label.hidden = !visible;
-    label.replaceChildren();
-    if (!visible) {
-      label.className = "brand-indicator";
-      return;
+
+    if (label._brandHideTimer) {
+      window.clearTimeout(label._brandHideTimer);
+      label._brandHideTimer = null;
     }
 
+    // Per-unit labels are momentary confirmation only. The persistent explanation
+    // belongs to the central Presentation rail, otherwise 4v4 battles become noisy.
+    const visible = Boolean(pulse && unitState.alive && Number.isInteger(previewRoll) && effects.length);
+    label.hidden = !visible;
+    label.replaceChildren();
     label.className = "brand-indicator";
+    if (!visible) return;
+
     for (const effect of effects) {
       const chip = document.createElement("span");
       chip.className = `brand-cause-chip is-${effect.mode}`;
       const trigger = document.createElement("b");
-      const arrow = document.createElement("i");
       const effectName = document.createElement("strong");
-      trigger.textContent = `${effect.mode === "blessing" ? "✦" : "☠"} ${previewRoll}`;
-      arrow.textContent = "→";
+      trigger.textContent = effect.mode === "blessing" ? "✦" : "☠";
       effectName.textContent = effect.definition.name.replace("의 낙인", "");
-      chip.append(trigger, arrow, effectName);
+      chip.append(trigger, effectName);
       label.append(chip);
     }
 
-    if (pulse) {
+    label.classList.remove("is-triggered");
+    void label.offsetWidth;
+    label.classList.add("is-triggered");
+    unitState.element.classList.remove("has-brand-trigger");
+    void unitState.element.offsetWidth;
+    unitState.element.classList.add("has-brand-trigger");
+
+    const displayMs = presentationDuration(760, 520);
+    label._brandHideTimer = window.setTimeout(() => {
+      label.hidden = true;
       label.classList.remove("is-triggered");
-      void label.offsetWidth;
-      label.classList.add("is-triggered");
-      unitState.element.classList.remove("has-brand-trigger");
-      void unitState.element.offsetWidth;
-      unitState.element.classList.add("has-brand-trigger");
-      window.setTimeout(() => {
-        label.classList.remove("is-triggered");
-        unitState.element?.classList.remove("has-brand-trigger");
-      }, presentationDuration(1100, 700));
-    }
+      label.replaceChildren();
+      label._brandHideTimer = null;
+      unitState.element?.classList.remove("has-brand-trigger");
+    }, displayMs);
   }
 
   function showRolledBrands(roll) {
