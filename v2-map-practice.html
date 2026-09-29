@@ -25,11 +25,11 @@
       </header>
       <div id="tileRing" class="tile-ring" aria-label="생성된 외곽 타일 24칸"></div>
       <div id="heroToken" class="hero-token" aria-label="주인공 말, 현재 1번 타일">
-        <img src="art/v2-style/map-test/hero/necromancer-hero.png" alt="주인공 네크로맨서">
+        <img data-v2-src="art/v2-style/map-test/hero/necromancer-hero.png" alt="주인공 네크로맨서">
       </div>
       <section class="dice-controller" aria-label="주사위 이동 테스트">
         <button id="mapDiceButton" type="button" aria-label="주사위를 굴려 말을 이동하기">
-          <img id="mapDiceImage" src="art/v2-style/dice-test/frames/roll-01.png" alt="굴리기 전 주사위">
+          <img id="mapDiceImage" data-v2-src="art/v2-style/dice-test/frames/roll-01.png" alt="굴리기 전 주사위">
         </button>
         <div><span id="moveState">현재 1번 타일</span><strong id="diceResult">주사위 굴리기</strong></div>
       </section>
@@ -38,7 +38,7 @@
         <strong id="tileName">타일을 선택하세요</strong>
       </div>
       <section id="contaminationHud" class="contamination-hud" data-stage="stable" aria-label="현재 오염도">
-        <img class="contamination-hud-frame" src="art/v2-style/ui/contamination/contamination-hud.png?v=3" alt="" aria-hidden="true">
+        <img class="contamination-hud-frame" data-v2-src="art/v2-style/ui/contamination/contamination-hud.png?v=3" alt="" aria-hidden="true">
         <div class="contamination-meter" aria-hidden="true">
           <div id="contaminationFill" class="contamination-fill"></div>
           <span class="contamination-cut contamination-cut-1"></span>
@@ -54,17 +54,17 @@
       </section>
       <button id="mapBookButton" class="map-book-button" type="button" aria-label="책 열기" aria-pressed="false">
         <span id="mapMonsterCount" class="map-inventory-count" aria-live="polite">2/10</span>
-        <img id="mapBookImage" src="art/v2-style/ui/map-book-closed.png" alt="">
+        <img id="mapBookImage" data-v2-src="art/v2-style/ui/map-book-closed.png" alt="">
       </button>
       <button id="mapCardDeckButton" class="map-card-deck-button" type="button" aria-label="주사위 컨트롤 카드 보기" aria-haspopup="dialog" aria-controls="diceControlOverlay" aria-expanded="false">
         <span id="mapDiceCardCount" class="map-inventory-count" aria-live="polite">1/5</span>
-        <img id="mapCardDeckImage" src="art/v2-style/ui/map-card-deck.png" alt="">
+        <img id="mapCardDeckImage" data-v2-src="art/v2-style/ui/map-card-deck.png" alt="">
       </button>
       <div id="mapBookRoster" class="map-book-roster map-deck-roster" aria-label="보유 마물 카드 10장" hidden></div>
       <section id="mapUnitInfoOverlay" class="map-unit-info-overlay" hidden>
         <button id="mapUnitInfoBackdrop" class="map-unit-info-backdrop" type="button" aria-label="마물 정보 닫기"></button>
         <article class="map-unit-info-panel" role="dialog" aria-modal="true" aria-labelledby="mapUnitInfoName">
-          <img class="map-unit-info-frame" src="art/v2-style/ui/unit-info-window-no-portrait.png?v=3" alt="" aria-hidden="true">
+          <img class="map-unit-info-frame" data-v2-src="art/v2-style/ui/unit-info-window-no-portrait.png?v=3" alt="" aria-hidden="true">
           <header>
             <h2 id="mapUnitInfoName">마물 정보</h2>
           </header>
@@ -94,19 +94,19 @@
       </section>
       <div id="mapCloudTransition" class="map-cloud-transition" aria-hidden="true" hidden>
         <div class="map-cloud-mist"></div>
-        <img class="map-transition-cloud cloud-left cloud-lane-1 cloud-speed-1" src="art/v2-style/ui/map-cloud-transition.png" alt="">
-        <img class="map-transition-cloud cloud-right cloud-lane-1b cloud-speed-4" src="art/v2-style/ui/map-cloud-transition-2.png" alt="">
-        <img class="map-transition-cloud cloud-left cloud-lane-2 cloud-speed-3" src="art/v2-style/ui/map-cloud-transition-3.png" alt="">
-        <img class="map-transition-cloud cloud-right cloud-lane-2b cloud-speed-2" src="art/v2-style/ui/map-cloud-transition-4.png" alt="">
-        <img class="map-transition-cloud cloud-left cloud-lane-3 cloud-speed-4" src="art/v2-style/ui/map-cloud-transition-2.png" alt="">
-        <img class="map-transition-cloud cloud-right cloud-lane-3b cloud-speed-1" src="art/v2-style/ui/map-cloud-transition.png" alt="">
-        <img class="map-transition-cloud cloud-left cloud-lane-4 cloud-speed-2" src="art/v2-style/ui/map-cloud-transition-4.png" alt="">
-        <img class="map-transition-cloud cloud-right cloud-lane-4b cloud-speed-3" src="art/v2-style/ui/map-cloud-transition-3.png" alt="">
+        <img class="map-transition-cloud cloud-left cloud-lane-1 cloud-speed-1" data-v2-src="art/v2-style/ui/map-cloud-transition.png" alt="">
+        <img class="map-transition-cloud cloud-right cloud-lane-1b cloud-speed-4" data-v2-src="art/v2-style/ui/map-cloud-transition-2.png" alt="">
+        <img class="map-transition-cloud cloud-left cloud-lane-2 cloud-speed-3" data-v2-src="art/v2-style/ui/map-cloud-transition-3.png" alt="">
+        <img class="map-transition-cloud cloud-right cloud-lane-2b cloud-speed-2" data-v2-src="art/v2-style/ui/map-cloud-transition-4.png" alt="">
+        <img class="map-transition-cloud cloud-left cloud-lane-3 cloud-speed-4" data-v2-src="art/v2-style/ui/map-cloud-transition-2.png" alt="">
+        <img class="map-transition-cloud cloud-right cloud-lane-3b cloud-speed-1" data-v2-src="art/v2-style/ui/map-cloud-transition.png" alt="">
+        <img class="map-transition-cloud cloud-left cloud-lane-4 cloud-speed-2" data-v2-src="art/v2-style/ui/map-cloud-transition-4.png" alt="">
+        <img class="map-transition-cloud cloud-right cloud-lane-4b cloud-speed-3" data-v2-src="art/v2-style/ui/map-cloud-transition-3.png" alt="">
       </div>
       <section id="tileEventOverlay" class="tile-event-overlay" role="dialog" aria-modal="true" aria-label="타일 장면" hidden>
         <div class="tile-event-scene">
           <img id="tileEventImage" alt="">
-          <img id="treasureChestFrame" class="treasure-chest-frame" src="art/v2-style/map-test/events/treasure-chest-frame-1.png" alt="보물상자가 열리는 모습" hidden>
+          <img id="treasureChestFrame" class="treasure-chest-frame" data-v2-src="art/v2-style/map-test/events/treasure-chest-frame-1.png" alt="보물상자가 열리는 모습" hidden>
           <div id="treasureRewardCards" class="treasure-reward-cards" aria-label="보물상자 보상 카드 3장" hidden></div>
           <button id="tileEventEnter" class="tile-event-enter" type="button" hidden>들어가기</button>
           <button id="tileEventInheritance" class="tile-event-enter" type="button" hidden>낙인 계승</button>
@@ -157,7 +157,7 @@
       <section id="mapDeckOverlay" class="map-deck-overlay" role="dialog" aria-modal="true" aria-label="전장 덱 선택" hidden>
         <button id="mapDeckClose" class="map-deck-close" type="button" aria-label="덱 보기 닫기" hidden>닫기</button>
         <div class="map-deck-window">
-          <img class="map-deck-board" src="art/v2-style/ui/battle-deck-selection-board.png" alt="전장 덱 선택 보드, 카드 자리 4칸">
+          <img class="map-deck-board" data-v2-src="art/v2-style/ui/battle-deck-selection-board.png" alt="전장 덱 선택 보드, 카드 자리 4칸">
           <div id="mapSelectedLineup" class="map-selected-lineup" aria-label="선택한 마물 카드 4장"></div>
         </div>
         <div id="mapDeckRoster" class="map-deck-roster" aria-label="선택 가능한 마물 카드 10장"></div>
@@ -167,6 +167,7 @@
     </section>
   </main>
   <aside class="portrait-warning" aria-hidden="true"></aside>
+  <script src="v2-asset-loader.js?v=1"></script>
   <script src="v2-landscape.js?v=1"></script>
   <script src="v2-music.js?v=1"></script>
   <script src="v2-sfx.js?v=3"></script>
@@ -179,6 +180,6 @@
   <script src="v2-altar-ritual.js?v=4"></script>
   <script src="v2-dice-control.js?v=1"></script>
   <script src="v2-world-tree-prayer-digits.js?v=2"></script>
-  <script src="v2-map-practice.js?v=66"></script>
+  <script src="v2-map-practice.js?v=67"></script>
 </body>
 </html>
