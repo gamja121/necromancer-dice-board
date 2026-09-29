@@ -1,5 +1,14 @@
 # AI 프로젝트 진행 상황 — 네크로멘서 앤드 다이스
 
+## 2026-09-29: 저장/배포 검증 후속 수정 — 캐시 버전 정합성 및 stale battle 정리
+
+- 기준/rollback SHA: `54ef09da4bdae3211bb4061c09e9134c31fcc0fb`.
+- 검증 과정에서 전투 HTML은 `v2-auto-battle-practice.js?v=107`을 참조하지만 서비스워커가 `v106`을 캐시하는 불일치를 확인했다. 이번 수정에서는 전투 컨트롤러 자체 변경까지 반영해 HTML/서비스워커를 모두 `v108`로 맞췄다.
+- 빙결 상태 라벨은 런타임에서 `freeze-status-label.png?v=2`를 요청하지만 서비스워커가 무버전 파일을 캐시하고 있던 문제를 수정해 동일한 `?v=2` 자산을 선캐시한다.
+- 영혼수확 보상 저장이 성공하면 RunState의 `draft.battle`을 즉시 `null`로 정리하고 phase를 `returning`으로 바꾼다. 이미 보상은 operationId로 중복 방지되고 있었지만, 이전 전투 checkpoint가 다음 원정 상태에 잔존하지 않도록 저장 구조도 정리했다.
+- 회귀 테스트에 stale battle checkpoint 제거와 버전된 빙결 라벨 캐시 검사를 추가했다.
+- 주요 HTML의 JS/CSS 참조와 서비스워커 APP_SHELL을 다시 대조한 결과 현재 불일치 **0건**을 확인했다.
+
 ## 2026-09-29: 원정 세이브 시스템 3단계-3 — 영혼수확 선택/주사위 중단 복구
 
 - 기준/rollback SHA: `3c81d60e9e74e295544621f1cd11bb6329c7c25a`.
