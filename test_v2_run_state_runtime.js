@@ -23,7 +23,7 @@ for (const file of ["v2-run-state.js?v=1", "v2-run-state-runtime.js?v=1"]) {
 }
 assert(mapHtml.indexOf("v2-run-state-runtime.js?v=1") < mapHtml.indexOf("v2-brand-cards.js?v=4"),
   "RunState runtime must load before brand/home/map consumers.");
-assert(battleHtml.indexOf("v2-run-state-runtime.js?v=1") < battleHtml.indexOf("v2-auto-battle-practice.js?v=105"),
+assert(battleHtml.indexOf("v2-run-state-runtime.js?v=1") < battleHtml.indexOf("v2-auto-battle-practice.js?v=106"),
   "RunState runtime must load before the battle controller.");
 
 for (const token of ["ensureFreshDefaults", "projectLegacy", "commitExact", "applyBattleOutcome", "setMapLayout", "setMapProgress", "setBattleCheckpoint", "clearBattleCheckpoint", "atomicRosterAndBrands"]) {
@@ -38,7 +38,7 @@ assert(home.includes('saveOwnedUnits("monster-inheritance")'), "Monster inherita
 assert(altar.includes("V2RunStateRuntime.replaceOwnedMonsters"), "Altar sacrifice/enhancement must persist through RunState.");
 assert(battle.includes("V2RunStateRuntime.applyBattleOutcome"), "Battle finish must atomically persist HP/death/contamination/cleared tile.");
 assert(battleHtml.includes("v2-battle-rng.js?v=1") && worker.includes("v2-battle-rng.js?v=1") &&
-  battleHtml.indexOf("v2-battle-rng.js?v=1") < battleHtml.indexOf("v2-auto-battle-practice.js?v=105"),
+  battleHtml.indexOf("v2-battle-rng.js?v=1") < battleHtml.indexOf("v2-auto-battle-practice.js?v=106"),
   "Serializable battle RNG must load and cache before the battle controller.");
 assert(battle.includes("rng: battleRng.snapshot()") && battle.includes("V2BattleRng.restore(saved.rng)") &&
   battle.includes("V2Rules.restore(saved.state, battleRandom)") && battle.includes("V2Rules.create(units, battleRandom)"),
@@ -48,6 +48,15 @@ assert(battle.includes("V2RunStateRuntime.setBattleCheckpoint") && battle.includ
   "Map battle must checkpoint to RunState, reject stale encounters, and auto-resume a matching checkpoint.");
 assert(battle.includes('commitExact(operationId') && battle.includes("capture-reward:"),
   "Capture reward must use an idempotent RunState operation receipt.");
+assert(battle.includes('saveBattle("capture-select")') && battle.includes('saveBattle("capture-locked")') &&
+  battle.includes('saveBattle("capture-success")') && battle.includes('saveBattle("capture-failed")') &&
+  battle.includes('saveBattle("capture-complete")'),
+  "Soul harvest selection, locked roll, success/failure and completed reward phases must be checkpointed.");
+assert(battle.includes("setupCorpseCapture(true, saved.capture)") &&
+  battle.includes('saved.phase === "capture-success"') && battle.includes("completeCaptureSuccess()"),
+  "Soul harvest resume must rebuild corpse targets/selection and continue a successful interrupted reward.");
+assert(battle.includes("Math.floor(battleRandom() * 5)") && battle.includes("Math.floor(battleRandom() * 6)"),
+  "Soul harvest target thresholds and actual capture rolls must use the serialized gameplay RNG.");
 assert(runtime.includes("legacyBrandCards") && runtime.includes("clearedSteps") && runtime.includes("projectLegacy(current)"),
   "Legacy compatibility output must be projected from authoritative RunState.");
 
