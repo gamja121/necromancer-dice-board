@@ -201,7 +201,19 @@
   let contamination = loadContamination();
   const ownedUnits = loadOwnedRoster();
 
-  [...rollingFrames, ...resultFrames, ...treasureChestFrames, ...Object.values(tileEventScenes).map((scene) => scene.image).filter(Boolean), `${ROOT}events/home-interior.jpg?v=${EVENT_ASSET_VERSION}`].forEach((src) => { const image = new Image(); image.src = src; });
+  const tilePreloadIds = [
+    ...tileTypes.map((tile) => tile.id),
+    ...Object.values(fixedTiles).map((tile) => tile.id),
+    "monster-cleared", "rare-monster-cleared", "boss-cleared"
+  ];
+  [
+    ...rollingFrames,
+    ...resultFrames,
+    ...treasureChestFrames,
+    ...Object.values(tileEventScenes).map((scene) => scene.image).filter(Boolean),
+    `${ROOT}events/home-interior.jpg?v=${EVENT_ASSET_VERSION}`,
+    ...[...new Set(tilePreloadIds)].map((id) => `${ROOT}tiles/${id}.png?v=${TILE_ASSET_VERSION}`)
+  ].forEach((src) => { const image = new Image(); image.src = src; });
 
   function wait(milliseconds) {
     return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
@@ -1662,10 +1674,24 @@
       image.src = getTileImage(tile, tileStep);
       image.alt = "";
       image.addEventListener("error", () => {
-        if (image.dataset.fallbackTried === "1") return;
-        image.dataset.fallbackTried = "1";
-        image.src = image.src.split("?")[0];
-      }, { once: true });
+        const attempt = Number(image.dataset.fallbackAttempt || "0");
+        if (attempt === 0) {
+          // Retry the same asset once without cache-busting in case a stale
+          // service-worker/cache entry failed.
+          image.dataset.fallbackAttempt = "1";
+          image.src = image.src.split("?")[0];
+          return;
+        }
+        if (attempt === 1) {
+          // Never leave a broken-image icon on the board. Keep the tile's
+          // gameplay identity, but show the neutral basic tile art.
+          image.dataset.fallbackAttempt = "2";
+          image.src = `${ROOT}tiles/basic.png?v=${TILE_ASSET_VERSION}`;
+          return;
+        }
+        image.dataset.fallbackAttempt = "3";
+        image.removeAttribute("src");
+      });
       step.className = "step";
       step.textContent = String(index + 1);
       button.append(image, step);
