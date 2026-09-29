@@ -9,11 +9,11 @@ const source = fs.readFileSync(path.join(root, "v2-home-inheritance.js"), "utf8"
 const worker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
 const board = "art/v2-style/map-test/events/inheritance-board.png";
 if (!fs.existsSync(path.join(root, board))) throw Error("Two-panel inheritance image is missing");
-for (const file of [board, "v2-home-inheritance.css?v=6", "v2-home-inheritance.js?v=9"]) {
+for (const file of [board, "v2-home-inheritance.css?v=7", "v2-home-inheritance.js?v=10", "v2-brand-cards.js?v=1", "art/v2-style/ui/brand-card.png?v=1"]) {
   if (!worker.includes(file)) throw Error(`Inheritance resource is not cached: ${file}`);
 }
 if (!html.includes('class="home-inheritance-material"') && !html.includes('home-inheritance-material"')) throw Error("Material panel is missing");
-if (!html.includes('home-inheritance-result"') || !html.includes('id="homeInheritanceBrandList"') || !html.includes('<h3>낙인</h3>') || html.includes('id="homeInheritanceParts"') || !html.includes('id="homeInheritanceConfirm"') || !css.includes("legion-info-window-hd.png") || !css.includes("height: 91%") || !html.includes('v2-home-inheritance.js?v=9')) throw Error("Tall, compact brand information frame or automatic inheritance controls are missing");
+if (!html.includes('home-inheritance-result"') || !html.includes('id="homeInheritanceBrandList"') || !html.includes('<h3>낙인</h3>') || html.includes('id="homeInheritanceParts"') || !html.includes('id="homeInheritanceConfirm"') || !css.includes("legion-info-window-hd.png") || !css.includes("height: 91%") || !html.includes('v2-home-inheritance.js?v=10')) throw Error("Tall, compact brand information frame or automatic inheritance controls are missing");
 if (!css.includes("home-inheritance-cards-rise") || !css.includes("home-inheritance-brand-cards") || !css.includes("is-inheritance-source")) throw Error("Owned monsters and left-pile brand fan animations must exist");
 if (!source.includes('mapCardDeckButton.hidden = true') || !source.includes('diceControlOverlay.hidden = true')) throw Error("Dice-control cards must be hidden while inheritance is open");
 
@@ -58,8 +58,19 @@ saved[0].brands.push(V2Rules.brand("poison"), V2Rules.brand("guard"));
 saved[2].brands.push(V2Rules.brand("poison"), V2Rules.brand("guard"));
 const donorBrands = JSON.stringify(saved[0].brands);
 const recipientBrands = JSON.stringify(saved[1].brands);
-const expectedBrandCardCount = saved.reduce((total, unit) => total + unit.brands.length, 0);
 let stored = JSON.stringify(saved);
+let brandInventory = [{ id: "brand-card-test", brand: { type: "critical", bless: [3], curse: [] } }];
+const V2BrandCards = {
+  load: () => JSON.parse(JSON.stringify(brandInventory)),
+  imagePath: () => "art/v2-style/ui/brand-card.png?v=1",
+  label: (card) => `치명타 · 축복 ${card.brand.bless.join(", ")}${card.brand.curse.length ? ` · 저주 ${card.brand.curse.join(", ")}` : ""}`,
+  remove: (id) => {
+    const next = brandInventory.filter((card) => card.id !== id);
+    if (next.length === brandInventory.length) return false;
+    brandInventory = next;
+    return true;
+  }
+};
 let rosterEvent;
 const randomValues = [.4, .2];
 const globals = {
@@ -71,7 +82,7 @@ const globals = {
       homeInheritanceConfirm: confirm })[id],
     createElement: () => node(), addEventListener() {}
   },
-  V2DesignData: require("./v2-design-data.js"), V2Rules,
+  V2DesignData: require("./v2-design-data.js"), V2Rules, V2BrandCards,
   Math: Object.assign(Object.create(Math), { random: () => randomValues.shift() ?? .1 }),
   sessionStorage: { getItem: () => stored, setItem: (_, value) => { stored = value; } },
   CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options.detail; } },
@@ -79,8 +90,7 @@ const globals = {
 };
 vm.runInNewContext(source, globals);
 globals.window.V2HomeInheritance.open();
-if (overlay.hidden || !overlay.classList.contains("is-open") || cards.children.length !== saved.length || brandCards.children.length !== Math.min(8, expectedBrandCardCount) || !closeButton.focused) throw Error("Opening inheritance must reveal owned monsters and fan up to eight preview brand cards from the left pile");
-if (brandCards.attributes["aria-label"] !== `보유 낙인 카드 ${expectedBrandCardCount}개` || JSON.parse(stored).reduce((total, unit) => total + unit.brands.length, 0) !== expectedBrandCardCount) throw Error("Preview limit must not truncate stored brands or the accessible total");
+if (overlay.hidden || !overlay.classList.contains("is-open") || cards.children.length !== saved.length || brandCards.children.length !== 1 || !closeButton.focused) throw Error("Opening inheritance must reveal owned monsters and fan owned brand cards from the left pile");
 const donorInstanceId = cards.children[0].dataset.instanceId;
 const recipientInstanceId = cards.children[1].dataset.instanceId;
 if (!donorInstanceId || !recipientInstanceId || donorInstanceId === recipientInstanceId) throw Error("Inheritance cards must keep distinct instance ids");
@@ -98,8 +108,6 @@ if (!resultCard.hidden || !confirm.disabled || cards.children[1].classList.conta
 cards.children[1].on_click();
 confirm.on_click();
 const after = JSON.parse(stored);
-const remainingBrandCount = after.reduce((total, unit) => total + unit.brands.length, 0);
-if (brandCards.children.length !== Math.min(8, remainingBrandCount) || brandCards.attributes["aria-label"] !== `보유 낙인 카드 ${remainingBrandCount}개`) throw Error("Brand preview and total must refresh after inheritance");
 if (after.length !== 9 || after.some((unit) => unit.instanceId === donorInstanceId) ||
     !after.some((unit) => unit.instanceId === "test-owned-9" && unit.slug === "death-knight") ||
     JSON.stringify(after.find((unit) => unit.slug === "skeleton-spear").brands) !==
@@ -112,5 +120,19 @@ if (after.length !== 9 || after.some((unit) => unit.instanceId === donorInstance
 globals.window.V2HomeInheritance.close();
 if (!overlay.hidden || overlay.classList.contains("is-open") || !materialCard.hidden || brandList.children.length) throw Error("Closing inheritance must clear the material and hide the board");
 globals.window.V2HomeInheritance.open();
-if (cards.children.length !== 9) throw Error("Consumed material must stay gone when inheritance is reopened");
-console.log("PASS: automatic weighted inheritance, three-brand donor, full-recipient block, and compact info");
+if (cards.children.length !== 9 || brandCards.children.length !== 1) throw Error("Consumed material must stay gone and stored brand cards must remain when inheritance is reopened");
+brandCards.children[0].on_click();
+if (materialCard.hidden || !materialCard.src.includes("brand-card.png") || !materialHint.textContent.includes("축복 3")) throw Error("Selecting a stored brand card must place the supplied card art and exact face description in the material panel");
+const brandRecipientId = cards.children[0].dataset.instanceId;
+const beforeBrandApply = JSON.parse(stored).find((unit) => unit.instanceId === brandRecipientId).brands.length;
+cards.children[0].on_click();
+if (confirm.disabled) throw Error("A selected brand card plus eligible monster must enable apply");
+confirm.on_click();
+const afterBrandApply = JSON.parse(stored);
+const brandRecipient = afterBrandApply.find((unit) => unit.instanceId === brandRecipientId);
+if (afterBrandApply.length !== 9 || brandInventory.length !== 0 ||
+    brandRecipient.brands.length !== beforeBrandApply + 1 ||
+    JSON.stringify(brandRecipient.brands.at(-1)) !== JSON.stringify({ type: "critical", bless: [3], curse: [] }) ||
+    rosterEvent?.detail.donorInstanceId !== null || rosterEvent?.detail.source !== "brand-card")
+  throw Error("Brand card apply must preserve monster count, append the exact stored brand, consume one card, and dispatch a non-sacrifice roster update");
+console.log("PASS: monster inheritance plus independent consumable brand-card application");

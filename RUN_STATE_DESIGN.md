@@ -1,6 +1,6 @@
 # RunState 통합 저장 설계 및 이행 계획
 
-- 조사 기준: main `8cba09e` (2026-09-29).
+- 조사 기준: main `8cba09e`, 독립 낙인 카드 추가 `840cfef`까지 재확인 (2026-09-29).
 - 상태: **설계 제안 / 런타임 미적용**. 이번 변경은 저장 키, 게임 규칙, 사용자 데이터를 바꾸지 않는다.
 - 기준: GAME_DESIGN_RULES.md, CODEX_DEVELOPMENT_WORKFLOW.md §19·20. 이후 규칙 변경은 별도 승인.
 - 다음 구현 단위: UI와 분리된 순수 schema 검증기·legacy 변환기·저장소 어댑터와 실패 주입 테스트. 실제 화면 연결은 그 다음이다.
@@ -11,6 +11,7 @@
 |---|---|---|
 | session: necromancer-map-roster-v2 | map, auto-battle, home-inheritance, altar-ritual이 개체 배열 작성 | ownedMonsters |
 | session: necromancer-map-dice-control-v1 | map의 카드 종류 ID 배열, 중복 가능 | diceCards, 각 카드 별 instanceId |
+| session: necromancer-map-brand-cards-v1 | V2BrandCards 및 집 UI의 독립 소비형 낙인 카드 | brandCards: 기존 id를 instanceId로 보존, brand 눈금 그대로 |
 | session: necromancer-map-contamination-v1 | map/auto-battle의 오염도 숫자 | contamination |
 | session: necromancer-map-layout-v2 | map의 타일 종류 ID 24개 | currentMap.tiles |
 | session: necromancer-map-layout-v1 | 기존 layout 읽기에서 제거하는 구형 값 | 원문 백업만, 자동 삭제 금지 |
@@ -38,6 +39,7 @@
 6. finishBattle은 HP/사망, 오염도, 처치 칸을 별도 쓰기로 반영하고 영입 선택 전에 complete 저장을 한다. 영입 대상·남은 시도·초과 보유 교환은 해당 snapshot으로 복원할 수 없다.
 7. 일부 저장 실패를 무시하고 화면은 완료 상태로 넘어간다. 새 저장 계층은 실패를 명시적으로 반환해야 한다.
 8. 마물 생성/판정 RNG와 연출 Math.random이 혼재한다. 새 seed를 넣는 것만으로 이전 전투의 난수를 복원할 수는 없다.
+9. 840cfef의 독립 낙인 카드 적용은 roster 저장 후 카드 제거를 별도로 수행한다. 제거 실패 시 되돌리기를 시도하지만 중단/두 번째 저장 실패는 원자적으로 보호되지 않는다. 새 저장에서는 낙인 부여와 카드 소비를 같은 transaction으로 처리한다.
 
 ## 2. 제안 데이터 계약
 
@@ -58,6 +60,7 @@ JSON 직렬화 가능한 값만 저장한다. DOM, 이미지, 타이머, 함수,
 | ownedMonsters[] | instanceId, slug, maxHp, currentHp, attack, speed, brands, altarEnhancements; 영구 수치만 |
 | party[] | 소유 개체 instanceId, 슬롯 순서 1~4. 공유 소환 슬롯은 battle 안에만 존재 |
 | diceCards[] | instanceId, cardId. 같은 카드 종류의 복수 보유 보존 |
+| brandCards[] | instanceId, brand(type, bless[], curse[]). 마물에 붙은 낙인과 별도인 소모품 |
 | diceContext | previousRoll(null 또는 1..6), previousEffectiveCardId(null 또는 카드 종류), pendingCardInstanceId |
 | movement | null 또는 operationId, fromIndex, targetIndex, resolvedRoll, 경유 집 효과 등 확정된 이동 결과 |
 | clearedTiles | 현재 mapInstanceId의 tileInstanceId 배열 |
@@ -124,6 +127,7 @@ IndexedDB 역시 사용자 삭제/브라우저 정책에 의한 유실 가능성
 | 전투 종료 | 사망 제거·HP·오염도·처치·capture 준비를 단일 commit | 같은 encounter 종료 command는 no-op |
 | 영입/보물 | 제시 후보를 먼저 저장, 선택/교환/포기는 operation으로 확정 | 후보·목표·남은 시도 재추첨 금지 |
 | 계승/제단 | donor 제거와 recipient 수치/낙인 및 RNG를 단일 commit | 완료 영수증 반환, donor 재사용 금지 |
+| 독립 낙인 카드 적용 | 카드 소비와 대상 낙인 추가를 단일 commit | 마물 희생 없음, 동일 카드 중복 사용 금지 |
 | 세계수/집 회복 | 판정 결과/오염도/기도 flag 또는 회복 HP를 함께 commit | 해당 방문 효과 재적용 금지 |
 | 맵 교체 | 새 mapInstanceId·배치·경유 효과·map scope 초기화를 함께 commit | 이전 맵 처치/기도 플래그 혼입 금지 |
 
@@ -177,6 +181,7 @@ rewardId는 단순 tile type이나 칸 번호가 아니라 run/map/visit 또는 
 - 모든 18종 주사위 카드, 중복 카드, repeat/echo 이력의 저장 왕복 및 소비 직후 중단.
 - 같은 slug 2개체, 사망 1개체, 계승 donor 영구 제거, 소환물 roster 제외.
 - 제단 강화 및 낙인 눈금·순서 보존, 임시 전투 HP 보정 제외.
+- 독립 낙인 카드의 축복 전용/축복+저주 원문 보존, 보물 획득·적용·소비 도중 중단, 카드만 소모되거나 낙인만 복제되는 부분 저장 금지.
 - 전투 전/행동 전후/종료/capture 시도/초과 교환/귀환 단계에서 강제 중단.
 - 같은 operation 2회 호출, 같은 보상 복귀 2회, 이전 맵 조우 URL, 다른 runId 거절.
 - 정상·빈·손상·일부 키 누락·중복 ID·초과 보유·미래 버전 legacy fixture.
@@ -186,7 +191,7 @@ rewardId는 단순 tile type이나 칸 번호가 아니라 run/map/visit 또는 
 - lab 저장과 원정/오디오 설정 상호 불변.
 - 모바일 실제 기기 종료/복원 별도 기록. 브라우저 모바일 폭 테스트를 실제 휴대폰 검사로 대체하지 않는다.
 
-기존 27개 회귀와 브라우저 smoke를 유지하고 위 테스트는 추가한다.
+기존 28개 회귀(840cfef 기준)와 브라우저 smoke를 유지하고 위 테스트는 추가한다.
 이번 설계는 아직 이 테스트들을 통과한 구현이 아니다.
 
 ## 7. 결정 대기·범위
@@ -195,4 +200,3 @@ rewardId는 단순 tile type이나 칸 번호가 아니라 run/map/visit 또는 
 - RNG 알고리즘/직렬화 규격과 IDB schema는 계약 PR에서 테스트 벡터와 함께 고정한다.
 - 개발용 재생성 버튼과 새 원정 시작은 분리하며 삭제/초기화는 명시적 사용자 동작으로 제한한다.
 - 공통 애니메이션은 다음 별도 작업. 자산 history 청소, 모든 이미지 최적화, Unity 전체 이식은 이번 범위 밖이다.
-
