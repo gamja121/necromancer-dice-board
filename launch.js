@@ -13,7 +13,7 @@
   const installButton=document.getElementById("installAppButton");
   const toast=document.getElementById("titleToast");
   const DB_NAME="necromancer-dice-runs";
-  let unlocked=false,soundOn=true,leaving=false,installPrompt=null,toastTimer;
+  let unlocked=false,soundOn=true,leaving=false,installPrompt=null,toastTimer,selectedMenu=null;
 
   video.volume=.72;
   bgm.volume=.34;
@@ -73,17 +73,43 @@
     try{sessionStorage.setItem("necromancer-v2-music-handoff","map")}catch(_){}
     video.pause();bgm.pause();location.href=href;
   }
+  const menuButtons=[newGame,cont,options,exit];
+  function selectMenu(target){
+    menuButtons.forEach(item=>{
+      const selected=item===target;
+      item.classList.toggle("is-selected",selected);
+      item.setAttribute("aria-current",selected?"true":"false");
+    });
+    selectedMenu=target;
+  }
+  function isSecondPress(target){
+    if(selectedMenu!==target){selectMenu(target);return false;}
+    return true;
+  }
+
   newGame.addEventListener("click",async()=>{
+    if(!isSecondPress(newGame))return;
     if(!unlocked)await unlockTitle();
     const saved=await hasSavedRun();
     if(saved&&!confirm("기존 원정 기록을 지우고 새 게임을 시작할까요?"))return;
     await deleteDb();clearLegacy(localStorage);clearLegacy(sessionStorage);
     await fadeTo("v2-map-practice.html");
   });
-  cont.addEventListener("click",async e=>{e.preventDefault();if(cont.hidden)return;if(!unlocked)await unlockTitle();await fadeTo(cont.href)});
-  options.addEventListener("click",()=>panel.hidden=false);
-  closeOptions.addEventListener("click",()=>panel.hidden=true);
-  exit.addEventListener("click",()=>{window.close();setTimeout(()=>showToast("브라우저에서는 창을 직접 닫아주세요."),80)});
+  cont.addEventListener("click",async e=>{
+    e.preventDefault();if(cont.hidden)return;
+    if(!isSecondPress(cont))return;
+    if(!unlocked)await unlockTitle();
+    await fadeTo(cont.href);
+  });
+  options.addEventListener("click",()=>{
+    if(!isSecondPress(options))return;
+    panel.hidden=false;
+  });
+  closeOptions.addEventListener("click",()=>{panel.hidden=true;selectMenu(options)});
+  exit.addEventListener("click",()=>{
+    if(!isSecondPress(exit))return;
+    window.close();setTimeout(()=>showToast("브라우저에서는 창을 직접 닫아주세요."),80);
+  });
 
   document.addEventListener("visibilitychange",()=>{if(document.hidden){video.pause();bgm.pause()}else if(unlocked&&!leaving)startAudio(false);else video.play().catch(()=>{})});
   window.addEventListener("pagehide",()=>{video.pause();bgm.pause()});
