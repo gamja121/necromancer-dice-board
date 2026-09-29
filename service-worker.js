@@ -34,7 +34,7 @@ const APP_SHELL = [
   "./art/v2-style/ui/map-cloud-transition-2.png",
   "./art/v2-style/ui/map-cloud-transition-3.png",
   "./art/v2-style/ui/map-cloud-transition-4.png",
-  "./art/v2-style/ui/brand-card.png?v=3",
+  "./art/v2-style/ui/brand-card.png?v=4",
   "./launch.css?v=1",
   "./launch.js?v=1",
   "./v2-animation-practice.css?v=7",
