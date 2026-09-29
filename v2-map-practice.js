@@ -313,6 +313,10 @@
     if (el.contaminationStage) el.contaminationStage.textContent = stage.label;
     if (el.contaminationValue) el.contaminationValue.textContent = `${contamination} / ${CONTAMINATION_MAX}`;
     if (el.contaminationHud) el.contaminationHud.dataset.stage = stage.id;
+    if (el.board) {
+      el.board.style.setProperty("--corruption-level", String(contamination));
+      el.board.dataset.corruptionStage = stage.id;
+    }
   }
 
   function setContamination(value) {
