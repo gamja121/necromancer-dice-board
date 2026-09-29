@@ -54,7 +54,10 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .contamination-hud[data-stage="erosion"] .contamination-readout strong { color: #744726; }
 .contamination-hud[data-stage="catastrophe"] .contamination-readout strong, .contamination-hud[data-stage="threshold"] .contamination-readout strong { color: #821e18; }
 
-.contamination-test-control { position: absolute; z-index: 31; left: 1.5%; top: 2.2%; width: min(31%, 330px); padding: clamp(6px, .7vw, 9px); border: 1px solid #8e6d49bb; border-radius: 5px; background: #100b08e8; box-shadow: 0 5px 14px #000a, inset 0 0 0 1px #d2b0711f; color: #ead7b7; }
+.contamination-test-toggle { position: absolute; z-index: 33; left: 50%; top: 3.2%; min-width: 58px; height: 30px; padding: 0 10px; border: 1px solid #d29b5f; border-radius: 4px; background: #2a1711ef; color: #ffd79a; font-size: clamp(9px, 1vw, 12px); font-weight: 1000; transform: translateX(-50%); box-shadow: 0 4px 12px #000b, 0 0 8px #b55a2e44; cursor: pointer; }
+.contamination-test-toggle.is-open { background: #6a241b; color: #fff0ca; }
+.contamination-test-control { position: absolute; z-index: 32; left: 50%; top: 9.2%; width: min(52%, 520px); padding: clamp(7px, .8vw, 10px); border: 1px solid #b88854dd; border-radius: 6px; background: #100b08f2; box-shadow: 0 7px 18px #000c, inset 0 0 0 1px #d2b0712a; color: #ead7b7; transform: translateX(-50%); }
+.contamination-test-control[hidden] { display: none; }
 .contamination-test-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; font-size: clamp(8px, .95vw, 11px); }
 .contamination-test-head strong { color: #ffd28b; }
 .contamination-test-head span { color: #c9b89d; font-weight: 800; }
@@ -62,7 +65,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .contamination-test-presets { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; }
 .contamination-test-presets button { min-width: 0; height: clamp(20px, 2.4vw, 27px); padding: 0 3px; border: 1px solid #72583f; border-radius: 3px; background: #241710; color: #e6d3b3; font-size: clamp(7px, .78vw, 9px); font-weight: 900; cursor: pointer; }
 .contamination-test-presets button.is-active { border-color: #d18a50; background: #5b241d; color: #fff0cc; box-shadow: 0 0 7px #b63c2b66; }
-.map-board.is-tile-event-open .contamination-test-control { visibility: hidden; }
+.map-board.is-tile-event-open .contamination-test-control, .map-board.is-tile-event-open .contamination-test-toggle { visibility: hidden; }
 
 .tile-ring { position: absolute; z-index: 8; inset: 0; }
 .map-tile { position: absolute; left: var(--x); top: var(--y); width: 12.4%; aspect-ratio: 1.42; transform: translate(-50%, -50%); padding: 0; border: 0; background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; }
