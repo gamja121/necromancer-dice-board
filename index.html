@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#101914">
+  <meta name="theme-color" content="#050807">
   <meta name="description" content="네크로멘서 앤드 다이스 — 주사위로 원정을 이어가고 마물과 낙인을 조합하는 덱빌딩 TRPG.">
   <meta name="apple-mobile-web-app-title" content="네크로멘서 앤드 다이스">
   <meta name="mobile-web-app-capable" content="yes">
@@ -11,17 +11,49 @@
   <title>네크로멘서 앤드 다이스</title>
   <link rel="manifest" href="manifest.webmanifest?v=20260927-v2">
   <link rel="apple-touch-icon" href="assets/app-icon-192.png">
-  <link rel="stylesheet" href="launch.css?v=1">
+  <link rel="stylesheet" href="launch.css?v=3">
 </head>
-<body>
-  <main>
-    <p class="eyebrow">NECROMANCER AND DICE</p>
-    <h1>네크로멘서<br>앤드 다이스</h1>
-    <p>주사위가 이끄는 원정.<br>마물을 모으고, 낙인을 계승하고, 운명에 맞서세요.</p>
-    <a class="play" href="v2-map-practice.html">원정으로</a>
-    <p class="note">현재 브라우저 탭의 원정 상태를 이어갑니다.</p>
-    <button id="installAppButton" type="button" hidden>앱으로 설치</button>
-    <details>
+<body class="title-page is-locked">
+  <video id="titleVideo" class="title-video" autoplay muted loop playsinline preload="auto" aria-hidden="true">
+    <source src="assets/title/title-loop.mp4" type="video/mp4">
+  </video>
+  <audio id="titleBgm" src="assets/title/title-theme.mp3" loop preload="auto"></audio>
+  <div class="title-vignette" aria-hidden="true"></div>
+
+  <button id="titleUnlock" class="title-unlock" type="button" aria-label="타이틀 사운드 시작">
+    <span>NECROMANCER AND DICE</span>
+    <strong>화면을 눌러 시작</strong>
+    <small>주사위 · 모닥불 환경음과 타이틀 음악이 재생됩니다</small>
+  </button>
+
+  <main class="title-shell">
+    <section class="title-copy" aria-labelledby="gameTitle">
+      <img id="gameTitle" class="title-logo" src="assets/title/title-logo.webp" alt="Necromancer and Dice">
+      <p class="tagline">죽은 자를 거느리고, 주사위가 정한 길을 걸어라.</p>
+
+      <nav class="title-menu" aria-label="메인 메뉴">
+        <button id="newGameButton" class="image-button button-new" type="button" aria-label="New Game"><span class="button-art" aria-hidden="true"></span></button>
+        <a id="continueButton" class="image-button button-continue" href="v2-map-practice.html" aria-label="Continue"><span class="button-art" aria-hidden="true"></span></a>
+        <button id="optionsButton" class="image-button button-options" type="button" aria-label="Options"><span class="button-art" aria-hidden="true"></span></button>
+        <button id="exitButton" class="image-button button-exit" type="button" aria-label="Exit"><span class="button-art" aria-hidden="true"></span></button>
+      </nav>
+    </section>
+
+    <aside id="optionsPanel" class="options-panel" hidden aria-label="타이틀 옵션">
+      <div class="options-head">
+        <strong>OPTIONS</strong>
+        <button id="closeOptionsButton" type="button" aria-label="옵션 닫기">×</button>
+      </div>
+      <label class="option-row">
+        <span>타이틀 사운드</span>
+        <button id="titleSoundToggle" type="button" aria-pressed="true">ON</button>
+      </label>
+      <button id="installAppButton" class="install-button" type="button" hidden>앱으로 설치</button>
+    </aside>
+
+    <p id="titleToast" class="title-toast" role="status" aria-live="polite"></p>
+
+    <details class="dev-tools">
       <summary>개발 · 테스트</summary>
       <nav aria-label="개발 테스트 화면">
         <a href="v2-event-lab.html">이벤트 테스트</a>
@@ -33,8 +65,8 @@
         <a href="v2-sfx-sampler.html">효과음 테스트</a>
       </nav>
     </details>
-    <footer>웹 프로토타입 · 개발 중</footer>
   </main>
-  <script src="launch.js?v=1"></script>
+
+  <script src="launch.js?v=3"></script>
 </body>
 </html>
