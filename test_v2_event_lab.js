@@ -33,7 +33,9 @@ for (const file of [
   "v2-event-lab.js?v=1",
   "v2-event-data.js?v=1"
 ]) {
-  assert(worker.includes(file), `Event Lab is not cached: ${file}`);
+  assert(fs.existsSync(file.split("?")[0]), `Event Lab resource is missing: ${file}`);
 }
+assert(worker.includes("function networkFirst") && worker.includes("function cacheFirst"),
+  "Service worker must retain on-demand caching for non-core Event Lab resources.");
 
 console.log("v2 event lab tests passed");
