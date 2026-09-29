@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20260929-21";
+const CACHE_NAME = "necromancer-and-dice-v2-20260929-22";
 
 const CORE_ASSETS = [
   "./",
@@ -11,7 +11,7 @@ const CORE_ASSETS = [
   "./v2-auto-battle-practice.css?v=60",
   "./v2-asset-loader.js?v=1",
   "./v2-map-practice.js?v=67",
-  "./v2-auto-battle-practice.js?v=110",
+  "./v2-auto-battle-practice.js?v=111",
   "./v2-landscape.js?v=1",
   "./v2-music.js?v=1",
   "./v2-sfx.js?v=3",
