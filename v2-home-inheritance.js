@@ -95,7 +95,7 @@
     const name = document.createElement("strong");
     const marks = document.createElement("small");
     name.textContent = `${origin} · ${V2Rules.definitions[brand.type]?.name || brand.type}`;
-    marks.textContent = `축 ${brand.bless.join(",") || "-"}${brand.curse.length ? `  저 ${brand.curse.join(",")}` : ""}`;
+    marks.textContent = [brand.bless.length ? `축 ${brand.bless.join(",")}` : "", brand.curse.length ? `저 ${brand.curse.join(",")}` : ""].filter(Boolean).join("  ");
     row.append(name, marks);
     brandList.append(row);
   }
