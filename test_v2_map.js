@@ -180,7 +180,7 @@ const ownedUnits = new Map([
 ]);
 const battleLinkContext = {
   activeMapId: "winter", battleStep: 7, battleTileType: "rare-monster", contamination: 42,
-  selectedDeck: selectedIds, ownedUnits, URLSearchParams, saveMapLayout() {},
+  selectedDeck: selectedIds, ownedUnits, currentTiles: [], URLSearchParams, saveMapLayout() {},
   el: { deckConfirm: {}, deckStatus: {} },
   window: { location: { assign: url => navigation.push(url) } }
 };
