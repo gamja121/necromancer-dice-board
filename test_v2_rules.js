@@ -85,8 +85,8 @@ for(const type of Object.keys(R.definitions))for(let i=0;i<1000;i++)assert(R.val
  defenders[2].hp=0;defenders[2].alive=false;weighted=R.targetWeights(s,'enemy');assert.equal(weighted[2].unit,pet);assert.equal(weighted[2].chance,20);
 }
 {
- const a=unit('hydra','ally',0,'undying',[b('poison')]),t=unit('skeleton-spear','enemy');const s=R.create([a,t],rng);R.begin(s);R.roll(s,4);R.attack(s,a,t);a.undyingUsed=true;t.hp=0;t.alive=false;
- const restored=R.restore(R.snapshot(s),rng);assert.deepEqual(R.snapshot(restored),R.snapshot(s));assert.equal(restored.units[1].alive,false);assert.equal(restored.units[0].undyingUsed,true);assert.equal(restored.units[1].poisonStacks[0].source,restored.units[0]);
+ const a=unit('hydra','ally',0,'undying',[b('poison')]),t=unit('skeleton-spear','enemy');a.instanceId='ally-instance-a';t.instanceId='enemy-instance-b';const s=R.create([a,t],rng);R.begin(s);R.roll(s,4);R.attack(s,a,t);a.undyingUsed=true;t.poisonAppliedTurn=7;t.hp=0;t.alive=false;
+ const restored=R.restore(R.snapshot(s),rng);assert.deepEqual(R.snapshot(restored),R.snapshot(s));assert.equal(restored.units[1].alive,false);assert.equal(restored.units[0].undyingUsed,true);assert.equal(restored.units[1].poisonStacks[0].source,restored.units[0]);assert.equal(restored.units[0].instanceId,'ally-instance-a');assert.equal(restored.units[1].instanceId,'enemy-instance-b');assert.equal(restored.units[1].poisonAppliedTurn,7);
  const invalid=R.snapshot(s);invalid.units[1].alive=true;assert.throws(()=>R.restore(invalid));
 }
 // 2,000 seeded full battles. Three random, independently inherited brands each.

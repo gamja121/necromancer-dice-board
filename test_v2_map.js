@@ -103,7 +103,7 @@ for (let index = 1; index <= 4; index += 1) {
 }
 assert(source.includes('scene.animation === "treasure"') && source.includes("async function playTreasureChestAnimation()") && source.includes('eventTreasure.classList.add("is-burst")'), "Treasure animation must restart through the current four-frame sequence.");
 assert(html.includes('v2-brand-cards.js?v=4') && worker.includes('v2-brand-cards.js?v=4'), "Brand card inventory module must load before map reward logic.");
-assert(fs.existsSync(path.join(root, "art/v2-style/ui/brand-card.png")) && worker.includes("art/v2-style/ui/brand-card.png?v=3"), "Transparent brand card art must exist and be cached.");
+assert(fs.existsSync(path.join(root, "art/v2-style/ui/brand-card.png")) && worker.includes("art/v2-style/ui/brand-card.png?v=4"), "Transparent brand card art must exist and be cached.");
 assert(source.includes("V2BrandCards.create()") && source.includes('type: "brand"') && source.includes("V2BrandCards.addAsync(reward.brandCard)"), "Brand cards must join treasure rewards and persist as their own inventory.");
 assert(source.includes("const otherRewards = shuffle([...unitRewards, ...diceRewards]).slice(0, 2)") &&
   source.includes("return shuffle([brandReward, ...otherRewards])"),
@@ -150,7 +150,7 @@ assert(source.includes('el.bookButton.offsetLeft') && source.includes('translate
 assert(css.includes('.map-deck-roster.map-book-roster button.is-inspecting') && css.includes('translateY(-22%)') && source.includes('clearBookSelection()'), "Book cards must rise slightly on selection and lower on deselection.");
 assert(html.includes('id="mapUnitInfoOverlay"') && html.includes('class="map-unit-info-panel"') && !html.includes('class="legion-info-panel"'), "Only the basic unit information window should appear in the map center.");
 assert(css.includes('.map-unit-info-overlay { position: absolute; z-index: 60; inset: 0; display: grid; place-items: center; }') && source.includes('openBookUnitInfo(ownedUnits.get(owned.instanceId))'), "Selecting an owned card must open centered instance-based information.");
-assert(html.includes('v2-design-data.js?v=1') && html.includes('v2-rules.js?v=6') && source.includes('normalizeOwnedUnit(V2Rules.individual(slug))'), "Owned-card stats and brands must use battle rules.");
+assert(html.includes('v2-design-data.js?v=1') && html.includes('v2-rules.js?v=7') && source.includes('normalizeOwnedUnit(V2Rules.individual(slug))'), "Owned-card stats and brands must use battle rules.");
 assert(battleSource.includes('V2RunStateRuntime?.snapshot') && battleSource.includes('V2RunStateRuntime.applyBattleOutcome') &&
   battleSource.includes('mapOwnedRoster.get(data.instanceId)') && battleSource.includes('mapOwnedRoster.get(unitState.instanceId)'),
   "Battle must restore instanceId-based cards from RunState and atomically persist battle outcomes.");

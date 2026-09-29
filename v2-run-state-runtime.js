@@ -165,6 +165,21 @@
     });
   }
 
+  function setBattleCheckpoint(checkpoint, prefix = "battle-checkpoint") {
+    const next = clone(checkpoint);
+    return commit(prefix, (draft) => {
+      draft.battle = next;
+      draft.phase = "battle";
+    });
+  }
+
+  function clearBattleCheckpoint(nextPhase = "map-ready", prefix = "battle-checkpoint-clear") {
+    return commit(prefix, (draft) => {
+      draft.battle = null;
+      draft.phase = nextPhase;
+    });
+  }
+
   function setMapProgress(options = {}) {
     return commit(options.prefix || "map-progress", (draft) => {
       if (!draft.currentMap) return;
@@ -207,6 +222,7 @@
           }
         }
       }
+      draft.battle = null;
       draft.phase = "capture";
     });
   }
@@ -256,6 +272,8 @@
     setContamination,
     setMapLayout,
     setMapProgress,
+    setBattleCheckpoint,
+    clearBattleCheckpoint,
     setClearedSteps,
     atomicRosterAndBrands,
     applyBattleOutcome,

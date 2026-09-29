@@ -149,7 +149,7 @@
   }
   function mode(b,face){if(typeof b==='string')return 'normal';return !b?'normal':b.curse.includes(face)?'curse':b.bless.includes(face)?'blessing':'normal';}
   function snapshot(s){
-    const fields=['slug','name','grade','legions','team','slot','ownerSlot','maxHp','baseMaxHp','baseAttack','baseSpeed','hp','alive','passive','brands','isSummon','bornTurn','grudge','summonPower','frozen','undyingUsed','shields','bless','curse','legionStatsApplied','brand','brandMode'];
+    const fields=['instanceId','slug','name','grade','legions','team','slot','ownerSlot','maxHp','baseMaxHp','baseAttack','baseSpeed','hp','alive','passive','brands','isSummon','bornTurn','grudge','summonPower','frozen','undyingUsed','shields','bless','curse','legionStatsApplied','brand','brandMode','poisonAppliedTurn'];
     return JSON.parse(JSON.stringify({version:1,round:s.round,last:s.units.indexOf(s.last),legions:Object.fromEntries(Object.entries(s.legions.teams).map(([k,v])=>[k,{counts:v.counts,active:[...v.active]}])),units:s.units.map(u=>({...Object.fromEntries(fields.map(k=>[k,u[k]])),poisonStacks:u.poisonStacks.map(p=>({remaining:p.remaining,source:s.units.indexOf(p.source)}))}))}));
   }
   function restore(data,rng=Math.random){

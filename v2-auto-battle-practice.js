@@ -387,15 +387,90 @@
   let legionState = null;
   let rulesState = null;
   const BATTLE_SAVE_KEY = 'necromancer-v2-battle-v1';
-  function saveBattle(phase) {
-    if (typeof localStorage === 'undefined' || !rulesState) return;
-    try { localStorage.setItem(BATTLE_SAVE_KEY, JSON.stringify({state:V2Rules.snapshot(rulesState),phase,roll:lastDiceRoll,actions:actionCount,queue:turnQueue.map(u=>units.indexOf(u))})); }
-    catch(error) { console.warn('전투 저장 실패',error); message.textContent += ' · 저장 실패'; }
+  const BATTLE_CHECKPOINT_VERSION = 2;
+
+  function battleCheckpointContext() {
+    return {
+      fromMap,
+      encounterId: mapEncounterId,
+      mapId: battleQuery.get("map") || "",
+      tile: Number(battleQuery.get("tile")) || null,
+      encounterType: mapEncounterType,
+      allyIds: [...requestedAllyInstanceIds],
+      allies: [...requestedAllySlugs]
+    };
   }
+
+  function checkpointMatchesCurrentBattle(saved) {
+    if (!saved || saved.phase === "complete" || !saved.state) return false;
+    const context = saved.context;
+    if (!fromMap) return !context || context.fromMap === false;
+    if (!context || context.fromMap !== true) return false;
+    return context.encounterId === mapEncounterId &&
+      context.mapId === (battleQuery.get("map") || "") &&
+      Number(context.tile) === (Number(battleQuery.get("tile")) || null) &&
+      context.encounterType === mapEncounterType;
+  }
+
+  function readLocalBattleCheckpoint() {
+    if (typeof localStorage === "undefined") return null;
+    try {
+      const saved = JSON.parse(localStorage.getItem(BATTLE_SAVE_KEY));
+      return checkpointMatchesCurrentBattle(saved) ? saved : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function readRunStateBattleCheckpoint() {
+    const saved = globalThis.V2RunStateRuntime?.snapshot?.()?.battle;
+    return checkpointMatchesCurrentBattle(saved) ? saved : null;
+  }
+
+  function battleCheckpointTimestamp(saved) {
+    const value = Date.parse(saved?.savedAt || "");
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  function loadBattleCheckpoint() {
+    const runSaved = readRunStateBattleCheckpoint();
+    const localSaved = readLocalBattleCheckpoint();
+    if (!runSaved) return localSaved;
+    if (!localSaved) return runSaved;
+    return battleCheckpointTimestamp(localSaved) > battleCheckpointTimestamp(runSaved) ? localSaved : runSaved;
+  }
+
+  function createBattleCheckpoint(phase) {
+    return {
+      version: BATTLE_CHECKPOINT_VERSION,
+      savedAt: new Date().toISOString(),
+      context: battleCheckpointContext(),
+      state: V2Rules.snapshot(rulesState),
+      phase,
+      roll: lastDiceRoll,
+      actions: actionCount,
+      queue: turnQueue.map((unitState) => units.indexOf(unitState))
+    };
+  }
+
+  function saveBattle(phase) {
+    if (!rulesState) return null;
+    const checkpoint = createBattleCheckpoint(phase);
+    if (typeof localStorage !== "undefined") {
+      try { localStorage.setItem(BATTLE_SAVE_KEY, JSON.stringify(checkpoint)); }
+      catch(error) { console.warn('전투 저장 실패',error); message.textContent += ' · 저장 실패'; }
+    }
+    if (phase !== "complete" && fromMap && globalThis.V2RunStateRuntime?.available) {
+      V2RunStateRuntime.setBattleCheckpoint(checkpoint, `battle-${phase}`);
+    }
+    return checkpoint;
+  }
+
   async function resumeBattle() {
     try {
-      const saved=JSON.parse(localStorage.getItem(BATTLE_SAVE_KEY));
-      if (!saved || saved.phase==='complete') return;
+      if (globalThis.V2RunStateRuntime?.available) await V2RunStateRuntime.flush();
+      const saved = loadBattleCheckpoint();
+      if (!saved) return false;
       const restored=V2Rules.restore(saved.state);
       for (const u of restored.units) {
         const data=u.slug==='guardian-seed'?unit('guardian-seed','씨앗',6,0,1,5,3,4):{...ROSTER_BY_SLUG.get(u.slug)};
@@ -409,9 +484,15 @@
       startOverlay.hidden=true;resultOverlay.hidden=true;renderTeams();
       for(const u of units){revealUnit(u);if(!u.alive)u.image.src=frame(u,'death',u.frames.death);}
       updateHud();speedButton.disabled=false;
+      document.getElementById('resumeBattleButton').hidden = true;
       if(saved.phase==='ready')beginTurnIntermission(false);
       else {turnDice.hidden=true;pauseButton.disabled=false;message.textContent=`${turnNumber}턴 전투 재개`;}
-    } catch(error) { console.error(error);lineupStatus.textContent='저장된 전투를 불러오지 못했습니다. 원본 저장은 유지됩니다.'; }
+      return true;
+    } catch(error) {
+      console.error(error);
+      lineupStatus.textContent='저장된 전투를 불러오지 못했습니다. 원본 저장은 유지됩니다.';
+      return false;
+    }
   }
   let selectedCorpse = null;
   let captureAttemptsLeft = 0;
@@ -1766,8 +1847,9 @@
   }
 
   startButton.addEventListener("click", startSelectedBattle);
-  document.getElementById('resumeBattleButton').addEventListener('click',resumeBattle);
-  try { document.getElementById('resumeBattleButton').hidden = typeof localStorage==='undefined' || !localStorage.getItem(BATTLE_SAVE_KEY) || JSON.parse(localStorage.getItem(BATTLE_SAVE_KEY)).phase==='complete'; } catch(error) { console.warn(error); }
+  const resumeBattleButton = document.getElementById('resumeBattleButton');
+  resumeBattleButton.addEventListener('click', resumeBattle);
+  resumeBattleButton.hidden = !loadBattleCheckpoint();
   unitRoster.addEventListener("touchstart", beginRosterTouchScroll, { passive: true });
   unitRoster.addEventListener("touchmove", moveRosterTouchScroll, { passive: false });
   unitRoster.addEventListener("touchend", endRosterTouchScroll, { passive: true });
@@ -1795,11 +1877,16 @@
   });
 
   const mapLineupReady = fromMap && selectedAllySlugs.length >= 1 && selectedAllySlugs.length <= 4;
-  if (mapLineupReady) {
+  const matchingCheckpoint = loadBattleCheckpoint();
+  if (mapLineupReady && matchingCheckpoint) {
+    startOverlay.hidden = true;
+    const resumed = await resumeBattle();
+    if (!resumed) await startSelectedBattle();
+  } else if (mapLineupReady) {
     // Do not render the default/demo teams first. startSelectedBattle() prepares
     // the real map lineup and only then calls resetBattle(false).
     startOverlay.hidden = true;
-    startSelectedBattle();
+    await startSelectedBattle();
   } else {
     resetBattle(true);
   }
