@@ -17,6 +17,15 @@
   const MAP_CONTAMINATION_WIN_PREFIX = "necromancer-map-contamination-win-v1:";
   const MAP_CLEARED_MONSTER_KEY = "necromancer-map-cleared-monsters-v1";
   const MAP_ROSTER_KEY = "necromancer-map-roster-v2";
+  const FORTUNE_PROPHECY_KEY = "necromancer-fortune-prophecy-v1";
+  const mapProphecyRoll = Math.max(0, Math.min(6, Number(battleQuery.get("prophecy")) || 0));
+  const prophecyHpBonus = [4, 6].includes(mapProphecyRoll) ? 2 : 0;
+  const prophecyAllyAttackBonus = [5, 6].includes(mapProphecyRoll) ? 1 : 0;
+  const prophecyAllySpeedBonus = mapProphecyRoll === 3 ? 1 : 0;
+  const prophecyEnemyAttackBonus = mapProphecyRoll === 1 ? 1 : 0;
+  if (fromMap && mapProphecyRoll && typeof sessionStorage !== "undefined") {
+    try { sessionStorage.removeItem(FORTUNE_PROPHECY_KEY); } catch (_) {}
+  }
   const MONSTER_CAPACITY = 10;
   const mapContamination = Math.max(0, Math.min(100, Number(battleQuery.get("contamination")) || 0));
   const MAP_ENCOUNTER_STAGES = Object.freeze([
@@ -770,6 +779,18 @@
       ...selectedAllyTeam.map((data, slot) => makeState(data, "ally", slot)),
       ...selectedEnemyTeam.map((data, slot) => makeState(data, "enemy", slot))
     ];
+    if (fromMap && mapProphecyRoll) {
+      for (const unitState of units) {
+        if (unitState.isSummon) continue;
+        if (unitState.team === "ally") {
+          unitState.maxHp += prophecyHpBonus;
+          unitState.attack += prophecyAllyAttackBonus;
+          unitState.speed += prophecyAllySpeedBonus;
+        } else {
+          unitState.attack += prophecyEnemyAttackBonus;
+        }
+      }
+    }
     battleRng = V2BattleRng.create();
     rulesState = V2Rules.create(units, battleRandom);
     legionState = rulesState.legions;
@@ -778,13 +799,19 @@
         const owned = unitState.instanceId ? mapOwnedRoster.get(unitState.instanceId) : null;
         if (!owned || !Number.isFinite(owned.currentHp)) continue;
         const temporaryMaxBonus = Math.max(0, unitState.maxHp - unitState.baseMaxHp);
-        unitState.hp = Math.max(1, Math.min(unitState.maxHp, owned.currentHp + temporaryMaxBonus));
+        unitState.hp = Math.max(1, Math.min(unitState.maxHp, owned.currentHp + temporaryMaxBonus + prophecyHpBonus));
         unitState.alive = unitState.hp > 0;
       }
     }
     renderTeams();
     if (typeof V2UnitCards !== "undefined") V2UnitCards.setPhase("locked");
-    message.textContent = "전투 시작을 눌러주세요";
+    const prophecyText = mapProphecyRoll === 1 ? "예언 저주 · 적 공격력 +1"
+      : mapProphecyRoll === 3 ? "예언 축복 · 아군 속도 +1"
+      : mapProphecyRoll === 4 ? "예언 축복 · 아군 체력 +2"
+      : mapProphecyRoll === 5 ? "예언 축복 · 아군 공격력 +1"
+      : mapProphecyRoll === 6 ? "예언 대축복 · 아군 공격력 +1 · 체력 +2"
+      : "";
+    message.textContent = prophecyText || "전투 시작을 눌러주세요";
     updateHud();
   }
 
