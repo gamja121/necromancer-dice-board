@@ -5,7 +5,7 @@ on:
     branches:
       - chatgpt/title-deploy-20260929
     paths:
-      - ".title-upload/**"
+      - ".title-upload/READY"
 
 permissions:
   contents: write
