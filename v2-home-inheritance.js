@@ -6,6 +6,10 @@
   const OWNED_ROSTER_KEY = "necromancer-map-roster-v2";
   const overlay = document.getElementById("homeInheritanceOverlay");
   const cards = document.getElementById("homeInheritanceCards");
+  const brandCards = document.getElementById("homeInheritanceBrandCards");
+  const mapBookButton = document.getElementById("mapBookButton");
+  const mapCardDeckButton = document.getElementById("mapCardDeckButton");
+  const diceControlOverlay = document.getElementById("diceControlOverlay");
   const closeButton = document.getElementById("homeInheritanceClose");
   const materialCard = document.getElementById("homeInheritanceMaterialCard");
   const materialHint = document.getElementById("homeInheritanceMaterialHint");
@@ -22,6 +26,14 @@
   let inheritedBrand = null;
   let inheritedPart = null;
   let notice = "";
+  let previousDiceDeckHidden = false;
+
+  const BRAND_ICON_VIEWS = Object.freeze({
+    critical: [216, 48, 228, 228], vampire: [526, 48, 234, 228], guard: [841, 48, 228, 228],
+    poison: [216, 310, 228, 228], summon: [526, 310, 234, 228], healing: [843, 310, 228, 228],
+    combo: [222, 50, 220, 220], freeze: [850, 50, 220, 220],
+    lightspeed: [222, 316, 220, 220], counter: [852, 316, 220, 220]
+  });
 
   function createInstanceId(slug = "unit") {
     if (globalThis.crypto?.randomUUID) return `${slug}-${globalThis.crypto.randomUUID()}`;
@@ -108,6 +120,40 @@
     renderSelection();
   }
 
+
+  function brandIconMarkup(type) {
+    const view = BRAND_ICON_VIEWS[type];
+    if (!view) return '<span class="home-inheritance-brand-symbol" aria-hidden="true">◇</span>';
+    const sheet = ["combo", "freeze", "lightspeed", "counter"].includes(type)
+      ? "brand-icons-extra-sheet.jpg" : "brand-icons-sheet.jpg";
+    return `<svg viewBox="${view.join(" ")}" aria-hidden="true"><image href="art/v2-style/ui/${sheet}" width="1280" height="575"></image></svg>`;
+  }
+
+  function renderBrandCards() {
+    if (!brandCards) return;
+    brandCards.replaceChildren();
+    const ownedBrands = [];
+    for (const unit of loadOwnedUnits().values()) {
+      const ownerName = V2DesignData.units[unit.slug]?.name || unit.name || unit.slug;
+      for (const brand of unit.brands) ownedBrands.push({ brand, ownerName });
+    }
+    ownedBrands.slice(0, 8).forEach(({ brand, ownerName }, index) => {
+      const card = document.createElement("div");
+      const name = V2Rules.definitions[brand.type]?.name || brand.type;
+      card.className = "home-inheritance-brand-card";
+      card.style.setProperty("--brand-i", index);
+      card.style.setProperty("--brand-x", `${index * 48}%`);
+      card.style.setProperty("--brand-y", `${Math.abs(3 - index) * -2}%`);
+      card.style.setProperty("--brand-rot", `${-10 + index * 3}deg`);
+      card.innerHTML = `${brandIconMarkup(brand.type)}<strong>${name}</strong><small>${ownerName}</small>`;
+      brandCards.append(card);
+    });
+    brandCards.classList.toggle("is-empty", ownedBrands.length === 0);
+    brandCards.setAttribute("aria-label", ownedBrands.length
+      ? `보유 낙인 카드 ${ownedBrands.length}개`
+      : "보유 낙인 카드 없음");
+  }
+
   function renderCards() {
     if (!cards) return;
     cards.replaceChildren();
@@ -138,7 +184,18 @@
     inheritedPart = null;
     notice = "";
     renderCards();
+    renderBrandCards();
     renderSelection();
+    previousDiceDeckHidden = Boolean(mapCardDeckButton?.hidden);
+    if (diceControlOverlay) {
+      diceControlOverlay.hidden = true;
+      diceControlOverlay.classList.remove("is-open", "is-closing");
+    }
+    if (mapCardDeckButton) {
+      mapCardDeckButton.hidden = true;
+      mapCardDeckButton.setAttribute("aria-expanded", "false");
+    }
+    mapBookButton?.classList.add("is-inheritance-source");
     overlay.hidden = false;
     overlay.classList.remove("is-open");
     void overlay.offsetWidth;
@@ -156,6 +213,9 @@
     inheritedBrand = null;
     inheritedPart = null;
     notice = "";
+    if (brandCards) brandCards.replaceChildren();
+    mapBookButton?.classList.remove("is-inheritance-source");
+    if (mapCardDeckButton) mapCardDeckButton.hidden = previousDiceDeckHidden;
     renderSelection();
   }
 
