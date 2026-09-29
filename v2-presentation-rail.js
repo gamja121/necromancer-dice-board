@@ -2,7 +2,7 @@
   "use strict";
 
   const MAX_BRANDS = 3;
-  const HIDE_DELAY = 1100;
+  const HIDE_DELAY = 1450;
   let hideTimer = null;
 
   function createNode(className, text) {
@@ -95,17 +95,17 @@
     switch (detail.type) {
       case "dice-result":
         resetForDice(rail, detail.roll ?? detail.value ?? "?");
-        scheduleHide(rail, 1800);
+        scheduleHide(rail, 2200);
         break;
       case "brand-trigger": {
         const triggers = detail.event?.triggers || [];
         appendBrands(rail, triggers);
-        scheduleHide(rail, 1800);
+        scheduleHide(rail, 2200);
         break;
       }
       case "attack":
         appendAttack(rail, detail.event || detail);
-        scheduleHide(rail, 1400);
+        scheduleHide(rail, 1800);
         break;
       case "hit":
         appendHit(rail, detail.event || detail);
