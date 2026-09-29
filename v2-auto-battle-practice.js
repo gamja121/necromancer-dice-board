@@ -18,12 +18,12 @@
   const MAP_CLEARED_MONSTER_KEY = "necromancer-map-cleared-monsters-v1";
   const MAP_ROSTER_KEY = "necromancer-map-roster-v2";
   const FORTUNE_PROPHECY_KEY = "necromancer-fortune-prophecy-v1";
-  const mapProphecyRoll = Math.max(0, Math.min(6, Number(battleQuery.get("prophecy")) || 0));
-  const prophecyHpBonus = [4, 6].includes(mapProphecyRoll) ? 2 : 0;
-  const prophecyAllyAttackBonus = [5, 6].includes(mapProphecyRoll) ? 1 : 0;
-  const prophecyAllySpeedBonus = mapProphecyRoll === 3 ? 1 : 0;
-  const prophecyEnemyAttackBonus = mapProphecyRoll === 1 ? 1 : 0;
-  if (fromMap && mapProphecyRoll && typeof sessionStorage !== "undefined") {
+  const prophecyHpBonus = Math.max(0, Math.floor(Number(battleQuery.get("prophecyAllyHp")) || 0));
+  const prophecyAllyAttackBonus = Math.max(0, Math.floor(Number(battleQuery.get("prophecyAllyAttack")) || 0));
+  const prophecyAllySpeedBonus = Math.max(0, Math.floor(Number(battleQuery.get("prophecyAllySpeed")) || 0));
+  const prophecyEnemyAttackBonus = Math.max(0, Math.floor(Number(battleQuery.get("prophecyEnemyAttack")) || 0));
+  const hasMapProphecy = prophecyHpBonus > 0 || prophecyAllyAttackBonus > 0 || prophecyAllySpeedBonus > 0 || prophecyEnemyAttackBonus > 0;
+  if (fromMap && hasMapProphecy && typeof sessionStorage !== "undefined") {
     try { sessionStorage.removeItem(FORTUNE_PROPHECY_KEY); } catch (_) {}
   }
   const MONSTER_CAPACITY = 10;
@@ -779,7 +779,7 @@
       ...selectedAllyTeam.map((data, slot) => makeState(data, "ally", slot)),
       ...selectedEnemyTeam.map((data, slot) => makeState(data, "enemy", slot))
     ];
-    if (fromMap && mapProphecyRoll) {
+    if (fromMap && hasMapProphecy) {
       for (const unitState of units) {
         if (unitState.isSummon) continue;
         if (unitState.team === "ally") {
@@ -805,13 +805,12 @@
     }
     renderTeams();
     if (typeof V2UnitCards !== "undefined") V2UnitCards.setPhase("locked");
-    const prophecyText = mapProphecyRoll === 1 ? "예언 저주 · 적 공격력 +1"
-      : mapProphecyRoll === 3 ? "예언 축복 · 아군 속도 +1"
-      : mapProphecyRoll === 4 ? "예언 축복 · 아군 체력 +2"
-      : mapProphecyRoll === 5 ? "예언 축복 · 아군 공격력 +1"
-      : mapProphecyRoll === 6 ? "예언 대축복 · 아군 공격력 +1 · 체력 +2"
-      : "";
-    message.textContent = prophecyText || "전투 시작을 눌러주세요";
+    const prophecyParts = [];
+    if (prophecyAllyAttackBonus) prophecyParts.push(`아군 공격력 +${prophecyAllyAttackBonus}`);
+    if (prophecyHpBonus) prophecyParts.push(`아군 체력 +${prophecyHpBonus}`);
+    if (prophecyAllySpeedBonus) prophecyParts.push(`아군 속도 +${prophecyAllySpeedBonus}`);
+    if (prophecyEnemyAttackBonus) prophecyParts.push(`적 공격력 +${prophecyEnemyAttackBonus}`);
+    message.textContent = prophecyParts.length ? `누적 예언 · ${prophecyParts.join(" · ")}` : "전투 시작을 눌러주세요";
     updateHud();
   }
 
