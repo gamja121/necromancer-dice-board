@@ -314,7 +314,12 @@
     if (el.contaminationValue) el.contaminationValue.textContent = `${contamination} / ${CONTAMINATION_MAX}`;
     if (el.contaminationHud) el.contaminationHud.dataset.stage = stage.id;
     if (el.board) {
-      el.board.style.setProperty("--corruption-level", String(contamination));
+      const normalized = contamination / CONTAMINATION_MAX;
+      const crackOpacity = Math.min(.62, Math.max(0, (contamination - 25) / 75 * .62));
+      const fogOpacity = Math.min(.72, Math.max(0, (contamination - 45) / 55 * .72));
+      el.board.style.setProperty("--corruption-tint-opacity", String(normalized * .72));
+      el.board.style.setProperty("--corruption-crack-opacity", String(crackOpacity));
+      el.board.style.setProperty("--corruption-fog-opacity", String(fogOpacity));
       el.board.dataset.corruptionStage = stage.id;
     }
   }
