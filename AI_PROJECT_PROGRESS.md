@@ -1285,3 +1285,22 @@
 - 이번 단계에서는 전투 규칙, 피해 계산, 낙인 판정, 저장/checkpoint, 공격/피격 연출 구조는 변경하지 않았다.
 - 다음 단계: 일반 진행 시간과 핵심 Presentation 시간을 분리하는 `battle timing / presentation timing` 헬퍼를 도입하고, 첫 시제품 장면에만 적용한다.
 - 자동전투 JS 캐시 버전: `v109`
+
+
+## 2026-09-29: 전투 타이밍 분리 2단계
+
+- 목적: 기본 자동전투는 빠르게 유지하면서, 플레이어가 읽어야 하는 핵심 연출은 너무 빨라지지 않도록 시간 계층을 분리한다.
+- 롤백 브랜치: `rollback/battle-timing-split-before-20260929`
+- 변경 직전 main: `5e67ee0b954aa46a6662f885067350dd342bfd46`
+- 새 타이밍 계층:
+  - `battleDuration / battleWait`: 일반 전투 진행 속도에 `speedMultiplier`를 그대로 적용.
+  - `presentationDuration / presentationWait`: 핵심 시각 피드백은 최대 1.2배까지만 빨라지도록 제한.
+- 현재 기본 표시 ×1의 내부 전투 속도는 1.5배지만, 핵심 Presentation은 최대 1.2배까지만 가속된다.
+- 이번 단계에서 Presentation 시간으로 분류한 항목:
+  - 주사위 결과를 읽는 짧은 정지
+  - 공격 시작/종료의 cinematic 강조 구간
+  - `✦ 눈금 → 낙인명` 발동 태그 유지 시간
+- 일반 지원효과 정지, 빙결/중독 처리, 공격 impact timeout 등은 `battleWait`으로 통일해 기존 수학적 동작을 유지했다.
+- 전투 규칙, 피해/타겟 판정, 저장/checkpoint에는 변경 없음.
+- 자동전투 JS 캐시 버전: `v110`
+- 다음 단계: 별도 `V2Presentation` 모듈의 최소 골격을 만들고, 첫 시제품으로 `주사위 → 낙인 → 공격 → 피격` 이벤트만 큐로 연결한다.
