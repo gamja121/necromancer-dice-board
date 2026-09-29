@@ -170,12 +170,36 @@ button, a { font: inherit; }
 .battlefield.is-cinematic .unit.is-targeted .sprite-wrap { transform: translateY(var(--depth-y)) scale(var(--depth-scale)); }
 .battlefield.is-cinematic .unit.is-targeted.is-hit .sprite-wrap { translate: 6px 0; }
 .battlefield.is-cinematic .ally-team .unit.is-targeted.is-hit .sprite-wrap { translate: -6px 0; }
+
+.battlefield.is-impact-normal .unit.is-impact-target .sprite-wrap { filter: brightness(1.12) contrast(1.06); }
+.battlefield.is-impact-strong .unit.is-impact-target .sprite-wrap { filter: brightness(1.28) contrast(1.16) drop-shadow(0 0 7px #ffc36c99); }
+.battlefield.is-impact-special .unit.is-impact-target .sprite-wrap { filter: brightness(1.34) contrast(1.2) drop-shadow(0 0 10px #c989ff99); }
+.battlefield.is-impact-strong .team { animation: battle-impact-shake-strong 150ms linear both; }
+.battlefield.is-impact-special .team { animation: battle-impact-shake-special 210ms linear both; }
+.battlefield.is-impact-strong .battle-shade { box-shadow: inset 0 0 42px #ffd28b26; }
+.battlefield.is-impact-special .battle-shade { box-shadow: inset 0 0 52px #a458d633; }
+@keyframes battle-impact-shake-strong {
+  0%, 100% { translate: 0 0; }
+  30% { translate: -2px 1px; }
+  55% { translate: 2px -1px; }
+  78% { translate: -1px 0; }
+}
+@keyframes battle-impact-shake-special {
+  0%, 100% { translate: 0 0; }
+  18% { translate: -3px 1px; }
+  38% { translate: 3px -2px; }
+  58% { translate: -2px 2px; }
+  76% { translate: 2px -1px; }
+  90% { translate: -1px 0; }
+}
 .damage-number.has-digit-art { display: flex; align-items: center; gap: 0; filter: drop-shadow(0 1px 2px #000) drop-shadow(0 0 2px #ffba82); }
 .damage-number .damage-digit { height: clamp(28px, 4vw, 46px); width: auto; }
 .damage-number .damage-minus { height: clamp(8px, 1.1vw, 13px); width: auto; }
 @media (prefers-reduced-motion: reduce) {
   .battlefield.is-cinematic .unit.is-targeted.is-hit .sprite-wrap { translate: none; }
-  .presentation-rail, .presentation-step { animation: none; }
+  .presentation-rail, .presentation-step,
+  .battlefield.is-impact-strong .team,
+  .battlefield.is-impact-special .team { animation: none; }
   .presentation-rail.is-hiding { transition: none; }
 }
 .unit.is-dead { filter: grayscale(.25) brightness(.72); }
