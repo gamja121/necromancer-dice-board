@@ -8,7 +8,7 @@ const html = fs.readFileSync(__dirname + "/v2-auto-battle-practice.html", "utf8"
 const css = fs.readFileSync(__dirname + "/v2-auto-battle-practice.css", "utf8");
 const worker = fs.readFileSync(__dirname + "/service-worker.js", "utf8");
 assert(fs.existsSync(__dirname + "/" + effect.SHEET));
-assert(worker.includes(effect.SHEET) && worker.includes("v2-summon-effect.js?v=3"));
+assert(worker.includes("function cacheFirst") && html.includes("v2-summon-effect.js?v=3"));
 assert(html.indexOf('src="v2-summon-effect.js') < html.indexOf('src="v2-auto-battle-practice.js'));
 assert(css.includes("rotateX(55deg)") && css.includes("rotateZ(-8deg)"));
 assert(css.includes("translate(-50%, -50%) perspective(500px)"), "Circle is centered on the measured feet");
