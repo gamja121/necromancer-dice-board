@@ -2,93 +2,69 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#040706">
-  <meta name="description" content="네크로멘서 앤드 다이스 — 주사위로 외곽을 순찰하고 마물과 낙인을 계승하는 다크 판타지 RPG.">
-  <meta name="apple-mobile-web-app-title" content="네크로멘서 앤드 다이스">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#020307">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Necromancer and Dice</title>
   <link rel="manifest" href="manifest.webmanifest?v=20260927-v2">
   <link rel="apple-touch-icon" href="assets/app-icon-192.png">
-  <link rel="stylesheet" href="launch.css?v=20260930-title-1">
+  <link rel="stylesheet" href="launch.css?v=20260930-title-video-1">
 </head>
-<body class="title-page is-locked">
-  <div class="title-media" aria-hidden="true">
-    <video id="titleVideo" class="title-video" autoplay muted loop playsinline preload="auto"
-      poster="art/v2-style/map-test/maps/default-map.jpg">
-      <source src="assets/title/title-loop.mp4" type="video/mp4">
-    </video>
-    <div class="title-fallback-bg"></div>
-    <div class="title-fire-glow"></div>
-    <div class="title-vignette"></div>
-    <div class="title-grain"></div>
+<body class="is-locked">
+  <video id="titleVideo" class="title-video" autoplay muted loop playsinline preload="auto">
+    <source src="assets/title/title-loop.mp4" type="video/mp4">
+  </video>
+  <audio id="titleBgm" src="assets/title/title-theme.mp3" loop preload="auto"></audio>
+  <div class="shade" aria-hidden="true"></div>
+
+  <div id="rotateOverlay" class="rotate-overlay" aria-hidden="true">
+    <div class="phone-icon">↻</div>
+    <strong>가로로 돌려주세요</strong>
+    <small>타이틀은 가로 화면으로 제작되었습니다.</small>
   </div>
 
-  <audio id="titleBgm" loop preload="auto">
-    <source src="assets/title/title-theme.mp3" type="audio/mpeg">
-    <source src="assets/music/map-board.mp3" type="audio/mpeg">
-  </audio>
-
-  <button id="titleUnlock" class="title-unlock" type="button" aria-label="타이틀 사운드 시작">
+  <button id="titleUnlock" class="title-unlock" type="button">
     <span>NECROMANCER AND DICE</span>
-    <strong>화면을 눌러 시작</strong>
-    <small>주사위 · 모닥불 환경음과 타이틀 음악</small>
+    <strong>TOUCH TO START</strong>
+    <small>영상 사운드와 타이틀 BGM이 시작됩니다</small>
   </button>
 
   <main class="title-shell">
-    <section class="title-copy" aria-labelledby="gameTitle">
-      <img id="titleLogoArt" class="title-logo" src="assets/title/title-logo.webp" alt="">
-      <div id="gameTitle" class="title-logo-fallback" aria-label="Necromancer and Dice">
-        <span>NECROMANCER</span>
-        <em>AND DICE</em>
-      </div>
-      <p class="tagline">죽은 자를 거느리고, 주사위가 정한 길을 걸어라.</p>
+    <section class="title-panel" aria-label="Necromancer and Dice title">
+      <img class="title-logo" src="assets/title/title-logo.webp" alt="NECROMANCER AND DICE">
 
-      <nav class="title-menu" aria-label="메인 메뉴">
-        <button id="newGameButton" class="title-button title-button-primary" type="button">
-          <span class="en">NEW GAME</span><span class="ko">새 원정</span>
+      <nav class="title-menu" aria-label="Main menu">
+        <button id="newGameButton" class="menu-image" type="button" aria-label="New Game">
+          <img src="assets/title/new-game.webp" alt="NEW GAME">
         </button>
-        <a id="continueButton" class="title-button" href="v2-map-practice.html">
-          <span class="en">CONTINUE</span><span class="ko">이어하기</span>
+        <a id="continueButton" class="menu-image" href="v2-map-practice.html" aria-label="Continue">
+          <img src="assets/title/continue.webp" alt="CONTINUE">
         </a>
-        <button id="optionsButton" class="title-button" type="button">
-          <span class="en">OPTIONS</span><span class="ko">설정</span>
+        <button id="optionsButton" class="menu-image" type="button" aria-label="Options">
+          <img src="assets/title/options.webp" alt="OPTIONS">
         </button>
-        <button id="exitButton" class="title-button title-button-quiet" type="button">
-          <span class="en">EXIT</span><span class="ko">나가기</span>
+        <button id="exitButton" class="menu-image menu-exit" type="button" aria-label="Exit">
+          <img src="assets/title/exit.webp" alt="EXIT">
         </button>
       </nav>
     </section>
 
-    <aside id="optionsPanel" class="options-panel" hidden aria-label="타이틀 옵션">
+    <aside id="optionsPanel" class="options-panel" hidden>
       <div class="options-head">
         <strong>OPTIONS</strong>
-        <button id="closeOptionsButton" type="button" aria-label="옵션 닫기">×</button>
+        <button id="closeOptionsButton" type="button" aria-label="Close">×</button>
       </div>
       <div class="option-row">
-        <span>타이틀 사운드</span>
+        <span>영상 사운드 + BGM</span>
         <button id="titleSoundToggle" type="button" aria-pressed="true">ON</button>
       </div>
-      <button id="installAppButton" class="install-button" type="button" hidden>앱으로 설치</button>
+      <button id="installAppButton" type="button" hidden>앱으로 설치</button>
     </aside>
 
     <p id="titleToast" class="title-toast" role="status" aria-live="polite"></p>
-
-    <details class="dev-tools">
-      <summary>개발 · 테스트</summary>
-      <nav aria-label="개발 테스트 화면">
-        <a href="v2-event-lab.html">이벤트 테스트</a>
-        <a href="v2-auto-battle-practice.html">자동전투 테스트</a>
-        <a href="v2.html">직접 조작 전투 테스트</a>
-        <a href="v2-animation-practice.html">모션 테스트</a>
-        <a href="v2-image-test.html">이미지 테스트</a>
-        <a href="v2-tile-practice.html">타일 테스트</a>
-        <a href="v2-sfx-sampler.html">효과음 테스트</a>
-      </nav>
-    </details>
   </main>
 
-  <script src="launch.js?v=20260930-title-1"></script>
+  <script src="launch.js?v=20260930-title-video-1"></script>
 </body>
 </html>
