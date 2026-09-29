@@ -391,8 +391,56 @@
   function presentationWait(milliseconds, minimum = 0) {
     return wait(presentationDuration(milliseconds, minimum));
   }
+  function impactTier(actor, outcome, context = {}) {
+    if (!outcome || outcome.damage <= 0) return "normal";
+    const criticalTriggered = (actor.brands || []).some((brandState) =>
+      brandState?.type === "critical" && V2Rules.mode(brandState, lastDiceRoll) === "blessing"
+    );
+    const specialTriggered = Boolean(
+      context.poisonAppliedNow ||
+      context.frozenApplied ||
+      outcome.recovered ||
+      outcome.selfDamage ||
+      (Array.isArray(outcome.hits) && outcome.hits.length > 1)
+    );
+    if (specialTriggered) return "special";
+    if (criticalTriggered || outcome.damage >= Math.max(1, actor.attack * 1.5)) return "strong";
+    return "normal";
+  }
+
+  function impactProfile(tier) {
+    if (tier === "special") return { hitStop: 76, className: "is-impact-special" };
+    if (tier === "strong") return { hitStop: 54, className: "is-impact-strong" };
+    return { hitStop: 22, className: "is-impact-normal" };
+  }
+
+  function triggerImpactFeedback(tier, target, token) {
+    const profile = impactProfile(tier);
+    hitStopUntil = Math.max(hitStopUntil, performance.now() + presentationDuration(profile.hitStop));
+    battlefield.classList.remove("is-impact-normal", "is-impact-strong", "is-impact-special");
+    void battlefield.offsetWidth;
+    battlefield.classList.add(profile.className);
+    target?.element?.classList.remove("is-impact-target");
+    void target?.element?.offsetWidth;
+    target?.element?.classList.add("is-impact-target");
+    const cleanupDelay = presentationDuration(tier === "special" ? 240 : tier === "strong" ? 190 : 120);
+    window.setTimeout(() => {
+      if (token !== battleToken) return;
+      battlefield.classList.remove(profile.className);
+      target?.element?.classList.remove("is-impact-target");
+    }, cleanupDelay);
+  }
+
+  async function honorHitStop(token) {
+    while (token === battleToken && running) {
+      const remaining = hitStopUntil - performance.now();
+      if (remaining <= 0) return;
+      await wait(Math.min(remaining, 18));
+    }
+  }
   let speedLevel = 1;
   let speedMultiplier = SPEED_PRESETS[speedLevel];
+  let hitStopUntil = 0;
   let battleToken = 0;
   const presentation = typeof V2Presentation !== "undefined"
     ? V2Presentation.create({
@@ -697,6 +745,8 @@
     captureTargetLocked = false;
     speedLevel = 1;
     speedMultiplier = SPEED_PRESETS[speedLevel];
+    hitStopUntil = 0;
+    battlefield.classList.remove("is-impact-normal", "is-impact-strong", "is-impact-special");
     speedButton.textContent = "속도 ×1";
     pauseButton.textContent = "일시정지";
     pauseButton.disabled = true;
@@ -1482,6 +1532,11 @@
     const poisonStacksAfter = Array.isArray(target.poisonStacks) ? target.poisonStacks.length : Number(target.poison || 0);
     const poisonAppliedNow = poisonStacksAfter > poisonStacksBefore;
     const legionApplied = { poison: Boolean(target.poison), frozen: Boolean(target.frozen) };
+    const frozenAppliedNow = Boolean(target.frozen) && !target.element.classList.contains("is-frozen");
+    const attackImpactTier = impactTier(actor, outcome, {
+      poisonAppliedNow,
+      frozenApplied: frozenAppliedNow
+    });
     if (poisonStacksBefore === 0 && poisonAppliedNow) target.poisonAppliedTurn = turnNumber;
     if (typeof V2DamageDigits !== "undefined") {
       if (outcome.miss) V2DamageDigits.showLabel(target, "miss");
@@ -1534,8 +1589,11 @@
           target: target.instanceId || target.slug,
           targetName: target.name,
           value: hitAmount,
-          hitIndex
+          hitIndex,
+          intensity: attackImpactTier
         }, async () => {
+          triggerImpactFeedback(attackImpactTier, target, token);
+          await honorHitStop(token);
           target.element.classList.add("is-hit");
           await Promise.all([
             playMotion(target, "hit", target.frames.hit, token),
@@ -1640,6 +1698,7 @@
     for (let index = 1; index <= count; index += 1) {
       if (token !== battleToken || !running) return;
       while (paused && token === battleToken && running) await wait(50);
+      await honorHitStop(token);
       if (token !== battleToken || !running) return;
 
       // Reacquire once more if another render detached the sprite mid-motion.
