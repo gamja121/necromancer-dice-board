@@ -121,7 +121,7 @@
       await registration.update();
       if(globalThis.caches){
         const keys=await caches.keys();
-        await Promise.all(keys.filter(key=>key.startsWith("necromancer-and-dice-") && key!=="necromancer-and-dice-v2-20260930-title-layout-8").map(key=>caches.delete(key)));
+        await Promise.all(keys.filter(key=>key.startsWith("necromancer-and-dice-") && key!=="necromancer-and-dice-v2-20260930-title-contrast-10").map(key=>caches.delete(key)));
       }
     }).catch(()=>{});
   }
