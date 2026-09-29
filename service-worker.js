@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20260930-title-layout-7";
+const CACHE_NAME = "necromancer-and-dice-v2-20260930-title-layout-8";
 
 const CORE_ASSETS = [
   "./",
@@ -10,8 +10,8 @@ const CORE_ASSETS = [
   "./assets/title/title-logo.webp",
   "./assets/title/title-theme.mp3",
   "./assets/title/title-loop.mp4",
-  "./launch.js?v=20260930-title-menu-3",
-  "./launch.css?v=20260930-title-layout-6",
+  "./launch.js?v=20260930-title-layout-8",
+  "./launch.css?v=20260930-title-layout-8",
   "./launch.css?v=20260930-title-1",
   "./launch.js?v=20260930-title-1",
   "./v2-map-practice.html",
