@@ -765,7 +765,7 @@
       element.setAttribute("aria-label", unitState.name);
       element.innerHTML = `
         <div class="persistent-statuses" aria-live="polite">
-          <span class="unit-status unit-status-freeze" data-status="freeze" hidden><img src="art/v2-style/ui/freeze-status-label.png" alt="결빙"></span>
+          <span class="unit-status unit-status-freeze" data-status="freeze" hidden><img src="art/v2-style/ui/freeze-status-label.png?v=2" alt="빙결"></span>
           <span class="unit-status unit-status-poison" data-status="poison" hidden>중독</span>
         </div>
         <span class="brand-indicator" aria-live="polite" hidden></span>
