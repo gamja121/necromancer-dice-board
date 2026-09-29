@@ -1,3 +1,4 @@
+(async () => {
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
@@ -9,11 +10,11 @@ const source = fs.readFileSync(path.join(root, "v2-home-inheritance.js"), "utf8"
 const worker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
 const board = "art/v2-style/map-test/events/inheritance-board.png";
 if (!fs.existsSync(path.join(root, board))) throw Error("Two-panel inheritance image is missing");
-for (const file of [board, "v2-home-inheritance.css?v=7", "v2-home-inheritance.js?v=10", "v2-brand-cards.js?v=3", "art/v2-style/ui/brand-card.png?v=3"]) {
+for (const file of [board, "v2-home-inheritance.css?v=9", "v2-home-inheritance.js?v=14", "v2-brand-cards.js?v=4", "art/v2-style/ui/brand-card.png?v=3"]) {
   if (!worker.includes(file)) throw Error(`Inheritance resource is not cached: ${file}`);
 }
 if (!html.includes('class="home-inheritance-material"') && !html.includes('home-inheritance-material"')) throw Error("Material panel is missing");
-if (!html.includes('home-inheritance-result"') || !html.includes('id="homeInheritanceBrandList"') || !html.includes('<h3>낙인</h3>') || html.includes('id="homeInheritanceParts"') || !html.includes('id="homeInheritanceConfirm"') || !css.includes("legion-info-window-hd.png") || !css.includes("height: 91%") || !html.includes('v2-home-inheritance.js?v=10')) throw Error("Tall, compact brand information frame or automatic inheritance controls are missing");
+if (!html.includes('home-inheritance-result"') || !html.includes('id="homeInheritanceBrandList"') || !html.includes('<h3>낙인</h3>') || html.includes('id="homeInheritanceParts"') || !html.includes('id="homeInheritanceConfirm"') || !css.includes("legion-info-window-hd.png") || !css.includes("height: 91%") || !html.includes('v2-home-inheritance.js?v=14')) throw Error("Tall, compact brand information frame or automatic inheritance controls are missing");
 if (!css.includes("home-inheritance-cards-rise") || !css.includes("home-inheritance-brand-cards") || !css.includes("is-inheritance-source")) throw Error("Owned monsters and left-pile brand fan animations must exist");
 if (!source.includes('mapCardDeckButton.hidden = true') || !source.includes('diceControlOverlay.hidden = true')) throw Error("Dice-control cards must be hidden while inheritance is open");
 
@@ -89,7 +90,7 @@ const globals = {
   window: { dispatchEvent: (event) => { rosterEvent = event; } }
 };
 vm.runInNewContext(source, globals);
-globals.window.V2HomeInheritance.open();
+await globals.window.V2HomeInheritance.open();
 if (overlay.hidden || !overlay.classList.contains("is-open") || cards.children.length !== saved.length || brandCards.children.length !== 1 || !closeButton.focused) throw Error("Opening inheritance must reveal owned monsters and fan owned brand cards from the left pile");
 const donorInstanceId = cards.children[0].dataset.instanceId;
 const recipientInstanceId = cards.children[1].dataset.instanceId;
@@ -106,7 +107,7 @@ if (resultCard.hidden || !resultCard.src.includes("skeleton-spear") || confirm.d
 cards.children[1].on_click();
 if (!resultCard.hidden || !confirm.disabled || cards.children[1].classList.contains("is-selected")) throw Error("Tapping the recipient again must lower it and cancel the recipient choice");
 cards.children[1].on_click();
-confirm.on_click();
+await confirm.on_click();
 const after = JSON.parse(stored);
 if (after.length !== 9 || after.some((unit) => unit.instanceId === donorInstanceId) ||
     !after.some((unit) => unit.instanceId === "test-owned-9" && unit.slug === "death-knight") ||
@@ -119,7 +120,7 @@ if (after.length !== 9 || after.some((unit) => unit.instanceId === donorInstance
   throw Error("Inheritance must consume only the donor instance, preserve the recipient instance, and append exact brand face numbers");
 globals.window.V2HomeInheritance.close();
 if (!overlay.hidden || overlay.classList.contains("is-open") || !materialCard.hidden || brandList.children.length) throw Error("Closing inheritance must clear the material and hide the board");
-globals.window.V2HomeInheritance.open();
+await globals.window.V2HomeInheritance.open();
 if (cards.children.length !== 9 || brandCards.children.length !== 1) throw Error("Consumed material must stay gone and stored brand cards must remain when inheritance is reopened");
 brandCards.children[0].on_click();
 if (materialCard.hidden || !materialCard.src.includes("brand-card.png") || !materialHint.textContent.includes("축복 3")) throw Error("Selecting a stored brand card must place the supplied card art and exact face description in the material panel");
@@ -127,7 +128,7 @@ const brandRecipientId = cards.children[0].dataset.instanceId;
 const beforeBrandApply = JSON.parse(stored).find((unit) => unit.instanceId === brandRecipientId).brands.length;
 cards.children[0].on_click();
 if (confirm.disabled) throw Error("A selected brand card plus eligible monster must enable apply");
-confirm.on_click();
+await confirm.on_click();
 const afterBrandApply = JSON.parse(stored);
 const brandRecipient = afterBrandApply.find((unit) => unit.instanceId === brandRecipientId);
 if (afterBrandApply.length !== 9 || brandInventory.length !== 0 ||
@@ -136,3 +137,5 @@ if (afterBrandApply.length !== 9 || brandInventory.length !== 0 ||
     rosterEvent?.detail.donorInstanceId !== null || rosterEvent?.detail.source !== "brand-card")
   throw Error("Brand card apply must preserve monster count, append the exact stored brand, consume one card, and dispatch a non-sacrifice roster update");
 console.log("PASS: monster inheritance plus independent consumable brand-card application");
+
+})().catch((error) => { console.error(error); process.exitCode = 1; });
