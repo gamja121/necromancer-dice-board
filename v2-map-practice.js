@@ -1528,6 +1528,17 @@
     placeHero(true);
     selectTile(currentButtons[heroIndex], currentTiles[heroIndex], heroIndex + 1);
     el.diceResult.textContent = `${heroIndex + 1}번 워프로 이동 완료`;
+    if (globalThis.V2RunStateRuntime?.available) {
+      await V2RunStateRuntime.setMapProgress({
+        heroIndex,
+        lapReadyForRefresh,
+        worldTreePrayed,
+        previousRoll: previousDiceRoll,
+        previousEffectiveCardId: previousDiceControlId,
+        pendingCardInstanceId: null,
+        prefix: "map-warp"
+      });
+    }
     await wait(420);
     return true;
   }
@@ -1683,6 +1694,17 @@
     heroIndex = startingIndex;
     placeHero();
     selectTile(currentButtons[heroIndex], currentTiles[heroIndex], heroIndex + 1);
+    if (globalThis.V2RunStateRuntime?.available) {
+      V2RunStateRuntime.setMapProgress({
+        heroIndex,
+        lapReadyForRefresh,
+        worldTreePrayed,
+        previousRoll: previousDiceRoll,
+        previousEffectiveCardId: previousDiceControlId,
+        pendingCardInstanceId: null,
+        prefix: restoredPool ? "map-resume" : "map-start"
+      });
+    }
     el.diceResult.textContent = "주사위 굴리기";
     resetMapDicePosition();
   }
