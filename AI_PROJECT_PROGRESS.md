@@ -1,5 +1,19 @@
 # AI 프로젝트 진행 상황 — 네크로멘서 앤드 다이스
 
+## 2026-09-29: 메인 타이틀 화면 구현 — 영상/환경음/BGM/생성형 메뉴 아트 연결
+
+- 기준/rollback SHA: `72e9f48cc17e80becb69036bcfca24986def91e5`.
+- 기존 정적 시작 화면을 시네마틱 타이틀 메뉴로 교체했다.
+- 타이틀은 `assets/title/title-loop.mp4` 영상과 영상 원본의 주사위·모닥불 환경음을 유지하고, `assets/title/title-theme.mp3` 전용 BGM을 별도 레이어로 동시에 재생하도록 설계했다.
+- 브라우저 자동재생 제한 때문에 첫 진입에서는 영상만 muted autoplay하며, 사용자가 화면을 한 번 누르면 영상과 BGM을 모두 0초부터 다시 시작해 환경음과 음악의 시작을 맞춘다.
+- 게임 시작/이어하기는 650ms 동안 영상 환경음+BGM을 함께 페이드아웃하고 기존 map music handoff를 남긴 뒤 원정 맵으로 이동한다.
+- 생성형 타이틀 자산 경로를 `title-logo.webp / new-game.webp / continue.webp / options.webp / exit.webp`로 고정하고, 이미지가 없을 때는 CSS/텍스트 fallback으로 화면이 깨지지 않게 했다.
+- OPTIONS는 타이틀 사운드 토글 패널을 열고, 상단 사운드 버튼과 동일한 상태를 공유한다.
+- 모바일/PC 반응형 배치를 적용했다.
+- 서비스워커는 기존 최신 코어 캐시 목록을 유지한 채 `launch.css?v=2`, `launch.js?v=2`만 최소 추가했다.
+- `test_title_screen.js`에서 타이틀 미디어/아트 경로, 첫 터치 동기화, 사운드 토글, 맵 음악 handoff, fallback, 오프라인 셸을 검사한다.
+- 실제 MP4/MP3/WebP 바이너리는 대화 첨부파일을 GitHub blob으로 직접 전송하는 커넥터 제약 때문에 별도 업로드 단계가 필요하다. 바이너리가 없더라도 현재 타이틀 UI는 기존 맵 이미지 fallback으로 정상 표시되며, BGM은 기존 map-board.mp3를 fallback source로 사용한다.
+
 ## 2026-09-29: 저장/배포 검증 후속 수정 — 캐시 버전 정합성 및 stale battle 정리
 - 후속 확인 중 동시에 반영된 전투 UI 변경이 CSS를 `v60`으로 올렸는데 서비스워커는 `v59`를 유지한 새 불일치를 발견했다. 서비스워커를 `v60`으로 다시 맞추고 캐시 이름도 갱신했다.
 
