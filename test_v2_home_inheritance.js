@@ -10,7 +10,7 @@ const source = fs.readFileSync(path.join(root, "v2-home-inheritance.js"), "utf8"
 const worker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
 const board = "art/v2-style/map-test/events/inheritance-board.png";
 if (!fs.existsSync(path.join(root, board))) throw Error("Two-panel inheritance image is missing");
-for (const file of [board, "v2-home-inheritance.css?v=9", "v2-home-inheritance.js?v=14", "v2-brand-cards.js?v=4", "art/v2-style/ui/brand-card.png?v=3"]) {
+for (const file of [board, "v2-home-inheritance.css?v=9", "v2-home-inheritance.js?v=14", "v2-brand-cards.js?v=4", "art/v2-style/ui/brand-card.png?v=4"]) {
   if (!worker.includes(file)) throw Error(`Inheritance resource is not cached: ${file}`);
 }
 if (!html.includes('class="home-inheritance-material"') && !html.includes('home-inheritance-material"')) throw Error("Material panel is missing");
@@ -63,7 +63,7 @@ let stored = JSON.stringify(saved);
 let brandInventory = [{ id: "brand-card-test", brand: { type: "critical", bless: [3], curse: [] } }];
 const V2BrandCards = {
   load: () => JSON.parse(JSON.stringify(brandInventory)),
-  imagePath: () => "art/v2-style/ui/brand-card.png?v=3",
+  imagePath: () => "art/v2-style/ui/brand-card.png?v=4",
   label: (card) => `치명타 · 축복 ${card.brand.bless.join(", ")}${card.brand.curse.length ? ` · 저주 ${card.brand.curse.join(", ")}` : ""}`,
   remove: (id) => {
     const next = brandInventory.filter((card) => card.id !== id);
