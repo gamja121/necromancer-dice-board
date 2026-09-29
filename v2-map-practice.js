@@ -120,6 +120,15 @@
     eventRitual: document.getElementById("tileEventRitual"),
     eventPrayerResult: document.getElementById("tileEventPrayerResult"),
     eventContaminationChange: document.getElementById("tileEventContaminationChange"),
+    storyPanel: document.getElementById("tileStoryEventPanel"),
+    storyTitle: document.getElementById("tileStoryEventTitle"),
+    storyText: document.getElementById("tileStoryEventText"),
+    storyChoices: document.getElementById("tileStoryEventChoices"),
+    storyRoll: document.getElementById("tileStoryEventRoll"),
+    storyRollLabel: document.getElementById("tileStoryEventRollLabel"),
+    storyRollButton: document.getElementById("tileStoryEventRollButton"),
+    storyRollResult: document.getElementById("tileStoryEventRollResult"),
+    storyOutcome: document.getElementById("tileStoryEventOutcome"),
     eventClose: document.getElementById("tileEventClose"),
     bookButton: document.getElementById("mapBookButton"),
     cardDeckButton: document.getElementById("mapCardDeckButton"),
@@ -355,6 +364,32 @@
   function addContamination(amount) {
     return setContamination(contamination + Number(amount || 0));
   }
+
+  function ownedMonsterTags() {
+    const tags = new Set();
+    for (const unit of ownedUnits.values()) {
+      const design = globalThis.V2DesignData?.units?.[unit.slug];
+      for (const tag of design?.legions || []) tags.add(tag);
+    }
+    return [...tags];
+  }
+
+  const mapStoryEvents = globalThis.V2MapEvents?.create({
+    panel: el.storyPanel,
+    title: el.storyTitle,
+    text: el.storyText,
+    choices: el.storyChoices,
+    outcome: el.storyOutcome,
+    rollBox: el.storyRoll,
+    rollLabel: el.storyRollLabel,
+    rollButton: el.storyRollButton,
+    rollResult: el.storyRollResult,
+    image: el.eventImage,
+    getContamination: () => contamination,
+    addContamination,
+    getMonsterTags: ownedMonsterTags,
+    onStateChanged: () => {}
+  }) || null;
 
   function hasInjuredOwnedUnits() {
     return [...ownedUnits.values()].some((unit) => Number.isFinite(unit.currentHp) && unit.currentHp < unit.maxHp);
@@ -1475,6 +1510,15 @@
     el.eventContaminationChange.hidden = true;
     el.eventContaminationChange.className = "tile-event-contamination-change";
     el.eventContaminationChange.textContent = "";
+    mapStoryEvents?.close();
+    const storyOpened = !treasure && Boolean(mapStoryEvents?.openForTile(tile.id));
+    if (storyOpened) {
+      el.eventEnter.hidden = true;
+      el.eventInheritance.hidden = true;
+      el.eventHeal.hidden = true;
+      el.eventPray.hidden = true;
+      el.eventRitual.hidden = true;
+    }
     el.eventClose.hidden = treasure;
     if (treasure) {
       el.eventImage.removeAttribute("src");
@@ -1485,7 +1529,7 @@
       void playTreasureChestAnimation().then(() => {
         if (eventOpen && activeEventTileId === "gem") showTreasureRewards();
       });
-    } else {
+    } else if (!storyOpened) {
       el.eventImage.src = scene.image;
       el.eventImage.alt = `${scene.title} 풍경`;
     }
@@ -1622,6 +1666,7 @@
     if (completedLap) {
       addContamination(2);
       healOwnedRosterFull();
+      mapStoryEvents?.advanceLoop();
     }
     closeTileEvent();
     if (refreshAfterHome) await playCloudTileRefresh();
@@ -1645,6 +1690,7 @@
     el.eventContaminationChange.hidden = true;
     el.eventContaminationChange.className = "tile-event-contamination-change";
     el.eventContaminationChange.textContent = "";
+    mapStoryEvents?.close();
     el.eventClose.disabled = false;
     worldTreePrayerRolling = false;
     el.board.classList.remove("is-world-tree-praying");
