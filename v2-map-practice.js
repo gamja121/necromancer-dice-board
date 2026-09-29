@@ -105,6 +105,7 @@
     contaminationStage: document.getElementById("contaminationStage"),
     contaminationValue: document.getElementById("contaminationValue"),
     contaminationTest: document.getElementById("contaminationTestControl"),
+    contaminationTestToggle: document.getElementById("contaminationTestToggle"),
     contaminationTestSlider: document.getElementById("contaminationTestSlider"),
     contaminationTestValue: document.getElementById("contaminationTestValue"),
     eventOverlay: document.getElementById("tileEventOverlay"),
@@ -2062,6 +2063,15 @@
 
   renderContamination();
 
+  if (el.contaminationTestToggle && el.contaminationTest) {
+    el.contaminationTestToggle.addEventListener("click", () => {
+      const willOpen = el.contaminationTest.hidden;
+      el.contaminationTest.hidden = !willOpen;
+      el.contaminationTestToggle.classList.toggle("is-open", willOpen);
+      el.contaminationTestToggle.setAttribute("aria-expanded", String(willOpen));
+      if (!willOpen) renderContamination();
+    });
+  }
   if (el.contaminationTestSlider) {
     el.contaminationTestSlider.addEventListener("input", () => {
       renderContaminationVisual(el.contaminationTestSlider.value, true);
