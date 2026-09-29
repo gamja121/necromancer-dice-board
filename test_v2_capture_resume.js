@@ -15,7 +15,7 @@ assert(source.includes("savedCapture?.targets?.[key]"),
   "Saved corpse target thresholds must be reused instead of rerolled.");
 assert(source.includes("savedCapture?.selectedKey"),
   "Saved corpse selection must be restored.");
-assert(source.includes("savedCapture?.attemptsLeft"),
+assert(source.includes("Number.isInteger(savedCapture.attemptsLeft)") && source.includes("captureAttemptsLeft = Math.max(0, savedCapture.attemptsLeft)"),
   "Remaining soul-harvest attempts must be restored.");
 assert(source.includes("savedCapture?.targetLocked"),
   "Locked corpse selection must stay locked after restore.");
