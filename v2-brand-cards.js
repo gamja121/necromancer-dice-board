@@ -2,7 +2,7 @@
   "use strict";
   const R = typeof module !== "undefined" && module.exports ? require("./v2-rules.js") : root.V2Rules;
   const STORAGE_KEY = "necromancer-map-brand-cards-v1";
-  const IMAGE_PATH = "art/v2-style/ui/brand-card.png?v=3";
+  const IMAGE_PATH = "art/v2-style/ui/brand-card.png?v=4";
 
   function createId() {
     if (root.crypto?.randomUUID) return `brand-card-${root.crypto.randomUUID()}`;
