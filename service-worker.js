@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20260929-24";
+const CACHE_NAME = "necromancer-and-dice-v2-20260929-25";
 
 const CORE_ASSETS = [
   "./",
@@ -8,10 +8,10 @@ const CORE_ASSETS = [
   "./v2-map-practice.css?v=49",
   "./v2-home-inheritance.css?v=9",
   "./v2-altar-ritual.css?v=3",
-  "./v2-auto-battle-practice.css?v=61",
+  "./v2-auto-battle-practice.css?v=62",
   "./v2-asset-loader.js?v=1",
   "./v2-map-practice.js?v=67",
-  "./v2-auto-battle-practice.js?v=111",
+  "./v2-auto-battle-practice.js?v=112",
   "./v2-landscape.js?v=1",
   "./v2-music.js?v=1",
   "./v2-sfx.js?v=3",
@@ -20,7 +20,7 @@ const CORE_ASSETS = [
   "./v2-run-state.js?v=1",
   "./v2-run-state-runtime.js?v=1",
   "./v2-presentation.js?v=1",
-  "./v2-presentation-rail.js?v=1",
+  "./v2-presentation-rail.js?v=2",
   "./v2-brand-cards.js?v=4",
   "./v2-home-inheritance.js?v=14",
   "./v2-altar-ritual.js?v=4",
