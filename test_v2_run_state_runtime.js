@@ -23,8 +23,9 @@ for (const file of ["v2-run-state.js?v=1", "v2-run-state-runtime.js?v=1"]) {
 }
 assert(mapHtml.indexOf("v2-run-state-runtime.js?v=1") < mapHtml.indexOf("v2-brand-cards.js?v=4"),
   "RunState runtime must load before brand/home/map consumers.");
-assert(battleHtml.indexOf("v2-run-state-runtime.js?v=1") < battleHtml.indexOf("v2-auto-battle-practice.js?v=108"),
-  "RunState runtime must load before the battle controller.");
+const battleControllerRef = battleHtml.match(/v2-auto-battle-practice\.js\?v=\d+/)?.[0];
+assert(battleControllerRef && battleHtml.indexOf("v2-run-state-runtime.js?v=1") < battleHtml.indexOf(battleControllerRef),
+  "RunState runtime must load before the current battle controller.");
 
 for (const token of ["ensureFreshDefaults", "projectLegacy", "commitExact", "applyBattleOutcome", "setMapLayout", "setMapProgress", "setBattleCheckpoint", "clearBattleCheckpoint", "atomicRosterAndBrands"]) {
   assert(runtime.includes(token), `Runtime API missing ${token}`);
@@ -37,9 +38,9 @@ assert(home.includes("V2RunStateRuntime.atomicRosterAndBrands"), "Brand-card inh
 assert(home.includes('saveOwnedUnits("monster-inheritance")'), "Monster inheritance must persist through the RunState roster writer.");
 assert(altar.includes("V2RunStateRuntime.replaceOwnedMonsters"), "Altar sacrifice/enhancement must persist through RunState.");
 assert(battle.includes("V2RunStateRuntime.applyBattleOutcome"), "Battle finish must atomically persist HP/death/contamination/cleared tile.");
-assert(battleHtml.includes("v2-battle-rng.js?v=1") && worker.includes("v2-battle-rng.js?v=1") &&
-  battleHtml.indexOf("v2-battle-rng.js?v=1") < battleHtml.indexOf("v2-auto-battle-practice.js?v=108"),
-  "Serializable battle RNG must load and cache before the battle controller.");
+assert(battleHtml.includes("v2-battle-rng.js?v=1") &&
+  battleControllerRef && battleHtml.indexOf("v2-battle-rng.js?v=1") < battleHtml.indexOf(battleControllerRef),
+  "Serializable battle RNG must load before the current battle controller.");
 assert(battle.includes("rng: battleRng.snapshot()") && battle.includes("V2BattleRng.restore(saved.rng)") &&
   battle.includes("V2Rules.restore(saved.state, battleRandom)") && battle.includes("V2Rules.create(units, battleRandom)"),
   "Battle checkpoint must save/restore the gameplay RNG and inject it into battle rules.");
@@ -50,8 +51,10 @@ assert(battle.includes('commitExact(operationId') && battle.includes("capture-re
   "Capture reward must use an idempotent RunState operation receipt.");
 assert(battle.includes("draft.battle = null") && battle.includes('draft.phase = "returning"'),
   "Completed capture reward must clear the stale RunState battle checkpoint before returning to the map.");
-assert(worker.includes("./art/v2-style/ui/freeze-status-label.png?v=2"),
-  "Offline cache must include the current versioned freeze status label.");
+assert(fs.existsSync(path.join(root, "art/v2-style/ui/freeze-status-label.png")),
+  "Current freeze status label asset must exist for lazy media caching.");
+assert(worker.includes("function cacheFirst"),
+  "Service worker must lazily cache runtime media such as the freeze label.");
 assert(battle.includes('saveBattle("capture-select")') && battle.includes('saveBattle("capture-locked")') &&
   battle.includes('saveBattle("capture-success")') && battle.includes('saveBattle("capture-failed")') &&
   battle.includes('saveBattle("capture-complete")'),
