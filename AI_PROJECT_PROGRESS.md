@@ -1304,3 +1304,25 @@
 - 전투 규칙, 피해/타겟 판정, 저장/checkpoint에는 변경 없음.
 - 자동전투 JS 캐시 버전: `v110`
 - 다음 단계: 별도 `V2Presentation` 모듈의 최소 골격을 만들고, 첫 시제품으로 `주사위 → 낙인 → 공격 → 피격` 이벤트만 큐로 연결한다.
+
+
+## 2026-09-29: V2Presentation 큐 3단계
+
+- 목적: 전투 계산 코드가 화면 연출의 실행 순서를 직접 떠안지 않도록, 계산 결과와 표현 사이에 최소 Presentation 계층을 추가한다.
+- 롤백 브랜치: `rollback/presentation-queue-before-20260929`
+- 변경 직전 main: `a2d830a9a75c2692684858486ec11ecf7c445ae3`
+- 새 모듈 `v2-presentation.js`:
+  - `play(event, presenter)`: Presentation 이벤트를 직렬 큐에 넣고 해당 화면 연출을 실행한다.
+  - `sequence()`, `flush()`, `clear()`, `snapshot()` 제공.
+  - 이벤트는 저장/checkpoint에 기록하지 않는 일시적 화면 상태다.
+  - `v2-presentation-event` CustomEvent를 내보내 향후 디버그 레일/연출 UI가 같은 이벤트를 구독할 수 있다.
+- 1차 연결 이벤트:
+  - `dice-result`: 공통 주사위 결과
+  - `brand-trigger`: 해당 눈금에 반응한 낙인 목록
+  - `attack`: 공격자 → 대상
+  - `hit`: 실제 타격 1회와 피해량
+- 전투 규칙과 `V2Rules.attack()`의 계산 순서는 바꾸지 않았다. 기존 화면 연출을 새 큐가 순서대로 실행하도록 감싼 단계다.
+- 전투 reset/연출 오류 복구 시 큐 generation을 초기화하여 이전 전투의 지연된 연출이 다음 상태로 넘어오지 않게 했다.
+- 자동전투 JS: `v111`
+- Presentation 모듈: `v1`
+- 다음 단계: 이 이벤트 스트림을 이용해 한 장면(`주사위 → 낙인 → 공격 → 피격`)만 실제 시각 레일로 표시하고, 모바일에서 화면 과밀/속도 중첩 여부를 검증한다.
