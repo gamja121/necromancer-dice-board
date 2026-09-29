@@ -442,6 +442,23 @@
     return battleCheckpointTimestamp(localSaved) > battleCheckpointTimestamp(runSaved) ? localSaved : runSaved;
   }
 
+  function captureUnitKey(unitState) {
+    return unitState ? `${unitState.team}:${unitState.slot}:${unitState.slug}` : null;
+  }
+
+  function captureCheckpointState() {
+    const targets = {};
+    for (const unitState of units.filter((unit) => unit.team === "enemy" && !unit.alive && !unit.isSummon)) {
+      if (Number.isInteger(unitState.captureTarget)) targets[captureUnitKey(unitState)] = unitState.captureTarget;
+    }
+    return {
+      selectedKey: captureUnitKey(selectedCorpse),
+      attemptsLeft: captureAttemptsLeft,
+      targetLocked: captureTargetLocked,
+      targets
+    };
+  }
+
   function createBattleCheckpoint(phase) {
     return {
       version: BATTLE_CHECKPOINT_VERSION,
@@ -449,6 +466,7 @@
       context: battleCheckpointContext(),
       state: V2Rules.snapshot(rulesState),
       rng: battleRng.snapshot(),
+      capture: phase.startsWith("capture-") ? captureCheckpointState() : null,
       phase,
       roll: lastDiceRoll,
       actions: actionCount,
@@ -489,7 +507,22 @@
       for(const u of units){revealUnit(u);if(!u.alive)u.image.src=frame(u,'death',u.frames.death);}
       updateHud();speedButton.disabled=false;
       document.getElementById('resumeBattleButton').hidden = true;
-      if(saved.phase==='ready')beginTurnIntermission(false);
+      if (saved.phase?.startsWith("capture-")) {
+        running = false;
+        pauseButton.disabled = true;
+        speedButton.disabled = true;
+        const restoredCapture = setupCorpseCapture(true, saved.capture);
+        if (!restoredCapture) return false;
+        if (saved.phase === "capture-success") {
+          await completeCaptureSuccess();
+        } else if (saved.phase === "capture-failed") {
+          await returnToMap();
+        } else {
+          message.textContent = saved.phase === "capture-locked"
+            ? "영혼 수확 재개 · 선택한 시체로 계속 굴리세요"
+            : "영혼 수확 재개 · 시체를 선택하세요";
+        }
+      } else if(saved.phase==='ready')beginTurnIntermission(false);
       else {turnDice.hidden=true;pauseButton.disabled=false;message.textContent=`${turnNumber}턴 전투 재개`;}
       return true;
     } catch(error) {
@@ -1579,9 +1612,10 @@
     const captureReady = setupCorpseCapture(won);
     resultOverlay.hidden = captureReady;
     message.textContent = captureReady ? "아군 승리 · 죽은 적을 직접 선택하세요" : "전투 종료";
+    if (captureReady) saveBattle("capture-select");
   }
 
-  function setupCorpseCapture(won) {
+  function setupCorpseCapture(won, savedCapture = null) {
     capturePanel.hidden = true;
     battlefield.classList.remove("is-corpse-capture");
     selectedCorpse = null;
@@ -1594,11 +1628,14 @@
     battlefield.classList.add("is-corpse-capture");
     turnDice.hidden = false;
     turnDiceButton.disabled = false;
+    turnDiceButton.classList.remove("is-rolling");
     turnDiceImage.src = DICE_ROLL_FRAMES[0];
     turnDiceImage.alt = "영혼 수확 주사위 굴리기";
     captureStatus.textContent = "시체를 선택하세요.";
     for (const corpse of corpses) {
-      corpse.captureTarget = 2 + Math.floor(Math.random() * 5);
+      const key = captureUnitKey(corpse);
+      const savedTarget = savedCapture?.targets?.[key];
+      corpse.captureTarget = Number.isInteger(savedTarget) ? savedTarget : 2 + Math.floor(battleRandom() * 5);
       corpse.element.classList.add("is-capture-candidate");
       corpse.element.tabIndex = 0;
       corpse.element.setAttribute("aria-label", `${corpse.name} 시체 선택 · 주사위 ${corpse.captureTarget} 이상`);
@@ -1612,11 +1649,18 @@
         corpse.infoCard.addEventListener("click", () => selectCorpse(corpse));
       }
     }
-    selectCorpse(corpses[0]);
+    const restoredCorpse = savedCapture?.selectedKey
+      ? corpses.find((corpse) => captureUnitKey(corpse) === savedCapture.selectedKey)
+      : null;
+    selectCorpse(restoredCorpse || corpses[0], true);
+    if (savedCapture && Number.isInteger(savedCapture.attemptsLeft)) {
+      captureAttemptsLeft = Math.max(0, savedCapture.attemptsLeft);
+    }
+    if (savedCapture?.targetLocked) lockCorpseSelection(false);
     return true;
   }
 
-  function selectCorpse(corpse) {
+  function selectCorpse(corpse, restoring = false) {
     if (captureTargetLocked || !corpse || corpse.team !== "enemy" || corpse.alive || corpse.isSummon) return;
     selectedCorpse = corpse;
     captureAttemptsLeft = V2Rules.active(legionState, "ally", "corpse") ? 2 : 1;
@@ -1626,13 +1670,14 @@
     }
     turnDiceButton.disabled = false;
     captureStatus.textContent = captureSummary(corpse);
+    if (!restoring) saveBattle("capture-select");
   }
 
   function captureSummary(corpse, result = "") {
     return `${corpse.name} · 필요 주사위 ${corpse.captureTarget}${result ? ` · ${result}` : ""}`;
   }
 
-  function lockCorpseSelection() {
+  function lockCorpseSelection(persist = true) {
     captureTargetLocked = true;
     for (const unitState of units.filter(unit => unit.team === "enemy" && !unit.alive)) {
       unitState.element?.classList.remove("is-capture-candidate");
@@ -1641,11 +1686,12 @@
         unitState.infoCard.classList.remove("is-capture-candidate");
       }
     }
+    if (persist) saveBattle("capture-locked");
   }
 
   function createCapturedMonster(slug) {
     if (!TEST_DECK_SLUGS.includes(slug)) return null;
-    const captured = V2Rules.individual(slug);
+    const captured = V2Rules.individual(slug, battleRandom);
     captured.instanceId = globalThis.crypto?.randomUUID
       ? `${slug}-${globalThis.crypto.randomUUID()}`
       : `${slug}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
@@ -1807,6 +1853,27 @@
     spiritCard.remove();
   }
 
+  async function completeCaptureSuccess() {
+    if (!selectedCorpse) return false;
+    captureStatus.textContent = captureSummary(selectedCorpse, "성공");
+    await animateSoulHarvest(selectedCorpse);
+    const captureOutcome = await resolveCapturedMonsterReward(selectedCorpse.slug);
+    if (!captureOutcome.acquired) {
+      captureStatus.textContent = captureSummary(selectedCorpse, "획득 저장 실패");
+      battlefield.classList.remove("is-capture-rolling");
+      diceRolling = false;
+      turnDiceButton.disabled = false;
+      return false;
+    }
+    captureStatus.textContent = captureSummary(selectedCorpse, captureOutcome.keptReward ? "획득 완료" : "신규 카드 버림");
+    selectedCorpse.element?.classList.remove("is-capture-selected");
+    battlefield.classList.remove("is-capture-rolling");
+    diceRolling = false;
+    await wait(650);
+    await returnToMap();
+    return true;
+  }
+
   async function rollCorpseCapture() {
     if (!selectedCorpse || captureAttemptsLeft <= 0 || diceRolling) return;
     diceRolling = true;
@@ -1824,29 +1891,15 @@
       const progress = step / Math.max(1, steps - 1);
       await wait(42 + Math.round(progress * progress * 62));
     }
-    const roll = 1 + Math.floor(Math.random() * 6);
+    const roll = 1 + Math.floor(battleRandom() * 6);
     turnDiceImage.src = DICE_RESULT_FRAMES[roll - 1];
     turnDiceImage.alt = `영혼 수확 주사위 결과 ${roll}`;
     turnDiceButton.classList.remove("is-rolling");
     captureAttemptsLeft -= 1;
     if (roll >= selectedCorpse.captureTarget) {
-      captureStatus.textContent = captureSummary(selectedCorpse, "성공");
+      saveBattle("capture-success");
       await wait(420);
-      await animateSoulHarvest(selectedCorpse);
-      const captureOutcome = await resolveCapturedMonsterReward(selectedCorpse.slug);
-      if (!captureOutcome.acquired) {
-        captureStatus.textContent = captureSummary(selectedCorpse, "획득 저장 실패");
-        battlefield.classList.remove("is-capture-rolling");
-        diceRolling = false;
-        turnDiceButton.disabled = false;
-        return;
-      }
-      captureStatus.textContent = captureSummary(selectedCorpse, captureOutcome.keptReward ? "획득 완료" : "신규 카드 버림");
-      selectedCorpse.element?.classList.remove("is-capture-selected");
-      battlefield.classList.remove("is-capture-rolling");
-      diceRolling = false;
-      await wait(650);
-      returnToMap();
+      await completeCaptureSuccess();
       return;
     }
     await wait(620);
@@ -1857,10 +1910,12 @@
       turnDiceImage.src = DICE_ROLL_FRAMES[0];
       turnDiceImage.alt = "영혼 수확 주사위 다시 굴리기";
       turnDiceButton.disabled = false;
+      saveBattle("capture-locked");
     } else {
       captureStatus.textContent = captureSummary(selectedCorpse, "실패");
+      saveBattle("capture-failed");
       await wait(900);
-      returnToMap();
+      await returnToMap();
     }
   }
 
