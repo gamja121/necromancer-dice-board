@@ -60,6 +60,10 @@
       root.sessionStorage.setItem(K.clearedTiles, JSON.stringify(clearedSteps(state)));
       if (state.currentMap?.worldTreePrayed) root.sessionStorage.setItem(K.worldTreePrayed, "1");
       else root.sessionStorage.removeItem(K.worldTreePrayed);
+      const prophecy = state.currentMap?.fortuneProphecy;
+      const hasProphecy = prophecy && ["allyAttack","allyHp","allySpeed","enemyAttack"].some((key) => Number(prophecy[key]) > 0);
+      if (hasProphecy) root.sessionStorage.setItem(K.fortuneProphecy, JSON.stringify(prophecy));
+      else root.sessionStorage.removeItem(K.fortuneProphecy);
     } catch (_) {}
   }
 
@@ -186,6 +190,9 @@
       if (Number.isInteger(options.heroIndex)) draft.currentMap.heroIndex = options.heroIndex;
       if (typeof options.lapReadyForRefresh === "boolean") draft.currentMap.lapReadyForRefresh = options.lapReadyForRefresh;
       if (typeof options.worldTreePrayed === "boolean") draft.currentMap.worldTreePrayed = options.worldTreePrayed;
+      if (options.fortuneProphecy && typeof options.fortuneProphecy === "object") {
+        draft.currentMap.fortuneProphecy = clone(options.fortuneProphecy);
+      }
       if (Number.isInteger(options.previousRoll) || options.previousRoll === null) draft.diceContext.previousRoll = options.previousRoll;
       if (typeof options.previousEffectiveCardId === "string" || options.previousEffectiveCardId === null) {
         draft.diceContext.previousEffectiveCardId = options.previousEffectiveCardId;
