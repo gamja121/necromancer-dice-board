@@ -1727,6 +1727,7 @@
         const operationId = `capture-reward:${mapEncounterId || battleQuery.get("tile") || "map"}`;
         const result = await V2RunStateRuntime.commitExact(operationId, (draft) => {
           draft.ownedMonsters = JSON.parse(JSON.stringify(nextRoster));
+          draft.battle = null;
           draft.phase = "returning";
         });
         return Boolean(result?.ok);
