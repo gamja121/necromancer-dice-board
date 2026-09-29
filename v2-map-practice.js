@@ -1047,13 +1047,23 @@
       label: card.label,
       image: V2DiceControl.imagePath(card, "ko")
     }));
-    const mixed = shuffle([...unitRewards, ...diceRewards]).slice(0, 3);
-    return mixed;
+    const brandCard = V2BrandCards.create();
+    const brandReward = {
+      type: "brand",
+      id: brandCard.id,
+      label: V2BrandCards.label(brandCard),
+      image: V2BrandCards.imagePath(),
+      brandCard
+    };
+    // One independently generated brand card joins the existing treasure pool.
+    // Its appearance among the three choices stays random; its own face is
+    // 50% blessing-only / 50% blessing+curse in V2BrandCards.create().
+    return shuffle([...unitRewards, ...diceRewards, brandReward]).slice(0, 3);
   }
 
   async function animateTreasureRewardToTarget(reward, selectedCard) {
-    const targetButton = reward.type === "unit" ? el.bookButton : el.cardDeckButton;
-    const targetImage = reward.type === "unit" ? el.bookImage : el.cardDeckImage;
+    const targetButton = reward.type === "dice" ? el.cardDeckButton : el.bookButton;
+    const targetImage = reward.type === "dice" ? el.cardDeckImage : el.bookImage;
     const sourceImage = selectedCard.querySelector("img");
     if (!targetButton || !targetImage || !sourceImage) return;
 
@@ -1110,14 +1120,19 @@
   }
 
   function rewardCardImage(type, item) {
-    return type === "unit"
-      ? `art/v2-style/ui/unit-card-${item.slug}.png?v=19`
-      : V2DiceControl.imagePath(item, "ko");
+    if (type === "unit") return `art/v2-style/ui/unit-card-${item.slug}.png?v=19`;
+    if (type === "brand") return V2BrandCards.imagePath();
+    return V2DiceControl.imagePath(item, "ko");
   }
 
   function forceDiscardForReward(reward) {
     return new Promise((resolve) => {
       const type = reward.type;
+      if (type === "brand") {
+        const acquired = V2BrandCards.add(reward.brandCard);
+        resolve({ acquired: Boolean(acquired), keptReward: Boolean(acquired) });
+        return;
+      }
       const isUnit = type === "unit";
       const full = isUnit ? ownedUnits.size >= MONSTER_CAPACITY : diceControlHand.length >= DICE_CONTROL_CAPACITY;
       if (!full) {
@@ -1241,7 +1256,9 @@
     }
     el.diceResult.textContent = reward.type === "unit"
       ? `${reward.label} 획득 · 내 마물 카드에 추가`
-      : `${reward.label} 획득 · 주사위 카드더미에 추가`;
+      : reward.type === "brand"
+        ? `${reward.label} 획득 · 집의 낙인 카드 더미에 추가`
+        : `${reward.label} 획득 · 주사위 카드더미에 추가`;
 
     await wait(120);
     await animateTreasureRewardToTarget(reward, selectedCard);
@@ -1264,8 +1281,16 @@
       image.src = reward.image;
       image.alt = reward.label;
       badge.className = "treasure-reward-badge";
-      badge.textContent = reward.type === "unit" ? `마물 · ${reward.label}` : `주사위 · ${reward.label}`;
-      card.append(image, badge);
+      badge.textContent = reward.type === "unit" ? `마물 · ${reward.label}`
+        : reward.type === "brand" ? "낙인 카드" : `주사위 · ${reward.label}`;
+      card.append(image);
+      if (reward.type === "brand") {
+        const description = document.createElement("span");
+        description.className = "treasure-brand-description";
+        description.textContent = reward.label.replaceAll(" · ", " ");
+        card.append(description);
+      }
+      card.append(badge);
       card.addEventListener("click", () => chooseTreasureReward(reward, card));
       el.eventTreasureRewards.append(card);
     }
@@ -1877,7 +1902,7 @@
     if (eventOpen && activeEventTileId === "home") V2HomeInheritance.open();
   });
   window.addEventListener("v2-roster-changed", (event) => {
-    ownedUnits.delete(event.detail.donorInstanceId);
+    if (event.detail.donorInstanceId) ownedUnits.delete(event.detail.donorInstanceId);
     ownedUnits.set(event.detail.recipient.instanceId, event.detail.recipient);
     selectedDeck = selectedDeck.filter((instanceId) => ownedUnits.has(instanceId));
     renderBookRoster();

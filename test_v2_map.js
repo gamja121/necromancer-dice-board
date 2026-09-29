@@ -101,9 +101,14 @@ for (let index = 1; index <= 4; index += 1) {
   assert(worker.includes(relative), `Treasure frame is not cached: ${relative}`);
 }
 assert(source.includes('scene.animation === "treasure"') && source.includes("async function playTreasureChestAnimation()") && source.includes('eventTreasure.classList.add("is-burst")'), "Treasure animation must restart through the current four-frame sequence.");
+assert(html.includes('v2-brand-cards.js?v=1') && worker.includes('v2-brand-cards.js?v=1'), "Brand card inventory module must load before map reward logic.");
+assert(fs.existsSync(path.join(root, "art/v2-style/ui/brand-card.png")) && worker.includes("art/v2-style/ui/brand-card.png?v=1"), "Transparent brand card art must exist and be cached.");
+assert(source.includes("V2BrandCards.create()") && source.includes('type: "brand"') && source.includes("V2BrandCards.add(reward.brandCard)"), "Brand cards must join treasure rewards and persist as their own inventory.");
+assert(source.includes('reward.type === "brand" ? "낙인 카드"') && css.includes(".treasure-brand-description"), "Treasure brand cards must render their generated brand description in the card text panel.");
+
 assert(source.includes("async function warpToOtherWarp()") && source.includes('tile.id === "warp" && index !== heroIndex'), "Warp must move to the other warp tile.");
 assert(source.includes('currentTiles[heroIndex]?.id === "warp"') && source.includes("await warpToOtherWarp()"), "Landing on a warp tile must trigger teleportation.");
-require("./scripts/assert-linked-cache")(html, worker, ["v2-map-practice.js","v2-map-practice.css","v2-sfx.js","v2-world-tree-prayer-digits.js"]);
+require("./scripts/assert-linked-cache")(html, worker, ["v2-map-practice.js","v2-map-practice.css","v2-sfx.js","v2-world-tree-prayer-digits.js","v2-brand-cards.js"]);
 assert(worker.includes("v2-map-practice.html"), "Map test page is not cached.");
 assert(worker.includes("v2-landscape.js?v=1"), "Landscape helper is not cached.");
 assert(html.includes('id="diceControlHand"') && html.includes('v2-dice-control.js?v=1'), "The five-card dice control hand and ability engine must load on the map.");

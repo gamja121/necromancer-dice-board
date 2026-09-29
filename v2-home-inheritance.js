@@ -22,18 +22,12 @@
   let ownedUnits;
   let materialInstanceId = null;
   let resultInstanceId = null;
+  let selectedBrandCardId = null;
   let completed = false;
   let inheritedBrand = null;
   let inheritedPart = null;
   let notice = "";
   let previousDiceDeckHidden = false;
-
-  const BRAND_ICON_VIEWS = Object.freeze({
-    critical: [216, 48, 228, 228], vampire: [526, 48, 234, 228], guard: [841, 48, 228, 228],
-    poison: [216, 310, 228, 228], summon: [526, 310, 234, 228], healing: [843, 310, 228, 228],
-    combo: [222, 50, 220, 220], freeze: [850, 50, 220, 220],
-    lightspeed: [222, 316, 220, 220], counter: [852, 316, 220, 220]
-  });
 
   function createInstanceId(slug = "unit") {
     if (globalThis.crypto?.randomUUID) return `${slug}-${globalThis.crypto.randomUUID()}`;
@@ -43,7 +37,7 @@
   function loadOwnedUnits() {
     if (ownedUnits) return ownedUnits;
     let saved;
-    try { if (typeof sessionStorage !== "undefined") saved = JSON.parse(sessionStorage.getItem(OWNED_ROSTER_KEY)); } catch (_) { /* Storage can be unavailable. */ }
+    try { if (typeof sessionStorage !== "undefined") saved = JSON.parse(sessionStorage.getItem(OWNED_ROSTER_KEY)); } catch (_) {}
     const valid = Array.isArray(saved) && saved.length <= 100 && saved.every((unit) =>
       SLUGS.includes(unit?.slug) && Number.isFinite(unit.maxHp) && Number.isFinite(unit.attack) &&
       Number.isFinite(unit.speed) && Array.isArray(unit.brands) && unit.brands.length <= 3 &&
@@ -58,12 +52,23 @@
       copy.currentHp = Math.max(0, Math.min(copy.maxHp, Number.isFinite(copy.currentHp) ? copy.currentHp : copy.maxHp));
       return copy;
     });
-    try { if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify(roster)); } catch (_) { /* Keep this session's units in memory. */ }
+    try { if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify(roster)); } catch (_) {}
     ownedUnits = new Map(roster.map((unit) => [unit.instanceId, unit]));
     return ownedUnits;
   }
 
-  function displayCard(image, hint, instanceId, role) {
+  function saveOwnedUnits() {
+    try {
+      if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify([...loadOwnedUnits().values()]));
+      return true;
+    } catch (_) { return false; }
+  }
+
+  function selectedBrandCard() {
+    return selectedBrandCardId ? V2BrandCards.load().find((card) => card.id === selectedBrandCardId) : null;
+  }
+
+  function displayUnitCard(image, hint, instanceId, role) {
     const unit = instanceId && loadOwnedUnits().get(instanceId);
     image.hidden = !unit;
     if (unit) {
@@ -73,15 +78,31 @@
     hint.textContent = unit?.name || (role === "재료" ? "아래에서 마물을 선택" : "계승 결과 대기");
   }
 
+  function displayMaterial() {
+    const sourceCard = selectedBrandCard();
+    if (sourceCard) {
+      materialCard.hidden = false;
+      materialCard.src = V2BrandCards.imagePath();
+      materialCard.alt = V2BrandCards.label(sourceCard);
+      materialHint.textContent = V2BrandCards.label(sourceCard);
+      return;
+    }
+    displayUnitCard(materialCard, materialHint, materialInstanceId, "재료");
+  }
+
+  function appendBrand(brand, origin) {
+    const row = document.createElement("li");
+    const name = document.createElement("strong");
+    const marks = document.createElement("small");
+    name.textContent = `${origin} · ${V2Rules.definitions[brand.type]?.name || brand.type}`;
+    marks.textContent = `축 ${brand.bless.join(",") || "-"}  저 ${brand.curse.join(",") || "-"}`;
+    row.append(name, marks);
+    brandList.append(row);
+  }
+
   function appendBrands(unit, origin) {
     unit.brands.forEach((brand, index) => {
-      const row = document.createElement("li");
-      const name = document.createElement("strong");
-      const marks = document.createElement("small");
-      name.textContent = `${completed && origin === "결과" && index === unit.brands.length - 1 ? "계승" : origin} · ${V2Rules.definitions[brand.type]?.name || brand.type}`;
-      marks.textContent = `축 ${brand.bless.join(",") || "-"}  저 ${brand.curse.join(",") || "-"}`;
-      row.append(name, marks);
-      brandList.append(row);
+      appendBrand(brand, completed && origin === "결과" && index === unit.brands.length - 1 ? "계승" : origin);
     });
   }
 
@@ -89,29 +110,53 @@
     const owned = loadOwnedUnits();
     const material = owned.get(materialInstanceId);
     const result = owned.get(resultInstanceId);
-    displayCard(materialCard, materialHint, materialInstanceId, "재료");
-    displayCard(resultCard, resultHint, resultInstanceId, "결과");
+    const sourceCard = selectedBrandCard();
+    displayMaterial();
+    displayUnitCard(resultCard, resultHint, resultInstanceId, "결과");
+
     cards.querySelectorAll("button").forEach((card) => {
       const selected = card.dataset.instanceId === materialInstanceId || card.dataset.instanceId === resultInstanceId;
       card.classList.toggle("is-selected", selected);
       card.setAttribute("aria-pressed", String(selected));
     });
+    brandCards?.querySelectorAll("button").forEach((card) => {
+      const selected = card.dataset.brandCardId === selectedBrandCardId;
+      card.classList.toggle("is-selected", selected);
+      card.setAttribute("aria-pressed", String(selected));
+    });
+
     brandList.replaceChildren();
     if (result) appendBrands(result, completed ? "결과" : "기존");
     if (material) appendBrands(material, "재료");
+    if (sourceCard) appendBrand(sourceCard.brand, "낙인 카드");
     brandList.hidden = !brandList.childElementCount;
     brandHint.hidden = false;
+
     if (notice) brandHint.textContent = notice;
-    else if (completed) brandHint.textContent = `계승 완료 · ${V2Rules.definitions[inheritedBrand?.type]?.name || "낙인"} ${ {bless:"축복",both:"둘 다",curse:"저주"}[inheritedPart] }`;
-    else if (!material) brandHint.textContent = "재료 카드를 선택하세요";
+    else if (completed) brandHint.textContent = `적용 완료 · ${V2Rules.definitions[inheritedBrand?.type]?.name || "낙인"} ${inheritedPart === "bless" ? "축복" : inheritedPart === "both" ? "축복+저주" : "저주"}`;
+    else if (sourceCard && !result) brandHint.textContent = `${V2BrandCards.label(sourceCard)} · 적용할 마물을 선택하세요`;
+    else if (sourceCard && result) brandHint.textContent = `${V2BrandCards.label(sourceCard)} · 적용 준비`;
+    else if (!material) brandHint.textContent = "재료 마물 또는 왼쪽 낙인 카드를 선택하세요";
     else if (!result) brandHint.textContent = "다음으로 결과 카드를 선택하세요";
-    else brandHint.textContent = "계승: 축복 50% · 둘 다 30% · 저주 20%";
-    inheritButton.disabled = !material || !result || !material.brands.length || result.brands.length >= 3;
+    else brandHint.textContent = "마물 계승: 축복 50% · 둘 다 30% · 저주 20%";
+
+    inheritButton.disabled = sourceCard
+      ? !result || result.brands.length >= 3
+      : !material || !result || !material.brands.length || result.brands.length >= 3;
   }
 
-  function selectCard(instanceId) {
-    if (completed) { materialInstanceId = null; resultInstanceId = null; completed = false; }
+  function selectMonster(instanceId) {
+    if (completed) {
+      materialInstanceId = null; resultInstanceId = null; selectedBrandCardId = null; completed = false;
+    }
     notice = "";
+    if (selectedBrandCardId) {
+      if (instanceId === resultInstanceId) resultInstanceId = null;
+      else if (loadOwnedUnits().get(instanceId)?.brands.length >= 3) notice = "낙인 3칸이 찬 마물에는 낙인 카드를 적용할 수 없습니다";
+      else resultInstanceId = instanceId;
+      renderSelection();
+      return;
+    }
     if (instanceId === materialInstanceId) { materialInstanceId = null; resultInstanceId = null; }
     else if (instanceId === resultInstanceId) resultInstanceId = null;
     else if (!materialInstanceId) materialInstanceId = instanceId;
@@ -120,38 +165,18 @@
     renderSelection();
   }
 
-
-  function brandIconMarkup(type) {
-    const view = BRAND_ICON_VIEWS[type];
-    if (!view) return '<span class="home-inheritance-brand-symbol" aria-hidden="true">◇</span>';
-    const sheet = ["combo", "freeze", "lightspeed", "counter"].includes(type)
-      ? "brand-icons-extra-sheet.jpg" : "brand-icons-sheet.jpg";
-    return `<svg viewBox="${view.join(" ")}" aria-hidden="true"><image href="art/v2-style/ui/${sheet}" width="1280" height="575"></image></svg>`;
-  }
-
-  function renderBrandCards() {
-    if (!brandCards) return;
-    brandCards.replaceChildren();
-    const ownedBrands = [];
-    for (const unit of loadOwnedUnits().values()) {
-      const ownerName = V2DesignData.units[unit.slug]?.name || unit.name || unit.slug;
-      for (const brand of unit.brands) ownedBrands.push({ brand, ownerName });
+  function selectBrandCard(cardId) {
+    if (completed) completed = false;
+    notice = "";
+    if (selectedBrandCardId === cardId) {
+      selectedBrandCardId = null;
+      resultInstanceId = null;
+    } else {
+      selectedBrandCardId = cardId;
+      materialInstanceId = null;
+      resultInstanceId = null;
     }
-    ownedBrands.slice(0, 8).forEach(({ brand, ownerName }, index) => {
-      const card = document.createElement("div");
-      const name = V2Rules.definitions[brand.type]?.name || brand.type;
-      card.className = "home-inheritance-brand-card";
-      card.style.setProperty("--brand-i", index);
-      card.style.setProperty("--brand-x", `${index * 48}%`);
-      card.style.setProperty("--brand-y", `${Math.abs(3 - index) * -2}%`);
-      card.style.setProperty("--brand-rot", `${-10 + index * 3}deg`);
-      card.innerHTML = `${brandIconMarkup(brand.type)}<strong>${name}</strong><small>${ownerName}</small>`;
-      brandCards.append(card);
-    });
-    brandCards.classList.toggle("is-empty", ownedBrands.length === 0);
-    brandCards.setAttribute("aria-label", ownedBrands.length
-      ? `보유 낙인 카드 ${ownedBrands.length}개`
-      : "보유 낙인 카드 없음");
+    renderSelection();
   }
 
   function renderCards() {
@@ -170,15 +195,46 @@
       image.alt = "";
       label.textContent = name;
       card.append(image, label);
-      card.addEventListener("click", () => selectCard(unit.instanceId));
+      card.addEventListener("click", () => selectMonster(unit.instanceId));
       cards.append(card);
     }
+  }
+
+  function renderBrandCards() {
+    if (!brandCards) return;
+    brandCards.replaceChildren();
+    const inventory = V2BrandCards.load();
+    inventory.forEach((item, index) => {
+      const card = document.createElement("button");
+      const image = document.createElement("img");
+      const description = document.createElement("span");
+      const spread = Math.min(52, 310 / Math.max(1, inventory.length - 1));
+      card.type = "button";
+      card.className = "home-inheritance-brand-card";
+      card.dataset.brandCardId = item.id;
+      card.setAttribute("aria-label", V2BrandCards.label(item));
+      card.setAttribute("aria-pressed", "false");
+      card.style.setProperty("--brand-i", index);
+      card.style.setProperty("--brand-x", `${index * spread}%`);
+      card.style.setProperty("--brand-y", `${-Math.abs((inventory.length - 1) / 2 - index) * 1.6}%`);
+      card.style.setProperty("--brand-rot", `${(index - (inventory.length - 1) / 2) * 2.4}deg`);
+      image.src = V2BrandCards.imagePath();
+      image.alt = "";
+      description.className = "home-inheritance-brand-card-text";
+      description.textContent = V2BrandCards.label(item).replaceAll(" · ", " ");
+      card.append(image, description);
+      card.addEventListener("click", () => selectBrandCard(item.id));
+      brandCards.append(card);
+    });
+    brandCards.classList.toggle("is-empty", inventory.length === 0);
+    brandCards.setAttribute("aria-label", inventory.length ? `보유 낙인 카드 ${inventory.length}장` : "보유 낙인 카드 없음");
   }
 
   function open() {
     if (!overlay) return;
     materialInstanceId = null;
     resultInstanceId = null;
+    selectedBrandCardId = null;
     completed = false;
     inheritedBrand = null;
     inheritedPart = null;
@@ -209,6 +265,7 @@
     overlay.hidden = true;
     materialInstanceId = null;
     resultInstanceId = null;
+    selectedBrandCardId = null;
     completed = false;
     inheritedBrand = null;
     inheritedPart = null;
@@ -221,8 +278,39 @@
 
   function inherit() {
     const owned = loadOwnedUnits();
-    const material = owned.get(materialInstanceId);
     const result = owned.get(resultInstanceId);
+    const sourceCard = selectedBrandCard();
+
+    if (sourceCard) {
+      if (!result || result.brands.length >= 3 || !V2Rules.validateBrand(sourceCard.brand)) return;
+      const applied = JSON.parse(JSON.stringify(sourceCard.brand));
+      result.brands.push(applied);
+      if (!saveOwnedUnits()) {
+        result.brands.pop();
+        notice = "낙인 카드 적용 저장에 실패했습니다";
+        renderSelection();
+        return;
+      }
+      if (!V2BrandCards.remove(sourceCard.id)) {
+        result.brands.pop();
+        saveOwnedUnits();
+        notice = "낙인 카드 소비 저장에 실패했습니다";
+        renderSelection();
+        return;
+      }
+      inheritedBrand = applied;
+      inheritedPart = applied.curse.length ? "both" : "bless";
+      selectedBrandCardId = null;
+      completed = true;
+      renderBrandCards();
+      renderSelection();
+      window.dispatchEvent?.(new CustomEvent("v2-roster-changed", {
+        detail: { donorInstanceId: null, recipient: JSON.parse(JSON.stringify(result)), source: "brand-card" }
+      }));
+      return;
+    }
+
+    const material = owned.get(materialInstanceId);
     if (!material || !result || !material.brands.length || result.brands.length >= 3) return;
     const randomIndex = Math.floor(Math.random() * material.brands.length);
     const part = V2Rules.inheritancePart(material.brands[randomIndex], Math.random);
@@ -230,17 +318,16 @@
     inheritedBrand = result.brands[result.brands.length - 1];
     inheritedPart = part;
     owned.delete(materialInstanceId);
-    try {
-      if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY,
-        JSON.stringify([...owned.values()]));
-    } catch (_) { /* Keep the current session in memory. */ }
+    if (!saveOwnedUnits()) return;
     const donorInstanceId = materialInstanceId;
     materialInstanceId = null;
     completed = true;
     renderCards();
     renderBrandCards();
     renderSelection();
-    window.dispatchEvent?.(new CustomEvent("v2-roster-changed", { detail: { donorInstanceId, recipient: JSON.parse(JSON.stringify(result)) } }));
+    window.dispatchEvent?.(new CustomEvent("v2-roster-changed", {
+      detail: { donorInstanceId, recipient: JSON.parse(JSON.stringify(result)), source: "monster-inheritance" }
+    }));
   }
 
   inheritButton?.addEventListener("click", inherit);
