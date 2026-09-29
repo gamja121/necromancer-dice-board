@@ -1,3 +1,4 @@
+(async () => {
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
@@ -101,9 +102,9 @@ for (let index = 1; index <= 4; index += 1) {
   assert(worker.includes(relative), `Treasure frame is not cached: ${relative}`);
 }
 assert(source.includes('scene.animation === "treasure"') && source.includes("async function playTreasureChestAnimation()") && source.includes('eventTreasure.classList.add("is-burst")'), "Treasure animation must restart through the current four-frame sequence.");
-assert(html.includes('v2-brand-cards.js?v=3') && worker.includes('v2-brand-cards.js?v=3'), "Brand card inventory module must load before map reward logic.");
+assert(html.includes('v2-brand-cards.js?v=4') && worker.includes('v2-brand-cards.js?v=4'), "Brand card inventory module must load before map reward logic.");
 assert(fs.existsSync(path.join(root, "art/v2-style/ui/brand-card.png")) && worker.includes("art/v2-style/ui/brand-card.png?v=3"), "Transparent brand card art must exist and be cached.");
-assert(source.includes("V2BrandCards.create()") && source.includes('type: "brand"') && source.includes("V2BrandCards.add(reward.brandCard)"), "Brand cards must join treasure rewards and persist as their own inventory.");
+assert(source.includes("V2BrandCards.create()") && source.includes('type: "brand"') && source.includes("V2BrandCards.addAsync(reward.brandCard)"), "Brand cards must join treasure rewards and persist as their own inventory.");
 assert(source.includes("const otherRewards = shuffle([...unitRewards, ...diceRewards]).slice(0, 2)") &&
   source.includes("return shuffle([brandReward, ...otherRewards])"),
   "Every treasure choice set must contain exactly one guaranteed brand card plus two random non-brand rewards.");
@@ -111,7 +112,10 @@ assert(source.includes('reward.type === "brand" ? "낙인 카드"') && css.inclu
 
 assert(source.includes("async function warpToOtherWarp()") && source.includes('tile.id === "warp" && index !== heroIndex'), "Warp must move to the other warp tile.");
 assert(source.includes('currentTiles[heroIndex]?.id === "warp"') && source.includes("await warpToOtherWarp()"), "Landing on a warp tile must trigger teleportation.");
-require("./scripts/assert-linked-cache")(html, worker, ["v2-map-practice.js","v2-map-practice.css","v2-sfx.js","v2-world-tree-prayer-digits.js","v2-brand-cards.js"]);
+require("./scripts/assert-linked-cache")(html, worker, ["v2-map-practice.js","v2-map-practice.css","v2-sfx.js","v2-world-tree-prayer-digits.js","v2-brand-cards.js","v2-run-state.js","v2-run-state-runtime.js"]);
+assert(html.includes('v2-run-state.js?v=1') && html.includes('v2-run-state-runtime.js?v=1') &&
+  worker.includes('v2-run-state.js?v=1') && worker.includes('v2-run-state-runtime.js?v=1'),
+  "RunState core/runtime must load and cache before map persistence.");
 assert(worker.includes("v2-map-practice.html"), "Map test page is not cached.");
 assert(worker.includes("v2-landscape.js?v=1"), "Landscape helper is not cached.");
 assert(html.includes('id="diceControlHand"') && html.includes('v2-dice-control.js?v=1'), "The five-card dice control hand and ability engine must load on the map.");
@@ -147,7 +151,9 @@ assert(css.includes('.map-deck-roster.map-book-roster button.is-inspecting') && 
 assert(html.includes('id="mapUnitInfoOverlay"') && html.includes('class="map-unit-info-panel"') && !html.includes('class="legion-info-panel"'), "Only the basic unit information window should appear in the map center.");
 assert(css.includes('.map-unit-info-overlay { position: absolute; z-index: 60; inset: 0; display: grid; place-items: center; }') && source.includes('openBookUnitInfo(ownedUnits.get(owned.instanceId))'), "Selecting an owned card must open centered instance-based information.");
 assert(html.includes('v2-design-data.js?v=1') && html.includes('v2-rules.js?v=6') && source.includes('normalizeOwnedUnit(V2Rules.individual(slug))'), "Owned-card stats and brands must use battle rules.");
-assert(battleSource.includes('const MAP_ROSTER_KEY = "necromancer-map-roster-v2"') && battleSource.includes('sessionStorage.getItem(MAP_ROSTER_KEY)') && battleSource.includes('mapOwnedRoster.get(data.instanceId)') && battleSource.includes('mapOwnedRoster.get(unitState.instanceId)'), "Battle must restore the same instanceId-based individual cards from the map.");
+assert(battleSource.includes('V2RunStateRuntime?.snapshot') && battleSource.includes('V2RunStateRuntime.applyBattleOutcome') &&
+  battleSource.includes('mapOwnedRoster.get(data.instanceId)') && battleSource.includes('mapOwnedRoster.get(unitState.instanceId)'),
+  "Battle must restore instanceId-based cards from RunState and atomically persist battle outcomes.");
 assert(source.includes('x: 20 + index * (70 / 7), y: 12') && source.includes('x: 79 - index * (58 / 6), y: 85') && source.includes('x: 6, y: 69 - index * (54 / 4)'), "The top tiles must shift right and one bottom tile must move up the left edge.");
 assert(!css.includes('.map-tile.is-bottom-row') && source.includes('button.className = "map-tile"'), "Bottom tiles must have the same size as every other map tile.");
 for (const file of ['map-book-closed.png', 'map-book-open.png']) {
@@ -178,10 +184,10 @@ const battleLinkContext = {
   el: { deckConfirm: {}, deckStatus: {} },
   window: { location: { assign: url => navigation.push(url) } }
 };
-const battleLinkSource = source.slice(source.indexOf("  function confirmMonsterBattle("), source.indexOf("  function openTileEvent("));
+const battleLinkSource = source.slice(source.indexOf("  async function confirmMonsterBattle("), source.indexOf("  function openTileEvent("));
 vm.createContext(battleLinkContext);
 vm.runInContext(battleLinkSource, battleLinkContext);
-vm.runInContext("confirmMonsterBattle()", battleLinkContext);
+await vm.runInContext("confirmMonsterBattle()", battleLinkContext);
 assert(navigation.length === 1 && navigation[0].startsWith("v2-auto-battle-practice.html?"), "Battle navigation must open the V2 auto battle page.");
 const battleParams = new URLSearchParams(navigation[0].split("?")[1]);
 assert(battleParams.get("from") === "map" && battleParams.get("map") === "winter" && battleParams.get("tile") === "7", "Battle navigation must preserve map and tile context.");
@@ -191,3 +197,5 @@ const hero = "art/v2-style/map-test/hero/necromancer-hero.png";
 assert(fs.existsSync(path.join(root, hero)), "Processed hero token is missing.");
 assert(worker.includes(hero), "Hero token is not cached.");
 console.log("SUCCESS: landscape map, dice roll, hero token, and step movement checks passed.");
+
+})().catch((error) => { console.error(error); process.exitCode = 1; });
