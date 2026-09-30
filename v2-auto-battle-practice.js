@@ -17,6 +17,7 @@
   const MAP_CONTAMINATION_WIN_PREFIX = "necromancer-map-contamination-win-v1:";
   const MAP_CLEARED_MONSTER_KEY = "necromancer-map-cleared-monsters-v1";
   const MAP_ROSTER_KEY = "necromancer-map-roster-v2";
+  const GRAVEYARD_CORPSES_KEY = "necromancer-map-graveyard-corpses-v1";
   const FORTUNE_PROPHECY_KEY = "necromancer-fortune-prophecy-v1";
   const prophecyHpBonus = Math.max(0, Math.floor(Number(battleQuery.get("prophecyAllyHp")) || 0));
   const prophecyAllyAttackBonus = Math.max(0, Math.floor(Number(battleQuery.get("prophecyAllyAttack")) || 0));
@@ -1746,19 +1747,27 @@
   }
 
   function persistMapAllyOutcome() {
-    if (!fromMap) return [];
+    if (!fromMap) return { roster: [], deadMonsters: [] };
     try {
       const runRoster = globalThis.V2RunStateRuntime?.snapshot?.()?.ownedMonsters;
       const saved = Array.isArray(runRoster)
         ? JSON.parse(JSON.stringify(runRoster))
         : JSON.parse(sessionStorage.getItem(MAP_ROSTER_KEY));
-      if (!Array.isArray(saved)) return [];
+      if (!Array.isArray(saved)) return { roster: [], deadMonsters: [] };
       const byInstance = new Map(saved.map((unit) => [unit.instanceId || unit.slug, unit]));
+      const deadMonsters = [];
       for (const unitState of units.filter((unit) => unit.team === "ally" && !unit.isSummon && unit.slot < 4)) {
         const key = unitState.instanceId || unitState.slug;
         const owned = byInstance.get(key);
         if (!owned) continue;
         if (!unitState.alive || unitState.hp <= 0) {
+          deadMonsters.push({
+            ...JSON.parse(JSON.stringify(owned)),
+            currentHp: 0,
+            diedInBattle: true,
+            diedAtEncounter: mapEncounterId || null,
+            diedAtTile: Number(battleQuery.get("tile")) || null
+          });
           byInstance.delete(key);
           continue;
         }
@@ -1768,10 +1777,17 @@
       const next = saved.filter((unit) => byInstance.has(unit.instanceId || unit.slug)).map((unit) => byInstance.get(unit.instanceId || unit.slug));
       if (!globalThis.V2RunStateRuntime?.available && typeof sessionStorage !== "undefined") {
         sessionStorage.setItem(MAP_ROSTER_KEY, JSON.stringify(next));
+        const existing = JSON.parse(sessionStorage.getItem(GRAVEYARD_CORPSES_KEY) || "[]");
+        const corpses = Array.isArray(existing) ? existing : [];
+        const ids = new Set(corpses.map((corpse) => corpse.instanceId));
+        for (const corpse of deadMonsters) {
+          if (!ids.has(corpse.instanceId)) corpses.push(corpse);
+        }
+        sessionStorage.setItem(GRAVEYARD_CORPSES_KEY, JSON.stringify(corpses));
       }
-      return next;
+      return { roster: next, deadMonsters };
     } catch (_) {
-      return [];
+      return { roster: [], deadMonsters: [] };
     }
   }
 
@@ -1800,12 +1816,14 @@
     pauseButton.disabled = true;
     speedButton.disabled = true;
     const won = aliveUnits("ally").length > 0;
-    const rosterOutcome = persistMapAllyOutcome();
+    const battleOutcome = persistMapAllyOutcome();
+    const rosterOutcome = battleOutcome.roster;
     if (fromMap && globalThis.V2RunStateRuntime?.available) {
       const clearedStep = Number(battleQuery.get("tile"));
       const stored = await V2RunStateRuntime.applyBattleOutcome({
         encounterId: mapEncounterId || `tile-${clearedStep}`,
         ownedMonsters: rosterOutcome,
+        deadMonsters: battleOutcome.deadMonsters,
         won,
         clearedStep
       });
