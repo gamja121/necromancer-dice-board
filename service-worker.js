@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20260930-patrol-crisp-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20260930-inheritance-roster-fix-1";
 
 const CORE_ASSETS = [
   "./",
@@ -36,7 +36,7 @@ const CORE_ASSETS = [
   "./v2-presentation.js?v=1",
   "./v2-presentation-rail.js?v=2",
   "./v2-brand-cards.js?v=4",
-  "./v2-home-inheritance.js?v=14",
+  "./v2-home-inheritance.js?v=15",
   "./v2-altar-ritual.js?v=4",
   "./v2-dice-control.js?v=1",
   "./v2-world-tree-prayer-digits.js?v=2",
