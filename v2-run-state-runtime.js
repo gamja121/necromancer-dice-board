@@ -53,6 +53,7 @@
       root.sessionStorage.setItem(K.roster, JSON.stringify(state.ownedMonsters || []));
       root.sessionStorage.setItem(K.diceCards, JSON.stringify((state.diceCards || []).map((card) => card.cardId)));
       root.sessionStorage.setItem(K.brandCards, JSON.stringify(legacyBrandCards(state)));
+      root.sessionStorage.setItem(K.graveyardCorpses, JSON.stringify(state.graveyardCorpses || []));
       root.sessionStorage.setItem(K.contamination, String(state.contamination || 0));
       if (state.currentMap?.tiles?.length === 24) {
         root.sessionStorage.setItem(K.mapLayout, JSON.stringify(state.currentMap.tiles.map((tile) => tile.typeId)));
@@ -217,9 +218,17 @@
     const encounterId = String(options.encounterId || "");
     if (!encounterId) return Promise.resolve({ ok: false, reason: "encounter-id-required" });
     const roster = clone(options.ownedMonsters || []);
+    const deadMonsters = clone(options.deadMonsters || []);
     const step = Number(options.clearedStep);
     return commitExact("battle-outcome:" + encounterId, (draft) => {
       draft.ownedMonsters = roster;
+      if (!Array.isArray(draft.graveyardCorpses)) draft.graveyardCorpses = [];
+      const corpseIds = new Set(draft.graveyardCorpses.map((corpse) => corpse.instanceId));
+      for (const corpse of deadMonsters) {
+        if (!corpse?.instanceId || corpseIds.has(corpse.instanceId)) continue;
+        draft.graveyardCorpses.push(clone(corpse));
+        corpseIds.add(corpse.instanceId);
+      }
       if (options.won) {
         draft.contamination = Math.max(0, (Number(draft.contamination) || 0) - 1);
         if (Number.isInteger(step) && step >= 1 && step <= 24) {
@@ -269,6 +278,18 @@
     });
   }
 
+  function atomicGraveyardExtraction(corpses, brands, prefix = "graveyard-extract") {
+    const nextCorpses = clone(corpses || []);
+    const cards = (brands || []).map((card) => ({
+      instanceId: card.id || card.instanceId,
+      brand: clone(card.brand)
+    }));
+    return commit(prefix, (draft) => {
+      draft.graveyardCorpses = nextCorpses;
+      draft.brandCards = cards;
+    });
+  }
+
   async function ensureFreshDefaults(defaults = {}) {
     await bootstrap();
     if (!current || current.revision !== 0) return snapshot();
@@ -307,6 +328,7 @@
     setClearedSteps,
     atomicRosterAndBrands,
     atomicMonsterShopTrade,
+    atomicGraveyardExtraction,
     applyBattleOutcome,
     commitExact,
     projectLegacy
