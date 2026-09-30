@@ -2423,7 +2423,11 @@
     el.eventRitual.hidden = true;
     el.eventProphecy.hidden = true;
     el.eventMonsterShop.hidden = true;
+    el.eventGraveyard.hidden = true;
+    el.eventHillScout.hidden = true;
     el.monsterShopPanel.hidden = true;
+    el.graveyardExtractPanel.hidden = true;
+    el.hillScoutPanel.hidden = true;
     el.fortuneProphecyUi.hidden = true;
     el.eventPrayerResult.hidden = true;
     el.eventPrayerResult.textContent = "";
