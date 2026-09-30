@@ -151,6 +151,23 @@ button, a { font: inherit; }
 .sprite-wrap { position: absolute; z-index: 2; inset: 13% -28% 0; display: grid; place-items: end center; transform: translateY(var(--depth-y)) scale(var(--depth-scale)); transition: transform 190ms cubic-bezier(.2, .8, .25, 1); }
 .unit img { display: block; width: 116%; height: 96%; object-fit: contain; filter: drop-shadow(0 6px 4px #000e); image-rendering: auto; }
 .sprite-wrap > img { position: relative; z-index: 2; }
+
+/* Subtle idle breathing/bobbing: a small in-place body lift, not floating.
+   Uses individual translate/scale properties so battle transform animations stay intact. */
+.unit:not(.is-attacking):not(.is-targeted):not(.is-hit):not(.is-pending):not(.is-arriving):not(.is-motion-dead) .sprite-wrap {
+  animation: unit-idle-breathe var(--idle-breathe-duration, 1.45s) ease-in-out infinite;
+  animation-delay: var(--idle-breathe-delay, 0s);
+}
+.unit:nth-child(2n) { --idle-breathe-duration: 1.58s; --idle-breathe-delay: -.42s; }
+.unit:nth-child(3n) { --idle-breathe-duration: 1.36s; --idle-breathe-delay: -.76s; }
+@keyframes unit-idle-breathe {
+  0%, 100% { translate: 0 0; scale: 1 1; }
+  46% { translate: 0 -1.4%; scale: 1.008 .994; }
+  58% { translate: 0 -.65%; scale: .998 1.004; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .unit .sprite-wrap { animation: none !important; translate: 0 0; scale: 1 1; }
+}
 .unit.is-pending { pointer-events: none; }
 .unit.is-pending .sprite-wrap > img { visibility: hidden; opacity: 0; }
 .unit.is-pending > .bar, .unit.is-pending > .brand-indicator { visibility: hidden; opacity: 0; }
