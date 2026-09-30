@@ -100,6 +100,12 @@ button, a { font: inherit; }
 .enemy-team { right: 0; }
 .unit { --depth-scale: 1; --depth-y: 0%; --unit-layer: 12; --action-shift-x: 0%; position: relative; z-index: var(--unit-layer); min-width: 0; overflow: visible; transition: opacity 220ms ease; }
 
+/* All battlefield actors are one formation row.
+   Without an explicit row, allies placed 4→3→2→1 columns are auto-flowed
+   into implicit rows and disappear below the visible battlefield. */
+.team > .unit,
+.team > .summon-slot { grid-row: 1; }
+
 /* Formation anchors:
    allies fill regular slots from RIGHT to LEFT;
    enemies fill regular slots from LEFT to RIGHT.
