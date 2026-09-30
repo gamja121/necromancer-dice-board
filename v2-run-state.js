@@ -22,6 +22,7 @@
     clearedTiles: "necromancer-map-cleared-monsters-v1",
     worldTreePrayed: "necromancer-map-world-tree-prayed-v1",
     fortuneProphecy: "necromancer-fortune-prophecy-v1",
+    graveyardCorpses: "necromancer-map-graveyard-corpses-v1",
     battle: "necromancer-v2-battle-v1",
     contaminationWinPrefix: "necromancer-map-contamination-win-v1:"
   });
@@ -68,6 +69,7 @@
       party: [],
       diceCards: [],
       brandCards: [],
+      graveyardCorpses: [],
       diceContext: {
         previousRoll: null,
         previousEffectiveCardId: null,
@@ -152,6 +154,16 @@
       else if (new Set(ids).size !== ids.length) errors.push("brandCards:duplicate-instanceId");
     }
 
+    if (!Array.isArray(state.graveyardCorpses)) errors.push("graveyardCorpses:invalid");
+    else {
+      const ids = state.graveyardCorpses.map((corpse) => corpse && corpse.instanceId);
+      if (ids.some((id) => typeof id !== "string" || !id)) errors.push("graveyardCorpses:instanceId");
+      else if (new Set(ids).size !== ids.length) errors.push("graveyardCorpses:duplicate-instanceId");
+      if (state.graveyardCorpses.some((corpse) =>
+        !isPlainObject(corpse) || typeof corpse.slug !== "string" || !corpse.slug ||
+        !Array.isArray(corpse.brands))) errors.push("graveyardCorpses:entry");
+    }
+
     if (!uniqueStrings(state.clearedTiles)) errors.push("clearedTiles:invalid");
     if (!Array.isArray(state.claimedRewards)) errors.push("claimedRewards:invalid");
     if (!Array.isArray(state.appliedOperations)) errors.push("appliedOperations:invalid");
@@ -218,6 +230,15 @@
           brand: clone(copy.brand)
         };
       }).filter(Boolean);
+    }
+
+    const graveyard = parseJson(raw[LEGACY_KEYS.graveyardCorpses], LEGACY_KEYS.graveyardCorpses, warnings);
+    if (graveyard != null && !Array.isArray(graveyard)) errors.push("legacy-graveyard:not-array");
+    if (Array.isArray(graveyard)) {
+      state.graveyardCorpses = graveyard.filter((corpse) =>
+        isPlainObject(corpse) && typeof corpse.instanceId === "string" && corpse.instanceId &&
+        typeof corpse.slug === "string" && corpse.slug && Array.isArray(corpse.brands)
+      ).map((corpse) => clone(corpse));
     }
 
     const contaminationRaw = raw[LEGACY_KEYS.contamination];
