@@ -2479,6 +2479,8 @@
     if (!eventOpen || activeEventTileId !== "village") return;
     el.monsterShopPanel.hidden = false;
     el.eventMonsterShop.hidden = true;
+    if (el.eventClose) el.eventClose.hidden = true;
+    el.board?.classList.add("is-monster-shop-open");
     resetMonsterShopTrade();
     el.diceResult.textContent = "마을 · 마물 상점";
     el.monsterShopClose.focus();
@@ -2489,6 +2491,8 @@
     resetMonsterShopTrade();
     el.monsterShopPanel.hidden = true;
     el.eventMonsterShop.hidden = false;
+    if (el.eventClose) el.eventClose.hidden = false;
+    el.board?.classList.remove("is-monster-shop-open");
     el.eventMonsterShop.focus();
   }
 
