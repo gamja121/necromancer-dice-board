@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20260930-shop-final-ui-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20260930-patrol-swap-ui-1";
 
 const CORE_ASSETS = [
   "./",
@@ -51,6 +51,7 @@ const CORE_ASSETS = [
   "./art/v2-style/ui/monster-shop-counter.png?v=3",
   "./art/v2-style/ui/patrol-route-atlas.webp?v=1",
   "./art/v2-style/ui/patrol-route-frame.webp?v=1",
+  "./art/v2-style/ui/patrol-route-current-frame.webp?v=1",
   "./art/v2-style/ui/map-card-deck-open.png",
   "./art/v2-style/ui/battle-deck-selection-board.png",
   "./art/v2-style/ui/unit-info-window-no-portrait.png",

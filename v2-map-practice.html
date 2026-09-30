@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
   <title>네크로멘서 앤드 다이스 · 외곽 타일 맵 테스트</title>
-  <link rel="stylesheet" href="v2-map-practice.css?v=68">
+  <link rel="stylesheet" href="v2-map-practice.css?v=69">
   <link rel="stylesheet" href="v2-home-inheritance.css?v=9">
   <link rel="stylesheet" href="v2-altar-ritual.css?v=4">
 </head>
@@ -140,24 +140,28 @@
           <button id="tileEventGraveyard" class="tile-event-graveyard" type="button" hidden>시체 파헤치기</button>
           <button id="tileEventHillScout" class="tile-event-hill-scout" type="button" hidden>정찰</button>
           <section id="patrolRoutePanel" class="patrol-route-panel" aria-live="polite" hidden>
-            <img class="patrol-route-frame-art" src="art/v2-style/ui/patrol-route-frame.webp?v=1" alt="" aria-hidden="true">
-            <div class="patrol-route-ui">
-              <h2 class="patrol-route-title">순찰 경로</h2>
-              <p class="patrol-route-guide">다음 한 바퀴의 순찰 구성을 정합니다. 늘린 만큼 다른 경로를 줄여 총 24칸을 유지하세요.</p>
-              <div class="patrol-route-content">
-                <div id="patrolRouteRows" class="patrol-route-rows"></div>
-                <aside class="patrol-route-fixed" aria-label="고정 경로">
-                  <strong>고정 경로 · 14칸</strong>
-                  <p>집 · 마을 · 점술가 · 공동묘지 · 제단 · 세계수 · 언덕 · 희귀 마물 · 보물상자 · 늪 · 워프</p>
-                  <small>오염도 80 이상에서는 보스 1칸이 추가됩니다.</small>
-                </aside>
-              </div>
-              <p id="patrolRouteStatus" class="patrol-route-status">변경 수량 합계가 0이 되면 확정할 수 있습니다.</p>
-              <div class="patrol-route-actions">
-                <button id="patrolRouteReset" class="patrol-route-action patrol-route-reset" type="button">기본값</button>
-                <button id="patrolRouteClose" class="patrol-route-action patrol-route-close" type="button">닫기</button>
-                <button id="patrolRouteConfirm" class="patrol-route-action patrol-route-confirm" type="button">경로 확정</button>
-              </div>
+            <div class="patrol-route-layout">
+              <section class="patrol-route-reserve-board" aria-label="교체 타일">
+                <img class="patrol-route-main-frame" src="art/v2-style/ui/patrol-route-frame.webp?v=1" alt="" aria-hidden="true">
+                <div class="patrol-route-reserve-ui">
+                  <h2>교체 타일</h2>
+                  <p>현재 경로 타일을 고른 뒤 이쪽 타일을 누르면 서로 교체됩니다.</p>
+                  <div id="patrolRouteReserve" class="patrol-route-reserve-slots"></div>
+                  <p id="patrolRouteStatus" class="patrol-route-status">현재 경로에서 바꿀 타일을 선택하세요.</p>
+                  <div class="patrol-route-actions">
+                    <button id="patrolRouteReset" class="patrol-route-action patrol-route-reset" type="button">기본값</button>
+                    <button id="patrolRouteClose" class="patrol-route-action patrol-route-close" type="button">닫기</button>
+                    <button id="patrolRouteConfirm" class="patrol-route-action patrol-route-confirm" type="button">경로 확정</button>
+                  </div>
+                </div>
+              </section>
+              <aside class="patrol-route-current-board" aria-label="현재 경로">
+                <img class="patrol-route-current-frame" src="art/v2-style/ui/patrol-route-current-frame.webp?v=1" alt="" aria-hidden="true">
+                <div class="patrol-route-current-ui">
+                  <h2>현재 경로</h2>
+                  <div id="patrolRouteCurrent" class="patrol-route-current-slots"></div>
+                </div>
+              </aside>
             </div>
           </section>
           <div id="fortuneProphecyUi" class="fortune-prophecy-ui" hidden>
@@ -302,6 +306,6 @@
   <script src="v2-world-tree-prayer-digits.js?v=2"></script>
   <script src="v2-event-data.js?v=1"></script>
   <script src="v2-map-events.js?v=1"></script>
-  <script src="v2-map-practice.js?v=88"></script>
+  <script src="v2-map-practice.js?v=89"></script>
 </body>
 </html>

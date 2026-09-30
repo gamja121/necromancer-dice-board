@@ -84,13 +84,18 @@
   const LEGACY_MAP_LAYOUT_KEY = "necromancer-map-layout-v1";
   const MAP_CLEARED_MONSTER_KEY = "necromancer-map-cleared-monsters-v1";
   const WORLD_TREE_PRAYER_KEY = "necromancer-map-world-tree-prayed-v1";
-  const PATROL_ROUTE_KEY = "necromancer-patrol-route-v1";
-  const PATROL_ROUTE_TYPES = Object.freeze([
-    Object.freeze({ id: "basic", label: "기본" }),
-    Object.freeze({ id: "monster", label: "일반 마물" }),
-    Object.freeze({ id: "rest", label: "숙영" }),
-    Object.freeze({ id: "event", label: "사건" })
-  ]);
+  const PATROL_ROUTE_KEY = "necromancer-patrol-route-v2";
+  const PATROL_ROUTE_DEFAULT_CURRENT = Object.freeze(["basic", "basic", "graveyard", "forest", "rest", "event"]);
+  const PATROL_ROUTE_DEFAULT_RESERVE = Object.freeze(["monster", "monster", "monster", "monster", "monster"]);
+  const PATROL_ROUTE_ALLOWED_IDS = Object.freeze(new Set(["basic", "graveyard", "forest", "rest", "event", "monster"]));
+  const PATROL_ROUTE_LABELS = Object.freeze({
+    basic: "기본 타일",
+    graveyard: "공동묘지",
+    forest: "언덕",
+    rest: "숙영",
+    event: "사건",
+    monster: "일반 마물"
+  });
   const MONSTER_BATTLE_TILE_IDS = Object.freeze(new Set(["monster", "rare-monster", "boss"]));
   const GRADE_LABELS = Object.freeze({ normal: "일반", advanced: "고급", hero: "영웅", special: "소환물" });
   const LEGION_LABELS = Object.freeze({ skeleton: "언데드", corpse: "시체", beast: "야수", plague: "역병", ice: "얼음", summon: "소환", demon: "악마", insect: "벌레", plant: "식물", element: "원소" });
@@ -136,7 +141,8 @@
     eventPatrolRoute: document.getElementById("tileEventPatrolRoute"),
     patrolRoutePanel: document.getElementById("patrolRoutePanel"),
     patrolRouteClose: document.getElementById("patrolRouteClose"),
-    patrolRouteRows: document.getElementById("patrolRouteRows"),
+    patrolRouteCurrent: document.getElementById("patrolRouteCurrent"),
+    patrolRouteReserve: document.getElementById("patrolRouteReserve"),
     patrolRouteStatus: document.getElementById("patrolRouteStatus"),
     patrolRouteReset: document.getElementById("patrolRouteReset"),
     patrolRouteConfirm: document.getElementById("patrolRouteConfirm"),
@@ -211,8 +217,10 @@
     rewardOverflowConfirm: document.getElementById("rewardOverflowConfirm")
   };
   let positions = [];
-  let patrolRouteDeltas = loadPatrolRouteDeltas();
-  let patrolRouteDraft = { ...patrolRouteDeltas };
+  let patrolRouteState = loadPatrolRouteState();
+  let patrolRouteDraft = clonePatrolRouteState(patrolRouteState);
+  let patrolRouteSelectedCurrent = null;
+  let patrolRouteSelectedReserve = null;
   let currentTiles = [];
   let currentButtons = [];
   let heroIndex = 0;
@@ -772,107 +780,142 @@
     el.eventHillScout.focus();
   }
 
-  function loadPatrolRouteDeltas() {
-    const blank = Object.fromEntries(PATROL_ROUTE_TYPES.map(({ id }) => [id, 0]));
+  function defaultPatrolRouteState() {
+    return {
+      current: [...PATROL_ROUTE_DEFAULT_CURRENT],
+      reserve: [...PATROL_ROUTE_DEFAULT_RESERVE]
+    };
+  }
+
+  function clonePatrolRouteState(state) {
+    return {
+      current: [...state.current],
+      reserve: [...state.reserve]
+    };
+  }
+
+  function patrolRouteInventoryIsValid(state) {
+    if (!state || !Array.isArray(state.current) || !Array.isArray(state.reserve)) return false;
+    if (state.current.length !== PATROL_ROUTE_DEFAULT_CURRENT.length || state.reserve.length !== PATROL_ROUTE_DEFAULT_RESERVE.length) return false;
+    const all = [...state.current, ...state.reserve];
+    if (all.some((id) => !PATROL_ROUTE_ALLOWED_IDS.has(id))) return false;
+    const counts = all.reduce((result, id) => {
+      result[id] = (result[id] || 0) + 1;
+      return result;
+    }, {});
+    const expected = [...PATROL_ROUTE_DEFAULT_CURRENT, ...PATROL_ROUTE_DEFAULT_RESERVE].reduce((result, id) => {
+      result[id] = (result[id] || 0) + 1;
+      return result;
+    }, {});
+    return Object.keys(expected).every((id) => counts[id] === expected[id]) &&
+      Object.keys(counts).every((id) => counts[id] === expected[id]);
+  }
+
+  function loadPatrolRouteState() {
+    const fallback = defaultPatrolRouteState();
     try {
       const saved = JSON.parse(sessionStorage.getItem(PATROL_ROUTE_KEY));
-      if (!saved || typeof saved !== "object") return blank;
-      const next = { ...blank };
-      for (const { id } of PATROL_ROUTE_TYPES) {
-        const value = Number(saved[id]);
-        next[id] = Number.isInteger(value) && value >= -1 && value <= 1 ? value : 0;
-      }
-      return Object.values(next).reduce((sum, value) => sum + value, 0) === 0 ? next : blank;
+      return patrolRouteInventoryIsValid(saved) ? clonePatrolRouteState(saved) : fallback;
     } catch (_) {
-      return blank;
+      return fallback;
     }
   }
 
-  function savePatrolRouteDeltas() {
+  function savePatrolRouteState() {
     try {
-      sessionStorage.setItem(PATROL_ROUTE_KEY, JSON.stringify(patrolRouteDeltas));
-    } catch (_) { /* The current session can still use the in-memory route. */ }
+      sessionStorage.setItem(PATROL_ROUTE_KEY, JSON.stringify(patrolRouteState));
+    } catch (_) { /* Keep the current session playable even when storage is unavailable. */ }
   }
 
-  function patrolStageForValue(value) {
-    return [...CONTAMINATION_STAGES].reverse().find((entry) => value >= entry.min) || CONTAMINATION_STAGES[0];
+  function patrolRouteMapDeltas(state = patrolRouteState) {
+    const ids = [...PATROL_ROUTE_ALLOWED_IDS];
+    const baseline = Object.fromEntries(ids.map((id) => [id, 0]));
+    const current = Object.fromEntries(ids.map((id) => [id, 0]));
+    PATROL_ROUTE_DEFAULT_CURRENT.forEach((id) => { baseline[id] += 1; });
+    state.current.forEach((id) => { current[id] += 1; });
+    return Object.fromEntries(ids.map((id) => [id, current[id] - baseline[id]]));
   }
 
-  function patrolBaselineCounts(value = contamination) {
-    const stage = patrolStageForValue(value);
-    const bossActive = value >= BOSS_CONTAMINATION_MIN;
-    const monsterDelta = Math.max(0, stage.monsterTiles - 3);
-    const base = Object.fromEntries(tileTypes.map((tile) => [tile.id, tile.count]));
-    base.monster = Math.max(1, stage.monsterTiles - 1);
-    base["rare-monster"] = 1;
-    base.basic = Math.max(0, (base.basic || 0) - monsterDelta) + (bossActive ? 0 : 1);
-    return base;
+  function makePatrolTileButton(id, area, index) {
+    const button = document.createElement("button");
+    const image = document.createElement("img");
+    const label = document.createElement("span");
+    button.type = "button";
+    button.className = "patrol-route-tile";
+    button.dataset.area = area;
+    button.dataset.index = String(index);
+    button.dataset.type = id;
+    image.src = `${ROOT}tiles/${id}.png?v=${TILE_ASSET_VERSION}`;
+    image.alt = "";
+    label.textContent = PATROL_ROUTE_LABELS[id] || id;
+    button.append(image, label);
+
+    const selected = area === "current"
+      ? patrolRouteSelectedCurrent === index
+      : patrolRouteSelectedReserve === index;
+    button.classList.toggle("is-selected", selected);
+
+    button.addEventListener("click", () => {
+      if (area === "current") {
+        if (patrolRouteSelectedReserve !== null) {
+          swapPatrolRouteTiles(index, patrolRouteSelectedReserve);
+          return;
+        }
+        patrolRouteSelectedCurrent = patrolRouteSelectedCurrent === index ? null : index;
+        patrolRouteSelectedReserve = null;
+      } else {
+        if (patrolRouteSelectedCurrent !== null) {
+          swapPatrolRouteTiles(patrolRouteSelectedCurrent, index);
+          return;
+        }
+        patrolRouteSelectedReserve = patrolRouteSelectedReserve === index ? null : index;
+        patrolRouteSelectedCurrent = null;
+      }
+      renderPatrolRoutePanel();
+    });
+    return button;
   }
 
-  function nextPatrolBaselineCounts() {
-    const projected = Math.min(CONTAMINATION_MAX, contamination + (lapReadyForRefresh ? 2 : 0));
-    return patrolBaselineCounts(projected);
-  }
-
-  function patrolDraftTotal() {
-    return PATROL_ROUTE_TYPES.reduce((sum, { id }) => sum + (patrolRouteDraft[id] || 0), 0);
+  function swapPatrolRouteTiles(currentIndex, reserveIndex) {
+    const currentTile = patrolRouteDraft.current[currentIndex];
+    patrolRouteDraft.current[currentIndex] = patrolRouteDraft.reserve[reserveIndex];
+    patrolRouteDraft.reserve[reserveIndex] = currentTile;
+    patrolRouteSelectedCurrent = null;
+    patrolRouteSelectedReserve = null;
+    renderPatrolRoutePanel();
   }
 
   function renderPatrolRoutePanel() {
-    const baseline = nextPatrolBaselineCounts();
-    el.patrolRouteRows.replaceChildren();
-    for (const { id, label } of PATROL_ROUTE_TYPES) {
-      const row = document.createElement("div");
-      const icon = document.createElement("img");
-      const name = document.createElement("span");
-      const stepper = document.createElement("div");
-      const minus = document.createElement("button");
-      const count = document.createElement("strong");
-      const plus = document.createElement("button");
-      const delta = document.createElement("span");
-      const currentDelta = patrolRouteDraft[id] || 0;
-      const currentCount = Math.max(0, (baseline[id] || 0) + currentDelta);
-      row.className = "patrol-route-row";
-      row.dataset.type = id;
-      icon.className = "patrol-route-row-icon";
-      icon.src = `${ROOT}tiles/${id}.png?v=${TILE_ASSET_VERSION}`;
-      icon.alt = "";
-      name.className = "patrol-route-name";
-      name.textContent = label;
-      stepper.className = "patrol-route-stepper";
-      minus.type = plus.type = "button";
-      minus.setAttribute("aria-label", `${label} 1개 줄이기`);
-      plus.setAttribute("aria-label", `${label} 1개 늘리기`);
-      minus.disabled = currentDelta <= -1 || currentCount <= 0;
-      plus.disabled = currentDelta >= 1;
-      count.className = "patrol-route-count";
-      count.textContent = String(currentCount);
-      delta.className = "patrol-route-delta";
-      delta.textContent = currentDelta === 0 ? "기본" : currentDelta > 0 ? `+${currentDelta}` : String(currentDelta);
-      minus.addEventListener("click", () => {
-        patrolRouteDraft[id] = Math.max(-1, (patrolRouteDraft[id] || 0) - 1);
-        renderPatrolRoutePanel();
-      });
-      plus.addEventListener("click", () => {
-        patrolRouteDraft[id] = Math.min(1, (patrolRouteDraft[id] || 0) + 1);
-        renderPatrolRoutePanel();
-      });
-      stepper.append(minus, count, plus, delta);
-      row.append(icon, name, stepper);
-      el.patrolRouteRows.append(row);
+    el.patrolRouteCurrent.replaceChildren();
+    el.patrolRouteReserve.replaceChildren();
+
+    patrolRouteDraft.current.forEach((id, index) => {
+      el.patrolRouteCurrent.append(makePatrolTileButton(id, "current", index));
+    });
+    patrolRouteDraft.reserve.forEach((id, index) => {
+      el.patrolRouteReserve.append(makePatrolTileButton(id, "reserve", index));
+    });
+
+    if (patrolRouteSelectedCurrent !== null) {
+      const id = patrolRouteDraft.current[patrolRouteSelectedCurrent];
+      el.patrolRouteStatus.textContent = `${PATROL_ROUTE_LABELS[id]} 선택 · 교체판에서 바꿀 타일을 누르세요.`;
+    } else if (patrolRouteSelectedReserve !== null) {
+      const id = patrolRouteDraft.reserve[patrolRouteSelectedReserve];
+      el.patrolRouteStatus.textContent = `${PATROL_ROUTE_LABELS[id]} 선택 · 현재 경로에서 바꿀 타일을 누르세요.`;
+    } else {
+      const monsterCount = patrolRouteDraft.current.filter((id) => id === "monster").length;
+      el.patrolRouteStatus.textContent = monsterCount
+        ? `현재 일반 마물 타일 ${monsterCount}칸 추가 · 타일을 눌러 서로 교체하세요.`
+        : "현재 경로 타일을 고른 뒤 교체판 타일을 누르면 서로 바뀝니다.";
     }
-    const total = patrolDraftTotal();
-    const ready = total === 0;
-    el.patrolRouteStatus.classList.toggle("is-warning", !ready);
-    el.patrolRouteStatus.textContent = ready
-      ? "총 타일 수 24 유지 · 이 구성으로 다음 순찰을 확정할 수 있습니다."
-      : `조정 합계 ${total > 0 ? "+" : ""}${total} · 늘린 만큼 다른 타일을 줄여 주세요.`;
-    el.patrolRouteConfirm.disabled = !ready;
+    el.patrolRouteConfirm.disabled = false;
   }
 
   function openPatrolRoute() {
     if (!eventOpen || activeEventTileId !== "home") return;
-    patrolRouteDraft = { ...patrolRouteDeltas };
+    patrolRouteDraft = clonePatrolRouteState(patrolRouteState);
+    patrolRouteSelectedCurrent = null;
+    patrolRouteSelectedReserve = null;
     renderPatrolRoutePanel();
     el.patrolRoutePanel.hidden = false;
     el.board.classList.add("is-patrol-route-open");
@@ -886,6 +929,8 @@
     if (el.patrolRoutePanel.hidden) return;
     el.patrolRoutePanel.hidden = true;
     el.board.classList.remove("is-patrol-route-open");
+    patrolRouteSelectedCurrent = null;
+    patrolRouteSelectedReserve = null;
     if (eventOpen && activeEventTileId === "home") {
       el.eventPatrolRoute.hidden = false;
       el.eventInheritance.hidden = false;
@@ -895,14 +940,16 @@
   }
 
   function resetPatrolRouteDraft() {
-    patrolRouteDraft = Object.fromEntries(PATROL_ROUTE_TYPES.map(({ id }) => [id, 0]));
+    patrolRouteDraft = defaultPatrolRouteState();
+    patrolRouteSelectedCurrent = null;
+    patrolRouteSelectedReserve = null;
     renderPatrolRoutePanel();
   }
 
   function confirmPatrolRoute() {
-    if (patrolDraftTotal() !== 0) return;
-    patrolRouteDeltas = { ...patrolRouteDraft };
-    savePatrolRouteDeltas();
+    if (!patrolRouteInventoryIsValid(patrolRouteDraft)) return;
+    patrolRouteState = clonePatrolRouteState(patrolRouteDraft);
+    savePatrolRouteState();
     el.diceResult.textContent = "순찰경로 확정 · 집에서 나가면 다음 타일 배치에 적용";
     closePatrolRoute();
   }
@@ -938,22 +985,25 @@
       counts["fortune-teller-camp"] === 1 &&
       counts.village === 1 &&
       counts.home === 1 &&
-      counts.graveyard === 2 &&
       counts.altar === 1 &&
       counts.unknown === 1 &&
-      counts.forest === 2 &&
       counts["rare-monster"] === 1 &&
       counts.gem === 1 &&
       counts.swamp === 1 &&
-      counts.warp === 2;
+      counts.warp === 2 &&
+      (counts.graveyard || 0) >= 1 &&
+      (counts.forest || 0) >= 1 &&
+      (counts.rest || 0) >= 1 &&
+      (counts.event || 0) >= 1 &&
+      (counts.monster || 0) >= 1;
 
     if (!fixedCountsValid) return false;
 
     const bossCount = counts.boss || 0;
-    const adjustableTotal = ["basic", "monster", "rest", "event"]
-      .reduce((sum, id) => sum + (counts[id] || 0), 0);
-    if (bossCount === 0) return pool[23]?.id !== "boss" && adjustableTotal === 10;
-    return bossCount === 1 && pool[23]?.id === "boss" && adjustableTotal === 9;
+    if (bossCount !== 0 && bossCount !== 1) return false;
+    if (bossCount === 1 && pool[23]?.id !== "boss") return false;
+    if (bossCount === 0 && pool[23]?.id === "boss") return false;
+    return true;
   }
 
   function loadSavedMapLayout() {
@@ -1089,11 +1139,12 @@
       if (tile.id === "basic") return { ...tile, count: Math.max(0, tile.count - monsterDelta) + (bossActive ? 0 : 1) };
       return { ...tile };
     });
+    const routeDeltas = patrolRouteMapDeltas();
     const adjusted = stagedTypes.map((tile) => {
-      const delta = patrolRouteDeltas[tile.id] || 0;
+      const delta = routeDeltas[tile.id] || 0;
       return delta ? { ...tile, count: tile.count + delta } : tile;
     });
-    if (adjusted.every((tile) => tile.count >= 0) && Object.values(patrolRouteDeltas).reduce((sum, value) => sum + value, 0) === 0) {
+    if (adjusted.every((tile) => tile.count >= 0) && Object.values(routeDeltas).reduce((sum, value) => sum + value, 0) === 0) {
       stagedTypes = adjusted;
     }
 
