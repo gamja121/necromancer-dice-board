@@ -89,7 +89,6 @@
     Object.freeze({ id: "basic", label: "기본" }),
     Object.freeze({ id: "monster", label: "일반 마물" }),
     Object.freeze({ id: "rest", label: "숙영" }),
-    Object.freeze({ id: "gem", label: "보물" }),
     Object.freeze({ id: "event", label: "사건" })
   ]);
   const MONSTER_BATTLE_TILE_IDS = Object.freeze(new Set(["monster", "rare-monster", "boss"]));
@@ -936,16 +935,17 @@
       counts.unknown === 1 &&
       counts.forest === 2 &&
       counts["rare-monster"] === 1 &&
+      counts.gem === 1 &&
       counts.swamp === 1 &&
       counts.warp === 2;
 
     if (!fixedCountsValid) return false;
 
     const bossCount = counts.boss || 0;
-    const adjustableTotal = ["basic", "monster", "rest", "gem", "event"]
+    const adjustableTotal = ["basic", "monster", "rest", "event"]
       .reduce((sum, id) => sum + (counts[id] || 0), 0);
-    if (bossCount === 0) return pool[23]?.id !== "boss" && adjustableTotal === 11;
-    return bossCount === 1 && pool[23]?.id === "boss" && adjustableTotal === 10;
+    if (bossCount === 0) return pool[23]?.id !== "boss" && adjustableTotal === 10;
+    return bossCount === 1 && pool[23]?.id === "boss" && adjustableTotal === 9;
   }
 
   function loadSavedMapLayout() {
