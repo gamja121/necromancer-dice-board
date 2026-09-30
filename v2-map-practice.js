@@ -38,7 +38,7 @@
     { id: "rest", name: "휴식 타일", count: 2 },
     { id: "monster", name: "일반 마물 타일", count: 2 },
     { id: "rare-monster", name: "희귀 마물 타일", count: 1 },
-    { id: "gem", name: "보석 타일", count: 2 },
+    { id: "gem", name: "보석 타일", count: 1 },
     { id: "event", name: "이벤트 타일", count: 2 },
     { id: "swamp", name: "오염된 늪지대", count: 1 },
     { id: "warp", name: "워프 타일", count: 2 }
@@ -1692,18 +1692,17 @@
       label: card.label,
       image: V2DiceControl.imagePath(card, "ko")
     }));
-    const brandCard = V2BrandCards.create();
-    const brandReward = {
-      type: "brand",
-      id: brandCard.id,
-      label: V2BrandCards.label(brandCard),
-      image: V2BrandCards.imagePath(),
-      brandCard
-    };
-    // Always show exactly one brand card among the three treasure choices.
-    // The other two remain random picks from monster and dice-control rewards.
-    const otherRewards = shuffle([...unitRewards, ...diceRewards]).slice(0, 2);
-    return shuffle([brandReward, ...otherRewards]);
+    const brandRewards = Array.from({ length: 3 }, () => {
+      const brandCard = V2BrandCards.create();
+      return {
+        type: "brand",
+        id: brandCard.id,
+        label: V2BrandCards.label(brandCard),
+        image: V2BrandCards.imagePath(),
+        brandCard
+      };
+    });
+    return shuffle([...unitRewards, ...diceRewards, ...brandRewards]).slice(0, 3);
   }
 
   async function animateTreasureRewardToTarget(reward, selectedCard) {
