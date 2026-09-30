@@ -153,6 +153,8 @@
     patrolRouteReset: document.getElementById("patrolRouteReset"),
     patrolRouteConfirm: document.getElementById("patrolRouteConfirm"),
     eventHeal: document.getElementById("tileEventHeal"),
+    fullHealEffect: document.getElementById("fullHealEffect"),
+    fullHealParticles: document.getElementById("fullHealParticles"),
     eventPray: document.getElementById("tileEventPray"),
     eventRitual: document.getElementById("tileEventRitual"),
     eventProphecy: document.getElementById("tileEventProphecy"),
@@ -515,6 +517,46 @@
     saveOwnedRoster();
     renderBookRoster();
     if (!el.deckOverlay.hidden) renderDeckSelection();
+  }
+
+  const FULL_HEAL_CROSS_SPECS = Object.freeze([
+    [6, 26, 0, 2320, -7], [13, 44, 240, 2050, 8], [20, 31, 90, 2480, -4],
+    [28, 58, 410, 2180, 6], [36, 24, 180, 2620, -8], [43, 39, 520, 2100, 5],
+    [51, 29, 60, 2380, -3], [58, 52, 330, 2260, 7], [66, 22, 590, 1940, -6],
+    [72, 46, 130, 2520, 5], [79, 34, 450, 2160, -8], [87, 61, 260, 2400, 6],
+    [94, 27, 640, 2020, -4], [10, 36, 760, 1900, 6], [33, 48, 720, 2220, -5],
+    [55, 25, 850, 1840, 7], [76, 55, 800, 2180, -6], [91, 38, 920, 1880, 4]
+  ]);
+
+  async function playFullHealEffect() {
+    if (!el.fullHealEffect || !el.fullHealParticles) return;
+    el.fullHealParticles.replaceChildren();
+
+    const reducedMotion = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    const specs = reducedMotion ? FULL_HEAL_CROSS_SPECS.slice(0, 7) : FULL_HEAL_CROSS_SPECS;
+
+    for (const [left, size, delay, duration, drift] of specs) {
+      const cross = document.createElement("img");
+      cross.className = "full-heal-cross";
+      cross.src = "art/v2-style/ui/heal-cross.webp?v=1";
+      cross.alt = "";
+      cross.style.setProperty("--heal-left", `${left}%`);
+      cross.style.setProperty("--heal-size", `${size}px`);
+      cross.style.setProperty("--heal-delay", `${reducedMotion ? Math.min(delay, 220) : delay}ms`);
+      cross.style.setProperty("--heal-duration", `${reducedMotion ? Math.min(duration, 950) : duration}ms`);
+      cross.style.setProperty("--heal-drift", `${drift}vw`);
+      el.fullHealParticles.append(cross);
+    }
+
+    el.fullHealEffect.hidden = false;
+    el.fullHealEffect.classList.remove("is-playing");
+    void el.fullHealEffect.offsetWidth;
+    el.fullHealEffect.classList.add("is-playing");
+
+    await wait(reducedMotion ? 1050 : 3200);
+    el.fullHealEffect.classList.remove("is-playing");
+    el.fullHealEffect.hidden = true;
+    el.fullHealParticles.replaceChildren();
   }
 
   function emptyProphecyStack() {
@@ -2178,14 +2220,17 @@
     return true;
   }
 
-  function healAtRestTile() {
+  async function healAtRestTile() {
     if (!eventOpen || activeEventTileId !== "rest" || !hasInjuredOwnedUnits()) {
       el.eventHeal.hidden = true;
       return;
     }
     healOwnedRosterFull();
     el.eventHeal.hidden = true;
+    el.eventClose.disabled = true;
     el.diceResult.textContent = "숙영 · 모든 마물 체력 완전 회복";
+    await playFullHealEffect();
+    el.eventClose.disabled = false;
     el.eventClose.focus();
   }
 
@@ -2739,6 +2784,8 @@
       addContamination(2);
       healOwnedRosterFull();
       mapStoryEvents?.advanceLoop();
+      el.diceResult.textContent = "귀환 · 모든 마물 체력 완전 회복";
+      await playFullHealEffect();
     }
     closeTileEvent();
     if (refreshAfterHome) await playCloudTileRefresh();
