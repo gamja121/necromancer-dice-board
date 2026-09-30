@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20260930-patrol-button-fix-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20260930-shop-assets-1";
 
 const CORE_ASSETS = [
   "./",
@@ -16,7 +16,7 @@ const CORE_ASSETS = [
   "./launch.js?v=20260930-title-1",
   "./v2-map-practice.html",
   "./v2-auto-battle-practice.html",
-  "./v2-map-practice.css?v=64",
+  "./v2-map-practice.css?v=65",
   "./v2-home-inheritance.css?v=9",
   "./v2-altar-ritual.css?v=4",
   "./v2-auto-battle-practice.css?v=63",
@@ -48,7 +48,7 @@ const CORE_ASSETS = [
   "./art/v2-style/ui/map-book-closed.png",
   "./art/v2-style/ui/map-book-open.png",
   "./art/v2-style/ui/map-card-deck.png",
-  "./art/v2-style/ui/monster-shop-counter.png?v=2",
+  "./art/v2-style/ui/shop/shop-panel.png?v=1",
   "./art/v2-style/ui/patrol-route-atlas.webp?v=1",
   "./art/v2-style/ui/map-card-deck-open.png",
   "./art/v2-style/ui/battle-deck-selection-board.png",
