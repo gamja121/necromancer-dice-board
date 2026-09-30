@@ -823,6 +823,7 @@
     el.patrolRouteRows.replaceChildren();
     for (const { id, label } of PATROL_ROUTE_TYPES) {
       const row = document.createElement("div");
+      const icon = document.createElement("img");
       const name = document.createElement("span");
       const stepper = document.createElement("div");
       const minus = document.createElement("button");
@@ -832,11 +833,16 @@
       const currentDelta = patrolRouteDraft[id] || 0;
       const currentCount = Math.max(0, (baseline[id] || 0) + currentDelta);
       row.className = "patrol-route-row";
+      row.dataset.type = id;
+      icon.className = "patrol-route-row-icon";
+      icon.src = `${ROOT}tiles/${id}.png?v=${TILE_ASSET_VERSION}`;
+      icon.alt = "";
+      name.className = "patrol-route-name";
       name.textContent = label;
       stepper.className = "patrol-route-stepper";
       minus.type = plus.type = "button";
-      minus.textContent = "−";
-      plus.textContent = "+";
+      minus.setAttribute("aria-label", `${label} 1개 줄이기`);
+      plus.setAttribute("aria-label", `${label} 1개 늘리기`);
       minus.disabled = currentDelta <= -1 || currentCount <= 0;
       plus.disabled = currentDelta >= 1;
       count.className = "patrol-route-count";
@@ -852,7 +858,7 @@
         renderPatrolRoutePanel();
       });
       stepper.append(minus, count, plus, delta);
-      row.append(name, stepper);
+      row.append(icon, name, stepper);
       el.patrolRouteRows.append(row);
     }
     const total = patrolDraftTotal();
@@ -869,6 +875,7 @@
     patrolRouteDraft = { ...patrolRouteDeltas };
     renderPatrolRoutePanel();
     el.patrolRoutePanel.hidden = false;
+    el.board.classList.add("is-patrol-route-open");
     el.eventPatrolRoute.hidden = true;
     el.eventInheritance.hidden = true;
     el.eventClose.hidden = true;
@@ -878,6 +885,7 @@
   function closePatrolRoute() {
     if (el.patrolRoutePanel.hidden) return;
     el.patrolRoutePanel.hidden = true;
+    el.board.classList.remove("is-patrol-route-open");
     if (eventOpen && activeEventTileId === "home") {
       el.eventPatrolRoute.hidden = false;
       el.eventInheritance.hidden = false;
@@ -2636,6 +2644,7 @@
     el.eventInheritance.hidden = true;
     el.eventPatrolRoute.hidden = true;
     el.patrolRoutePanel.hidden = true;
+    el.board.classList.remove("is-patrol-route-open");
     el.eventHeal.hidden = true;
     el.eventPray.hidden = true;
     el.eventRitual.hidden = true;

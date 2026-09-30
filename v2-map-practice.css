@@ -674,89 +674,102 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 
 /* Home patrol route configuration */
 .tile-event-patrol-route {
-  position: absolute;
-  left: 50%;
-  bottom: 17%;
-  transform: translateX(-50%);
-  min-width: 150px;
-  padding: 10px 18px;
-  border: 1px solid rgba(226, 196, 132, .72);
-  border-radius: 8px;
-  background: rgba(25, 18, 12, .9);
-  color: #f7ead0;
-  font: inherit;
-  font-weight: 800;
-  z-index: 7;
+  position:absolute; left:50%; bottom:17%; z-index:7;
+  min-width:150px; padding:9px 20px; transform:translateX(-50%);
+  border:2px solid #75604b; border-radius:5px;
+  background:linear-gradient(#68452b,#3d2719);
+  color:#f7e5bd; font:900 clamp(10px,1.05vw,14px)/1 "Malgun Gothic",sans-serif;
+  text-shadow:0 2px 2px #160c07; box-shadow:0 4px 8px #0008,inset 0 0 0 1px #b48a5b55;
 }
 .patrol-route-panel {
-  position: absolute;
-  inset: 7% 9% 9%;
-  z-index: 12;
-  overflow: auto;
-  padding: 18px;
-  border: 1px solid rgba(226, 196, 132, .68);
-  border-radius: 14px;
-  background: rgba(16, 12, 9, .96);
-  box-shadow: 0 16px 48px rgba(0,0,0,.5);
+  position:absolute; z-index:20; left:50%; top:50%;
+  width:132%; height:128%; transform:translate(-50%,-50%);
+  box-sizing:border-box; padding:10.5% 8% 7.5%;
+  overflow:hidden; pointer-events:auto;
+  background-image:url("art/v2-style/ui/patrol-route-atlas.webp?v=1");
+  background-repeat:no-repeat; background-size:177.778% 237.037%; background-position:0 0;
+  color:#332116; filter:drop-shadow(0 12px 14px #000b);
 }
-.patrol-route-head,
-.patrol-route-actions,
-.patrol-route-row {
-  display: flex;
-  align-items: center;
+.patrol-route-panel[hidden]{display:none}
+.patrol-route-title {
+  position:absolute; z-index:2; left:50%; top:3.4%; width:48%; aspect-ratio:3/1;
+  transform:translateX(-50%);
+  background-image:url("art/v2-style/ui/patrol-route-atlas.webp?v=1");
+  background-repeat:no-repeat; background-size:266.667% 800%; background-position:92% 0;
+  filter:drop-shadow(0 3px 3px #0007); pointer-events:none;
 }
-.patrol-route-head { justify-content: space-between; gap: 12px; }
-.patrol-route-head strong { font-size: 1.25rem; }
-.patrol-route-head button,
-.patrol-route-actions button,
-.patrol-route-stepper button {
-  border: 1px solid rgba(226, 196, 132, .55);
-  border-radius: 8px;
-  background: rgba(60, 43, 27, .9);
-  color: #f7ead0;
-  font: inherit;
-}
-.patrol-route-head button,
-.patrol-route-actions button { padding: 8px 14px; }
+.patrol-route-title span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .patrol-route-guide {
-  margin: 10px 0 8px;
-  color: #d9c8a6;
-  line-height: 1.45;
+  position:relative; z-index:2; margin:0 auto 1.2%; width:74%;
+  color:#4b3421; font:800 clamp(8px,.8vw,11px)/1.25 "Malgun Gothic",sans-serif;
+  text-align:center; text-shadow:0 1px #f6ddb0;
 }
-.patrol-route-fixed {
-  margin-bottom: 12px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: rgba(255,255,255,.05);
-  color: #bcae91;
-  font-size: .9rem;
+.patrol-route-content{position:relative;z-index:2;display:flex;gap:2.2%;height:68%;align-items:stretch}
+.patrol-route-rows{display:grid;grid-template-rows:repeat(4,1fr);gap:2.5%;width:73%;min-width:0}
+.patrol-route-row{
+  position:relative;display:flex;align-items:center;min-height:0;padding:1.5% 3.5% 1.5% 2.2%;
+  box-sizing:border-box;
+  background-image:url("art/v2-style/ui/patrol-route-atlas.webp?v=1");
+  background-repeat:no-repeat;background-size:228.571% 914.286%;background-position:100% 14.737%;
+  filter:drop-shadow(0 3px 3px #0005);
 }
-.patrol-route-rows { display: grid; gap: 7px; }
-.patrol-route-row {
-  justify-content: space-between;
-  gap: 10px;
-  padding: 8px 10px;
-  border-bottom: 1px solid rgba(255,255,255,.08);
+.patrol-route-row-icon{
+  flex:0 0 auto;width:12%;max-height:78%;aspect-ratio:1;object-fit:contain;margin-right:3%;
+  filter:drop-shadow(0 2px 2px #0006);
 }
-.patrol-route-row span:first-child { min-width: 88px; font-weight: 700; }
-.patrol-route-stepper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.patrol-route-name{
+  min-width:0;flex:1;color:#352116;font:1000 clamp(9px,1vw,14px)/1 "Malgun Gothic",sans-serif;
+  text-shadow:0 1px #f4d8a7;white-space:nowrap;
 }
-.patrol-route-stepper button {
-  width: 34px;
-  height: 30px;
-  font-size: 1.05rem;
+.patrol-route-stepper{display:flex;align-items:center;justify-content:flex-end;gap:clamp(3px,.5vw,7px);width:47%}
+.patrol-route-stepper button{
+  flex:0 0 auto;width:clamp(25px,3vw,38px);aspect-ratio:1;border:0;padding:0;
+  background-image:url("art/v2-style/ui/patrol-route-atlas.webp?v=1");
+  background-repeat:no-repeat;color:transparent;font-size:0;cursor:pointer;
+  filter:drop-shadow(0 2px 2px #0008);transition:transform 90ms ease,filter 90ms ease,opacity 90ms ease;
 }
-.patrol-route-stepper button:disabled { opacity: .32; }
-.patrol-route-count { min-width: 26px; text-align: center; font-weight: 800; }
-.patrol-route-delta { min-width: 42px; color: #cdbb98; text-align: right; font-size: .88rem; }
-.patrol-route-status {
-  min-height: 1.4em;
-  margin: 12px 0 10px;
-  color: #e6d3ab;
+.patrol-route-stepper button:first-child{background-size:1333.333% 1333.333%;background-position:82.432% 27.027%}
+.patrol-route-stepper button:nth-of-type(2){background-size:1333.333% 1333.333%;background-position:91.892% 27.027%}
+.patrol-route-stepper button:not(:disabled):active{transform:scale(.9)}
+.patrol-route-stepper button:disabled{opacity:.32;filter:grayscale(.65)}
+.patrol-route-count{
+  display:grid;place-items:center;min-width:clamp(27px,3vw,42px);height:clamp(25px,3vw,38px);
+  padding:0 3px;box-sizing:border-box;border:2px solid #6e5845;border-radius:4px;
+  background:linear-gradient(#c7aa82,#e6cfaa 45%,#b99770);color:#2c1b12;
+  font:1000 clamp(13px,1.6vw,22px)/1 Georgia,"Malgun Gothic",serif;
+  box-shadow:inset 0 0 0 1px #f5dfbd88,0 2px 3px #0006;
 }
-.patrol-route-status.is-warning { color: #efb2a2; }
-.patrol-route-actions { justify-content: flex-end; gap: 8px; }
-#patrolRouteConfirm:disabled { opacity: .38; }
+.patrol-route-delta{min-width:clamp(29px,3vw,42px);color:#65472e;text-align:right;font:800 clamp(7px,.72vw,10px)/1 "Malgun Gothic",sans-serif}
+.patrol-route-fixed{
+  position:relative;width:24.5%;height:100%;box-sizing:border-box;padding:26% 13% 10%;overflow:hidden;
+  background-image:url("art/v2-style/ui/patrol-route-atlas.webp?v=1");
+  background-repeat:no-repeat;background-size:571.429% 428.954%;background-position:69.697% 32.6%;
+  filter:drop-shadow(0 3px 3px #0006);
+}
+.patrol-route-fixed ul{list-style:none;margin:0;padding:0;display:grid;gap:2.4%;height:100%;align-content:start}
+.patrol-route-fixed li{display:flex;justify-content:space-between;gap:4px;color:#3f2a1b;font:800 clamp(6px,.62vw,9px)/1.15 "Malgun Gothic",sans-serif;border-bottom:1px solid #73583b33;padding-bottom:2px}
+.patrol-route-fixed b{white-space:nowrap;color:#5c3920}
+.patrol-route-status{
+  position:relative;z-index:2;min-height:1.25em;margin:1.1% auto .5%;width:82%;
+  color:#4a3421;font:900 clamp(7px,.72vw,10px)/1.2 "Malgun Gothic",sans-serif;text-align:center;
+}
+.patrol-route-status.is-warning{color:#8e2b22}
+.patrol-route-actions{position:relative;z-index:2;display:flex;justify-content:center;align-items:center;gap:2.2%;height:13%}
+.patrol-route-action{
+  width:25%;aspect-ratio:3/1;border:0;padding:0;background-image:url("art/v2-style/ui/patrol-route-atlas.webp?v=1");
+  background-repeat:no-repeat;color:transparent;font-size:0;cursor:pointer;filter:drop-shadow(0 3px 3px #0008);
+  transition:transform 90ms ease,filter 90ms ease,opacity 90ms ease;
+}
+.patrol-route-reset{background-size:380.952% 1142.857%;background-position:77.966% 54.795%}
+.patrol-route-close{background-size:380.952% 1142.857%;background-position:77.966% 65.068%}
+.patrol-route-confirm{background-size:380.952% 1142.857%;background-position:77.966% 75.342%}
+.patrol-route-action:not(:disabled):hover,.patrol-route-action:not(:disabled):focus-visible{filter:brightness(1.1) drop-shadow(0 3px 5px #000a);outline:0}
+.patrol-route-action:not(:disabled):active{transform:translateY(1px) scale(.98)}
+#patrolRouteConfirm:disabled{opacity:.38;filter:grayscale(.55)}
+@media(max-height:420px) and (orientation:landscape){
+  .patrol-route-panel{width:138%;height:132%;padding:10% 7% 7%}
+  .patrol-route-guide{font-size:7px}
+  .patrol-route-row{padding-top:1%;padding-bottom:1%}
+  .patrol-route-fixed li{font-size:6px}
+  .patrol-route-status{font-size:7px}
+}
