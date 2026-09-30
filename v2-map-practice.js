@@ -245,6 +245,7 @@
   let activeEventRatio = 1280 / 714;
   let battleStep = 0;
   let battleTileType = "monster";
+  let battleMimicCount = 0;
   let clearedMonsterSteps = new Set();
   let worldTreePrayed = false;
   let worldTreePrayerRolling = false;
@@ -1159,6 +1160,37 @@
     return true;
   }
 
+  function mimicCountForContamination(value = contamination) {
+    if (value >= 80) return 4;
+    if (value >= 60) return 3;
+    if (value >= 20) return 2;
+    return 1;
+  }
+
+  function enterMimicBattle(step) {
+    if (enteringBattle) return false;
+    closeTileEvent();
+    forceCloseBookRoster();
+    enteringBattle = true;
+    battleStep = step;
+    battleTileType = "mimic";
+    battleMimicCount = mimicCountForContamination();
+    selectedDeck = [];
+    el.diceButton.disabled = true;
+    el.regenerate.disabled = true;
+    el.tileName.textContent = `${step}번 · 보물상자에서 미믹 ${battleMimicCount}마리 출현`;
+    el.diceResult.textContent = `미믹 습격 · 오염도 ${contamination} · ${battleMimicCount}마리`;
+    el.board.classList.add("is-deck-selecting");
+    el.deckOverlay.classList.remove("is-preview");
+    el.deckClose.hidden = true;
+    renderDeckSelection();
+    el.deckOverlay.hidden = false;
+    el.deckOverlay.classList.remove("is-open");
+    void el.deckOverlay.offsetWidth;
+    el.deckOverlay.classList.add("is-open");
+    return true;
+  }
+
   function openDiceControlCard() {
     if (rolling || eventOpen || enteringBattle || !el.infoOverlay.hidden) return;
     forceCloseBookRoster();
@@ -1615,6 +1647,9 @@
       encounterType: battleTileType,
       contamination: String(contamination)
     });
+    if (battleTileType === "mimic" && battleMimicCount > 0) {
+      params.set("mimicCount", String(battleMimicCount));
+    }
     const prophecy = pendingProphecy();
     if (prophecy.allyAttack) params.set("prophecyAllyAttack", String(prophecy.allyAttack));
     if (prophecy.allyHp) params.set("prophecyAllyHp", String(prophecy.allyHp));
@@ -1989,8 +2024,17 @@
       el.eventTreasure.classList.remove("is-burst");
       el.eventTreasure.src = treasureChestFrames[0];
       if (typeof V2Sfx !== "undefined") V2Sfx.play("treasureChestOpen");
-      void playTreasureChestAnimation().then(() => {
-        if (eventOpen && activeEventTileId === "gem") showTreasureRewards();
+      const mimicEncounter = Math.random() < 0.10;
+      void playTreasureChestAnimation().then(async () => {
+        if (!eventOpen || activeEventTileId !== "gem") return;
+        if (mimicEncounter) {
+          el.eventTreasure.classList.add("is-burst");
+          el.diceResult.textContent = "보물상자가 꿈틀거린다… 미믹!";
+          await wait(360);
+          enterMimicBattle(step);
+          return;
+        }
+        showTreasureRewards();
       });
     } else if (!storyOpened) {
       el.eventImage.src = scene.image;

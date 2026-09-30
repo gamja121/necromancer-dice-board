@@ -14,6 +14,7 @@
   const mapEncounterId = battleQuery.get("encounter") || "";
   const mapEncounterType = battleQuery.get("encounterType") || "monster";
   const scoutCount = Math.max(0, Math.min(4, Math.floor(Number(battleQuery.get("scoutCount")) || 0)));
+  const mimicCount = Math.max(1, Math.min(4, Math.floor(Number(battleQuery.get("mimicCount")) || 1)));
   const scoutGrade = ["normal","advanced","hero"].includes(battleQuery.get("scoutGrade")) ? battleQuery.get("scoutGrade") : "";
   const scoutLegion = typeof battleQuery.get("scoutLegion") === "string" ? (battleQuery.get("scoutLegion") || "") : "";
   const MAP_CONTAMINATION_KEY = "necromancer-map-contamination-v1";
@@ -239,6 +240,7 @@
   }
 
   function createMapEnemySlugs() {
+    if (mapEncounterType === "mimic") return Array.from({ length: mimicCount }, () => "mimic");
     const stage = mapEncounterStage();
     const count = scoutCount || weightedChoice(stage.counts, stage.countWeights);
     const gradeNames = ["normal", "advanced", "hero"];
@@ -1840,12 +1842,13 @@
     const rosterOutcome = battleOutcome.roster;
     if (fromMap && globalThis.V2RunStateRuntime?.available) {
       const clearedStep = Number(battleQuery.get("tile"));
+      const shouldClearMapTile = ["monster", "rare-monster", "boss"].includes(mapEncounterType);
       const stored = await V2RunStateRuntime.applyBattleOutcome({
         encounterId: mapEncounterId || `tile-${clearedStep}`,
         ownedMonsters: rosterOutcome,
         deadMonsters: battleOutcome.deadMonsters,
         won,
-        clearedStep
+        clearedStep: shouldClearMapTile ? clearedStep : null
       });
       if (!stored?.ok) {
         resultTitle.textContent = "저장 오류";
