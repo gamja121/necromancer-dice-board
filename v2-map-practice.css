@@ -678,105 +678,236 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 
 /* Home patrol route configuration */
 .tile-event-patrol-route {
-  right:1%;
-  bottom:18%;
-  left:auto;
-  z-index:7;
-  transform:none;
-  pointer-events:auto;
+  right: 1%;
+  bottom: 18%;
+  left: auto;
+  z-index: 7;
+  transform: none;
+  pointer-events: auto;
 }
-.tile-event-patrol-route[hidden]{display:none}
-.tile-event-patrol-route:hover{filter:brightness(1.15)}
-.tile-event-patrol-route:focus-visible{outline:2px solid #ffd77e;outline-offset:2px}
+.tile-event-patrol-route[hidden] { display: none; }
+.tile-event-patrol-route:hover { filter: brightness(1.15); }
+.tile-event-patrol-route:focus-visible { outline: 2px solid #ffd77e; outline-offset: 2px; }
+
+.map-board.is-patrol-route-open .tile-event-overlay::before {
+  content: "";
+  position: absolute;
+  z-index: 15;
+  inset: 0;
+  background: rgba(9, 7, 5, .58);
+  pointer-events: none;
+}
+
 .patrol-route-panel {
-  position:absolute; z-index:20; left:50%; top:50%;
-  width:132%; height:128%; transform:translate(-50%,-50%);
-  box-sizing:border-box; padding:10.5% 8% 7.5%;
-  overflow:hidden; pointer-events:auto;
-  background-image:url("art/v2-style/ui/patrol-route-atlas.webp?v=1");
-  background-repeat:no-repeat; background-size:177.778% 237.037%; background-position:0 0;
-  color:#332116; filter:drop-shadow(0 12px 14px #000b);
+  position: absolute;
+  z-index: 20;
+  left: 50%;
+  top: 50%;
+  width: 96%;
+  aspect-ratio: 4 / 3;
+  max-height: 96%;
+  transform: translate(-50%, -50%);
+  overflow: visible;
+  pointer-events: auto;
+  color: #3a281a;
 }
-.patrol-route-panel[hidden]{display:none}
+.patrol-route-panel[hidden] { display: none; }
+.patrol-route-frame-art {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 10px 12px #000a);
+}
+.patrol-route-ui {
+  position: absolute;
+  z-index: 1;
+  left: 7.5%;
+  right: 7.5%;
+  top: 13.5%;
+  bottom: 10.5%;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto auto;
+  gap: 1.7%;
+  min-height: 0;
+}
 .patrol-route-title {
-  position:absolute; z-index:2; left:50%; top:3.4%; width:48%; aspect-ratio:3/1;
-  transform:translateX(-50%);
-  background-image:url("art/v2-style/ui/patrol-route-atlas.webp?v=1");
-  background-repeat:no-repeat; background-size:266.667% 800%; background-position:92% 0;
-  filter:drop-shadow(0 3px 3px #0007); pointer-events:none;
+  margin: 0;
+  color: #372416;
+  font: 1000 clamp(15px, 2.1vw, 28px)/1 Georgia, "Malgun Gothic", serif;
+  text-align: center;
+  text-shadow: 0 1px #f8dfb3;
 }
-.patrol-route-title span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .patrol-route-guide {
-  position:relative; z-index:2; margin:0 auto 1.2%; width:74%;
-  color:#4b3421; font:800 clamp(8px,.8vw,11px)/1.25 "Malgun Gothic",sans-serif;
-  text-align:center; text-shadow:0 1px #f6ddb0;
+  margin: 0 auto;
+  width: 86%;
+  color: #5c4029;
+  font: 800 clamp(7px, .8vw, 11px)/1.3 "Malgun Gothic", sans-serif;
+  text-align: center;
 }
-.patrol-route-content{position:relative;z-index:2;display:flex;gap:2.2%;height:68%;align-items:stretch}
-.patrol-route-rows{display:grid;grid-template-rows:repeat(4,1fr);gap:2.5%;width:73%;min-width:0}
-.patrol-route-row{
-  position:relative;display:flex;align-items:center;min-height:0;padding:1.5% 3.5% 1.5% 2.2%;
-  box-sizing:border-box;
-  background-image:url("art/v2-style/ui/patrol-route-atlas.webp?v=1");
-  background-repeat:no-repeat;background-size:228.571% 914.286%;background-position:100% 14.737%;
-  filter:drop-shadow(0 3px 3px #0005);
+.patrol-route-content {
+  display: grid;
+  grid-template-columns: minmax(0, 2.25fr) minmax(118px, .95fr);
+  gap: 3%;
+  min-height: 0;
 }
-.patrol-route-row-icon{
-  flex:0 0 auto;width:12%;max-height:78%;aspect-ratio:1;object-fit:contain;margin-right:3%;
-  filter:drop-shadow(0 2px 2px #0006);
+.patrol-route-rows {
+  display: grid;
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+  gap: 4%;
+  min-height: 0;
 }
-.patrol-route-name{
-  min-width:0;flex:1;color:#352116;font:1000 clamp(9px,1vw,14px)/1 "Malgun Gothic",sans-serif;
-  text-shadow:0 1px #f4d8a7;white-space:nowrap;
+.patrol-route-row {
+  display: grid;
+  grid-template-columns: auto minmax(70px, 1fr) auto;
+  align-items: center;
+  gap: 3%;
+  min-height: 0;
+  padding: 1.4% 3%;
+  border: 1px solid rgba(92, 61, 36, .45);
+  border-radius: 4px;
+  background: rgba(224, 194, 145, .32);
+  box-shadow: inset 0 0 0 1px rgba(255, 239, 207, .24);
 }
-.patrol-route-stepper{display:flex;align-items:center;justify-content:flex-end;gap:clamp(3px,.5vw,7px);width:47%}
-.patrol-route-stepper button{
-  flex:0 0 auto;width:clamp(25px,3vw,38px);aspect-ratio:1;border:0;padding:0;
-  background-image:url("art/v2-style/ui/patrol-route-atlas.webp?v=1");
-  background-repeat:no-repeat;color:transparent;font-size:0;cursor:pointer;
-  filter:drop-shadow(0 2px 2px #0008);transition:transform 90ms ease,filter 90ms ease,opacity 90ms ease;
+.patrol-route-row-icon {
+  width: clamp(28px, 5.1vw, 58px);
+  aspect-ratio: 1;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 2px #0005);
 }
-.patrol-route-stepper button:first-child{background-size:1333.333% 1333.333%;background-position:82.432% 27.027%}
-.patrol-route-stepper button:nth-of-type(2){background-size:1333.333% 1333.333%;background-position:91.892% 27.027%}
-.patrol-route-stepper button:not(:disabled):active{transform:scale(.9)}
-.patrol-route-stepper button:disabled{opacity:.32;filter:grayscale(.65)}
-.patrol-route-count{
-  display:grid;place-items:center;min-width:clamp(27px,3vw,42px);height:clamp(25px,3vw,38px);
-  padding:0 3px;box-sizing:border-box;border:2px solid #6e5845;border-radius:4px;
-  background:linear-gradient(#c7aa82,#e6cfaa 45%,#b99770);color:#2c1b12;
-  font:1000 clamp(13px,1.6vw,22px)/1 Georgia,"Malgun Gothic",serif;
-  box-shadow:inset 0 0 0 1px #f5dfbd88,0 2px 3px #0006;
+.patrol-route-name {
+  min-width: 0;
+  color: #352216;
+  font: 1000 clamp(9px, 1.05vw, 14px)/1 "Malgun Gothic", sans-serif;
+  text-shadow: 0 1px #f4d9aa;
+  white-space: nowrap;
 }
-.patrol-route-delta{min-width:clamp(29px,3vw,42px);color:#65472e;text-align:right;font:800 clamp(7px,.72vw,10px)/1 "Malgun Gothic",sans-serif}
-.patrol-route-fixed{
-  position:relative;width:24.5%;height:100%;box-sizing:border-box;padding:26% 13% 10%;overflow:hidden;
-  background-image:url("art/v2-style/ui/patrol-route-atlas.webp?v=1");
-  background-repeat:no-repeat;background-size:571.429% 428.954%;background-position:69.697% 32.6%;
-  filter:drop-shadow(0 3px 3px #0006);
+.patrol-route-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: clamp(3px, .45vw, 7px);
 }
-.patrol-route-fixed ul{list-style:none;margin:0;padding:0;display:grid;gap:2.4%;height:100%;align-content:start}
-.patrol-route-fixed li{display:flex;justify-content:space-between;gap:4px;color:#3f2a1b;font:800 clamp(6px,.62vw,9px)/1.15 "Malgun Gothic",sans-serif;border-bottom:1px solid #73583b33;padding-bottom:2px}
-.patrol-route-fixed b{white-space:nowrap;color:#5c3920}
-.patrol-route-status{
-  position:relative;z-index:2;min-height:1.25em;margin:1.1% auto .5%;width:82%;
-  color:#4a3421;font:900 clamp(7px,.72vw,10px)/1.2 "Malgun Gothic",sans-serif;text-align:center;
+.patrol-route-stepper button {
+  width: clamp(28px, 3.5vw, 44px);
+  min-width: 28px;
+  height: clamp(25px, 3vw, 38px);
+  padding: 0;
+  border: 0;
+  background: url("art/v2-style/map-test/events/enter-parchment.png") center / 100% 100% no-repeat;
+  color: #49301d;
+  font: 1000 clamp(14px, 1.6vw, 22px)/1 Georgia, serif;
+  text-shadow: 0 1px #fff7df;
+  cursor: pointer;
+  filter: drop-shadow(0 2px 2px #0007);
+  pointer-events: auto;
 }
-.patrol-route-status.is-warning{color:#8e2b22}
-.patrol-route-actions{position:relative;z-index:2;display:flex;justify-content:center;align-items:center;gap:2.2%;height:13%}
-.patrol-route-action{
-  width:25%;aspect-ratio:3/1;border:0;padding:0;background-image:url("art/v2-style/ui/patrol-route-atlas.webp?v=1");
-  background-repeat:no-repeat;color:transparent;font-size:0;cursor:pointer;filter:drop-shadow(0 3px 3px #0008);
-  transition:transform 90ms ease,filter 90ms ease,opacity 90ms ease;
+.patrol-route-stepper button:not(:disabled):active { transform: translateY(1px) scale(.96); }
+.patrol-route-stepper button:disabled { opacity: .34; filter: grayscale(.5); cursor: default; }
+.patrol-route-count {
+  display: grid;
+  place-items: center;
+  min-width: clamp(28px, 3.3vw, 42px);
+  height: clamp(25px, 3vw, 38px);
+  padding: 0 3px;
+  box-sizing: border-box;
+  border: 1px solid #6b4b31;
+  border-radius: 3px;
+  background: rgba(239, 213, 170, .76);
+  color: #2e1c12;
+  font: 1000 clamp(13px, 1.55vw, 21px)/1 Georgia, serif;
+  box-shadow: inset 0 0 0 1px rgba(255, 245, 220, .6);
 }
-.patrol-route-reset{background-size:380.952% 1142.857%;background-position:77.966% 54.795%}
-.patrol-route-close{background-size:380.952% 1142.857%;background-position:77.966% 65.068%}
-.patrol-route-confirm{background-size:380.952% 1142.857%;background-position:77.966% 75.342%}
-.patrol-route-action:not(:disabled):hover,.patrol-route-action:not(:disabled):focus-visible{filter:brightness(1.1) drop-shadow(0 3px 5px #000a);outline:0}
-.patrol-route-action:not(:disabled):active{transform:translateY(1px) scale(.98)}
-#patrolRouteConfirm:disabled{opacity:.38;filter:grayscale(.55)}
-@media(max-height:420px) and (orientation:landscape){
-  .patrol-route-panel{width:138%;height:132%;padding:10% 7% 7%}
-  .patrol-route-guide{font-size:7px}
-  .patrol-route-row{padding-top:1%;padding-bottom:1%}
-  .patrol-route-fixed li{font-size:6px}
-  .patrol-route-status{font-size:7px}
+.patrol-route-delta {
+  min-width: clamp(25px, 3vw, 40px);
+  color: #6f4a2c;
+  text-align: right;
+  font: 800 clamp(7px, .7vw, 10px)/1 "Malgun Gothic", sans-serif;
+}
+.patrol-route-fixed {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  padding: 8% 9%;
+  border: 1px solid rgba(94, 63, 39, .55);
+  border-radius: 4px;
+  background: rgba(215, 181, 126, .28);
+  box-shadow: inset 0 0 0 1px rgba(255, 239, 208, .3);
+}
+.patrol-route-fixed strong {
+  margin-bottom: 7%;
+  color: #3a2618;
+  font: 1000 clamp(9px, 1vw, 14px)/1.15 Georgia, "Malgun Gothic", serif;
+  text-align: center;
+}
+.patrol-route-fixed p {
+  margin: 0;
+  color: #50351f;
+  font: 800 clamp(6px, .67vw, 9px)/1.45 "Malgun Gothic", sans-serif;
+}
+.patrol-route-fixed small {
+  display: block;
+  margin-top: 10%;
+  color: #7f3b2a;
+  font: 900 clamp(6px, .62vw, 8px)/1.3 "Malgun Gothic", sans-serif;
+}
+.patrol-route-status {
+  min-height: 1.3em;
+  margin: 0;
+  color: #513620;
+  font: 900 clamp(7px, .74vw, 10px)/1.2 "Malgun Gothic", sans-serif;
+  text-align: center;
+}
+.patrol-route-status.is-warning { color: #9b2d25; }
+.patrol-route-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.4%;
+  min-height: 0;
+}
+.patrol-route-action {
+  width: 25%;
+  min-width: 72px;
+  min-height: 31px;
+  aspect-ratio: 2.7;
+  padding: 0 8px;
+  border: 0;
+  color: #49301d;
+  font: 1000 clamp(9px, 1.05vw, 14px)/1 "Malgun Gothic", sans-serif;
+  text-shadow: 0 1px #fff7df;
+  cursor: pointer;
+  filter: drop-shadow(0 3px 3px #0008);
+  pointer-events: auto;
+}
+.patrol-route-reset,
+.patrol-route-confirm {
+  background: url("art/v2-style/map-test/events/enter-parchment.png") center / 100% 100% no-repeat;
+}
+.patrol-route-close {
+  background: url("art/v2-style/map-test/events/exit-parchment.png") center / 100% 100% no-repeat;
+}
+.patrol-route-action:not(:disabled):hover,
+.patrol-route-action:not(:disabled):focus-visible {
+  filter: brightness(1.12) drop-shadow(0 3px 4px #0009);
+  outline: 0;
+}
+.patrol-route-action:not(:disabled):active { transform: translateY(1px) scale(.98); }
+#patrolRouteConfirm:disabled { opacity: .38; filter: grayscale(.55); cursor: default; }
+
+@media (max-height: 420px) and (orientation: landscape) {
+  .patrol-route-panel { width: 93%; max-height: 94%; }
+  .patrol-route-ui { left: 7%; right: 7%; top: 13%; bottom: 9.5%; gap: 1.2%; }
+  .patrol-route-guide { font-size: 7px; }
+  .patrol-route-content { grid-template-columns: minmax(0, 2.4fr) minmax(104px, .9fr); gap: 2.2%; }
+  .patrol-route-row { gap: 2%; padding: 1% 2.4%; }
+  .patrol-route-fixed { padding: 6% 8%; }
+  .patrol-route-fixed p { font-size: 6px; }
+  .patrol-route-fixed small { font-size: 5.8px; margin-top: 7%; }
+  .patrol-route-action { min-height: 27px; }
 }
