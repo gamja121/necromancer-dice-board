@@ -76,6 +76,9 @@
       if (current?.currentMap && !current.currentMap.fortuneProphecy) {
         current.currentMap.fortuneProphecy = { allyAttack: 0, allyHp: 0, allySpeed: 0, enemyAttack: 0, rolls: [] };
       }
+      if (current?.currentMap && !current.currentMap.hillScout) {
+        current.currentMap.hillScout = { scouted: false, intel: [] };
+      }
       if (!current) {
         const raw = Core.collectLegacyStorage(root.sessionStorage, root.localStorage);
         const migrated = await store.migrateLegacy(raw, {
@@ -168,7 +171,10 @@
         tiles,
         heroIndex: Number.isInteger(options.heroIndex) ? options.heroIndex : draft.currentMap?.heroIndex ?? null,
         lapReadyForRefresh: Boolean(options.lapReadyForRefresh),
-        worldTreePrayed: Boolean(options.worldTreePrayed)
+        worldTreePrayed: Boolean(options.worldTreePrayed),
+        hillScout: same
+          ? (draft.currentMap?.hillScout || { scouted: false, intel: [] })
+          : { scouted: false, intel: [] }
       };
       if (!same) draft.clearedTiles = [];
     });
@@ -197,6 +203,9 @@
       if (typeof options.worldTreePrayed === "boolean") draft.currentMap.worldTreePrayed = options.worldTreePrayed;
       if (options.fortuneProphecy && typeof options.fortuneProphecy === "object") {
         draft.currentMap.fortuneProphecy = clone(options.fortuneProphecy);
+      }
+      if (options.hillScout && typeof options.hillScout === "object") {
+        draft.currentMap.hillScout = clone(options.hillScout);
       }
       if (Number.isInteger(options.previousRoll) || options.previousRoll === null) draft.diceContext.previousRoll = options.previousRoll;
       if (typeof options.previousEffectiveCardId === "string" || options.previousEffectiveCardId === null) {
