@@ -2,7 +2,7 @@
   "use strict";
 
   const ROOT = "art/v2-style/map-test/";
-  const TILE_ASSET_VERSION = "20260929-1";
+  const TILE_ASSET_VERSION = "20260930-swamp-1";
   const EVENT_ASSET_VERSION = "20260927-2";
   const DICE_ROOT = "art/v2-style/dice-test/frames/";
   const rollingFrames = Array.from({ length: 12 }, (_, index) => `${DICE_ROOT}roll-${String(index + 1).padStart(2, "0")}.png`);
@@ -39,7 +39,8 @@
     { id: "monster", name: "일반 마물 타일", count: 2 },
     { id: "rare-monster", name: "희귀 마물 타일", count: 1 },
     { id: "gem", name: "보석 타일", count: 2 },
-    { id: "event", name: "이벤트 타일", count: 3 },
+    { id: "event", name: "이벤트 타일", count: 2 },
+    { id: "swamp", name: "오염된 늪지대", count: 1 },
     { id: "warp", name: "워프 타일", count: 2 }
   ];
   const fixedTiles = Object.freeze({
@@ -328,6 +329,32 @@
     if (el.monsterCount) el.monsterCount.textContent = `${ownedUnits.size}/${MONSTER_CAPACITY}`;
     if (el.diceCardCount) el.diceCardCount.textContent = `${diceControlHand.length}/${DICE_CONTROL_CAPACITY}`;
   }
+  function applyPollutedSwamp(step) {
+    let damaged = 0;
+    const dead = [];
+    for (const [instanceId, unit] of [...ownedUnits.entries()]) {
+      const hp = Number.isFinite(unit.currentHp) ? unit.currentHp : unit.maxHp;
+      if (!Number.isFinite(hp) || hp <= 0) continue;
+      unit.currentHp = Math.max(0, hp - 1);
+      damaged += 1;
+      if (unit.currentHp <= 0) {
+        dead.push(unit);
+        ownedUnits.delete(instanceId);
+      }
+    }
+    selectedDeck = selectedDeck.filter((instanceId) => ownedUnits.has(instanceId));
+    saveOwnedRoster("polluted-swamp");
+    renderBookRoster();
+    if (!el.deckOverlay.hidden) renderDeckSelection();
+    renderInventoryCounts();
+    const deathText = dead.length ? ` · 사망 ${dead.length}마리` : "";
+    el.tileName.textContent = `${step}번 · 오염된 늪지대`;
+    el.diceResult.textContent = damaged
+      ? `오염된 늪지대 · 모든 마물 HP -1${deathText}`
+      : "오염된 늪지대 · 피해를 받을 마물이 없습니다";
+    return { damaged, dead: dead.length };
+  }
+
 
   function addOwnedUnit(slug) {
     if (!TEST_DECK.some((entry) => entry.slug === slug) || ownedUnits.size >= MONSTER_CAPACITY) return null;
@@ -769,7 +796,8 @@
       counts.rest === 2 &&
       counts["rare-monster"] === 1 &&
       counts.gem === 2 &&
-      counts.event === 3 &&
+      counts.event === 2 &&
+      counts.swamp === 1 &&
       counts.warp === 2;
 
     if (!fixedCountsValid) return false;
@@ -2821,6 +2849,14 @@
     }
     if (currentTiles[heroIndex]?.id === "warp") {
       await warpToOtherWarp();
+      rolling = false;
+      el.diceButton.disabled = false;
+      el.regenerate.disabled = false;
+      return;
+    }
+    if (currentTiles[heroIndex]?.id === "swamp") {
+      applyPollutedSwamp(heroIndex + 1);
+      await wait(420);
       rolling = false;
       el.diceButton.disabled = false;
       el.regenerate.disabled = false;
