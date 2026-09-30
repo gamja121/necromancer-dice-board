@@ -49,11 +49,11 @@
     fortune: Object.freeze({ id: "fortune-teller-camp", name: "점술가의 막사 타일", count: 1 }),
     boss: Object.freeze({ id: "boss", name: "보스 타일", count: 1 })
   });
-  const TEST_DECK = Object.freeze([
-    ["death-knight", "데스 나이트"], ["skeleton-spear", "해골 병사"], ["skeleton-archer", "해골 궁수"], ["ghoul", "구울"],
-    ["ancient-treant", "숲의 장로"], ["goblin-rider", "고블린 라이더"], ["minotaur", "미노타우로스"],
-    ["plague-doctor", "역병술사"], ["spider-knight", "거미여왕"], ["hydra", "히드라"], ["siren", "세이렌"]
-  ].map(([slug, name]) => Object.freeze({ slug, name })));
+  const TEST_DECK = Object.freeze(
+    Object.values(globalThis.V2DesignData?.units || {})
+      .filter((unit) => unit && unit.grade !== "special")
+      .map((unit) => Object.freeze({ slug: unit.slug, name: unit.name }))
+  );
   const OWNED_ROSTER_KEY = "necromancer-map-roster-v2";
   const FORTUNE_PROPHECY_KEY = "necromancer-fortune-prophecy-v1";
   const STARTING_UNIT_SLUGS = Object.freeze(["skeleton-spear", "skeleton-archer"]);
@@ -78,10 +78,7 @@
     Object.freeze({ min: 60, counts: Object.freeze([3]), countWeights: Object.freeze([1]), grades: Object.freeze({ normal: .35, advanced: .50, hero: .15 }) }),
     Object.freeze({ min: 80, counts: Object.freeze([3, 4]), countWeights: Object.freeze([.55, .45]), grades: Object.freeze({ normal: .20, advanced: .55, hero: .25 }) })
   ]);
-  const SCOUT_ENEMY_SLUGS = Object.freeze([
-    "death-knight", "skeleton-spear", "skeleton-archer", "ghoul", "ancient-treant", "goblin-rider",
-    "minotaur", "plague-doctor", "spider-knight", "hydra", "siren"
-  ]);
+  const SCOUT_ENEMY_SLUGS = Object.freeze(TEST_DECK.map((unit) => unit.slug));
   const BOSS_CONTAMINATION_MIN = 80;
   const MAP_LAYOUT_KEY = "necromancer-map-layout-v2";
   const LEGACY_MAP_LAYOUT_KEY = "necromancer-map-layout-v1";
