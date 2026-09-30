@@ -96,6 +96,11 @@
     event: "사건",
     monster: "일반 마물"
   });
+  // The current tile catalog became one tile short when treasure/event counts were reduced
+  // and swamp was added. Keep that structural slot explicit instead of silently padding
+  // with a basic tile. Before the boss unlocks, its future slot is also a normal monster.
+  const MAP_STRUCTURAL_MONSTER_SLOTS = 1;
+  const MAP_PRE_BOSS_MONSTER_SLOTS = 1;
   const MONSTER_BATTLE_TILE_IDS = Object.freeze(new Set(["monster", "rare-monster", "boss"]));
   const GRADE_LABELS = Object.freeze({ normal: "일반", advanced: "고급", hero: "영웅", special: "소환물" });
   const LEGION_LABELS = Object.freeze({ skeleton: "언데드", corpse: "시체", beast: "야수", plague: "역병", ice: "얼음", summon: "소환", demon: "악마", insect: "벌레", plant: "식물", element: "원소" });
@@ -829,14 +834,6 @@
     } catch (_) { /* Keep the current session playable even when storage is unavailable. */ }
   }
 
-  function patrolRouteMapDeltas(state = patrolRouteState) {
-    const ids = [...PATROL_ROUTE_ALLOWED_IDS];
-    const baseline = Object.fromEntries(ids.map((id) => [id, 0]));
-    const current = Object.fromEntries(ids.map((id) => [id, 0]));
-    PATROL_ROUTE_DEFAULT_CURRENT.forEach((id) => { baseline[id] += 1; });
-    state.current.forEach((id) => { current[id] += 1; });
-    return Object.fromEntries(ids.map((id) => [id, current[id] - baseline[id]]));
-  }
 
   function makePatrolTileButton(id, area, index) {
     const button = document.createElement("button");
@@ -974,37 +971,69 @@
       pool.every((tile) => tile && typeof tile.id === "string" && tileDefinitionById(tile.id));
   }
 
+  function patrolRouteDeltasForState(state = patrolRouteState) {
+    const ids = [...PATROL_ROUTE_ALLOWED_IDS];
+    const baseline = Object.fromEntries(ids.map((id) => [id, 0]));
+    const current = Object.fromEntries(ids.map((id) => [id, 0]));
+    PATROL_ROUTE_DEFAULT_CURRENT.forEach((id) => { baseline[id] += 1; });
+    state.current.forEach((id) => { current[id] += 1; });
+    return Object.fromEntries(ids.map((id) => [id, current[id] - baseline[id]]));
+  }
+
+  function buildMapTileCounts(state = patrolRouteState, contaminationValue = contamination) {
+    const counts = Object.fromEntries(tileTypes.map((tile) => [tile.id, tile.count]));
+    const routeDeltas = patrolRouteDeltasForState(state);
+
+    for (const [id, delta] of Object.entries(routeDeltas)) {
+      counts[id] = (counts[id] || 0) + delta;
+    }
+
+    // One explicit structural slot replaces the old invisible basic-tile fallback.
+    counts.monster += MAP_STRUCTURAL_MONSTER_SLOTS;
+
+    const stage = contaminationStage(contaminationValue);
+    const bossActive = contaminationValue >= BOSS_CONTAMINATION_MIN;
+
+    // Until the boss unlocks, the future boss slot is occupied by a normal monster.
+    if (!bossActive) counts.monster += MAP_PRE_BOSS_MONSTER_SLOTS;
+
+    // Corruption may turn remaining neutral/basic route tiles into monsters, but it
+    // must never recreate a basic tile or invalidate a patrol choice that removed it.
+    const requestedConversions = Math.max(0, stage.monsterTiles - 3);
+    const actualConversions = Math.min(requestedConversions, Math.max(0, counts.basic || 0));
+    counts.basic -= actualConversions;
+    counts.monster += actualConversions;
+
+    return counts;
+  }
+
+  function expectedMapDistribution(state = patrolRouteState, contaminationValue = contamination) {
+    const counts = buildMapTileCounts(state, contaminationValue);
+    counts["fortune-teller-camp"] = 1;
+    counts.village = 1;
+    counts.home = 1;
+    counts.boss = contaminationValue >= BOSS_CONTAMINATION_MIN ? 1 : 0;
+    return counts;
+  }
+
   function hasValidMapDistribution(pool) {
     if (!isValidMapPool(pool)) return false;
     if (pool[0]?.id !== "fortune-teller-camp" || pool[8]?.id !== "village" || pool[HOME_INDEX]?.id !== "home") return false;
 
-    const counts = pool.reduce((result, tile) => {
+    const actual = pool.reduce((result, tile) => {
       result[tile.id] = (result[tile.id] || 0) + 1;
       return result;
     }, {});
+    const expected = expectedMapDistribution();
 
-    const fixedCountsValid =
-      counts["fortune-teller-camp"] === 1 &&
-      counts.village === 1 &&
-      counts.home === 1 &&
-      counts.altar === 1 &&
-      counts.unknown === 1 &&
-      counts["rare-monster"] === 1 &&
-      counts.gem === 1 &&
-      counts.swamp === 1 &&
-      counts.warp === 2 &&
-      (counts.graveyard || 0) >= 1 &&
-      (counts.forest || 0) >= 1 &&
-      (counts.rest || 0) >= 1 &&
-      (counts.event || 0) >= 1 &&
-      (counts.monster || 0) >= 1;
+    const ids = new Set([...Object.keys(actual), ...Object.keys(expected)]);
+    for (const id of ids) {
+      if ((actual[id] || 0) !== (expected[id] || 0)) return false;
+    }
 
-    if (!fixedCountsValid) return false;
-
-    const bossCount = counts.boss || 0;
-    if (bossCount !== 0 && bossCount !== 1) return false;
-    if (bossCount === 1 && pool[23]?.id !== "boss") return false;
-    if (bossCount === 0 && pool[23]?.id === "boss") return false;
+    const bossActive = contamination >= BOSS_CONTAMINATION_MIN;
+    if (bossActive && pool[23]?.id !== "boss") return false;
+    if (!bossActive && pool[23]?.id === "boss") return false;
     return true;
   }
 
@@ -1132,22 +1161,13 @@
   }
 
   function createPool() {
-    const stage = contaminationStage();
     const bossActive = contamination >= BOSS_CONTAMINATION_MIN;
-    const monsterDelta = Math.max(0, stage.monsterTiles - 3);
-    let stagedTypes = tileTypes.map((tile) => {
-      if (tile.id === "monster") return { ...tile, count: Math.max(1, stage.monsterTiles - 1) };
-      if (tile.id === "rare-monster") return { ...tile, count: 1 };
-      if (tile.id === "basic") return { ...tile, count: Math.max(0, tile.count - monsterDelta) + (bossActive ? 0 : 1) };
-      return { ...tile };
-    });
-    const routeDeltas = patrolRouteMapDeltas();
-    const adjusted = stagedTypes.map((tile) => {
-      const delta = routeDeltas[tile.id] || 0;
-      return delta ? { ...tile, count: tile.count + delta } : tile;
-    });
-    if (adjusted.every((tile) => tile.count >= 0) && Object.values(routeDeltas).reduce((sum, value) => sum + value, 0) === 0) {
-      stagedTypes = adjusted;
+    const counts = buildMapTileCounts();
+
+    for (const [id, count] of Object.entries(counts)) {
+      if (!Number.isInteger(count) || count < 0) {
+        throw new Error(`Invalid map count for ${id}: ${count}`);
+      }
     }
 
     const pool = Array(24);
@@ -1156,31 +1176,25 @@
     pool[HOME_INDEX] = fixedTiles.home;
     if (bossActive) pool[23] = fixedTiles.boss;
 
-    // Array(24) is sparse: reduce() skips holes, so count empties from length minus real entries.
     const emptySlots = pool.length - pool.filter(Boolean).length;
-    let randomTiles = stagedTypes.flatMap((tile) => Array.from({ length: Math.max(0, tile.count) }, () => tile));
+    const randomTiles = tileTypes.flatMap((tile) =>
+      Array.from({ length: counts[tile.id] || 0 }, () => tile)
+    );
 
-    // The board must always contain exactly 24 real tiles. If future balance
-    // changes make the random pool count drift, repair the count before shuffle.
-    const basicTile = tileDefinitionById("basic");
-    if (randomTiles.length < emptySlots && basicTile) {
-      randomTiles.push(...Array.from({ length: emptySlots - randomTiles.length }, () => basicTile));
-    } else if (randomTiles.length > emptySlots) {
-      // Trim only generic basic tiles first so encounter/event counts stay intact.
-      let excess = randomTiles.length - emptySlots;
-      randomTiles = randomTiles.filter((tile) => {
-        if (excess > 0 && tile.id === "basic") {
-          excess -= 1;
-          return false;
-        }
-        return true;
-      });
-      if (randomTiles.length > emptySlots) randomTiles.length = emptySlots;
+    // Never silently repair a count mismatch with basic tiles. A mismatch here means
+    // a balance/configuration bug and must be visible during testing instead of
+    // changing the player's patrol route behind their back.
+    if (randomTiles.length !== emptySlots) {
+      const summary = Object.entries(counts)
+        .filter(([, count]) => count > 0)
+        .map(([id, count]) => `${id}:${count}`)
+        .join(",");
+      throw new Error(`Map count mismatch: random=${randomTiles.length}, slots=${emptySlots}, boss=${bossActive}, counts=${summary}`);
     }
 
     shuffle(randomTiles);
     for (let index = 0, randomIndex = 0; index < pool.length; index += 1) {
-      if (!pool[index]) pool[index] = randomTiles[randomIndex++] || basicTile;
+      if (!pool[index]) pool[index] = randomTiles[randomIndex++];
     }
 
     if (!hasValidMapDistribution(pool)) {
