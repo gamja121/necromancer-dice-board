@@ -13,6 +13,9 @@
   const fromMap = battleQuery.get("from") === "map";
   const mapEncounterId = battleQuery.get("encounter") || "";
   const mapEncounterType = battleQuery.get("encounterType") || "monster";
+  const scoutCount = Math.max(0, Math.min(4, Math.floor(Number(battleQuery.get("scoutCount")) || 0)));
+  const scoutGrade = ["normal","advanced","hero"].includes(battleQuery.get("scoutGrade")) ? battleQuery.get("scoutGrade") : "";
+  const scoutLegion = typeof battleQuery.get("scoutLegion") === "string" ? (battleQuery.get("scoutLegion") || "") : "";
   const MAP_CONTAMINATION_KEY = "necromancer-map-contamination-v1";
   const MAP_CONTAMINATION_WIN_PREFIX = "necromancer-map-contamination-win-v1:";
   const MAP_CLEARED_MONSTER_KEY = "necromancer-map-cleared-monsters-v1";
@@ -232,11 +235,23 @@
 
   function createMapEnemySlugs() {
     const stage = mapEncounterStage();
-    const count = weightedChoice(stage.counts, stage.countWeights);
+    const count = scoutCount || weightedChoice(stage.counts, stage.countWeights);
     const gradeNames = ["normal", "advanced", "hero"];
     const gradeWeights = gradeNames.map((grade) => stage.grades[grade]);
     const available = ROSTER.filter((entry) => TEST_DECK_SLUGS.includes(entry.slug) && gradeNames.includes(entry.grade));
     const selected = [];
+
+    if (scoutCount && scoutGrade && scoutLegion) {
+      const anchorCandidates = available.filter((entry) =>
+        entry.grade === scoutGrade && Array.isArray(entry.legions) && entry.legions.includes(scoutLegion)
+      );
+      if (anchorCandidates.length) {
+        const pick = anchorCandidates[Math.floor(Math.random() * anchorCandidates.length)];
+        selected.push(pick.slug);
+        available.splice(available.findIndex((entry) => entry.slug === pick.slug), 1);
+      }
+    }
+
     while (selected.length < count && available.length) {
       const desiredGrade = weightedChoice(gradeNames, gradeWeights);
       let candidates = available.filter((entry) => entry.grade === desiredGrade);
