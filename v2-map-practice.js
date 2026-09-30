@@ -159,9 +159,6 @@
     eventMonsterShop: document.getElementById("tileEventMonsterShop"),
     monsterShopPanel: document.getElementById("monsterShopPanel"),
     monsterShopClose: document.getElementById("monsterShopClose"),
-    monsterShopSellList: document.getElementById("monsterShopSellList"),
-    monsterShopRosterPicker: document.getElementById("monsterShopRosterPicker"),
-    monsterShopRosterClose: document.getElementById("monsterShopRosterClose"),
     monsterShopTradeSlot: document.getElementById("monsterShopTradeSlot"),
     monsterShopCancelTrade: document.getElementById("monsterShopCancelTrade"),
     monsterShopOffers: document.getElementById("monsterShopOffers"),
@@ -278,6 +275,7 @@
   let selectedTreasureRewardId = null;
   let monsterShopSelectedId = null;
   let monsterShopOffers = [];
+  let monsterShopChosenOfferId = null;
   let monsterShopTrading = false;
   let graveyardSelectedCorpseId = null;
   let graveyardExtracting = false;
@@ -1629,6 +1627,20 @@
       button.append(image, name);
       button.addEventListener("click", () => {
         if (bookAnimating) return;
+        if (el.board?.classList.contains("is-monster-shop-open")) {
+          if (monsterShopTrading || ownedUnits.size <= 1) {
+            el.monsterShopStatus.textContent = "마지막 마물 1장은 거래할 수 없습니다.";
+            return;
+          }
+          monsterShopSelectedId = owned.instanceId;
+          monsterShopOffers = createMonsterShopOffers(owned);
+          monsterShopChosenOfferId = null;
+          el.monsterShopStatus.textContent = `${entry.name}을 거래대에 올렸습니다. 상품을 한 번 눌러 선택하고, 한 번 더 눌러 거래하세요.`;
+          renderMonsterShopTradeSlot();
+          renderMonsterShopOffers();
+          forceCloseBookRoster();
+          return;
+        }
         const inspecting = button.classList.contains("is-inspecting");
         clearBookSelection();
         if (!inspecting) {
@@ -2435,7 +2447,7 @@
     const unit = monsterShopSelectedId ? ownedUnits.get(monsterShopSelectedId) : null;
     if (!unit) {
       const hint = document.createElement("span");
-      hint.textContent = "마물을 선택하세요";
+      hint.textContent = "왼쪽 책에서 마물을 고르세요";
       el.monsterShopTradeSlot.append(hint);
       el.monsterShopCancelTrade.hidden = true;
       return;
@@ -2479,68 +2491,32 @@
         title.textContent = V2BrandCards.label(offer.card).split(" · ")[0];
         detail.textContent = V2BrandCards.label(offer.card).split(" · ").slice(1).join(" · ");
       }
+      const selected = monsterShopChosenOfferId === offer.id;
+      button.classList.toggle("is-selected", selected);
+      button.setAttribute("aria-pressed", String(selected));
       button.append(image, title, detail);
-      button.addEventListener("click", () => confirmMonsterShopTrade(offer));
-      el.monsterShopOffers.append(button);
-    }
-  }
-
-  function renderMonsterShopRoster() {
-    el.monsterShopSellList.replaceChildren();
-    for (const unit of ownedUnits.values()) {
-      const button = document.createElement("button");
-      const image = document.createElement("img");
-      const name = document.createElement("span");
-      const grade = document.createElement("small");
-      button.type = "button";
-      button.className = "monster-shop-monster";
-      button.classList.toggle("is-selected", unit.instanceId === monsterShopSelectedId);
-      button.disabled = monsterShopTrading || ownedUnits.size <= 1;
-      image.src = `art/v2-style/ui/unit-card-${unit.slug}.png?v=19`;
-      image.alt = "";
-      name.textContent = unit.name || globalThis.V2DesignData?.units?.[unit.slug]?.name || unit.slug;
-      grade.textContent = GRADE_LABELS[monsterShopGrade(unit)] || monsterShopGrade(unit);
-      button.append(image, name, grade);
       button.addEventListener("click", () => {
-        if (monsterShopTrading || ownedUnits.size <= 1) return;
-        monsterShopSelectedId = unit.instanceId;
-        monsterShopOffers = createMonsterShopOffers(unit);
-        el.monsterShopStatus.textContent = `${name.textContent}을 거래대에 올렸습니다. 제안 중 하나를 선택하세요.`;
-        el.monsterShopRosterPicker.hidden = true;
-        renderMonsterShopRoster();
-        renderMonsterShopTradeSlot();
+        if (monsterShopTrading || button.disabled) return;
+        if (monsterShopChosenOfferId === offer.id) {
+          confirmMonsterShopTrade(offer);
+          return;
+        }
+        monsterShopChosenOfferId = offer.id;
+        el.monsterShopStatus.textContent = "선택한 상품을 한 번 더 누르면 거래가 확정됩니다.";
         renderMonsterShopOffers();
       });
-      el.monsterShopSellList.append(button);
+      el.monsterShopOffers.append(button);
     }
-    if (ownedUnits.size <= 1) el.monsterShopStatus.textContent = "마지막 마물 1장은 거래할 수 없습니다.";
-  }
-
-  function openMonsterShopRosterPicker() {
-    if (monsterShopTrading) return;
-    if (ownedUnits.size <= 1) {
-      el.monsterShopStatus.textContent = "마지막 마물 1장은 거래할 수 없습니다.";
-      return;
-    }
-    renderMonsterShopRoster();
-    el.monsterShopRosterPicker.hidden = false;
-    el.monsterShopRosterClose.focus();
-  }
-
-  function closeMonsterShopRosterPicker() {
-    el.monsterShopRosterPicker.hidden = true;
-    el.monsterShopTradeSlot.focus();
   }
 
   function resetMonsterShopTrade() {
     monsterShopSelectedId = null;
     monsterShopOffers = [];
+    monsterShopChosenOfferId = null;
     monsterShopTrading = false;
-    if (el.monsterShopStatus) el.monsterShopStatus.textContent = "왼쪽 칸을 눌러 교환할 마물을 고르세요.";
-    if (el.monsterShopRosterPicker) el.monsterShopRosterPicker.hidden = true;
+    if (el.monsterShopStatus) el.monsterShopStatus.textContent = "왼쪽 책을 열어 교환할 마물을 고르세요.";
     renderMonsterShopTradeSlot();
     renderMonsterShopOffers();
-    renderMonsterShopRoster();
   }
 
   async function confirmMonsterShopTrade(offer) {
@@ -2552,7 +2528,6 @@
     }
 
     monsterShopTrading = true;
-    renderMonsterShopRoster();
     renderMonsterShopOffers();
     el.monsterShopStatus.textContent = "거래 중…";
 
@@ -2581,7 +2556,6 @@
     if (!saved) {
       monsterShopTrading = false;
       el.monsterShopStatus.textContent = "거래 저장에 실패했습니다. 다시 시도하세요.";
-      renderMonsterShopRoster();
       renderMonsterShopOffers();
       return;
     }
@@ -2601,14 +2575,15 @@
     el.monsterShopStatus.textContent = `${unit.name || unit.slug} ↔ ${rewardName} 거래 완료`;
     monsterShopSelectedId = null;
     monsterShopOffers = [];
+    monsterShopChosenOfferId = null;
     monsterShopTrading = false;
     renderMonsterShopTradeSlot();
     renderMonsterShopOffers();
-    renderMonsterShopRoster();
   }
 
   function openMonsterShop() {
     if (!eventOpen || activeEventTileId !== "village") return;
+    forceCloseBookRoster();
     el.monsterShopPanel.hidden = false;
     el.eventMonsterShop.hidden = true;
     if (el.eventClose) el.eventClose.hidden = true;
@@ -2620,6 +2595,7 @@
 
   function closeMonsterShop() {
     if (!eventOpen || activeEventTileId !== "village" || monsterShopTrading) return;
+    forceCloseBookRoster();
     resetMonsterShopTrade();
     el.monsterShopPanel.hidden = true;
     el.eventMonsterShop.hidden = false;
@@ -3266,8 +3242,6 @@
   el.eventProphecy.addEventListener("click", showFortuneProphecy);
   el.eventMonsterShop.addEventListener("click", openMonsterShop);
   el.monsterShopClose.addEventListener("click", closeMonsterShop);
-  el.monsterShopTradeSlot.addEventListener("click", openMonsterShopRosterPicker);
-  el.monsterShopRosterClose.addEventListener("click", closeMonsterShopRosterPicker);
   el.eventGraveyard.addEventListener("click", openGraveyardExtraction);
   el.graveyardExtractClose.addEventListener("click", closeGraveyardExtraction);
   el.eventHillScout.addEventListener("click", openHillScout);
@@ -3300,8 +3274,7 @@
   el.deckConfirm.addEventListener("click", confirmMonsterBattle);
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !el.rewardOverflowOverlay.hidden) return;
-    if (event.key === "Escape" && el.monsterShopRosterPicker && !el.monsterShopRosterPicker.hidden) closeMonsterShopRosterPicker();
-    else if (event.key === "Escape" && !el.diceControlOverlay.hidden) closeDiceControlCard();
+    if (event.key === "Escape" && !el.diceControlOverlay.hidden) closeDiceControlCard();
     else if (event.key === "Escape" && !el.infoOverlay.hidden) closeBookUnitInfo();
     else if (event.key === "Escape" && !el.bookRoster.hidden) toggleBookRoster();
     else if (event.key === "Escape" && eventOpen) closeTileEvent();
