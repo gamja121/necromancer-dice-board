@@ -417,64 +417,148 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 @keyframes map-deck-controls-rise { from { transform: translateY(32px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } .corruption-fog { animation: none; } .map-deck-overlay.is-open .map-deck-window, .map-deck-overlay.is-open .map-deck-roster, .map-deck-overlay.is-open #mapDeckStatus, .map-deck-overlay.is-open .map-deck-confirm { animation-duration: 1ms; animation-delay: 0ms; } }
 
-.map-cloud-transition { position: absolute; z-index: 90; inset: 0; overflow: hidden; pointer-events: auto; }
+.map-cloud-transition {
+  position: absolute;
+  z-index: 90;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: auto;
+  isolation: isolate;
+  background: rgba(220, 224, 222, 0);
+  transition: background-color 240ms ease;
+}
 .map-cloud-transition[hidden] { display: none; }
-.map-cloud-mist {
-  position: absolute; inset: 0; opacity: 0;
+.map-cloud-transition::before,
+.map-cloud-transition::after {
+  content: "";
+  position: absolute;
+  inset: -12%;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 1;
+}
+.map-cloud-transition::before {
   background:
-    radial-gradient(circle at 18% 28%, #ffffff 0 10%, transparent 34%),
-    radial-gradient(circle at 76% 66%, #f8f8f5 0 12%, transparent 38%),
-    linear-gradient(180deg, #efefeb, #d8d9d5);
-  transition: opacity 220ms ease;
+    radial-gradient(ellipse at 24% 36%, rgba(255,255,255,.86) 0 12%, rgba(238,241,239,.58) 26%, transparent 52%),
+    radial-gradient(ellipse at 76% 58%, rgba(255,255,255,.84) 0 14%, rgba(230,234,231,.54) 29%, transparent 54%);
+  filter: blur(18px);
+  transform: scale(.84);
+  transition: opacity 360ms ease, transform 720ms cubic-bezier(.2,.75,.18,1);
+}
+.map-cloud-transition::after {
+  background: radial-gradient(ellipse at center, rgba(255,255,255,.96) 0 26%, rgba(235,238,236,.82) 52%, rgba(205,211,207,.55) 76%, transparent 100%);
+  filter: blur(8px);
+  transform: scale(.68);
+  transition: opacity 260ms ease 360ms, transform 560ms cubic-bezier(.15,.78,.18,1) 250ms;
+}
+.map-cloud-mist {
+  position: absolute;
+  inset: -8%;
+  z-index: 2;
+  opacity: 0;
+  background:
+    radial-gradient(circle at 14% 32%, rgba(255,255,255,.95) 0 10%, transparent 34%),
+    radial-gradient(circle at 84% 61%, rgba(250,251,249,.93) 0 13%, transparent 37%),
+    linear-gradient(180deg, rgba(242,243,240,.96), rgba(213,217,213,.98));
+  filter: blur(3px);
+  transform: scale(.92);
+  transition: opacity 300ms ease 430ms, transform 640ms cubic-bezier(.18,.75,.2,1) 260ms;
 }
 .map-transition-cloud {
-  --cloud-duration: 760ms;
+  --cloud-duration: 900ms;
   --cloud-delay: 0ms;
+  --cloud-y: 0%;
+  --cloud-rot: 0deg;
+  --cloud-scale: 1.16;
   position: absolute;
-  width: 68%;
+  z-index: 3;
+  width: 70%;
   height: auto;
   max-width: none;
+  opacity: .08;
   user-select: none;
   pointer-events: none;
-  filter: drop-shadow(0 4px 3px #5554);
-  transition-property: transform, opacity;
-  transition-duration: var(--cloud-duration), 180ms;
-  transition-timing-function: cubic-bezier(.18,.78,.18,1), ease;
-  transition-delay: var(--cloud-delay), var(--cloud-delay);
-  will-change: transform, opacity;
+  filter: drop-shadow(0 8px 8px rgba(60,66,62,.16));
+  transition:
+    transform var(--cloud-duration) cubic-bezier(.16,.72,.16,1) var(--cloud-delay),
+    opacity 260ms ease var(--cloud-delay),
+    filter 420ms ease;
+  will-change: transform, opacity, filter;
 }
-.map-transition-cloud.cloud-left { left: -72%; transform: translateX(-30%) scale(1.16); }
-.map-transition-cloud.cloud-right { right: -72%; transform: translateX(30%) scaleX(-1) scale(1.16); }
+.map-transition-cloud.cloud-left {
+  left: -78%;
+  transform: translate3d(-22%, var(--cloud-y), 0) rotate(var(--cloud-rot)) scale(var(--cloud-scale));
+}
+.map-transition-cloud.cloud-right {
+  right: -78%;
+  transform: translate3d(22%, var(--cloud-y), 0) rotate(calc(var(--cloud-rot) * -1)) scaleX(-1) scale(var(--cloud-scale));
+}
+.map-transition-cloud.cloud-lane-1  { top: -21%; width: 75%; --cloud-y: -5%; --cloud-rot: -4deg; --cloud-scale: 1.22; }
+.map-transition-cloud.cloud-lane-1b { top: -10%; width: 67%; --cloud-y: 3%;  --cloud-rot: 3deg;  --cloud-scale: 1.14; }
+.map-transition-cloud.cloud-lane-2  { top: 6%;   width: 78%; --cloud-y: 5%;  --cloud-rot: 2deg;  --cloud-scale: 1.20; }
+.map-transition-cloud.cloud-lane-2b { top: 18%;  width: 71%; --cloud-y: -4%; --cloud-rot: -3deg; --cloud-scale: 1.16; }
+.map-transition-cloud.cloud-lane-3  { top: 39%;  width: 76%; --cloud-y: -3%; --cloud-rot: 3deg;  --cloud-scale: 1.20; }
+.map-transition-cloud.cloud-lane-3b { top: 48%;  width: 69%; --cloud-y: 4%;  --cloud-rot: -2deg; --cloud-scale: 1.15; }
+.map-transition-cloud.cloud-lane-4  { bottom: -18%; width: 80%; --cloud-y: 4%;  --cloud-rot: -3deg; --cloud-scale: 1.24; }
+.map-transition-cloud.cloud-lane-4b { bottom: -9%;  width: 72%; --cloud-y: -4%; --cloud-rot: 3deg;  --cloud-scale: 1.17; }
 
-.map-transition-cloud.cloud-lane-1 { top: -16%; width: 70%; }
-.map-transition-cloud.cloud-lane-1b { top: -7%; width: 64%; }
-.map-transition-cloud.cloud-lane-2 { top: 10%; width: 74%; }
-.map-transition-cloud.cloud-lane-2b { top: 19%; width: 68%; }
-.map-transition-cloud.cloud-lane-3 { top: 38%; width: 72%; }
-.map-transition-cloud.cloud-lane-3b { top: 46%; width: 66%; }
-.map-transition-cloud.cloud-lane-4 { bottom: -13%; width: 76%; }
-.map-transition-cloud.cloud-lane-4b { bottom: -6%; width: 70%; }
+.map-transition-cloud.cloud-speed-1 { --cloud-duration: 720ms;  --cloud-delay: 0ms; }
+.map-transition-cloud.cloud-speed-2 { --cloud-duration: 850ms;  --cloud-delay: 65ms; }
+.map-transition-cloud.cloud-speed-3 { --cloud-duration: 980ms;  --cloud-delay: 115ms; }
+.map-transition-cloud.cloud-speed-4 { --cloud-duration: 1120ms; --cloud-delay: 165ms; }
 
-.map-transition-cloud.cloud-speed-1 { --cloud-duration: 620ms; --cloud-delay: 20ms; }
-.map-transition-cloud.cloud-speed-2 { --cloud-duration: 760ms; --cloud-delay: 65ms; }
-.map-transition-cloud.cloud-speed-3 { --cloud-duration: 900ms; --cloud-delay: 105ms; }
-.map-transition-cloud.cloud-speed-4 { --cloud-duration: 1020ms; --cloud-delay: 145ms; }
+.map-cloud-transition.is-covered { background: rgba(224,228,225,.18); }
+.map-cloud-transition.is-covered::before { opacity: .82; transform: scale(1.05); }
+.map-cloud-transition.is-covered::after { opacity: .95; transform: scale(1.08); }
+.map-cloud-transition.is-covered .map-cloud-mist { opacity: .98; transform: scale(1.04); }
+.map-cloud-transition.is-covered .map-transition-cloud { opacity: .97; filter: drop-shadow(0 10px 12px rgba(52,58,54,.10)); }
+.map-cloud-transition.is-covered .map-transition-cloud.cloud-left {
+  transform: translate3d(108%, calc(var(--cloud-y) * .18), 0) rotate(calc(var(--cloud-rot) * .22)) scale(calc(var(--cloud-scale) * 1.02));
+}
+.map-cloud-transition.is-covered .map-transition-cloud.cloud-right {
+  transform: translate3d(-108%, calc(var(--cloud-y) * .18), 0) rotate(calc(var(--cloud-rot) * -.22)) scaleX(-1) scale(calc(var(--cloud-scale) * 1.02));
+}
 
-.map-cloud-transition.is-covered .map-cloud-mist { opacity: .99; transition-delay: 480ms; }
-.map-cloud-transition.is-covered .map-transition-cloud.cloud-left { transform: translateX(110%) scale(1.16); opacity: 1; }
-.map-cloud-transition.is-covered .map-transition-cloud.cloud-right { transform: translateX(-110%) scaleX(-1) scale(1.16); opacity: 1; }
-
-.map-cloud-transition.is-opening .map-cloud-mist { opacity: 0; transition-delay: 120ms; }
+.map-cloud-transition.is-opening::before {
+  opacity: 0;
+  transform: scale(1.16);
+  transition-duration: 520ms;
+}
+.map-cloud-transition.is-opening::after {
+  opacity: 0;
+  transform: scale(1.22);
+  transition-delay: 90ms;
+  transition-duration: 420ms;
+}
+.map-cloud-transition.is-opening .map-cloud-mist {
+  opacity: 0;
+  transform: scale(1.12);
+  transition-delay: 130ms;
+  transition-duration: 520ms;
+}
+.map-cloud-transition.is-opening .map-transition-cloud {
+  opacity: 0;
+  transition-timing-function: cubic-bezier(.32,.02,.62,1), ease;
+}
 .map-cloud-transition.is-opening .map-transition-cloud.cloud-left {
-  transform: translateX(-30%) scale(1.16);
-  transition-delay: calc(var(--cloud-delay) * .45), 0ms;
+  transform: translate3d(235%, calc(var(--cloud-y) * -1.5), 0) rotate(calc(var(--cloud-rot) * -1.6)) scale(calc(var(--cloud-scale) * 1.08));
+  transition-delay: calc(var(--cloud-delay) * .35), 80ms;
+  transition-duration: calc(var(--cloud-duration) * .82), 420ms;
 }
 .map-cloud-transition.is-opening .map-transition-cloud.cloud-right {
-  transform: translateX(30%) scaleX(-1) scale(1.16);
-  transition-delay: calc(var(--cloud-delay) * .45), 0ms;
+  transform: translate3d(-235%, calc(var(--cloud-y) * -1.5), 0) rotate(calc(var(--cloud-rot) * 1.6)) scaleX(-1) scale(calc(var(--cloud-scale) * 1.08));
+  transition-delay: calc(var(--cloud-delay) * .35), 80ms;
+  transition-duration: calc(var(--cloud-duration) * .82), 420ms;
 }
 @media (prefers-reduced-motion: reduce) {
-  .map-transition-cloud, .map-cloud-mist { transition-duration: 1ms; transition-delay: 0ms !important; }
+  .map-cloud-transition,
+  .map-cloud-transition::before,
+  .map-cloud-transition::after,
+  .map-transition-cloud,
+  .map-cloud-mist {
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+  }
 }
 
 .map-inventory-count {

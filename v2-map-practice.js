@@ -2547,13 +2547,17 @@
     el.cloudTransition.classList.remove("is-covered", "is-opening");
     void el.cloudTransition.offsetWidth;
     el.cloudTransition.classList.add("is-covered");
-    // Let the fastest and slowest cloud layers meet at different times.
-    // The mist layer removes any dark gaps before the tile swap happens.
-    await wait(1200);
+    // Phase 1: staggered cloud banks sweep inward. Swap the board only after
+    // the central mist has fully hidden the old route.
+    await wait(1320);
     generateTiles();
-    await wait(260);
+    // Phase 2: hold the fully covered frame briefly so the new route never
+    // flashes through while DOM/image layout settles.
+    await wait(220);
+    // Phase 3: clouds keep their momentum and pass through the center instead
+    // of simply reversing, making the reveal feel like one continuous gust.
     el.cloudTransition.classList.add("is-opening");
-    await wait(1080);
+    await wait(1120);
     el.cloudTransition.hidden = true;
     el.cloudTransition.classList.remove("is-covered", "is-opening");
     rolling = false;
