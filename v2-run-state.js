@@ -62,7 +62,8 @@
         heroIndex: null,
         lapReadyForRefresh: false,
         worldTreePrayed: false,
-        fortuneProphecy: { allyAttack: 0, allyHp: 0, allySpeed: 0, enemyAttack: 0, rolls: [] }
+        fortuneProphecy: { allyAttack: 0, allyHp: 0, allySpeed: 0, enemyAttack: 0, rolls: [] },
+        hillScout: { scouted: false, intel: [] }
       },
       contamination: 0,
       ownedMonsters: [],
@@ -130,6 +131,17 @@
           ["allyAttack","allyHp","allySpeed","enemyAttack"].every((key) => Number.isInteger(prophecy[key]) && prophecy[key] >= 0) &&
           Array.isArray(prophecy.rolls) && prophecy.rolls.every((value) => Number.isInteger(value) && value >= 1 && value <= 6);
         if (!validProphecy) errors.push("currentMap.fortuneProphecy:invalid");
+      }
+      if (map.hillScout != null) {
+        const scout = map.hillScout;
+        const validScout = isPlainObject(scout) && typeof scout.scouted === "boolean" && Array.isArray(scout.intel) &&
+          scout.intel.every((entry) => isPlainObject(entry) &&
+            Number.isInteger(entry.step) && entry.step >= 1 && entry.step <= 24 &&
+            ["monster","rare-monster","boss"].includes(entry.tileType) &&
+            Number.isInteger(entry.count) && entry.count >= 1 && entry.count <= 4 &&
+            ["normal","advanced","hero"].includes(entry.grade) &&
+            typeof entry.legion === "string" && entry.legion);
+        if (!validScout) errors.push("currentMap.hillScout:invalid");
       }
     }
 
