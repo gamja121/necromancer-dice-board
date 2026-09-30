@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
   <title>네크로멘서 앤드 다이스 · 외곽 타일 맵 테스트</title>
-  <link rel="stylesheet" href="v2-map-practice.css?v=59">
+  <link rel="stylesheet" href="v2-map-practice.css?v=60">
   <link rel="stylesheet" href="v2-home-inheritance.css?v=9">
   <link rel="stylesheet" href="v2-altar-ritual.css?v=4">
 </head>
@@ -137,11 +137,21 @@
           <button id="tileEventProphecy" class="tile-event-prophecy" type="button" hidden>예언</button>
           <button id="tileEventMonsterShop" class="tile-event-monster-shop" type="button" hidden>마물 상점</button>
           <button id="tileEventGraveyard" class="tile-event-graveyard" type="button" hidden>시체 파헤치기</button>
+          <button id="tileEventHillScout" class="tile-event-hill-scout" type="button" hidden>정찰</button>
           <div id="fortuneProphecyUi" class="fortune-prophecy-ui" hidden>
             <img src="art/v2-style/map-test/events/fortune-prophecy-ui.png?v=1" alt="점술가의 수정구 예언 UI">
           </div>
           <div id="tileEventPrayerResult" class="tile-event-prayer-result" role="status" aria-live="polite" hidden></div>
           <div id="tileEventContaminationChange" class="tile-event-contamination-change" role="status" aria-live="polite" hidden></div>
+          <section id="hillScoutPanel" class="hill-scout-panel" aria-live="polite" hidden>
+            <div class="hill-scout-head">
+              <strong>언덕 · 전역 정찰</strong>
+              <button id="hillScoutClose" type="button">닫기</button>
+            </div>
+            <p class="hill-scout-guide">현재 맵의 남은 마물 타일을 한눈에 확인합니다. 정찰은 적 전체를 미리 확정하지 않고, 적 수와 확인된 등급·군단 흔적만 기록합니다.</p>
+            <div id="hillScoutList" class="hill-scout-list"></div>
+            <p id="hillScoutStatus" class="hill-scout-status"></p>
+          </section>
           <section id="graveyardExtractPanel" class="graveyard-extract-panel" aria-live="polite" hidden>
             <div class="graveyard-extract-head">
               <strong>공동묘지 · 낙인 추출</strong>
@@ -258,8 +268,8 @@
   <script src="v2-sfx.js?v=3"></script>
   <script src="v2-design-data.js?v=1"></script>
   <script src="v2-rules.js?v=7"></script>
-  <script src="v2-run-state.js?v=3"></script>
-  <script src="v2-run-state-runtime.js?v=5"></script>
+  <script src="v2-run-state.js?v=4"></script>
+  <script src="v2-run-state-runtime.js?v=6"></script>
   <script src="v2-brand-cards.js?v=4"></script>
   <script src="v2-home-inheritance.js?v=14"></script>
   <script src="v2-altar-ritual.js?v=4"></script>
@@ -267,6 +277,6 @@
   <script src="v2-world-tree-prayer-digits.js?v=2"></script>
   <script src="v2-event-data.js?v=1"></script>
   <script src="v2-map-events.js?v=1"></script>
-  <script src="v2-map-practice.js?v=78"></script>
+  <script src="v2-map-practice.js?v=79"></script>
 </body>
 </html>
