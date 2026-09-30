@@ -1572,3 +1572,35 @@
 - 맵 JS: `v76`
 - 맵 CSS: `v58`
 - RunState runtime: `v2`
+
+
+## 2026-09-30: 타일 기능 구현 후 통합 점검
+
+- 점검 범위:
+  - 실제 맵 스토리 이벤트
+  - 점술가 예언 UI / d6 결과 / 누적 버프
+  - 다음 전투 예언 적용
+  - 마을 마물 상점 물물교환
+  - RunState 저장
+  - 서비스워커 버전 동기화
+- 점검 결과:
+  - `v2-map-practice.js`, `v2-map-events.js`, `v2-auto-battle-practice.js`, `v2-run-state.js`, `v2-run-state-runtime.js`, `service-worker.js` 문법 검사 통과.
+  - 맵 HTML ID 중복 없음.
+  - 맵 JS의 `getElementById` 참조 82개 모두 실제 HTML 요소와 일치.
+  - 맵/전투 HTML과 서비스워커의 JS/CSS 캐시 버전이 서로 일치함.
+  - RunState 기본 상태 validation 통과.
+  - 예언 누적 상태 validation 통과.
+  - 잘못된 음수 예언 수치는 validation에서 거부됨.
+- 점검 중 발견 및 수정:
+  1. `v2-run-state-runtime.js`의 저장 실패 경로에서 존재하지 않는 `prefix` 변수를 로그에 사용해, 실제 저장 충돌/실패 때 2차 ReferenceError가 날 수 있던 문제를 `operationId`로 수정.
+  2. 점술가 누적 예언이 sessionStorage에만 있어 앱/탭 세션이 끊기면 원정 저장보다 먼저 사라질 수 있던 문제를 수정. 현재는 `currentMap.fortuneProphecy`에도 저장되어 RunState/IndexedDB 기준으로 유지되고, 다음 전투 진입 시 소비한 뒤 RunState에서도 제거된다.
+- 버전 갱신:
+  - `v2-run-state.js?v=2`
+  - `v2-run-state-runtime.js?v=3`
+  - `v2-map-practice.js?v=77`
+  - `v2-map-practice.css?v=58`
+  - `v2-auto-battle-practice.js?v=115`
+- 점검 전 롤백 브랜치: `rollback/post-tile-audit-before-fixes-20260930`
+- 남은 확인 사항:
+  - 실제 Android/PWA 화면에서 마물 상점 3열 UI가 작은 화면에서 눌리거나 겹치지 않는지 실기기 확인 필요.
+  - 실제 플레이 순서 `예언 여러 번 누적 → 전투 진입 → 전투 종료 → 맵 복귀`와 `마물 거래 → 앱 재실행 → 재고 유지`는 브라우저 실동작 확인이 필요.
