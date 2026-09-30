@@ -288,14 +288,14 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   .graveyard-brand-choice img { max-height: 92px; }
 }
 
-.monster-shop-panel{position:absolute;z-index:12;left:50%;top:50%;width:min(96%,1120px);max-height:96%;padding:0;transform:translate(-50%,-50%);border:0;background:transparent;color:#ead9bb;box-shadow:none;pointer-events:auto;overflow:visible}
+.monster-shop-panel{position:absolute;z-index:12;left:50%;top:50%;width:min(88%,980px);max-height:94%;padding:0;transform:translate(-50%,-50%);border:0;background:transparent;color:#ead9bb;box-shadow:none;pointer-events:auto;overflow:visible}
 .monster-shop-panel[hidden]{display:none}
 .monster-shop-head{position:absolute;z-index:5;left:10.5%;right:10.5%;top:6.2%;display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0;pointer-events:none}
 .monster-shop-head strong{padding:5px 13px;border:1px solid #332116aa;border-radius:4px;background:#130c08b8;font:1000 clamp(14px,1.55vw,23px)/1 Georgia,"Malgun Gothic",serif;color:#f3d5a3;text-shadow:0 2px 3px #000;box-shadow:0 3px 8px #0008}
 .monster-shop-head button{min-width:68px;height:30px;border:1px solid #6e523a;border-radius:4px;background:#2c1b12e8;color:#f1d2a5;font-weight:900;cursor:pointer;box-shadow:0 3px 8px #0009;pointer-events:auto}
 .monster-shop-head button:hover,.monster-shop-head button:focus-visible{filter:brightness(1.18);outline:1px solid #d5ad72}
 .monster-shop-guide{position:absolute;z-index:4;left:25%;right:25%;top:8.6%;margin:0;color:#dbc39d;font-size:clamp(7px,.72vw,10px);line-height:1.25;text-align:center;text-shadow:0 2px 3px #000;pointer-events:none}
-.monster-shop-counter-stage{position:relative;width:100%;aspect-ratio:3/2;min-height:0}
+.monster-shop-counter-stage{position:relative;width:min(100%,960px);margin:0 auto;aspect-ratio:4/3;min-height:0}
 .monster-shop-counter-art{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none;filter:drop-shadow(0 14px 18px #000c)}
 .monster-shop-layout{position:absolute;inset:0}
 .monster-shop-column,.monster-shop-trade{box-sizing:border-box;background:transparent;border:0}
