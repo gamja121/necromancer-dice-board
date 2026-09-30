@@ -321,20 +321,20 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 }
 .monster-shop-layout{position:absolute;inset:0;pointer-events:none}
 .monster-shop-head button{
-  position:absolute;right:5.7%;top:5.8%;min-width:84px;height:34px;padding:0 13px;
-  border:2px solid #3b281c;border-radius:4px;background:linear-gradient(#5c3420,#2a160e);
-  color:#f3d4a2;font-size:clamp(10px,.9vw,14px);font-weight:1000;cursor:pointer;
-  box-shadow:0 4px 9px #000b,inset 0 0 0 1px #bd895547;pointer-events:auto
+  position:absolute;right:5.2%;top:4.9%;width:15%;min-width:84px;min-height:36px;aspect-ratio:2.25;padding:0 8px;
+  border:0;background:url("art/v2-style/map-test/events/exit-parchment.png") center / 100% 100% no-repeat;
+  color:#49301d;font-size:clamp(10px,.95vw,14px);font-weight:1000;text-shadow:0 1px #fff7df;cursor:pointer;
+  filter:drop-shadow(0 5px 5px #0009);pointer-events:auto
 }
-.monster-shop-head button:hover,.monster-shop-head button:focus-visible{filter:brightness(1.16);outline:2px solid #d5ad72}
+.monster-shop-head button:hover,.monster-shop-head button:focus-visible{filter:drop-shadow(0 5px 5px #0009) brightness(1.15);outline:2px solid #ffd77e;outline-offset:2px}
 .monster-shop-guide{display:none}
 
 .monster-shop-column,.monster-shop-trade{box-sizing:border-box;background:transparent;border:0;pointer-events:auto}
 .monster-shop-column h3,.monster-shop-trade h3{
-  display:table;margin:0 auto 5px;padding:4px 14px;border:2px solid #3a281d;border-radius:4px;
-  background:linear-gradient(#4e2e1c,#28160e);color:#f2d5a8;
-  font-size:clamp(9px,.78vw,12px);line-height:1;text-align:center;text-shadow:0 2px 3px #000;
-  box-shadow:0 3px 7px #0009,inset 0 0 0 1px #c7955b3d
+  display:table;margin:0 auto 5px;padding:5px 16px;border:1px solid #8a6945;border-radius:4px;
+  background:linear-gradient(180deg,#d8bb83,#b98753);color:#49301d;
+  font-size:clamp(9px,.78vw,12px);line-height:1;text-align:center;text-shadow:0 1px #fff0c9;
+  box-shadow:0 3px 6px #0007,inset 0 0 0 1px #f4deb477
 }
 
 /* 왼쪽: 교환할 마물 한 장 */
@@ -359,10 +359,12 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   font-size:clamp(8px,.72vw,11px);font-weight:900;text-shadow:0 1px 2px #000
 }
 .monster-shop-cancel{
-  margin-top:5px;min-width:118px;min-height:27px;padding:0 11px;border:2px solid #422b1d;border-radius:4px;
-  background:linear-gradient(#6a2f1f,#38160f);color:#f0d1aa;font-size:clamp(8px,.7vw,10px);
-  font-weight:1000;cursor:pointer;box-shadow:0 3px 7px #0009
+  margin-top:5px;width:78%;min-width:118px;min-height:30px;aspect-ratio:2.7;padding:0 8px;border:0;
+  background:url("art/v2-style/map-test/events/enter-parchment.png") center / 100% 100% no-repeat;
+  color:#49301d;font-size:clamp(8px,.72vw,11px);font-weight:1000;text-shadow:0 1px #fff7df;
+  cursor:pointer;filter:drop-shadow(0 4px 4px #0009)
 }
+.monster-shop-cancel:hover,.monster-shop-cancel:focus-visible{filter:drop-shadow(0 4px 4px #0009) brightness(1.15);outline:2px solid #ffd77e;outline-offset:2px}
 .monster-shop-cancel[hidden]{display:none}
 
 /* 오른쪽: 상인의 제안 3장을 기본으로 표시 */
@@ -400,7 +402,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 /* 상태문구는 상판과 아래 선반 사이의 가로 보에 한 줄 */
 .monster-shop-status{
   position:absolute;left:-63%;right:3%;top:109%;min-height:22px;margin:0;padding:4px 8px;
-  border:1px solid #4d3828;border-radius:4px;background:#1f140fc9;color:#dec098;
+  border:1px solid #8b6743;border-radius:4px;background:rgba(208,174,117,.9);color:#4a3120;
   font-size:clamp(7px,.66vw,10px);font-weight:800;line-height:1.2;text-align:center;text-shadow:0 1px 2px #000;
   box-shadow:0 3px 6px #0008
 }
