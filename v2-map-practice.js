@@ -2705,13 +2705,25 @@
     el.eventClose.focus();
   }
 
-  function enterHome() {
+  async function enterHome() {
     if (!eventOpen || activeEventTileId !== "home") return;
+
+    el.eventEnter.disabled = true;
     el.eventImage.src = `${ROOT}events/home-interior.jpg?v=${EVENT_ASSET_VERSION}`;
     el.eventImage.alt = "우리집 실내 풍경";
     el.eventEnter.hidden = true;
+
+    const needsHealing = hasInjuredOwnedUnits();
+    if (needsHealing) {
+      healOwnedRosterFull();
+      el.diceResult.textContent = "귀환 · 모든 마물 체력 완전 회복";
+      await playFullHealEffect();
+    }
+
+    if (!eventOpen || activeEventTileId !== "home") return;
     el.eventInheritance.hidden = false;
     el.eventPatrolRoute.hidden = false;
+    el.eventEnter.disabled = false;
     el.eventInheritance.focus();
   }
 
@@ -2782,10 +2794,7 @@
     const completedLap = refreshAfterHome && lapReadyForRefresh;
     if (completedLap) {
       addContamination(2);
-      healOwnedRosterFull();
       mapStoryEvents?.advanceLoop();
-      el.diceResult.textContent = "귀환 · 모든 마물 체력 완전 회복";
-      await playFullHealEffect();
     }
     closeTileEvent();
     if (refreshAfterHome) await playCloudTileRefresh();

@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20260930-full-heal-vfx-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261001-home-heal-enter-1";
 
 const CORE_ASSETS = [
   "./",
@@ -21,7 +21,7 @@ const CORE_ASSETS = [
   "./v2-altar-ritual.css?v=4",
   "./v2-auto-battle-practice.css?v=63",
   "./v2-asset-loader.js?v=1",
-  "./v2-map-practice.js?v=91",
+  "./v2-map-practice.js?v=92",
   "./art/v2-style/map-test/events/fortune-prophecy-ui.png?v=1",
   "./v2-event-data.js?v=1",
   "./v2-map-events.js?v=1",
