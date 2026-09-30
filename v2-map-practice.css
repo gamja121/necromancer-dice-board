@@ -303,32 +303,32 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .map-board.is-monster-shop-open .tile-event-exit{display:none!important}
 
 .monster-shop-panel{
-  position:absolute;z-index:80;inset:0;border:0;background:rgba(7,5,4,.42);
+  position:absolute;z-index:80;inset:0;border:0;background:rgba(7,5,4,.38);
   color:#ead9bb;box-shadow:none;pointer-events:auto;overflow:hidden
 }
 .monster-shop-panel[hidden]{display:none}
 .monster-shop-panel::before{
   content:"";position:absolute;inset:0;
-  background:radial-gradient(ellipse at center,transparent 25%,rgba(0,0,0,.16) 72%,rgba(0,0,0,.42));
+  background:radial-gradient(ellipse at center,transparent 32%,rgba(0,0,0,.12) 72%,rgba(0,0,0,.35));
   pointer-events:none
 }
 
-.monster-shop-counter-stage{
-  position:absolute;z-index:4;left:50%;top:50%;width:78%;aspect-ratio:3/2;
-  transform:translate(-50%,-50%);pointer-events:none
+/* 원본 테이블은 3:2 비율을 절대 늘이지 않는다. */
+.monster-shop-counter-stage,
+.monster-shop-head{
+  position:absolute;left:50%;top:50%;
+  width:min(94vw,132vh);aspect-ratio:3/2;
+  transform:translate(-50%,-50%)
 }
+.monster-shop-counter-stage{z-index:4;pointer-events:none}
+.monster-shop-head{z-index:12;pointer-events:none}
 .monster-shop-counter-art{
   position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;
-  pointer-events:none;user-select:none;filter:drop-shadow(0 15px 22px #000d)
+  pointer-events:none;user-select:none;filter:drop-shadow(0 14px 20px #000d)
 }
 .monster-shop-layout{position:absolute;inset:0;pointer-events:none}
-
-.monster-shop-head{
-  position:absolute;z-index:12;left:50%;top:50%;width:78%;aspect-ratio:3/2;
-  transform:translate(-50%,-50%);pointer-events:none
-}
 .monster-shop-head button{
-  position:absolute;right:4%;top:4.2%;min-width:84px;height:34px;padding:0 13px;
+  position:absolute;right:6.2%;top:5.8%;min-width:84px;height:34px;padding:0 13px;
   border:2px solid #3b281c;border-radius:4px;background:linear-gradient(#5c3420,#2a160e);
   color:#f3d4a2;font-size:clamp(10px,.9vw,14px);font-weight:1000;cursor:pointer;
   box-shadow:0 4px 9px #000b,inset 0 0 0 1px #bd895547;pointer-events:auto
@@ -338,30 +338,31 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 
 .monster-shop-column,.monster-shop-trade{box-sizing:border-box;background:transparent;border:0;pointer-events:auto}
 .monster-shop-column h3,.monster-shop-trade h3{
-  display:table;margin:0 auto 5px;padding:4px 15px;border:2px solid #3a281d;border-radius:4px;
+  display:table;margin:0 auto 6px;padding:4px 14px;border:2px solid #3a281d;border-radius:4px;
   background:linear-gradient(#4e2e1c,#28160e);color:#f2d5a8;
   font-size:clamp(9px,.78vw,12px);line-height:1;text-align:center;text-shadow:0 2px 3px #000;
   box-shadow:0 3px 7px #0009,inset 0 0 0 1px #c7955b3d
 }
 
+/* 상판: 왼쪽 1장, 오른쪽 제안 3장만 상시 노출 */
 .monster-shop-trade{
-  position:absolute;left:13.2%;top:12.5%;width:27.5%;height:44%;
+  position:absolute;left:15.2%;top:13.2%;width:23.8%;height:40.5%;
   display:flex;flex-direction:column;align-items:center
 }
 .monster-shop-trade-slot{
-  display:grid;place-items:center;width:68%;height:73%;min-height:0;padding:3px;
-  border:2px solid #5e432d;border-radius:5px;background:rgba(20,12,8,.24);
-  color:#d0b590;text-align:center;box-sizing:border-box;box-shadow:inset 0 0 15px #0007;
+  display:grid;place-items:center;width:65%;height:72%;min-height:0;padding:2px;
+  border:2px solid #5e432d;border-radius:5px;background:rgba(18,11,7,.18);
+  color:#d0b590;text-align:center;box-sizing:border-box;box-shadow:inset 0 0 14px #0006;
   cursor:pointer
 }
 .monster-shop-trade-slot:hover,.monster-shop-trade-slot:focus-visible{border-color:#b0834f;filter:brightness(1.08);outline:0}
 .monster-shop-trade-slot img{
-  width:auto;height:92%;max-width:94%;aspect-ratio:2/3;object-fit:contain;border-radius:4px;
+  width:auto;height:96%;max-width:96%;aspect-ratio:2/3;object-fit:contain;border-radius:4px;
   filter:drop-shadow(0 6px 6px #000d)
 }
 .monster-shop-trade-slot strong,.monster-shop-trade-slot small{display:none}
 .monster-shop-trade-slot span{
-  padding:6px 9px;border-radius:4px;background:#1b100ba8;color:#d7bd96;
+  padding:6px 9px;border-radius:4px;background:#1b100b9c;color:#d7bd96;
   font-size:clamp(8px,.72vw,11px);font-weight:900;text-shadow:0 1px 2px #000
 }
 .monster-shop-cancel{
@@ -372,20 +373,20 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .monster-shop-cancel[hidden]{display:none}
 
 .monster-shop-offers{
-  position:absolute;left:46%;top:12.5%;width:39.5%;height:44%;padding:0
+  position:absolute;left:45.1%;top:13.2%;width:39.2%;height:40.5%;padding:0
 }
 .monster-shop-offer-list{
-  display:grid;grid-auto-flow:column;grid-auto-columns:30%;gap:4%;align-items:stretch;
-  height:73%;overflow-x:auto;overflow-y:hidden;padding:0 1%;
+  display:grid;grid-auto-flow:column;grid-auto-columns:29.5%;gap:3.2%;align-items:stretch;
+  height:72%;overflow-x:auto;overflow-y:hidden;padding:0 .5% 2px;
   scroll-snap-type:x mandatory;scrollbar-width:thin;scrollbar-color:#71503677 transparent
 }
 .monster-shop-offer{
-  min-width:0;padding:2px;border:2px solid #4f3826;border-radius:5px;background:rgba(18,11,7,.26);
+  min-width:0;padding:2px;border:2px solid #4f3826;border-radius:5px;background:rgba(18,11,7,.18);
   color:#ead4b0;cursor:pointer;text-align:center;box-shadow:0 4px 9px #0009;
   scroll-snap-align:start;transition:transform 120ms ease,filter 120ms ease,border-color 120ms ease
 }
 .monster-shop-offer img{
-  display:block;width:100%;height:92%;object-fit:contain;margin:0 auto;filter:drop-shadow(0 4px 4px #000b)
+  display:block;width:100%;height:96%;object-fit:contain;margin:0 auto;filter:drop-shadow(0 4px 4px #000b)
 }
 .monster-shop-offer strong,.monster-shop-offer small{display:none}
 .monster-shop-offer:hover:not(:disabled),.monster-shop-offer:focus-visible:not(:disabled){
@@ -394,17 +395,20 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .monster-shop-offer:disabled{opacity:.38;cursor:not-allowed}
 .monster-shop-placeholder{
   display:grid;grid-column:1/-1;place-items:center;height:100%;border:1px dashed #856143;border-radius:5px;
-  background:rgba(16,10,7,.2);color:#baa17c;font-size:clamp(8px,.75vw,11px);font-weight:800;text-align:center
+  background:rgba(16,10,7,.14);color:#baa17c;font-size:clamp(8px,.75vw,11px);font-weight:800;text-align:center
 }
+
+/* 안내 문구는 상판 맨 아래에 한 줄만 */
 .monster-shop-status{
-  position:absolute;left:3%;right:3%;bottom:-12%;min-height:24px;margin:0;padding:4px 9px;
-  border:1px solid #4d3828;border-radius:4px;background:#1f140fd8;color:#dec098;
+  position:absolute;left:2%;right:2%;bottom:-14%;min-height:23px;margin:0;padding:4px 8px;
+  border:1px solid #4d3828;border-radius:4px;background:#1f140fc9;color:#dec098;
   font-size:clamp(7px,.66vw,10px);font-weight:800;line-height:1.2;text-align:center;text-shadow:0 1px 2px #000;
   box-shadow:0 3px 6px #0008
 }
 
+/* 보유 마물은 평소 숨김. 왼쪽 슬롯을 눌렀을 때만 임시 선택창으로 표시 */
 .monster-shop-roster{
-  position:absolute;z-index:20;left:12%;right:12%;bottom:8%;height:30%;padding:8px 10px;
+  position:absolute;z-index:20;left:12%;right:12%;bottom:8.5%;height:31%;padding:8px 10px;
   border:2px solid #4c3423;border-radius:7px;background:linear-gradient(180deg,rgba(70,43,26,.98),rgba(28,16,10,.98));
   box-shadow:0 10px 22px #000d,inset 0 0 0 1px #c7935938;pointer-events:auto
 }
@@ -436,14 +440,14 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .monster-shop-monster:disabled{opacity:.42;cursor:not-allowed}
 
 @media(max-height:430px) and (orientation:landscape){
-  .monster-shop-counter-stage,.monster-shop-head{width:80%}
-  .monster-shop-head button{right:3.5%;top:3.8%;min-width:70px;height:30px;font-size:9px}
-  .monster-shop-trade{left:12.8%;top:11.8%;width:28%;height:45%}
-  .monster-shop-offers{left:45.8%;top:11.8%;width:40%;height:45%}
+  .monster-shop-counter-stage,.monster-shop-head{width:min(96vw,136vh)}
+  .monster-shop-head button{right:5.5%;top:5%;min-width:70px;height:30px;font-size:9px}
+  .monster-shop-trade{left:14.8%;top:12.2%;width:24.5%;height:41.5%}
+  .monster-shop-offers{left:44.8%;top:12.2%;width:39.8%;height:41.5%}
   .monster-shop-column h3,.monster-shop-trade h3{padding:3px 11px;font-size:9px}
   .monster-shop-cancel{min-width:104px;min-height:25px;font-size:8px}
-  .monster-shop-status{bottom:-11%;font-size:7px}
-  .monster-shop-roster{left:9%;right:9%;bottom:6%;height:32%}
+  .monster-shop-status{bottom:-13%;font-size:7px}
+  .monster-shop-roster{left:8%;right:8%;bottom:6%;height:34%}
   .monster-shop-sell-list{grid-auto-columns:minmax(54px,9%)}
 }
 .fortune-prophecy-ui::before { content: ""; position: absolute; width: 58%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(154,85,218,.38), rgba(91,41,150,.12) 48%, transparent 70%); filter: blur(10px); }
