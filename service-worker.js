@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20260930-patrol-frame-repair-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20260930-patrol-polish-1";
 
 const CORE_ASSETS = [
   "./",
