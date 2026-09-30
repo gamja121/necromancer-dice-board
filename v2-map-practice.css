@@ -678,13 +678,16 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 
 /* Home patrol route configuration */
 .tile-event-patrol-route {
-  position:absolute; left:50%; bottom:17%; z-index:7;
-  min-width:150px; padding:9px 20px; transform:translateX(-50%);
-  border:2px solid #75604b; border-radius:5px;
-  background:linear-gradient(#68452b,#3d2719);
-  color:#f7e5bd; font:900 clamp(10px,1.05vw,14px)/1 "Malgun Gothic",sans-serif;
-  text-shadow:0 2px 2px #160c07; box-shadow:0 4px 8px #0008,inset 0 0 0 1px #b48a5b55;
+  right:1%;
+  bottom:18%;
+  left:auto;
+  z-index:7;
+  transform:none;
+  pointer-events:auto;
 }
+.tile-event-patrol-route[hidden]{display:none}
+.tile-event-patrol-route:hover{filter:brightness(1.15)}
+.tile-event-patrol-route:focus-visible{outline:2px solid #ffd77e;outline-offset:2px}
 .patrol-route-panel {
   position:absolute; z-index:20; left:50%; top:50%;
   width:132%; height:128%; transform:translate(-50%,-50%);
