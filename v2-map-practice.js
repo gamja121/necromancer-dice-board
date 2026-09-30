@@ -85,6 +85,7 @@
   const MAP_CLEARED_MONSTER_KEY = "necromancer-map-cleared-monsters-v1";
   const WORLD_TREE_PRAYER_KEY = "necromancer-map-world-tree-prayed-v1";
   const PATROL_ROUTE_KEY = "necromancer-patrol-route-v2";
+  const PATROL_ROUTE_PERSIST_KEY = "necromancer-patrol-route-persistent-v1";
   const PATROL_ROUTE_DEFAULT_CURRENT = Object.freeze(["basic", "basic", "graveyard", "forest", "rest", "event"]);
   const PATROL_ROUTE_DEFAULT_RESERVE = Object.freeze(["monster", "monster", "monster", "monster", "monster"]);
   const PATROL_ROUTE_ALLOWED_IDS = Object.freeze(new Set(["basic", "graveyard", "forest", "rest", "event", "monster"]));
@@ -818,20 +819,51 @@
       Object.keys(counts).every((id) => counts[id] === expected[id]);
   }
 
-  function loadPatrolRouteState() {
-    const fallback = defaultPatrolRouteState();
+  function readPatrolRouteStorage(storage, key) {
     try {
-      const saved = JSON.parse(sessionStorage.getItem(PATROL_ROUTE_KEY));
-      return patrolRouteInventoryIsValid(saved) ? clonePatrolRouteState(saved) : fallback;
+      if (!storage) return null;
+      const raw = storage.getItem(key);
+      if (!raw) return null;
+      const saved = JSON.parse(raw);
+      return patrolRouteInventoryIsValid(saved) ? clonePatrolRouteState(saved) : null;
     } catch (_) {
-      return fallback;
+      return null;
     }
   }
 
+  function loadPatrolRouteState() {
+    const fromSession = readPatrolRouteStorage(
+      typeof sessionStorage !== "undefined" ? sessionStorage : null,
+      PATROL_ROUTE_KEY
+    );
+    if (fromSession) return fromSession;
+
+    const fromPersistent = readPatrolRouteStorage(
+      typeof localStorage !== "undefined" ? localStorage : null,
+      PATROL_ROUTE_PERSIST_KEY
+    );
+    if (fromPersistent) {
+      try {
+        sessionStorage.setItem(PATROL_ROUTE_KEY, JSON.stringify(fromPersistent));
+      } catch (_) { /* Session mirror is optional. */ }
+      return fromPersistent;
+    }
+
+    return defaultPatrolRouteState();
+  }
+
   function savePatrolRouteState() {
+    const payload = JSON.stringify(patrolRouteState);
+    let saved = false;
     try {
-      sessionStorage.setItem(PATROL_ROUTE_KEY, JSON.stringify(patrolRouteState));
-    } catch (_) { /* Keep the current session playable even when storage is unavailable. */ }
+      sessionStorage.setItem(PATROL_ROUTE_KEY, payload);
+      saved = true;
+    } catch (_) { /* Keep trying the persistent store below. */ }
+    try {
+      localStorage.setItem(PATROL_ROUTE_PERSIST_KEY, payload);
+      saved = true;
+    } catch (_) { /* The live run remains playable even when storage is blocked. */ }
+    return saved;
   }
 
 
@@ -912,6 +944,9 @@
 
   function openPatrolRoute() {
     if (!eventOpen || activeEventTileId !== "home") return;
+    // Re-read storage whenever the editor opens so returning to home never
+    // reconstructs the default route from a stale in-memory draft.
+    patrolRouteState = loadPatrolRouteState();
     patrolRouteDraft = clonePatrolRouteState(patrolRouteState);
     patrolRouteSelectedCurrent = null;
     patrolRouteSelectedReserve = null;
@@ -948,8 +983,20 @@
   function confirmPatrolRoute() {
     if (!patrolRouteInventoryIsValid(patrolRouteDraft)) return;
     patrolRouteState = clonePatrolRouteState(patrolRouteDraft);
-    savePatrolRouteState();
-    el.diceResult.textContent = "순찰경로 확정 · 집에서 나가면 다음 타일 배치에 적용";
+    const saved = savePatrolRouteState();
+    if (!saved) {
+      el.patrolRouteStatus.textContent = "저장에 실패했습니다. 브라우저 저장소를 확인하세요.";
+      return;
+    }
+    // Verify the serialized state immediately. Do not close on a failed write.
+    const verified = loadPatrolRouteState();
+    if (!patrolRouteInventoryIsValid(verified) ||
+        JSON.stringify(verified) !== JSON.stringify(patrolRouteState)) {
+      el.patrolRouteStatus.textContent = "순찰경로 저장 확인에 실패했습니다.";
+      return;
+    }
+    patrolRouteState = verified;
+    el.diceResult.textContent = "순찰경로 저장 완료 · 다음 타일 배치에 적용";
     closePatrolRoute();
   }
 
