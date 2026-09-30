@@ -519,31 +519,62 @@
     if (!el.deckOverlay.hidden) renderDeckSelection();
   }
 
+  const FULL_HEAL_CROSS_SRC = "art/v2-style/ui/heal-cross.webp?v=2";
   const FULL_HEAL_CROSS_SPECS = Object.freeze([
-    [6, 48, 0, 2900, -5], [13, 72, 220, 2700, 6], [20, 54, 80, 3050, -4],
-    [28, 92, 380, 2850, 5], [36, 46, 160, 3150, -6], [43, 66, 500, 2750, 4],
-    [51, 52, 40, 3000, -3], [58, 86, 300, 2920, 5], [66, 44, 560, 2650, -5],
-    [72, 76, 110, 3100, 4], [79, 58, 430, 2800, -6], [87, 98, 240, 3020, 5],
-    [94, 50, 620, 2700, -3], [10, 64, 740, 2600, 4], [33, 80, 690, 2950, -4],
-    [55, 48, 820, 2550, 5], [76, 90, 770, 2920, -5], [91, 62, 900, 2650, 3]
+    [5, 48, 0, 2550, -8], [12, 72, 180, 2260, 8], [19, 54, 80, 2700, -5],
+    [27, 92, 360, 2380, 7], [35, 44, 150, 2820, -9], [43, 66, 470, 2320, 6],
+    [51, 52, 40, 2580, -4], [59, 84, 300, 2460, 8], [67, 42, 540, 2140, -7],
+    [74, 74, 110, 2700, 6], [81, 58, 410, 2360, -9], [88, 98, 230, 2600, 7],
+    [95, 46, 590, 2220, -5], [9, 62, 700, 2100, 7], [31, 80, 660, 2420, -6],
+    [54, 45, 790, 2040, 8], [77, 90, 750, 2380, -7], [92, 64, 860, 2080, 5]
   ]);
+  let fullHealCrossReady = null;
+
+  function prepareFullHealCross() {
+    if (fullHealCrossReady) return fullHealCrossReady;
+    fullHealCrossReady = new Promise((resolve) => {
+      const image = new Image();
+      let settled = false;
+      const done = (ok) => {
+        if (settled) return;
+        settled = true;
+        resolve(ok);
+      };
+      const timeout = setTimeout(() => done(false), 3500);
+      image.onload = async () => {
+        clearTimeout(timeout);
+        try { if (image.decode) await image.decode(); } catch (_) {}
+        done(true);
+      };
+      image.onerror = () => { clearTimeout(timeout); done(false); };
+      image.src = FULL_HEAL_CROSS_SRC;
+    });
+    return fullHealCrossReady;
+  }
 
   async function playFullHealEffect() {
     if (!el.fullHealEffect || !el.fullHealParticles) return;
     el.fullHealParticles.replaceChildren();
 
+    const imageReady = await prepareFullHealCross();
     const reducedMotion = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-    const specs = reducedMotion ? FULL_HEAL_CROSS_SPECS.slice(0, 7) : FULL_HEAL_CROSS_SPECS;
+    const specs = reducedMotion ? FULL_HEAL_CROSS_SPECS.slice(0, 9) : FULL_HEAL_CROSS_SPECS;
 
     for (const [left, size, delay, duration, drift] of specs) {
-      const cross = document.createElement("img");
+      const cross = document.createElement(imageReady ? "img" : "span");
       cross.className = "full-heal-cross";
-      cross.src = "art/v2-style/ui/heal-cross.webp?v=1";
-      cross.alt = "";
+      if (imageReady) {
+        cross.src = FULL_HEAL_CROSS_SRC;
+        cross.alt = "";
+        cross.decoding = "sync";
+      } else {
+        cross.classList.add("is-css-fallback");
+        cross.setAttribute("aria-hidden", "true");
+      }
       cross.style.setProperty("--heal-left", `${left}%`);
       cross.style.setProperty("--heal-size", `${size}px`);
-      cross.style.setProperty("--heal-delay", `${reducedMotion ? Math.min(delay, 220) : delay}ms`);
-      cross.style.setProperty("--heal-duration", `${reducedMotion ? Math.min(duration, 950) : duration}ms`);
+      cross.style.setProperty("--heal-delay", `${reducedMotion ? Math.min(delay, 180) : delay}ms`);
+      cross.style.setProperty("--heal-duration", `${reducedMotion ? Math.min(duration, 1150) : duration}ms`);
       cross.style.setProperty("--heal-drift", `${drift}vw`);
       el.fullHealParticles.append(cross);
     }
@@ -553,11 +584,13 @@
     void el.fullHealEffect.offsetWidth;
     el.fullHealEffect.classList.add("is-playing");
 
-    await wait(reducedMotion ? 1050 : 3200);
+    await wait(reducedMotion ? 1350 : 3400);
     el.fullHealEffect.classList.remove("is-playing");
     el.fullHealEffect.hidden = true;
     el.fullHealParticles.replaceChildren();
   }
+
+  prepareFullHealCross();
 
   function emptyProphecyStack() {
     return { allyAttack: 0, allyHp: 0, allySpeed: 0, enemyAttack: 0, rolls: [] };
