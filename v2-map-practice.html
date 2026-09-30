@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
   <title>네크로멘서 앤드 다이스 · 외곽 타일 맵 테스트</title>
-  <link rel="stylesheet" href="v2-map-practice.css?v=58">
+  <link rel="stylesheet" href="v2-map-practice.css?v=59">
   <link rel="stylesheet" href="v2-home-inheritance.css?v=9">
   <link rel="stylesheet" href="v2-altar-ritual.css?v=4">
 </head>
@@ -136,11 +136,32 @@
           <button id="tileEventRitual" class="tile-event-ritual" type="button" hidden>의식</button>
           <button id="tileEventProphecy" class="tile-event-prophecy" type="button" hidden>예언</button>
           <button id="tileEventMonsterShop" class="tile-event-monster-shop" type="button" hidden>마물 상점</button>
+          <button id="tileEventGraveyard" class="tile-event-graveyard" type="button" hidden>시체 파헤치기</button>
           <div id="fortuneProphecyUi" class="fortune-prophecy-ui" hidden>
             <img src="art/v2-style/map-test/events/fortune-prophecy-ui.png?v=1" alt="점술가의 수정구 예언 UI">
           </div>
           <div id="tileEventPrayerResult" class="tile-event-prayer-result" role="status" aria-live="polite" hidden></div>
           <div id="tileEventContaminationChange" class="tile-event-contamination-change" role="status" aria-live="polite" hidden></div>
+          <section id="graveyardExtractPanel" class="graveyard-extract-panel" aria-live="polite" hidden>
+            <div class="graveyard-extract-head">
+              <strong>공동묘지 · 낙인 추출</strong>
+              <button id="graveyardExtractClose" type="button">닫기</button>
+            </div>
+            <p class="graveyard-extract-guide">전투에서 죽은 내 마물의 시체만 남습니다. 시체 1구를 선택하고 그 마물이 지녔던 낙인 1개를 추출하면 시체는 사라집니다.</p>
+            <div class="graveyard-extract-layout">
+              <section class="graveyard-extract-column">
+                <h3>전투에서 죽은 마물</h3>
+                <div id="graveyardCorpseList" class="graveyard-corpse-list"></div>
+              </section>
+              <section class="graveyard-extract-column">
+                <h3>추출할 낙인</h3>
+                <div id="graveyardBrandList" class="graveyard-brand-list">
+                  <div class="graveyard-extract-placeholder">시체를 선택하세요.</div>
+                </div>
+                <p id="graveyardExtractStatus" class="graveyard-extract-status"></p>
+              </section>
+            </div>
+          </section>
           <section id="monsterShopPanel" class="monster-shop-panel" aria-live="polite" hidden>
             <div class="monster-shop-head">
               <strong>마물 상점</strong>
@@ -237,8 +258,8 @@
   <script src="v2-sfx.js?v=3"></script>
   <script src="v2-design-data.js?v=1"></script>
   <script src="v2-rules.js?v=7"></script>
-  <script src="v2-run-state.js?v=2"></script>
-  <script src="v2-run-state-runtime.js?v=3"></script>
+  <script src="v2-run-state.js?v=3"></script>
+  <script src="v2-run-state-runtime.js?v=4"></script>
   <script src="v2-brand-cards.js?v=4"></script>
   <script src="v2-home-inheritance.js?v=14"></script>
   <script src="v2-altar-ritual.js?v=4"></script>
@@ -246,6 +267,6 @@
   <script src="v2-world-tree-prayer-digits.js?v=2"></script>
   <script src="v2-event-data.js?v=1"></script>
   <script src="v2-map-events.js?v=1"></script>
-  <script src="v2-map-practice.js?v=77"></script>
+  <script src="v2-map-practice.js?v=78"></script>
 </body>
 </html>
