@@ -70,6 +70,17 @@
     Object.freeze({ id: "catastrophe", label: "재앙", min: 60, monsterTiles: 4 }),
     Object.freeze({ id: "threshold", label: "임계", min: 80, monsterTiles: 5 })
   ]);
+  const SCOUT_ENCOUNTER_STAGES = Object.freeze([
+    Object.freeze({ min: 0, counts: Object.freeze([1, 2]), countWeights: Object.freeze([.65, .35]), grades: Object.freeze({ normal: .90, advanced: .10, hero: 0 }) }),
+    Object.freeze({ min: 20, counts: Object.freeze([2]), countWeights: Object.freeze([1]), grades: Object.freeze({ normal: .75, advanced: .25, hero: 0 }) }),
+    Object.freeze({ min: 40, counts: Object.freeze([2, 3]), countWeights: Object.freeze([.65, .35]), grades: Object.freeze({ normal: .55, advanced: .40, hero: .05 }) }),
+    Object.freeze({ min: 60, counts: Object.freeze([3]), countWeights: Object.freeze([1]), grades: Object.freeze({ normal: .35, advanced: .50, hero: .15 }) }),
+    Object.freeze({ min: 80, counts: Object.freeze([3, 4]), countWeights: Object.freeze([.55, .45]), grades: Object.freeze({ normal: .20, advanced: .55, hero: .25 }) })
+  ]);
+  const SCOUT_ENEMY_SLUGS = Object.freeze([
+    "death-knight", "skeleton-spear", "skeleton-archer", "ghoul", "ancient-treant", "goblin-rider",
+    "minotaur", "plague-doctor", "spider-knight", "hydra", "siren"
+  ]);
   const BOSS_CONTAMINATION_MIN = 80;
   const MAP_LAYOUT_KEY = "necromancer-map-layout-v2";
   const LEGACY_MAP_LAYOUT_KEY = "necromancer-map-layout-v1";
@@ -135,6 +146,11 @@
     graveyardCorpseList: document.getElementById("graveyardCorpseList"),
     graveyardBrandList: document.getElementById("graveyardBrandList"),
     graveyardExtractStatus: document.getElementById("graveyardExtractStatus"),
+    eventHillScout: document.getElementById("tileEventHillScout"),
+    hillScoutPanel: document.getElementById("hillScoutPanel"),
+    hillScoutClose: document.getElementById("hillScoutClose"),
+    hillScoutList: document.getElementById("hillScoutList"),
+    hillScoutStatus: document.getElementById("hillScoutStatus"),
     fortuneProphecyUi: document.getElementById("fortuneProphecyUi"),
     eventPrayerResult: document.getElementById("tileEventPrayerResult"),
     eventContaminationChange: document.getElementById("tileEventContaminationChange"),
@@ -234,6 +250,7 @@
   let monsterShopTrading = false;
   let graveyardSelectedCorpseId = null;
   let graveyardExtracting = false;
+  let hillScout = loadHillScoutState();
   let contamination = loadContamination();
   const ownedUnits = loadOwnedRoster();
 
@@ -561,6 +578,157 @@
     for (let index = 0; index < 7; index += 1) positions.push({ x: 79 - index * (58 / 6), y: 85 });
     for (let index = 0; index < 5; index += 1) positions.push({ x: 6, y: 69 - index * (54 / 4) });
     return positions;
+  }
+
+  function loadHillScoutState() {
+    const saved = globalThis.V2RunStateRuntime?.snapshot?.()?.currentMap?.hillScout;
+    if (!saved || typeof saved !== "object" || !Array.isArray(saved.intel)) return { scouted: false, intel: [] };
+    return {
+      scouted: Boolean(saved.scouted),
+      intel: saved.intel.filter((entry) =>
+        Number.isInteger(entry?.step) && entry.step >= 1 && entry.step <= 24 &&
+        MONSTER_BATTLE_TILE_IDS.has(entry.tileType) &&
+        Number.isInteger(entry.count) && entry.count >= 1 && entry.count <= 4 &&
+        ["normal","advanced","hero"].includes(entry.grade) &&
+        typeof entry.legion === "string" && entry.legion
+      ).map((entry) => ({ ...entry }))
+    };
+  }
+
+  function scoutEncounterStage(value = contamination) {
+    for (let index = SCOUT_ENCOUNTER_STAGES.length - 1; index >= 0; index -= 1) {
+      if (value >= SCOUT_ENCOUNTER_STAGES[index].min) return SCOUT_ENCOUNTER_STAGES[index];
+    }
+    return SCOUT_ENCOUNTER_STAGES[0];
+  }
+
+  function scoutWeightedChoice(values, weights) {
+    let roll = Math.random() * weights.reduce((sum, weight) => sum + weight, 0);
+    for (let index = 0; index < values.length; index += 1) {
+      roll -= weights[index];
+      if (roll <= 0) return values[index];
+    }
+    return values[values.length - 1];
+  }
+
+  function createScoutIntelForStep(tile, step) {
+    const stage = scoutEncounterStage();
+    const count = scoutWeightedChoice(stage.counts, stage.countWeights);
+    const gradeNames = ["normal", "advanced", "hero"];
+    const gradeWeights = gradeNames.map((grade) => stage.grades[grade]);
+    let grade = scoutWeightedChoice(gradeNames, gradeWeights);
+    let candidates = SCOUT_ENEMY_SLUGS
+      .map((slug) => globalThis.V2DesignData?.units?.[slug])
+      .filter(Boolean)
+      .filter((unit) => unit.grade === grade && Array.isArray(unit.legions) && unit.legions.length);
+    if (!candidates.length) {
+      candidates = SCOUT_ENEMY_SLUGS
+        .map((slug) => globalThis.V2DesignData?.units?.[slug])
+        .filter((unit) => unit && Array.isArray(unit.legions) && unit.legions.length);
+      grade = candidates[Math.floor(Math.random() * candidates.length)]?.grade || "normal";
+      candidates = candidates.filter((unit) => unit.grade === grade);
+    }
+    const anchor = candidates[Math.floor(Math.random() * Math.max(1, candidates.length))];
+    const legion = anchor?.legions?.[Math.floor(Math.random() * anchor.legions.length)] || "skeleton";
+    return { step, tileType: tile.id, count, grade, legion };
+  }
+
+  async function ensureHillScoutIntel() {
+    if (!hillScout.scouted) {
+      const intel = currentTiles
+        .map((tile, index) => ({ tile, step: index + 1 }))
+        .filter(({ tile, step }) => isMonsterBattleTile(tile) && !isMonsterTileCleared(step))
+        .map(({ tile, step }) => createScoutIntelForStep(tile, step));
+      hillScout = { scouted: true, intel };
+      if (globalThis.V2RunStateRuntime?.available) {
+        await V2RunStateRuntime.setMapProgress({ hillScout, prefix: "hill-scout" });
+        await V2RunStateRuntime.flush();
+      }
+    }
+    renderHillScoutBadges();
+    return hillScout;
+  }
+
+  function activeHillScoutIntel() {
+    return hillScout.intel.filter((entry) => !isMonsterTileCleared(entry.step));
+  }
+
+  function renderHillScoutBadges() {
+    currentButtons.forEach((button) => button?.querySelector(".hill-scout-badge")?.remove());
+    if (!hillScout.scouted) return;
+    for (const intel of activeHillScoutIntel()) {
+      const button = currentButtons[intel.step - 1];
+      if (!button) continue;
+      const badge = document.createElement("span");
+      badge.className = "hill-scout-badge";
+      badge.textContent = "정찰";
+      badge.setAttribute("aria-hidden", "true");
+      button.append(badge);
+    }
+  }
+
+  function scoutTileTypeLabel(type) {
+    return type === "rare-monster" ? "희귀 마물" : type === "boss" ? "보스" : "일반 마물";
+  }
+
+  function renderHillScoutPanel() {
+    el.hillScoutList.replaceChildren();
+    const intel = activeHillScoutIntel().sort((a, b) => a.step - b.step);
+    if (!intel.length) {
+      const empty = document.createElement("div");
+      empty.className = "hill-scout-empty";
+      empty.textContent = "현재 맵에 남아 있는 마물 타일이 없습니다.";
+      el.hillScoutList.append(empty);
+      el.hillScoutStatus.textContent = "정찰할 대상이 없습니다.";
+      return;
+    }
+    for (const entry of intel) {
+      const card = document.createElement("article");
+      const header = document.createElement("header");
+      const title = document.createElement("strong");
+      const type = document.createElement("em");
+      const list = document.createElement("dl");
+      card.className = `hill-scout-card is-${entry.tileType === "rare-monster" ? "rare" : entry.tileType === "boss" ? "boss" : "normal"}`;
+      title.textContent = `${entry.step}번 타일`;
+      type.textContent = scoutTileTypeLabel(entry.tileType);
+      header.append(title, type);
+      const rows = [
+        ["적 수", `${entry.count}마리`],
+        ["등급", `${GRADE_LABELS[entry.grade] || entry.grade} 포함`],
+        ["군단", `${LEGION_LABELS[entry.legion] || entry.legion} 확인`]
+      ];
+      for (const [key, value] of rows) {
+        const dt = document.createElement("dt");
+        const dd = document.createElement("dd");
+        dt.textContent = key;
+        dd.textContent = value;
+        list.append(dt, dd);
+      }
+      card.append(header, list);
+      el.hillScoutList.append(card);
+    }
+    el.hillScoutStatus.textContent = `남은 마물 타일 ${intel.length}곳 정찰 완료 · 정확한 마물 종류는 전투 진입 시 결정됩니다.`;
+  }
+
+  async function openHillScout() {
+    if (!eventOpen || activeEventTileId !== "forest") return;
+    el.eventHillScout.disabled = true;
+    el.diceResult.textContent = "언덕 · 전역 정찰 중…";
+    await ensureHillScoutIntel();
+    renderHillScoutPanel();
+    el.hillScoutPanel.hidden = false;
+    el.eventHillScout.hidden = true;
+    el.eventHillScout.disabled = false;
+    el.diceResult.textContent = "언덕 · 전역 정찰";
+    el.hillScoutClose.focus();
+  }
+
+  function closeHillScout() {
+    if (!eventOpen || activeEventTileId !== "forest") return;
+    el.hillScoutPanel.hidden = true;
+    el.eventHillScout.hidden = false;
+    el.eventHillScout.textContent = hillScout.scouted ? "정찰 정보" : "정찰";
+    el.eventHillScout.focus();
   }
 
   function shuffle(items) {
@@ -1287,6 +1455,12 @@
     if (prophecy.allyHp) params.set("prophecyAllyHp", String(prophecy.allyHp));
     if (prophecy.allySpeed) params.set("prophecyAllySpeed", String(prophecy.allySpeed));
     if (prophecy.enemyAttack) params.set("prophecyEnemyAttack", String(prophecy.enemyAttack));
+    const scoutIntel = hillScout.scouted ? hillScout.intel.find((entry) => entry.step === battleStep) : null;
+    if (scoutIntel) {
+      params.set("scoutCount", String(scoutIntel.count));
+      params.set("scoutGrade", scoutIntel.grade);
+      params.set("scoutLegion", scoutIntel.legion);
+    }
     if (prophecy.allyAttack || prophecy.allyHp || prophecy.allySpeed || prophecy.enemyAttack) {
       const clearedProphecy = emptyProphecyStack();
       try { if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(FORTUNE_PROPHECY_KEY); } catch (_) {}
@@ -1616,8 +1790,11 @@
     el.eventProphecy.hidden = tile.id !== "fortune-teller-camp";
     el.eventMonsterShop.hidden = tile.id !== "village";
     el.eventGraveyard.hidden = tile.id !== "graveyard" || !hasGraveyardCorpses();
+    el.eventHillScout.hidden = tile.id !== "forest";
+    el.eventHillScout.textContent = hillScout.scouted ? "정찰 정보" : "정찰";
     el.monsterShopPanel.hidden = true;
     el.graveyardExtractPanel.hidden = true;
+    el.hillScoutPanel.hidden = true;
     el.fortuneProphecyUi.hidden = true;
     el.eventPrayerResult.hidden = true;
     el.eventPrayerResult.textContent = "";
@@ -1635,6 +1812,7 @@
       el.eventProphecy.hidden = true;
       el.eventMonsterShop.hidden = tile.id !== "village";
       el.eventGraveyard.hidden = tile.id !== "graveyard" || !hasGraveyardCorpses();
+      el.eventHillScout.hidden = tile.id !== "forest";
     }
     el.eventClose.hidden = treasure;
     if (treasure) {
@@ -1679,8 +1857,10 @@
     el.eventProphecy.hidden = true;
     el.eventMonsterShop.hidden = true;
     el.eventGraveyard.hidden = true;
+    el.eventHillScout.hidden = true;
     el.monsterShopPanel.hidden = true;
     el.graveyardExtractPanel.hidden = true;
+    el.hillScoutPanel.hidden = true;
     el.fortuneProphecyUi.hidden = true;
     el.eventPrayerResult.hidden = true;
     el.eventClose.disabled = true;
@@ -2287,9 +2467,11 @@
     if (restoredPool) {
       loadClearedMonsterSteps();
       loadWorldTreePrayer();
+      hillScout = loadHillScoutState();
     } else {
       resetClearedMonsterSteps();
       resetWorldTreePrayer();
+      hillScout = { scouted: false, intel: [] };
     }
     const pool = restoredPool || createPool();
     positions = perimeterPositions();
@@ -2344,6 +2526,7 @@
       });
       return button;
     });
+    renderHillScoutBadges();
     el.ring.replaceChildren(...currentButtons);
     saveMapLayout(pool, restoredPool ? "map-layout-restore" : "map-layout-generate");
     const startingIndex = resumeHeroIndex === null ? HOME_INDEX : resumeHeroIndex;
@@ -2706,6 +2889,8 @@
   el.monsterShopClose.addEventListener("click", closeMonsterShop);
   el.eventGraveyard.addEventListener("click", openGraveyardExtraction);
   el.graveyardExtractClose.addEventListener("click", closeGraveyardExtraction);
+  el.eventHillScout.addEventListener("click", openHillScout);
+  el.hillScoutClose.addEventListener("click", closeHillScout);
   el.monsterShopCancelTrade.addEventListener("click", resetMonsterShopTrade);
   el.eventInheritance.addEventListener("click", async () => {
     if (eventOpen && activeEventTileId === "home") {
