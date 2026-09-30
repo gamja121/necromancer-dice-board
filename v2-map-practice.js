@@ -57,6 +57,7 @@
   const FORTUNE_PROPHECY_KEY = "necromancer-fortune-prophecy-v1";
   const STARTING_UNIT_SLUGS = Object.freeze(["skeleton-spear", "skeleton-archer"]);
   const DICE_CONTROL_INVENTORY_KEY = "necromancer-map-dice-control-v1";
+  const GRAVEYARD_CORPSES_KEY = "necromancer-map-graveyard-corpses-v1";
   const MONSTER_CAPACITY = 10;
   const DICE_CONTROL_CAPACITY = 5;
   const STARTING_DICE_EXCLUDED_IDS = Object.freeze(new Set(["repeat", "echo"]));
@@ -128,6 +129,12 @@
     monsterShopCancelTrade: document.getElementById("monsterShopCancelTrade"),
     monsterShopOffers: document.getElementById("monsterShopOffers"),
     monsterShopStatus: document.getElementById("monsterShopStatus"),
+    eventGraveyard: document.getElementById("tileEventGraveyard"),
+    graveyardExtractPanel: document.getElementById("graveyardExtractPanel"),
+    graveyardExtractClose: document.getElementById("graveyardExtractClose"),
+    graveyardCorpseList: document.getElementById("graveyardCorpseList"),
+    graveyardBrandList: document.getElementById("graveyardBrandList"),
+    graveyardExtractStatus: document.getElementById("graveyardExtractStatus"),
     fortuneProphecyUi: document.getElementById("fortuneProphecyUi"),
     eventPrayerResult: document.getElementById("tileEventPrayerResult"),
     eventContaminationChange: document.getElementById("tileEventContaminationChange"),
@@ -225,6 +232,8 @@
   let monsterShopSelectedId = null;
   let monsterShopOffers = [];
   let monsterShopTrading = false;
+  let graveyardSelectedCorpseId = null;
+  let graveyardExtracting = false;
   let contamination = loadContamination();
   const ownedUnits = loadOwnedRoster();
 
@@ -404,6 +413,26 @@
     getMonsterTags: ownedMonsterTags,
     onStateChanged: () => {}
   }) || null;
+
+  function loadGraveyardCorpses() {
+    const runCorpses = globalThis.V2RunStateRuntime?.snapshot?.()?.graveyardCorpses;
+    let saved = Array.isArray(runCorpses) ? runCorpses : null;
+    if (!saved) {
+      try {
+        if (typeof sessionStorage !== "undefined") saved = JSON.parse(sessionStorage.getItem(GRAVEYARD_CORPSES_KEY) || "[]");
+      } catch (_) {
+        saved = [];
+      }
+    }
+    return (Array.isArray(saved) ? saved : [])
+      .filter((corpse) => corpse?.diedInBattle === true && typeof corpse.instanceId === "string" && corpse.instanceId &&
+        typeof corpse.slug === "string" && corpse.slug && Array.isArray(corpse.brands))
+      .map((corpse) => JSON.parse(JSON.stringify(corpse)));
+  }
+
+  function hasGraveyardCorpses() {
+    return loadGraveyardCorpses().length > 0;
+  }
 
   function hasInjuredOwnedUnits() {
     return [...ownedUnits.values()].some((unit) => Number.isFinite(unit.currentHp) && unit.currentHp < unit.maxHp);
@@ -1586,7 +1615,9 @@
     el.eventRitual.hidden = tile.id !== "altar";
     el.eventProphecy.hidden = tile.id !== "fortune-teller-camp";
     el.eventMonsterShop.hidden = tile.id !== "village";
+    el.eventGraveyard.hidden = tile.id !== "graveyard" || !hasGraveyardCorpses();
     el.monsterShopPanel.hidden = true;
+    el.graveyardExtractPanel.hidden = true;
     el.fortuneProphecyUi.hidden = true;
     el.eventPrayerResult.hidden = true;
     el.eventPrayerResult.textContent = "";
@@ -1603,6 +1634,7 @@
       el.eventRitual.hidden = true;
       el.eventProphecy.hidden = true;
       el.eventMonsterShop.hidden = tile.id !== "village";
+      el.eventGraveyard.hidden = tile.id !== "graveyard" || !hasGraveyardCorpses();
     }
     el.eventClose.hidden = treasure;
     if (treasure) {
@@ -1646,7 +1678,9 @@
     el.eventRitual.hidden = true;
     el.eventProphecy.hidden = true;
     el.eventMonsterShop.hidden = true;
+    el.eventGraveyard.hidden = true;
     el.monsterShopPanel.hidden = true;
+    el.graveyardExtractPanel.hidden = true;
     el.fortuneProphecyUi.hidden = true;
     el.eventPrayerResult.hidden = true;
     el.eventClose.disabled = true;
@@ -1680,6 +1714,156 @@
     worldTreePrayerRolling = false;
     el.eventClose.disabled = false;
     el.eventClose.focus();
+  }
+
+  function renderGraveyardCorpseList() {
+    const corpses = loadGraveyardCorpses();
+    el.graveyardCorpseList.replaceChildren();
+    if (!corpses.length) {
+      const empty = document.createElement("div");
+      empty.className = "graveyard-extract-placeholder";
+      empty.textContent = "전투에서 죽은 마물의 시체가 없습니다.";
+      el.graveyardCorpseList.append(empty);
+      return;
+    }
+    for (const corpse of corpses) {
+      const button = document.createElement("button");
+      const image = document.createElement("img");
+      const name = document.createElement("strong");
+      const grade = document.createElement("small");
+      button.type = "button";
+      button.className = "graveyard-corpse";
+      button.classList.toggle("is-selected", corpse.instanceId === graveyardSelectedCorpseId);
+      button.disabled = graveyardExtracting;
+      image.src = `art/v2-style/ui/unit-card-${corpse.slug}.png?v=19`;
+      image.alt = "";
+      name.textContent = corpse.name || globalThis.V2DesignData?.units?.[corpse.slug]?.name || corpse.slug;
+      grade.textContent = GRADE_LABELS[corpse.grade] || corpse.grade || "마물";
+      button.append(image, name, grade);
+      button.addEventListener("click", () => {
+        if (graveyardExtracting) return;
+        graveyardSelectedCorpseId = corpse.instanceId;
+        el.graveyardExtractStatus.textContent = `${name.textContent}의 시체를 파헤쳤습니다. 추출할 낙인을 선택하세요.`;
+        renderGraveyardCorpseList();
+        renderGraveyardBrandChoices();
+      });
+      el.graveyardCorpseList.append(button);
+    }
+  }
+
+  function renderGraveyardBrandChoices() {
+    el.graveyardBrandList.replaceChildren();
+    const corpse = loadGraveyardCorpses().find((entry) => entry.instanceId === graveyardSelectedCorpseId);
+    if (!corpse) {
+      const empty = document.createElement("div");
+      empty.className = "graveyard-extract-placeholder";
+      empty.textContent = "시체를 선택하세요.";
+      el.graveyardBrandList.append(empty);
+      return;
+    }
+    const brands = corpse.brands.filter((brand) => V2Rules.validateBrand(brand));
+    if (!brands.length) {
+      const empty = document.createElement("div");
+      empty.className = "graveyard-extract-placeholder";
+      empty.textContent = "이 시체에는 추출할 수 있는 낙인이 없습니다.";
+      el.graveyardBrandList.append(empty);
+      return;
+    }
+    brands.forEach((brand, index) => {
+      const card = {
+        id: `grave-extract-${corpse.instanceId}-${index}`,
+        brand: JSON.parse(JSON.stringify(brand))
+      };
+      const button = document.createElement("button");
+      const image = document.createElement("img");
+      const title = document.createElement("strong");
+      const detail = document.createElement("small");
+      const label = V2BrandCards.label(card);
+      button.type = "button";
+      button.className = "graveyard-brand-choice";
+      button.disabled = graveyardExtracting;
+      image.src = V2BrandCards.imagePath();
+      image.alt = label;
+      title.textContent = label.split(" · ")[0];
+      detail.textContent = label.split(" · ").slice(1).join(" · ");
+      button.append(image, title, detail);
+      button.addEventListener("click", () => extractGraveyardBrand(corpse, brand));
+      el.graveyardBrandList.append(button);
+    });
+  }
+
+  async function extractGraveyardBrand(corpse, brand) {
+    if (graveyardExtracting || !corpse || !V2Rules.validateBrand(brand)) return;
+    const currentCorpses = loadGraveyardCorpses();
+    if (!currentCorpses.some((entry) => entry.instanceId === corpse.instanceId && entry.diedInBattle === true)) return;
+
+    graveyardExtracting = true;
+    renderGraveyardCorpseList();
+    renderGraveyardBrandChoices();
+    el.graveyardExtractStatus.textContent = "낙인 추출 중…";
+
+    const nextCorpses = currentCorpses.filter((entry) => entry.instanceId !== corpse.instanceId);
+    const nextBrands = V2BrandCards.load();
+    const id = globalThis.crypto?.randomUUID
+      ? `brand-card-${globalThis.crypto.randomUUID()}`
+      : `brand-card-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+    const extracted = { id, brand: JSON.parse(JSON.stringify(brand)) };
+    nextBrands.push(extracted);
+
+    let saved = true;
+    if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.atomicGraveyardExtraction === "function") {
+      const result = await V2RunStateRuntime.atomicGraveyardExtraction(nextCorpses, nextBrands, "graveyard-brand-extract");
+      saved = Boolean(result?.ok);
+    } else {
+      try {
+        sessionStorage.setItem(GRAVEYARD_CORPSES_KEY, JSON.stringify(nextCorpses));
+        saved = V2BrandCards.save(nextBrands);
+      } catch (_) {
+        saved = false;
+      }
+    }
+
+    if (!saved) {
+      graveyardExtracting = false;
+      el.graveyardExtractStatus.textContent = "낙인 추출 저장에 실패했습니다. 다시 시도하세요.";
+      renderGraveyardCorpseList();
+      renderGraveyardBrandChoices();
+      return;
+    }
+
+    const corpseName = corpse.name || globalThis.V2DesignData?.units?.[corpse.slug]?.name || corpse.slug;
+    const brandName = V2BrandCards.label(extracted).split(" · ")[0];
+    graveyardSelectedCorpseId = null;
+    graveyardExtracting = false;
+    el.graveyardExtractStatus.textContent = `${corpseName}의 시체에서 ${brandName} 낙인을 추출했습니다.`;
+    renderGraveyardCorpseList();
+    renderGraveyardBrandChoices();
+    el.eventGraveyard.hidden = !hasGraveyardCorpses();
+  }
+
+  function resetGraveyardExtraction() {
+    graveyardSelectedCorpseId = null;
+    graveyardExtracting = false;
+    if (el.graveyardExtractStatus) el.graveyardExtractStatus.textContent = "";
+    renderGraveyardCorpseList();
+    renderGraveyardBrandChoices();
+  }
+
+  function openGraveyardExtraction() {
+    if (!eventOpen || activeEventTileId !== "graveyard" || !hasGraveyardCorpses()) return;
+    el.graveyardExtractPanel.hidden = false;
+    el.eventGraveyard.hidden = true;
+    resetGraveyardExtraction();
+    el.diceResult.textContent = "공동묘지 · 낙인 추출";
+    el.graveyardExtractClose.focus();
+  }
+
+  function closeGraveyardExtraction() {
+    if (!eventOpen || activeEventTileId !== "graveyard" || graveyardExtracting) return;
+    graveyardSelectedCorpseId = null;
+    el.graveyardExtractPanel.hidden = true;
+    el.eventGraveyard.hidden = !hasGraveyardCorpses();
+    if (!el.eventGraveyard.hidden) el.eventGraveyard.focus();
   }
 
   function monsterShopGrade(unit) {
@@ -2520,6 +2704,8 @@
   el.eventProphecy.addEventListener("click", showFortuneProphecy);
   el.eventMonsterShop.addEventListener("click", openMonsterShop);
   el.monsterShopClose.addEventListener("click", closeMonsterShop);
+  el.eventGraveyard.addEventListener("click", openGraveyardExtraction);
+  el.graveyardExtractClose.addEventListener("click", closeGraveyardExtraction);
   el.monsterShopCancelTrade.addEventListener("click", resetMonsterShopTrade);
   el.eventInheritance.addEventListener("click", async () => {
     if (eventOpen && activeEventTileId === "home") {
