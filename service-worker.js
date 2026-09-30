@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20260930-shop-final-scale-2";
+const CACHE_NAME = "necromancer-and-dice-v2-20260930-patrol-layout-fix-2";
 
 const CORE_ASSETS = [
   "./",
