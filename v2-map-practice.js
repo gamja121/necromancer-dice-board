@@ -2,7 +2,7 @@
   "use strict";
 
   const ROOT = "art/v2-style/map-test/";
-  const TILE_ASSET_VERSION = "20260930-swamp-1";
+  const TILE_ASSET_VERSION = "20260930-swamp-2";
   const EVENT_ASSET_VERSION = "20260927-2";
   const DICE_ROOT = "art/v2-style/dice-test/frames/";
   const rollingFrames = Array.from({ length: 12 }, (_, index) => `${DICE_ROOT}roll-${String(index + 1).padStart(2, "0")}.png`);
