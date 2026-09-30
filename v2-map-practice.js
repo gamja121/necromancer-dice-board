@@ -84,6 +84,14 @@
   const LEGACY_MAP_LAYOUT_KEY = "necromancer-map-layout-v1";
   const MAP_CLEARED_MONSTER_KEY = "necromancer-map-cleared-monsters-v1";
   const WORLD_TREE_PRAYER_KEY = "necromancer-map-world-tree-prayed-v1";
+  const PATROL_ROUTE_KEY = "necromancer-patrol-route-v1";
+  const PATROL_ROUTE_TYPES = Object.freeze([
+    Object.freeze({ id: "basic", label: "기본" }),
+    Object.freeze({ id: "monster", label: "일반 마물" }),
+    Object.freeze({ id: "rest", label: "숙영" }),
+    Object.freeze({ id: "gem", label: "보물" }),
+    Object.freeze({ id: "event", label: "사건" })
+  ]);
   const MONSTER_BATTLE_TILE_IDS = Object.freeze(new Set(["monster", "rare-monster", "boss"]));
   const GRADE_LABELS = Object.freeze({ normal: "일반", advanced: "고급", hero: "영웅", special: "소환물" });
   const LEGION_LABELS = Object.freeze({ skeleton: "언데드", corpse: "시체", beast: "야수", plague: "역병", ice: "얼음", summon: "소환", demon: "악마", insect: "벌레", plant: "식물", element: "원소" });
@@ -126,6 +134,13 @@
     eventTreasureRewards: document.getElementById("treasureRewardCards"),
     eventEnter: document.getElementById("tileEventEnter"),
     eventInheritance: document.getElementById("tileEventInheritance"),
+    eventPatrolRoute: document.getElementById("tileEventPatrolRoute"),
+    patrolRoutePanel: document.getElementById("patrolRoutePanel"),
+    patrolRouteClose: document.getElementById("patrolRouteClose"),
+    patrolRouteRows: document.getElementById("patrolRouteRows"),
+    patrolRouteStatus: document.getElementById("patrolRouteStatus"),
+    patrolRouteReset: document.getElementById("patrolRouteReset"),
+    patrolRouteConfirm: document.getElementById("patrolRouteConfirm"),
     eventHeal: document.getElementById("tileEventHeal"),
     eventPray: document.getElementById("tileEventPray"),
     eventRitual: document.getElementById("tileEventRitual"),
@@ -197,6 +212,8 @@
     rewardOverflowConfirm: document.getElementById("rewardOverflowConfirm")
   };
   let positions = [];
+  let patrolRouteDeltas = loadPatrolRouteDeltas();
+  let patrolRouteDraft = { ...patrolRouteDeltas };
   let currentTiles = [];
   let currentButtons = [];
   let heroIndex = 0;
@@ -755,6 +772,133 @@
     el.eventHillScout.focus();
   }
 
+  function loadPatrolRouteDeltas() {
+    const blank = Object.fromEntries(PATROL_ROUTE_TYPES.map(({ id }) => [id, 0]));
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(PATROL_ROUTE_KEY));
+      if (!saved || typeof saved !== "object") return blank;
+      const next = { ...blank };
+      for (const { id } of PATROL_ROUTE_TYPES) {
+        const value = Number(saved[id]);
+        next[id] = Number.isInteger(value) && value >= -1 && value <= 1 ? value : 0;
+      }
+      return Object.values(next).reduce((sum, value) => sum + value, 0) === 0 ? next : blank;
+    } catch (_) {
+      return blank;
+    }
+  }
+
+  function savePatrolRouteDeltas() {
+    try {
+      sessionStorage.setItem(PATROL_ROUTE_KEY, JSON.stringify(patrolRouteDeltas));
+    } catch (_) { /* The current session can still use the in-memory route. */ }
+  }
+
+  function patrolStageForValue(value) {
+    return [...CONTAMINATION_STAGES].reverse().find((entry) => value >= entry.min) || CONTAMINATION_STAGES[0];
+  }
+
+  function patrolBaselineCounts(value = contamination) {
+    const stage = patrolStageForValue(value);
+    const bossActive = value >= BOSS_CONTAMINATION_MIN;
+    const monsterDelta = Math.max(0, stage.monsterTiles - 3);
+    const base = Object.fromEntries(tileTypes.map((tile) => [tile.id, tile.count]));
+    base.monster = Math.max(1, stage.monsterTiles - 1);
+    base["rare-monster"] = 1;
+    base.basic = Math.max(0, (base.basic || 0) - monsterDelta) + (bossActive ? 0 : 1);
+    return base;
+  }
+
+  function nextPatrolBaselineCounts() {
+    const projected = Math.min(CONTAMINATION_MAX, contamination + (lapReadyForRefresh ? 2 : 0));
+    return patrolBaselineCounts(projected);
+  }
+
+  function patrolDraftTotal() {
+    return PATROL_ROUTE_TYPES.reduce((sum, { id }) => sum + (patrolRouteDraft[id] || 0), 0);
+  }
+
+  function renderPatrolRoutePanel() {
+    const baseline = nextPatrolBaselineCounts();
+    el.patrolRouteRows.replaceChildren();
+    for (const { id, label } of PATROL_ROUTE_TYPES) {
+      const row = document.createElement("div");
+      const name = document.createElement("span");
+      const stepper = document.createElement("div");
+      const minus = document.createElement("button");
+      const count = document.createElement("strong");
+      const plus = document.createElement("button");
+      const delta = document.createElement("span");
+      const currentDelta = patrolRouteDraft[id] || 0;
+      const currentCount = Math.max(0, (baseline[id] || 0) + currentDelta);
+      row.className = "patrol-route-row";
+      name.textContent = label;
+      stepper.className = "patrol-route-stepper";
+      minus.type = plus.type = "button";
+      minus.textContent = "−";
+      plus.textContent = "+";
+      minus.disabled = currentDelta <= -1 || currentCount <= 0;
+      plus.disabled = currentDelta >= 1;
+      count.className = "patrol-route-count";
+      count.textContent = String(currentCount);
+      delta.className = "patrol-route-delta";
+      delta.textContent = currentDelta === 0 ? "기본" : currentDelta > 0 ? `+${currentDelta}` : String(currentDelta);
+      minus.addEventListener("click", () => {
+        patrolRouteDraft[id] = Math.max(-1, (patrolRouteDraft[id] || 0) - 1);
+        renderPatrolRoutePanel();
+      });
+      plus.addEventListener("click", () => {
+        patrolRouteDraft[id] = Math.min(1, (patrolRouteDraft[id] || 0) + 1);
+        renderPatrolRoutePanel();
+      });
+      stepper.append(minus, count, plus, delta);
+      row.append(name, stepper);
+      el.patrolRouteRows.append(row);
+    }
+    const total = patrolDraftTotal();
+    const ready = total === 0;
+    el.patrolRouteStatus.classList.toggle("is-warning", !ready);
+    el.patrolRouteStatus.textContent = ready
+      ? "총 타일 수 24 유지 · 이 구성으로 다음 순찰을 확정할 수 있습니다."
+      : `조정 합계 ${total > 0 ? "+" : ""}${total} · 늘린 만큼 다른 타일을 줄여 주세요.`;
+    el.patrolRouteConfirm.disabled = !ready;
+  }
+
+  function openPatrolRoute() {
+    if (!eventOpen || activeEventTileId !== "home") return;
+    patrolRouteDraft = { ...patrolRouteDeltas };
+    renderPatrolRoutePanel();
+    el.patrolRoutePanel.hidden = false;
+    el.eventPatrolRoute.hidden = true;
+    el.eventInheritance.hidden = true;
+    el.eventClose.hidden = true;
+    el.patrolRouteClose.focus();
+  }
+
+  function closePatrolRoute() {
+    if (el.patrolRoutePanel.hidden) return;
+    el.patrolRoutePanel.hidden = true;
+    if (eventOpen && activeEventTileId === "home") {
+      el.eventPatrolRoute.hidden = false;
+      el.eventInheritance.hidden = false;
+      el.eventClose.hidden = false;
+      el.eventPatrolRoute.focus();
+    }
+  }
+
+  function resetPatrolRouteDraft() {
+    patrolRouteDraft = Object.fromEntries(PATROL_ROUTE_TYPES.map(({ id }) => [id, 0]));
+    renderPatrolRoutePanel();
+  }
+
+  function confirmPatrolRoute() {
+    if (patrolDraftTotal() !== 0) return;
+    patrolRouteDeltas = { ...patrolRouteDraft };
+    savePatrolRouteDeltas();
+    el.diceResult.textContent = "순찰경로 확정 · 집에서 나가면 다음 타일 배치에 적용";
+    closePatrolRoute();
+  }
+
   function shuffle(items) {
     for (let index = items.length - 1; index > 0; index -= 1) {
       const target = Math.floor(Math.random() * (index + 1));
@@ -790,28 +934,17 @@
       counts.altar === 1 &&
       counts.unknown === 1 &&
       counts.forest === 2 &&
-      counts.rest === 2 &&
       counts["rare-monster"] === 1 &&
-      counts.gem === 2 &&
-      counts.event === 2 &&
       counts.swamp === 1 &&
       counts.warp === 2;
 
     if (!fixedCountsValid) return false;
 
     const bossCount = counts.boss || 0;
-    const basicCount = counts.basic || 0;
-    const monsterCount = counts.monster || 0;
-
-    if (bossCount === 0) {
-      return pool[23]?.id !== "boss" &&
-        ((basicCount === 3 && monsterCount === 2) || (basicCount === 2 && monsterCount === 3));
-    }
-
-    return bossCount === 1 &&
-      pool[23]?.id === "boss" &&
-      basicCount === 0 &&
-      monsterCount === 4;
+    const adjustableTotal = ["basic", "monster", "rest", "gem", "event"]
+      .reduce((sum, id) => sum + (counts[id] || 0), 0);
+    if (bossCount === 0) return pool[23]?.id !== "boss" && adjustableTotal === 11;
+    return bossCount === 1 && pool[23]?.id === "boss" && adjustableTotal === 10;
   }
 
   function loadSavedMapLayout() {
@@ -941,12 +1074,19 @@
     const stage = contaminationStage();
     const bossActive = contamination >= BOSS_CONTAMINATION_MIN;
     const monsterDelta = Math.max(0, stage.monsterTiles - 3);
-    const stagedTypes = tileTypes.map((tile) => {
+    let stagedTypes = tileTypes.map((tile) => {
       if (tile.id === "monster") return { ...tile, count: Math.max(1, stage.monsterTiles - 1) };
       if (tile.id === "rare-monster") return { ...tile, count: 1 };
       if (tile.id === "basic") return { ...tile, count: Math.max(0, tile.count - monsterDelta) + (bossActive ? 0 : 1) };
-      return tile;
+      return { ...tile };
     });
+    const adjusted = stagedTypes.map((tile) => {
+      const delta = patrolRouteDeltas[tile.id] || 0;
+      return delta ? { ...tile, count: tile.count + delta } : tile;
+    });
+    if (adjusted.every((tile) => tile.count >= 0) && Object.values(patrolRouteDeltas).reduce((sum, value) => sum + value, 0) === 0) {
+      stagedTypes = adjusted;
+    }
 
     const pool = Array(24);
     pool[0] = fixedTiles.fortune;
@@ -1809,6 +1949,8 @@
     el.eventTreasure.hidden = !treasure;
     el.eventEnter.hidden = tile.id !== "home";
     el.eventInheritance.hidden = true;
+    el.eventPatrolRoute.hidden = true;
+    el.patrolRoutePanel.hidden = true;
     el.eventHeal.hidden = tile.id !== "rest" || !hasInjuredOwnedUnits();
     el.eventPray.hidden = tile.id !== "unknown" || worldTreePrayed;
     el.eventRitual.hidden = tile.id !== "altar";
@@ -1831,6 +1973,7 @@
     if (storyOpened) {
       el.eventEnter.hidden = true;
       el.eventInheritance.hidden = true;
+      el.eventPatrolRoute.hidden = true;
       el.eventHeal.hidden = true;
       el.eventPray.hidden = true;
       el.eventRitual.hidden = true;
@@ -2360,6 +2503,7 @@
     el.eventImage.alt = "우리집 실내 풍경";
     el.eventEnter.hidden = true;
     el.eventInheritance.hidden = false;
+    el.eventPatrolRoute.hidden = false;
     el.eventInheritance.focus();
   }
 
@@ -2443,6 +2587,8 @@
     el.eventImage.removeAttribute("src");
     el.eventEnter.hidden = true;
     el.eventInheritance.hidden = true;
+    el.eventPatrolRoute.hidden = true;
+    el.patrolRoutePanel.hidden = true;
     el.eventHeal.hidden = true;
     el.eventPray.hidden = true;
     el.eventRitual.hidden = true;
@@ -2919,6 +3065,10 @@
   el.diceButton.addEventListener("click", rollAndMove);
   el.eventClose.addEventListener("click", handleTileEventExit);
   el.eventEnter.addEventListener("click", enterHome);
+  el.eventPatrolRoute.addEventListener("click", openPatrolRoute);
+  el.patrolRouteClose.addEventListener("click", closePatrolRoute);
+  el.patrolRouteReset.addEventListener("click", resetPatrolRouteDraft);
+  el.patrolRouteConfirm.addEventListener("click", confirmPatrolRoute);
   el.eventHeal.addEventListener("click", healAtRestTile);
   el.eventPray.addEventListener("click", prayAtWorldTree);
   el.eventProphecy.addEventListener("click", showFortuneProphecy);

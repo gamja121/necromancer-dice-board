@@ -579,3 +579,93 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   cursor: pointer;
 }
 .reward-overflow-confirm:disabled { opacity: .45; cursor: default; }
+
+
+/* Home patrol route configuration */
+.tile-event-patrol-route {
+  position: absolute;
+  left: 50%;
+  bottom: 17%;
+  transform: translateX(-50%);
+  min-width: 150px;
+  padding: 10px 18px;
+  border: 1px solid rgba(226, 196, 132, .72);
+  border-radius: 8px;
+  background: rgba(25, 18, 12, .9);
+  color: #f7ead0;
+  font: inherit;
+  font-weight: 800;
+  z-index: 7;
+}
+.patrol-route-panel {
+  position: absolute;
+  inset: 7% 9% 9%;
+  z-index: 12;
+  overflow: auto;
+  padding: 18px;
+  border: 1px solid rgba(226, 196, 132, .68);
+  border-radius: 14px;
+  background: rgba(16, 12, 9, .96);
+  box-shadow: 0 16px 48px rgba(0,0,0,.5);
+}
+.patrol-route-head,
+.patrol-route-actions,
+.patrol-route-row {
+  display: flex;
+  align-items: center;
+}
+.patrol-route-head { justify-content: space-between; gap: 12px; }
+.patrol-route-head strong { font-size: 1.25rem; }
+.patrol-route-head button,
+.patrol-route-actions button,
+.patrol-route-stepper button {
+  border: 1px solid rgba(226, 196, 132, .55);
+  border-radius: 8px;
+  background: rgba(60, 43, 27, .9);
+  color: #f7ead0;
+  font: inherit;
+}
+.patrol-route-head button,
+.patrol-route-actions button { padding: 8px 14px; }
+.patrol-route-guide {
+  margin: 10px 0 8px;
+  color: #d9c8a6;
+  line-height: 1.45;
+}
+.patrol-route-fixed {
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.05);
+  color: #bcae91;
+  font-size: .9rem;
+}
+.patrol-route-rows { display: grid; gap: 7px; }
+.patrol-route-row {
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.patrol-route-row span:first-child { min-width: 88px; font-weight: 700; }
+.patrol-route-stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.patrol-route-stepper button {
+  width: 34px;
+  height: 30px;
+  font-size: 1.05rem;
+}
+.patrol-route-stepper button:disabled { opacity: .32; }
+.patrol-route-count { min-width: 26px; text-align: center; font-weight: 800; }
+.patrol-route-delta { min-width: 42px; color: #cdbb98; text-align: right; font-size: .88rem; }
+.patrol-route-status {
+  min-height: 1.4em;
+  margin: 12px 0 10px;
+  color: #e6d3ab;
+}
+.patrol-route-status.is-warning { color: #efb2a2; }
+.patrol-route-actions { justify-content: flex-end; gap: 8px; }
+#patrolRouteConfirm:disabled { opacity: .38; }
