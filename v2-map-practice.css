@@ -288,7 +288,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   .graveyard-brand-choice img { max-height: 92px; }
 }
 
-.map-board.is-monster-shop-open .tile-event-scene{left:50%;top:50%;width:92%;height:86%;transform:translate(-50%,-50%)}
+.map-board.is-monster-shop-open .tile-event-scene{left:50%;top:50%;width:100%;height:100%;transform:translate(-50%,-50%);overflow:visible}
 .map-board.is-monster-shop-open .tile-event-scene > img:not(.treasure-chest-frame){opacity:0;filter:none}
 .map-board.is-monster-shop-open .tile-event-enter,
 .map-board.is-monster-shop-open .tile-event-heal,
@@ -300,67 +300,62 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .map-board.is-monster-shop-open .tile-event-hill-scout,
 .map-board.is-monster-shop-open .tile-event-exit{display:none!important}
 
-.monster-shop-panel{position:absolute;z-index:52;left:50%;top:50%;width:98%;height:96%;padding:0;transform:translate(-50%,-50%);border:2px solid #4e3827;border-radius:8px;background:
-linear-gradient(180deg,rgba(221,199,157,.98) 0 19%,rgba(163,119,75,.16) 19.2% 100%),
-linear-gradient(180deg,#d7bd8d,#8f623f);
-color:#ead9bb;box-shadow:0 18px 36px #000d,inset 0 0 0 2px #f1d8a044;pointer-events:auto;overflow:hidden}
+.monster-shop-panel{position:fixed;z-index:80;inset:0;padding:0;border:0;background:rgba(7,5,4,.56);color:#ead9bb;box-shadow:none;pointer-events:auto;overflow:hidden}
 .monster-shop-panel[hidden]{display:none}
-.monster-shop-panel::before{content:"";position:absolute;inset:1.4%;border:1px solid #70513b66;pointer-events:none}
-.monster-shop-head{position:absolute;z-index:10;left:3.2%;right:3.2%;top:3.2%;height:13%;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:0;pointer-events:none}
-.monster-shop-head strong{display:grid;place-items:center;width:27%;height:76%;padding:0 12px;border:2px solid #332116;border-radius:5px;background:linear-gradient(180deg,#5a351f,#2b180f);font:1000 clamp(15px,1.65vw,24px)/1 Georgia,"Malgun Gothic",serif;color:#f2d39f;text-align:center;text-shadow:0 2px 3px #000;box-shadow:0 5px 9px #0009,inset 0 0 0 1px #c8955e44}
-.monster-shop-head button{width:13%;min-width:74px;height:58%;border:2px solid #3c281c;border-radius:4px;background:linear-gradient(#5a2e1f,#2b130e);color:#f0d0a0;font-size:clamp(10px,1.05vw,15px);font-weight:1000;cursor:pointer;box-shadow:0 4px 8px #000a;pointer-events:auto}
-.monster-shop-head button:hover,.monster-shop-head button:focus-visible{filter:brightness(1.16);outline:1px solid #d5ad72}
-.monster-shop-guide{position:absolute;z-index:9;left:31%;right:18.5%;top:5.2%;margin:0;padding:5px 10px;border-bottom:1px solid #6f4f345c;color:#4d3424;font-size:clamp(8px,.82vw,12px);font-weight:800;line-height:1.28;text-align:center;text-shadow:0 1px #f7e2ba;pointer-events:none}
+.monster-shop-panel::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 28%,rgba(0,0,0,.28) 75%,rgba(0,0,0,.5));pointer-events:none}
+.monster-shop-head{position:absolute;z-index:12;left:50%;top:50%;width:92vw;height:88vh;transform:translate(-50%,-50%);pointer-events:none}
+.monster-shop-head button{position:absolute;right:3.2%;top:4.5%;min-width:86px;height:40px;padding:0 14px;border:2px solid #3c281c;border-radius:5px;background:linear-gradient(#5c3420,#2a160e);color:#f3d4a2;font-size:clamp(11px,1.15vw,16px);font-weight:1000;cursor:pointer;box-shadow:0 5px 10px #000c,inset 0 0 0 1px #bd895547;pointer-events:auto}
+.monster-shop-head button:hover,.monster-shop-head button:focus-visible{filter:brightness(1.16);outline:2px solid #d5ad72}
+.monster-shop-guide{display:none}
 
-.monster-shop-counter-stage{position:absolute;z-index:4;left:50%;top:17%;width:96%;height:81%;transform:translateX(-50%)}
-.monster-shop-counter-art{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:fill;opacity:.96;pointer-events:none;user-select:none;filter:drop-shadow(0 10px 12px #0009)}
-.monster-shop-layout{position:absolute;inset:0}
-.monster-shop-column,.monster-shop-trade{box-sizing:border-box;background:transparent;border:0}
-.monster-shop-column h3,.monster-shop-trade h3{display:table;margin:0 auto 5px;padding:4px 12px;border:2px solid #3d291d;border-radius:4px;background:linear-gradient(#50301d,#28160e);color:#f2d3a4;font-size:clamp(9px,.9vw,13px);line-height:1.1;text-align:center;text-shadow:0 2px 3px #000;box-shadow:0 3px 6px #0008}
+.monster-shop-counter-stage{position:absolute;z-index:4;left:50%;top:50%;width:92vw;height:88vh;transform:translate(-50%,-50%);pointer-events:none}
+.monster-shop-counter-art{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:fill;pointer-events:none;user-select:none;filter:drop-shadow(0 15px 22px #000d)}
+.monster-shop-layout{position:absolute;inset:0;pointer-events:none}
+.monster-shop-column,.monster-shop-trade{box-sizing:border-box;background:transparent;border:0;pointer-events:auto}
+.monster-shop-column h3,.monster-shop-trade h3{display:table;margin:0 auto 7px;padding:5px 18px;border:2px solid #3a281d;border-radius:5px;background:linear-gradient(#4e2e1c,#28160e);color:#f2d5a8;font-size:clamp(11px,1.15vw,17px);line-height:1;text-align:center;text-shadow:0 2px 3px #000;box-shadow:0 4px 8px #0009,inset 0 0 0 1px #c7955b3d}
 
-.monster-shop-trade{position:absolute;left:9.7%;top:12.2%;width:27%;height:47%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
-.monster-shop-trade-slot{display:grid;place-items:center;width:82%;height:72%;min-height:0;padding:4px;border:1px solid #85613e;border-radius:5px;background:#130c0873;color:#d1b48c;text-align:center;box-sizing:border-box;box-shadow:inset 0 0 16px #0009,0 3px 7px #0007}
-.monster-shop-trade-slot img{width:auto;height:80%;max-width:86%;aspect-ratio:2/3;object-fit:contain;border-radius:4px;filter:drop-shadow(0 6px 6px #000d)}
-.monster-shop-trade-slot strong,.monster-shop-trade-slot small{display:block}
-.monster-shop-trade-slot strong{margin-top:1px;color:#f2d5aa;font-size:clamp(7px,.73vw,10px);text-shadow:0 1px 2px #000}
-.monster-shop-trade-slot small{color:#c7aa82;font-size:clamp(6px,.56vw,8px)}
-.monster-shop-cancel{margin-top:5px;min-width:114px;min-height:28px;padding:0 10px;border:2px solid #3d291d;border-radius:4px;background:linear-gradient(#4a2b1b,#25140d);color:#edcfaa;font-size:clamp(7px,.68vw,10px);font-weight:1000;cursor:pointer;box-shadow:0 3px 7px #0009}
+.monster-shop-trade{position:absolute;left:18%;top:12.5%;width:23%;height:49%;display:flex;flex-direction:column;align-items:center}
+.monster-shop-trade-slot{display:grid;place-items:center;width:73%;height:74%;min-height:0;padding:4px;border:2px solid #5e432d;border-radius:6px;background:rgba(20,12,8,.34);color:#d0b590;text-align:center;box-sizing:border-box;box-shadow:inset 0 0 18px #0008;cursor:pointer}
+.monster-shop-trade-slot:hover,.monster-shop-trade-slot:focus-visible{border-color:#b0834f;filter:brightness(1.08);outline:0}
+.monster-shop-trade-slot img{width:auto;height:90%;max-width:92%;aspect-ratio:2/3;object-fit:contain;border-radius:4px;filter:drop-shadow(0 7px 7px #000d)}
+.monster-shop-trade-slot strong,.monster-shop-trade-slot small{display:none}
+.monster-shop-trade-slot span{padding:7px 11px;border-radius:4px;background:#1b100bbf;color:#d7bd96;font-size:clamp(9px,.9vw,13px);font-weight:900;text-shadow:0 1px 2px #000}
+.monster-shop-cancel{margin-top:7px;min-width:132px;min-height:31px;padding:0 13px;border:2px solid #422b1d;border-radius:4px;background:linear-gradient(#6a2f1f,#38160f);color:#f0d1aa;font-size:clamp(9px,.83vw,12px);font-weight:1000;cursor:pointer;box-shadow:0 4px 8px #0009}
 .monster-shop-cancel[hidden]{display:none}
 
-.monster-shop-offers{position:absolute;right:8.4%;top:10.6%;width:49%;height:50%;padding:0}
-.monster-shop-offer-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(48px,1fr));gap:2%;align-items:stretch;height:72%}
-.monster-shop-offer{min-width:0;padding:2px;border:2px solid #4f3826;border-radius:5px;background:#140c08a8;color:#ead4b0;cursor:pointer;text-align:center;box-shadow:0 5px 9px #0009;transition:transform 120ms ease,filter 120ms ease,border-color 120ms ease}
-.monster-shop-offer img{display:block;width:100%;height:74%;object-fit:contain;margin:0 auto 2px;filter:drop-shadow(0 4px 4px #000b)}
-.monster-shop-offer strong{display:block;overflow:hidden;font-size:clamp(6px,.64vw,9px);line-height:1.08;white-space:nowrap;text-overflow:ellipsis;text-shadow:0 1px 2px #000}
-.monster-shop-offer small{display:block;margin-top:1px;overflow:hidden;color:#c2a783;font-size:clamp(5px,.51vw,7px);line-height:1.05;max-height:2.1em}
-.monster-shop-offer:hover:not(:disabled),.monster-shop-offer:focus-visible:not(:disabled){z-index:2;transform:translateY(-3%) scale(1.045);filter:brightness(1.16);border-color:#d2a362;outline:0}
+.monster-shop-offers{position:absolute;left:45%;top:12.5%;width:38%;height:51%;padding:0}
+.monster-shop-offer-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3%;align-items:stretch;height:74%;overflow-x:auto;overflow-y:hidden;padding:0 1%;scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:#71503677 transparent}
+.monster-shop-offer{min-width:0;padding:2px;border:2px solid #4f3826;border-radius:6px;background:rgba(18,11,7,.36);color:#ead4b0;cursor:pointer;text-align:center;box-shadow:0 5px 10px #0009;scroll-snap-align:start;transition:transform 120ms ease,filter 120ms ease,border-color 120ms ease}
+.monster-shop-offer img{display:block;width:100%;height:89%;object-fit:contain;margin:0 auto;filter:drop-shadow(0 5px 5px #000b)}
+.monster-shop-offer strong,.monster-shop-offer small{display:none}
+.monster-shop-offer:hover:not(:disabled),.monster-shop-offer:focus-visible:not(:disabled){z-index:2;transform:translateY(-2%) scale(1.035);filter:brightness(1.12);border-color:#c59659;outline:0}
 .monster-shop-offer:disabled{opacity:.38;cursor:not-allowed}
-.monster-shop-placeholder{display:grid;grid-column:1/-1;place-items:center;min-height:100%;border:1px dashed #8a6648;border-radius:5px;background:#120b0775;color:#bca17c;font-size:clamp(7px,.72vw,10px);text-align:center}
-.monster-shop-status{min-height:1.8em;margin:5px 0 0;padding:4px 8px;border:1px solid #5d422d;border-radius:3px;background:#24150fd9;color:#e7c38d;font-size:clamp(6px,.64vw,9px);line-height:1.15;text-align:center;text-shadow:0 1px 2px #000}
+.monster-shop-placeholder{display:grid;grid-column:1/-1;place-items:center;height:100%;border:1px dashed #856143;border-radius:6px;background:rgba(16,10,7,.28);color:#baa17c;font-size:clamp(9px,.92vw,13px);font-weight:800;text-align:center}
+.monster-shop-status{position:absolute;left:4%;right:4%;bottom:-11%;min-height:26px;margin:0;padding:5px 10px;border:1px solid #4d3828;border-radius:4px;background:#1f140fe6;color:#dec098;font-size:clamp(8px,.8vw,11px);font-weight:800;line-height:1.2;text-align:center;text-shadow:0 1px 2px #000;box-shadow:0 4px 7px #0008}
 
-.monster-shop-roster{position:absolute;left:8.3%;right:8.3%;bottom:5.7%;height:24.5%;padding:0}
-.monster-shop-roster h3{margin:0 0 3px 2%;float:left}
-.monster-shop-sell-list{clear:both;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(56px,8.1vw);gap:5px;height:77%;overflow-x:auto;overflow-y:hidden;padding:3px 6px 3px 2%;scrollbar-width:thin;scrollbar-color:#76543888 transparent}
-.monster-shop-monster{min-width:0;padding:1px;border:2px solid #493421;border-radius:4px;background:#100a07bf;color:#ead1ab;cursor:pointer;box-shadow:0 4px 7px #0009;transition:transform 120ms ease,filter 120ms ease,border-color 120ms ease}
-.monster-shop-monster img{display:block;width:100%;height:78%;object-fit:contain;border-radius:3px;filter:drop-shadow(0 3px 3px #000a)}
-.monster-shop-monster span{display:block;margin-top:1px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:clamp(6px,.62vw,9px);font-weight:900;text-shadow:0 1px 2px #000}
-.monster-shop-monster small{display:block;color:#b59b79;font-size:clamp(5px,.52vw,7px)}
-.monster-shop-monster:hover:not(:disabled),.monster-shop-monster:focus-visible:not(:disabled){z-index:2;transform:translateY(-4%) scale(1.04);filter:brightness(1.16);border-color:#c29258;outline:0}
-.monster-shop-monster.is-selected{transform:translateY(-6%) scale(1.05);border-color:#e1b66d;box-shadow:0 0 0 1px #d4aa6766,0 0 13px #d4aa6766}
+.monster-shop-roster{position:absolute;z-index:20;left:15%;right:15%;bottom:13%;height:34%;padding:10px 12px;border:2px solid #4c3423;border-radius:8px;background:linear-gradient(180deg,rgba(70,43,26,.98),rgba(28,16,10,.98));box-shadow:0 12px 25px #000d,inset 0 0 0 1px #c7935938;pointer-events:auto}
+.monster-shop-roster[hidden]{display:none}
+.monster-shop-roster-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.monster-shop-roster-head h3{margin:0;padding:3px 11px;border:0;background:transparent;color:#f0d0a1;font-size:clamp(10px,1vw,14px);text-shadow:0 2px 3px #000}
+.monster-shop-roster-head button{width:30px;height:30px;border:1px solid #6c4d31;border-radius:4px;background:#2c190f;color:#e6c59a;font-weight:1000;cursor:pointer}
+.monster-shop-sell-list{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(72px,11%);gap:8px;height:78%;overflow-x:auto;overflow-y:hidden;padding:2px 3px 5px;scrollbar-width:thin;scrollbar-color:#87613f transparent}
+.monster-shop-monster{min-width:0;padding:2px;border:2px solid #493421;border-radius:5px;background:#100a07bf;color:#ead1ab;cursor:pointer;box-shadow:0 4px 7px #0009;transition:transform 120ms ease,filter 120ms ease,border-color 120ms ease}
+.monster-shop-monster img{display:block;width:100%;height:100%;object-fit:contain;border-radius:3px;filter:drop-shadow(0 3px 3px #000a)}
+.monster-shop-monster span,.monster-shop-monster small{display:none}
+.monster-shop-monster:hover:not(:disabled),.monster-shop-monster:focus-visible:not(:disabled){z-index:2;transform:translateY(-3%) scale(1.03);filter:brightness(1.14);border-color:#b88d57;outline:0}
+.monster-shop-monster.is-selected{border-color:#e1b66d;box-shadow:0 0 0 1px #d4aa6766,0 0 13px #d4aa6766}
 .monster-shop-monster:disabled{opacity:.42;cursor:not-allowed}
 
 @media(max-height:430px) and (orientation:landscape){
- .map-board.is-monster-shop-open .tile-event-scene{width:96%;height:91%}
- .monster-shop-panel{width:98%;height:96%}
- .monster-shop-head{top:2.6%}
- .monster-shop-head strong{font-size:12px}
- .monster-shop-head button{height:52%;font-size:10px}
- .monster-shop-guide{top:4.3%;font-size:7px}
- .monster-shop-counter-stage{top:16.5%;height:81%}
- .monster-shop-trade{left:9.5%;top:11%;height:48%}
- .monster-shop-offers{right:8%;top:9.8%;height:51%}
- .monster-shop-roster{left:8%;right:8%;bottom:4.8%;height:25%}
- .monster-shop-sell-list{grid-auto-columns:minmax(48px,7vw)}
+ .monster-shop-head,.monster-shop-counter-stage{width:96vw;height:94vh}
+ .monster-shop-head button{right:2.8%;top:3.8%;min-width:72px;height:34px;font-size:10px}
+ .monster-shop-trade{left:17.5%;top:11.8%;width:23.5%;height:50%}
+ .monster-shop-offers{left:44.5%;top:11.8%;width:39%;height:52%}
+ .monster-shop-column h3,.monster-shop-trade h3{padding:4px 13px;font-size:10px}
+ .monster-shop-cancel{min-width:112px;min-height:27px;font-size:9px}
+ .monster-shop-status{bottom:-10%;font-size:8px}
+ .monster-shop-roster{left:11%;right:11%;bottom:8%;height:37%}
+ .monster-shop-sell-list{grid-auto-columns:minmax(58px,10%)}
 }
 .fortune-prophecy-ui::before { content: ""; position: absolute; width: 58%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(154,85,218,.38), rgba(91,41,150,.12) 48%, transparent 70%); filter: blur(10px); }
 .fortune-prophecy-ui img { position: relative; z-index: 1; display: block; width: min(62%, 240px); max-height: 90%; object-fit: contain; image-rendering: auto; filter: drop-shadow(0 12px 14px #000c) drop-shadow(0 0 12px #9b63d288); }
