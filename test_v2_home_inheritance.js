@@ -10,11 +10,11 @@ const source = fs.readFileSync(path.join(root, "v2-home-inheritance.js"), "utf8"
 const worker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
 const board = "art/v2-style/map-test/events/inheritance-board.png";
 if (!fs.existsSync(path.join(root, board))) throw Error("Two-panel inheritance image is missing");
-for (const file of [board, "v2-home-inheritance.css?v=9", "v2-home-inheritance.js?v=14", "v2-brand-cards.js?v=4", "art/v2-style/ui/brand-card.png?v=4"]) {
+for (const file of [board, "v2-home-inheritance.css?v=9", "v2-home-inheritance.js?v=15", "v2-brand-cards.js?v=4", "art/v2-style/ui/brand-card.png?v=4"]) {
   if (!worker.includes(file)) throw Error(`Inheritance resource is not cached: ${file}`);
 }
 if (!html.includes('class="home-inheritance-material"') && !html.includes('home-inheritance-material"')) throw Error("Material panel is missing");
-if (!html.includes('home-inheritance-result"') || !html.includes('id="homeInheritanceBrandList"') || !html.includes('<h3>낙인</h3>') || html.includes('id="homeInheritanceParts"') || !html.includes('id="homeInheritanceConfirm"') || !css.includes("legion-info-window-hd.png") || !css.includes("height: 91%") || !html.includes('v2-home-inheritance.js?v=14')) throw Error("Tall, compact brand information frame or automatic inheritance controls are missing");
+if (!html.includes('home-inheritance-result"') || !html.includes('id="homeInheritanceBrandList"') || !html.includes('<h3>낙인</h3>') || html.includes('id="homeInheritanceParts"') || !html.includes('id="homeInheritanceConfirm"') || !css.includes("legion-info-window-hd.png") || !css.includes("height: 91%") || !html.includes('v2-home-inheritance.js?v=15')) throw Error("Tall, compact brand information frame or automatic inheritance controls are missing");
 if (!css.includes("home-inheritance-cards-rise") || !css.includes("home-inheritance-brand-cards") || !css.includes("is-inheritance-source")) throw Error("Owned monsters and left-pile brand fan animations must exist");
 if (!source.includes('mapCardDeckButton.hidden = true') || !source.includes('diceControlOverlay.hidden = true')) throw Error("Dice-control cards must be hidden while inheritance is open");
 
@@ -53,6 +53,7 @@ const confirm = Object.assign(node(), { disabled: true });
 const V2Rules = require("./v2-rules.js");
 const slugs = ["death-knight", "skeleton-spear", "ghoul", "ancient-treant", "goblin-rider", "minotaur", "plague-doctor", "spider-knight", "hydra", "siren"];
 const saved = slugs.map((slug, index) => ({ ...V2Rules.individual(slug), instanceId: `test-owned-${index}` }));
+saved.push({ ...V2Rules.individual("stone-golem"), instanceId: "test-owned-newly-acquired" });
 // A second card of the donor species must survive instance-scoped consumption.
 saved[9] = { ...V2Rules.individual("death-knight"), instanceId: "test-owned-9" };
 saved[0].brands.push(V2Rules.brand("poison"), V2Rules.brand("guard"));
@@ -109,11 +110,11 @@ if (!resultCard.hidden || !confirm.disabled || cards.children[1].classList.conta
 cards.children[1].on_click();
 await confirm.on_click();
 const after = JSON.parse(stored);
-if (after.length !== 9 || after.some((unit) => unit.instanceId === donorInstanceId) ||
+if (after.length !== 10 || after.some((unit) => unit.instanceId === donorInstanceId) ||
     !after.some((unit) => unit.instanceId === "test-owned-9" && unit.slug === "death-knight") ||
     JSON.stringify(after.find((unit) => unit.slug === "skeleton-spear").brands) !==
       JSON.stringify([...JSON.parse(recipientBrands), { ...JSON.parse(donorBrands)[1], curse: [] }]) ||
-    cards.children.length !== 9 || !materialCard.hidden || resultCard.hidden ||
+    cards.children.length !== 10 || !materialCard.hidden || resultCard.hidden ||
     rosterEvent?.detail.donorInstanceId !== donorInstanceId ||
     rosterEvent?.detail.recipient?.instanceId !== recipientInstanceId ||
     rosterEvent?.detail.recipient?.slug !== "skeleton-spear")
@@ -121,7 +122,7 @@ if (after.length !== 9 || after.some((unit) => unit.instanceId === donorInstance
 globals.window.V2HomeInheritance.close();
 if (!overlay.hidden || overlay.classList.contains("is-open") || !materialCard.hidden || brandList.children.length) throw Error("Closing inheritance must clear the material and hide the board");
 await globals.window.V2HomeInheritance.open();
-if (cards.children.length !== 9 || brandCards.children.length !== 1) throw Error("Consumed material must stay gone and stored brand cards must remain when inheritance is reopened");
+if (cards.children.length !== 10 || brandCards.children.length !== 1) throw Error("Consumed material must stay gone and stored brand cards must remain when inheritance is reopened");
 brandCards.children[0].on_click();
 if (materialCard.hidden || !materialCard.src.includes("brand-card.png") || !materialHint.textContent.includes("축복 3")) throw Error("Selecting a stored brand card must place the supplied card art and exact face description in the material panel");
 const brandRecipientId = cards.children[0].dataset.instanceId;
@@ -131,7 +132,7 @@ if (confirm.disabled) throw Error("A selected brand card plus eligible monster m
 await confirm.on_click();
 const afterBrandApply = JSON.parse(stored);
 const brandRecipient = afterBrandApply.find((unit) => unit.instanceId === brandRecipientId);
-if (afterBrandApply.length !== 9 || brandInventory.length !== 0 ||
+if (afterBrandApply.length !== 10 || brandInventory.length !== 0 ||
     brandRecipient.brands.length !== beforeBrandApply + 1 ||
     JSON.stringify(brandRecipient.brands.at(-1)) !== JSON.stringify({ type: "critical", bless: [3], curse: [] }) ||
     rosterEvent?.detail.donorInstanceId !== null || rosterEvent?.detail.source !== "brand-card")
