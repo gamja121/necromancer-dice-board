@@ -890,6 +890,7 @@
       const element = document.createElement("article");
       element.className = unitState.team === "ally" ? "unit is-pending" : "unit";
       element.dataset.unit = unitState.slug;
+      element.dataset.slot = String(unitState.slot);
       element.tabIndex = -1;
       if (unitState.team === "ally") element.setAttribute("aria-hidden", "true");
       element.setAttribute("role", "img");
@@ -912,6 +913,7 @@
   function makeSummonSlot(teamName) {
     const slot = document.createElement("article");
     slot.className = "summon-slot";
+    slot.dataset.slot = "4";
     slot.setAttribute("aria-label", `${teamName} 소환물 생성 자리`);
     return slot;
   }
