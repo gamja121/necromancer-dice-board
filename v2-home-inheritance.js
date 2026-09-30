@@ -1,7 +1,5 @@
 (() => {
   "use strict";
-  const SLUGS = ["death-knight", "skeleton-spear", "skeleton-archer", "ghoul", "ancient-treant", "goblin-rider",
-    "minotaur", "plague-doctor", "spider-knight", "hydra", "siren"];
   const STARTING_SLUGS = ["skeleton-spear", "skeleton-archer"];
   const OWNED_ROSTER_KEY = "necromancer-map-roster-v2";
   const overlay = document.getElementById("homeInheritanceOverlay");
@@ -34,17 +32,26 @@
     return `${slug}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
   }
 
+  function isKnownOwnedUnit(unit) {
+    const slug = unit?.slug;
+    if (typeof slug !== "string" || !slug) return false;
+    const knownByDesign = Boolean(globalThis.V2DesignData?.units?.[slug]);
+    if (!knownByDesign) {
+      try { V2Rules.individual(slug); } catch (_) { return false; }
+    }
+    return Number.isFinite(unit.maxHp) && Number.isFinite(unit.attack) &&
+      Number.isFinite(unit.speed) && Array.isArray(unit.brands) && unit.brands.length <= 3 &&
+      unit.brands.every(V2Rules.validateBrand);
+  }
+
   function loadOwnedUnits() {
     if (ownedUnits) return ownedUnits;
     let saved = globalThis.V2RunStateRuntime?.snapshot?.()?.ownedMonsters;
     if (!Array.isArray(saved)) {
       try { if (typeof sessionStorage !== "undefined") saved = JSON.parse(sessionStorage.getItem(OWNED_ROSTER_KEY)); } catch (_) {}
     }
-    const valid = Array.isArray(saved) && saved.length <= 100 && saved.every((unit) =>
-      SLUGS.includes(unit?.slug) && Number.isFinite(unit.maxHp) && Number.isFinite(unit.attack) &&
-      Number.isFinite(unit.speed) && Array.isArray(unit.brands) && unit.brands.length <= 3 &&
-      unit.brands.every(V2Rules.validateBrand));
-    const source = valid ? saved : STARTING_SLUGS.map((slug) => V2Rules.individual(slug));
+    const validSaved = Array.isArray(saved) && saved.length <= 100 ? saved.filter(isKnownOwnedUnit) : [];
+    const source = validSaved.length ? validSaved : STARTING_SLUGS.map((slug) => V2Rules.individual(slug));
     const usedIds = new Set();
     const roster = source.map((unit) => {
       const copy = { ...unit };
