@@ -85,6 +85,11 @@ assert(source.includes("const startingIndex = resumeHeroIndex === null ? HOME_IN
 assert(source.includes("if (heroIndex === HOME_INDEX) { reachedHome = true; lapReadyForRefresh = true; break; }") && source.includes("집 도착 (${stepsMoved}칸 이동)"), "Dice movement must stop at home even when pips remain.");
 assert(source.includes('el.hero.style.setProperty("--hero-facing", heroIndex >= 12 ? -1 : 1)') && css.includes('scaleX(var(--hero-facing, 1))'), "The hero must face the direction of travel on the bottom and left sides.");
 assert(source.includes("fixedTiles.village") && source.includes("fixedTiles.fortune"), "Village and fortune-teller tiles must be connected to the route.");
+assert(source.includes('Object.values(globalThis.V2DesignData?.units || {})') &&
+  source.includes('.filter((unit) => unit && unit.grade !== "special")'),
+  "Map monster/reward pool must include every non-summon design monster.");
+assert(source.includes('const SCOUT_ENEMY_SLUGS = Object.freeze(TEST_DECK.map((unit) => unit.slug))'),
+  "Hill scouting must use the same full monster pool.");
 assert(source.includes('{ id: "swamp", name: "오염된 늪지대", count: 1 }'), "Polluted swamp must occupy one map tile.");
 assert(source.includes('applyPollutedSwamp(heroIndex + 1)') && source.includes('모든 마물 HP -1'), "Landing on polluted swamp must damage every owned monster by 1.");
 assert(source.includes('saveOwnedRoster("polluted-swamp")'), "Polluted swamp damage must persist immediately.");
