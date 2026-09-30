@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20260930-shop-book-doubletap-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20260930-patrol-grid-5col-1";
 
 const CORE_ASSETS = [
   "./",
@@ -16,7 +16,7 @@ const CORE_ASSETS = [
   "./launch.js?v=20260930-title-1",
   "./v2-map-practice.html",
   "./v2-auto-battle-practice.html",
-  "./v2-map-practice.css?v=73",
+  "./v2-map-practice.css?v=74",
   "./v2-home-inheritance.css?v=9",
   "./v2-altar-ritual.css?v=4",
   "./v2-auto-battle-practice.css?v=63",

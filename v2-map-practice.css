@@ -900,8 +900,8 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .patrol-route-reserve-slots{
   display:grid;
   grid-template-columns:repeat(5,minmax(0,1fr));
-  grid-auto-rows:minmax(0,1fr);
-  gap:6% 3%;
+  grid-auto-rows:72px;
+  gap:10px 3%;
   align-content:start;
   align-items:center;
   min-height:0;
@@ -1057,8 +1057,9 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 }
 @media(max-height:420px) and (orientation:landscape){
   .patrol-route-reserve-slots{
-    gap:7% 2.5%;
-    padding:1% 3% 3%;
+    grid-auto-rows:58px;
+    gap:8px 2.5%;
+    padding:1% 3% 4%;
   }
   .patrol-route-reserve-slots .patrol-route-tile{
     max-width:58px;
