@@ -211,6 +211,11 @@
     return result;
   });
   const ROSTER_BY_SLUG = new Map(ROSTER.map(entry => [entry.slug, entry]));
+  const PLAYABLE_MONSTER_SLUGS = Object.freeze(
+    Object.values(globalThis.V2DesignData?.units || {})
+      .filter((unit) => unit && unit.grade !== "special" && ROSTER_BY_SLUG.has(unit.slug))
+      .map((unit) => unit.slug)
+  );
   const TEST_DECK_SLUGS = Object.freeze([
     "death-knight", "skeleton-spear", "skeleton-archer", "ghoul", "ancient-treant", "goblin-rider",
     "minotaur", "plague-doctor", "spider-knight", "hydra", "siren"
@@ -238,7 +243,7 @@
     const count = scoutCount || weightedChoice(stage.counts, stage.countWeights);
     const gradeNames = ["normal", "advanced", "hero"];
     const gradeWeights = gradeNames.map((grade) => stage.grades[grade]);
-    const available = ROSTER.filter((entry) => TEST_DECK_SLUGS.includes(entry.slug) && gradeNames.includes(entry.grade));
+    const available = ROSTER.filter((entry) => PLAYABLE_MONSTER_SLUGS.includes(entry.slug) && gradeNames.includes(entry.grade));
     const selected = [];
 
     if (scoutCount && scoutGrade && scoutLegion) {
@@ -279,7 +284,7 @@
     const effect = typeof V2CombatEffects !== "undefined" ? V2CombatEffects.ATTACK_EFFECTS[actor.slug] : null;
     return COMBAT_SOUND_PROFILES[effect] || COMBAT_SOUND_PROFILES.physical;
   }
-  const requestedAllySlugs = (battleQuery.get("allies") || "").split(",").filter((slug) => TEST_DECK_SLUGS.includes(slug));
+  const requestedAllySlugs = (battleQuery.get("allies") || "").split(",").filter((slug) => PLAYABLE_MONSTER_SLUGS.includes(slug));
   const requestedAllyInstanceIds = (battleQuery.get("allyIds") || "").split(",").filter(Boolean);
   let mapVictoryContaminationApplied = false;
 
@@ -310,7 +315,7 @@
         ? runRoster
         : JSON.parse(sessionStorage.getItem(MAP_ROSTER_KEY));
       if (!Array.isArray(saved)) return new Map();
-      return new Map(saved.filter((unit) => TEST_DECK_SLUGS.includes(unit?.slug) &&
+      return new Map(saved.filter((unit) => PLAYABLE_MONSTER_SLUGS.includes(unit?.slug) &&
         Number.isFinite(unit.maxHp) && Number.isFinite(unit.attack) && Number.isFinite(unit.speed) &&
         Array.isArray(unit.brands) && unit.brands.every(V2Rules.validateBrand))
         .map((unit) => [unit.instanceId || unit.slug, unit]));
@@ -1937,7 +1942,7 @@
   }
 
   function createCapturedMonster(slug) {
-    if (!TEST_DECK_SLUGS.includes(slug)) return null;
+    if (!PLAYABLE_MONSTER_SLUGS.includes(slug)) return null;
     const captured = V2Rules.individual(slug, battleRandom);
     captured.instanceId = globalThis.crypto?.randomUUID
       ? `${slug}-${globalThis.crypto.randomUUID()}`
