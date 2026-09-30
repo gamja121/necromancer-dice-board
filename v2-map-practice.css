@@ -794,8 +794,24 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   position:absolute;
   z-index:15;
   inset:0;
-  background:rgba(6,5,4,.38);
+  background:rgba(6,5,4,.46);
+  backdrop-filter:blur(1.2px);
+  -webkit-backdrop-filter:blur(1.2px);
   pointer-events:none;
+}
+
+/* Keep the route boards visually lit above the dimmed home scene. */
+.map-board.is-patrol-route-open .patrol-route-panel {
+  filter:none;
+  opacity:1;
+}
+.map-board.is-patrol-route-open .patrol-route-main-frame,
+.map-board.is-patrol-route-open .patrol-route-current-frame {
+  filter:brightness(1.08) saturate(1.04) drop-shadow(0 8px 12px #000b);
+}
+.map-board.is-patrol-route-open .patrol-route-reserve-ui,
+.map-board.is-patrol-route-open .patrol-route-current-ui {
+  filter:brightness(1.06);
 }
 
 .patrol-route-panel {
