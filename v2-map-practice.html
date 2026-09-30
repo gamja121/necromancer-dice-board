@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
   <title>네크로멘서 앤드 다이스 · 외곽 타일 맵 테스트</title>
-  <link rel="stylesheet" href="v2-map-practice.css?v=62">
+  <link rel="stylesheet" href="v2-map-practice.css?v=63">
   <link rel="stylesheet" href="v2-home-inheritance.css?v=9">
   <link rel="stylesheet" href="v2-altar-ritual.css?v=4">
 </head>
@@ -192,26 +192,29 @@
               <strong>마물 상점</strong>
               <button id="monsterShopClose" type="button">닫기</button>
             </div>
-            <p class="monster-shop-guide">마물 카드 1장을 거래대에 올리면 상인이 그 가치에 맞는 물건을 제시합니다. 제안 중 1개를 고르는 순간 거래가 확정됩니다.</p>
-            <div class="monster-shop-layout">
-              <section class="monster-shop-column monster-shop-roster">
-                <h3>내 마물</h3>
-                <div id="monsterShopSellList" class="monster-shop-sell-list"></div>
-              </section>
-              <section class="monster-shop-trade">
-                <h3>거래대</h3>
-                <div id="monsterShopTradeSlot" class="monster-shop-trade-slot">
-                  <span>마물을 선택하세요</span>
-                </div>
-                <button id="monsterShopCancelTrade" class="monster-shop-cancel" type="button" hidden>거래대에서 내리기</button>
-              </section>
-              <section class="monster-shop-column monster-shop-offers">
-                <h3>상인의 제안</h3>
-                <div id="monsterShopOffers" class="monster-shop-offer-list">
-                  <div class="monster-shop-placeholder">마물을 올리면 교환품이 나타납니다.</div>
-                </div>
-                <p id="monsterShopStatus" class="monster-shop-status"></p>
-              </section>
+            <p class="monster-shop-guide">내 마물 카드를 상판 왼쪽 거래칸에 올리면, 상인이 오른쪽에 교환품을 펼쳐 놓습니다. 제안 중 1개를 고르면 거래가 확정됩니다.</p>
+            <div class="monster-shop-counter-stage">
+              <img class="monster-shop-counter-art" src="art/v2-style/ui/monster-shop-counter.png?v=1" alt="" aria-hidden="true">
+              <div class="monster-shop-layout">
+                <section class="monster-shop-column monster-shop-roster">
+                  <h3>내 마물</h3>
+                  <div id="monsterShopSellList" class="monster-shop-sell-list"></div>
+                </section>
+                <section class="monster-shop-trade">
+                  <h3>내가 올린 카드</h3>
+                  <div id="monsterShopTradeSlot" class="monster-shop-trade-slot">
+                    <span>마물을 선택하세요</span>
+                  </div>
+                  <button id="monsterShopCancelTrade" class="monster-shop-cancel" type="button" hidden>거래대에서 내리기</button>
+                </section>
+                <section class="monster-shop-column monster-shop-offers">
+                  <h3>상인의 제안</h3>
+                  <div id="monsterShopOffers" class="monster-shop-offer-list">
+                    <div class="monster-shop-placeholder">마물을 올리면 교환품이 나타납니다.</div>
+                  </div>
+                  <p id="monsterShopStatus" class="monster-shop-status"></p>
+                </section>
+              </div>
             </div>
           </section>
           <section id="tileStoryEventPanel" class="tile-story-event-panel" aria-live="polite" hidden>
