@@ -72,6 +72,10 @@
     if (readyPromise) return readyPromise;
     readyPromise = (async () => {
       current = await store.loadActive();
+      if (current && !Array.isArray(current.graveyardCorpses)) current.graveyardCorpses = [];
+      if (current?.currentMap && !current.currentMap.fortuneProphecy) {
+        current.currentMap.fortuneProphecy = { allyAttack: 0, allyHp: 0, allySpeed: 0, enemyAttack: 0, rolls: [] };
+      }
       if (!current) {
         const raw = Core.collectLegacyStorage(root.sessionStorage, root.localStorage);
         const migrated = await store.migrateLegacy(raw, {
