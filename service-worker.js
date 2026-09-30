@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20260930-swamp-cutout-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20260930-shop-counter-1";
 
 const CORE_ASSETS = [
   "./",
@@ -48,6 +48,7 @@ const CORE_ASSETS = [
   "./art/v2-style/ui/map-book-closed.png",
   "./art/v2-style/ui/map-book-open.png",
   "./art/v2-style/ui/map-card-deck.png",
+  "./art/v2-style/ui/monster-shop-counter.png?v=1",
   "./art/v2-style/ui/map-card-deck-open.png",
   "./art/v2-style/ui/battle-deck-selection-board.png",
   "./art/v2-style/ui/unit-info-window-no-portrait.png",
