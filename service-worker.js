@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20260930-fullscreen-landscape-2";
+const CACHE_NAME = "necromancer-and-dice-v2-20260930-fullscreen-landscape-3";
 
 const CORE_ASSETS = [
   "./",
@@ -21,7 +21,7 @@ const CORE_ASSETS = [
   "./v2-altar-ritual.css?v=4",
   "./v2-auto-battle-practice.css?v=63",
   "./v2-asset-loader.js?v=1",
-  "./v2-map-practice.js?v=76",
+  "./v2-map-practice.js?v=77",
   "./art/v2-style/map-test/events/fortune-prophecy-ui.png?v=1",
   "./v2-event-data.js?v=1",
   "./v2-map-events.js?v=1",
@@ -31,8 +31,8 @@ const CORE_ASSETS = [
   "./v2-sfx.js?v=3",
   "./v2-design-data.js?v=1",
   "./v2-rules.js?v=7",
-  "./v2-run-state.js?v=1",
-  "./v2-run-state-runtime.js?v=2",
+  "./v2-run-state.js?v=2",
+  "./v2-run-state-runtime.js?v=3",
   "./v2-presentation.js?v=1",
   "./v2-presentation-rail.js?v=2",
   "./v2-brand-cards.js?v=4",
