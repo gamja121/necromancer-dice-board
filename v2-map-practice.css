@@ -1099,6 +1099,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 }
 .full-heal-cross{
   position:absolute;
+  z-index:2;
   left:var(--heal-left);
   top:105%;
   width:var(--heal-size);
@@ -1106,8 +1107,34 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   object-fit:contain;
   opacity:0;
   transform:translate3d(-50%,0,0) scale(.78);
-  filter:brightness(1.14) drop-shadow(0 0 6px rgba(92,255,99,.95)) drop-shadow(0 0 15px rgba(44,229,72,.68));
+  filter:brightness(1.34) saturate(1.18) drop-shadow(0 0 8px rgba(105,255,116,1)) drop-shadow(0 0 20px rgba(44,229,72,.78));
   will-change:top,transform,opacity,filter;
+}
+.full-heal-cross.is-css-fallback{
+  position:absolute;
+  border-radius:5px;
+  background:#4dff67;
+  box-shadow:0 0 8px #79ff8f,0 0 20px #2edc53aa;
+}
+.full-heal-cross.is-css-fallback::before,
+.full-heal-cross.is-css-fallback::after{
+  content:"";
+  position:absolute;
+  border-radius:4px;
+  background:inherit;
+}
+.full-heal-cross.is-css-fallback::before{
+  left:50%;
+  top:-35%;
+  width:34%;
+  height:170%;
+  transform:translateX(-50%);
+}
+.full-heal-cross.is-css-fallback::after{
+  left:-35%;
+  top:33%;
+  width:170%;
+  height:34%;
 }
 .full-heal-effect.is-playing .full-heal-cross{
   animation:
