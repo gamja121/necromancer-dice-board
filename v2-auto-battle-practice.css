@@ -542,3 +542,53 @@ button, a { font: inherit; }
   cursor: pointer;
 }
 #captureOverflowConfirm:disabled { opacity: .45; cursor: default; }
+
+
+/* Battle healing feedback: reuse the map heal-cross artwork around the healed unit only. */
+.battle-heal-burst {
+  position: absolute;
+  z-index: 74;
+  left: 50%;
+  top: 54%;
+  width: clamp(90px, 10vw, 150px);
+  aspect-ratio: 1;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  overflow: visible;
+}
+.battle-heal-cross {
+  position: absolute;
+  left: calc(50% + var(--heal-x));
+  top: calc(50% + var(--heal-y));
+  width: var(--heal-size);
+  aspect-ratio: 1;
+  background: url("art/v2-style/ui/heal-cross.png?v=1") center / contain no-repeat;
+  opacity: 0;
+  filter: drop-shadow(0 0 5px #6cff73) drop-shadow(0 0 10px #25c94c99);
+  transform: translate(-50%, -50%) scale(.55);
+  animation: battle-heal-cross-rise var(--heal-duration) cubic-bezier(.16,.72,.22,1) var(--heal-delay) forwards;
+}
+.battle-heal-cross.is-fallback {
+  border-radius: 3px;
+  background: #73ff80;
+  box-shadow: 0 0 7px #5cff6e;
+}
+.battle-heal-cross.is-fallback::after {
+  content: "";
+  position: absolute;
+  inset: 38% 0;
+  border-radius: 3px;
+  background: #73ff80;
+}
+@keyframes battle-heal-cross-rise {
+  0% { opacity: 0; transform: translate(-50%, 8px) scale(.45); }
+  20% { opacity: 1; transform: translate(-50%, -2px) scale(1.04); }
+  68% { opacity: .9; transform: translate(calc(-50% + var(--heal-drift)), -28px) scale(.94); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--heal-drift)), -52px) scale(.72); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .battle-heal-cross {
+    animation-duration: 420ms !important;
+    animation-delay: 0ms !important;
+  }
+}
