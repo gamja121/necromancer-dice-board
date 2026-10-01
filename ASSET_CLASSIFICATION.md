@@ -106,11 +106,18 @@
 ## 정리 우선순위
 
 1. **C 원본·참고 자료를 Google Drive 백업 폴더로 복사**
-2. **B의 553개 animation-test-frames를 개발용 보관으로 분리**
+2. `references/`, `tiles-source/`, `hero-source/`, `processed/512/`, `replacements-2026-09-07/`, `dice-test/source/`를 백업 후보로 우선 검토
 3. `animation-test-frames/`와 `dice-test/frames/`는 **이름과 무관하게 Runtime 유지**
 4. D의 JPG/PNG/WEBP 중복을 파일별 참조 검사
 5. A는 경로 구조를 바꾸지 않고 그대로 유지
 6. Unity 전환 시 최종적으로 `Runtime/`, `Source/`, `DevOnly/` 구조로 재편
+
+## 자동 검수 도구
+
+- `npm run audit:assets`
+- 실행 시 `ASSET_USAGE_AUDIT.generated.md`를 생성한다.
+- 현재 게임 엔트리에서 직접/동적으로 참조되는 이미지는 `KEEP`, 원본·참고 후보는 `BACKUP_CANDIDATE`, 나머지는 `REVIEW`로 둔다.
+- **자동으로 SAFE_DELETE 판정을 내리지 않는다.** 실제 삭제 전에 사람이 한 번 더 확인하는 구조다.
 
 ## 권장 최종 구조
 
