@@ -106,14 +106,14 @@ button, a { font: inherit; }
 .team > .unit,
 .team > .summon-slot { grid-row: 1; }
 
-/* Formation anchors:
-   allies fill regular slots from RIGHT to LEFT;
-   enemies fill regular slots from LEFT to RIGHT.
-   Slot 4 stays the center-facing summon position on each side. */
-.ally-team .unit[data-slot="0"] { grid-column: 4; --depth-scale: .94; --depth-y: -3%; --unit-layer: 13; --action-shift-x: 0%; }
-.ally-team .unit[data-slot="1"] { grid-column: 3; --depth-scale: 1.01; --depth-y: 2%; --unit-layer: 15; --action-shift-x: 64%; }
-.ally-team .unit[data-slot="2"] { grid-column: 2; --depth-scale: 1.08; --depth-y: 7%; --unit-layer: 17; --action-shift-x: 128%; }
-.ally-team .unit[data-slot="3"] { grid-column: 1; --depth-scale: 1.14; --depth-y: 11%; --unit-layer: 18; --action-shift-x: 192%; }
+/* Formation anchors mirror the deck-selection slot order.
+   Slot 0..3 always reads LEFT to RIGHT on both lineup and battlefield.
+   This keeps the visible position aligned with V2Rules.targetWeights().
+   Slot 4 remains the center-facing summon position on each side. */
+.ally-team .unit[data-slot="0"] { grid-column: 1; --depth-scale: 1.14; --depth-y: 11%; --unit-layer: 18; --action-shift-x: 192%; }
+.ally-team .unit[data-slot="1"] { grid-column: 2; --depth-scale: 1.08; --depth-y: 7%; --unit-layer: 17; --action-shift-x: 128%; }
+.ally-team .unit[data-slot="2"] { grid-column: 3; --depth-scale: 1.01; --depth-y: 2%; --unit-layer: 15; --action-shift-x: 64%; }
+.ally-team .unit[data-slot="3"] { grid-column: 4; --depth-scale: .94; --depth-y: -3%; --unit-layer: 13; --action-shift-x: 0%; }
 .ally-team .unit[data-slot="4"],
 .ally-team .summon-slot { grid-column: 5; --depth-scale: .88; --depth-y: -6%; --action-shift-x: -64%; }
 
