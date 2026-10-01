@@ -156,3 +156,22 @@ Unity 이관 시 위 구조로 옮기는 것이 가장 안전하다.
 5. 동적 경로(`FRAME_ROOT`, 카드 slug 조합 등)가 있으므로 단순 문자열 검색에서 '미사용'으로 나와도 즉시 삭제하지 않는다.
 
 **삭제 안전 규칙:** 실제 삭제 전에는 (1) 런타임 코드 참조, (2) 동적 경로 생성, (3) service-worker 캐시, (4) 제작 스크립트, (5) 테스트 의존성을 모두 확인한다.
+
+
+## 2026-10-01 이중 검수 결과
+
+정리 후보 폴더를 서로 다른 두 방식으로 재검사했다.
+
+- 1차: 전체 경로 문자열 검색
+- 2차: 축약 경로·폴더명·관련 제작 스크립트 이름 재검색
+
+현재 결과:
+- `processed/512/`: 런타임 직접 참조 미검출
+- `references/`: 런타임 직접 참조 미검출
+- `animation-sheets/replacements-2026-09-07/`: 런타임 직접 참조 미검출
+- `tiles-source/`: 런타임 참조는 없지만 `scripts/process-map-test-tiles.ps1`의 제작 원본
+- `hero-source/`: 런타임 참조는 없지만 `scripts/process-map-test-tiles.ps1`의 제작 원본
+- `dice-test/source/`: 런타임 참조는 없지만 `scripts/process-dice-test-sheet.ps1`의 제작 원본
+
+따라서 위 자산은 **삭제 후보가 아니라 백업/외부보관 후보**로만 취급한다.
+Google Drive 등 외부 백업 확인 전에는 GitHub에서 삭제하지 않는다.
