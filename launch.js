@@ -138,11 +138,9 @@
 
   if("serviceWorker" in navigator){
     navigator.serviceWorker.register("./service-worker.js",{updateViaCache:"none"}).then(async registration=>{
+      // The service worker activation step owns old-cache cleanup.
+      // Do not delete the current cache from the title page.
       await registration.update();
-      if(globalThis.caches){
-        const keys=await caches.keys();
-        await Promise.all(keys.filter(key=>key.startsWith("necromancer-and-dice-") && key!=="necromancer-and-dice-v2-20260930-title-contrast-10").map(key=>caches.delete(key)));
-      }
     }).catch(()=>{});
   }
   hasSavedRun().then(saved=>{cont.hidden=!saved;cont.setAttribute("aria-disabled",saved?"false":"true")});
