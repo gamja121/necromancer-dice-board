@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261001-heal-png-recovery";
+const CACHE_NAME = "necromancer-and-dice-v2-20261001-asset-audit-1";
 
 const CORE_ASSETS = [
   "./",
@@ -16,14 +16,14 @@ const CORE_ASSETS = [
   "./launch.js?v=20260930-title-1",
   "./v2-map-practice.html",
   "./v2-auto-battle-practice.html",
-  "./v2-map-practice.css?v=90",
+  "./v2-map-practice.css?v=91",
   "./art/v2-style/ui/parchment-button-variant-01.png",
   "./art/v2-style/ui/parchment-button-variant-02.png",
   "./art/v2-style/ui/parchment-button-variant-03.png",
   "./art/v2-style/ui/parchment-button-variant-04.png",
   "./v2-home-inheritance.css?v=9",
-  "./v2-altar-ritual.css?v=4",
-  "./v2-auto-battle-practice.css?v=74",
+  "./v2-altar-ritual.css?v=5",
+  "./v2-auto-battle-practice.css?v=76",
   "./v2-asset-loader.js?v=1",
   "./v2-map-practice.js?v=101",
   "./art/v2-style/map-test/events/fortune-prophecy-ui.png?v=1",
