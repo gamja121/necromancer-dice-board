@@ -3,21 +3,25 @@ require('./test_v2_rules');
 require('./test_v2_rules_ui');
 
 
-/* battlefield slot order regression: deck slot 1..4 must equal visible battle slot 1..4 */
+/* battlefield formation regression: fill from opponent-facing edge outward */
 {
   const fs = require("fs");
   const path = require("path");
   const css = fs.readFileSync(path.join(__dirname, "v2-auto-battle-practice.css"), "utf8");
+  const js = fs.readFileSync(path.join(__dirname, "v2-auto-battle-practice.js"), "utf8");
   const assert = (condition, message) => { if (!condition) throw new Error(message); };
 
   assert(css.includes('.team > .unit,') && css.includes('.team > .summon-slot { grid-row: 1; }'),
     "Battlefield units must stay on one visible formation row");
-
-  [
-    ['ally', 0, 1], ['ally', 1, 2], ['ally', 2, 3], ['ally', 3, 4],
-    ['enemy', 0, 2], ['enemy', 1, 3], ['enemy', 2, 4], ['enemy', 3, 5]
-  ].forEach(([team, slot, column]) => {
-    assert(css.includes(`.${team}-team .unit[data-slot="${slot}"] { grid-column: ${column};`),
-      `${team} slot ${slot + 1} must match the deck-selection left-to-right order`);
-  });
+  assert(css.includes('.ally-team .unit[data-slot="3"] { grid-column: 4;'),
+    "Ally front/near slot must be the rightmost regular ally position");
+  assert(css.includes('.enemy-team .unit[data-slot="0"] { grid-column: 2;'),
+    "Enemy front/near slot must be the leftmost regular enemy position");
+  assert(js.includes('makeState(data, "ally", 3 - index)'),
+    "Allies must fill from the right/near side outward");
+  assert(js.includes('makeState(data, "enemy", index)'),
+    "Enemies must fill from the left/near side outward");
+  assert(js.includes('sort((a, b) => b.slot - a.slot)') &&
+         js.includes('sort((a, b) => a.slot - b.slot)'),
+    "Intro reveal order must follow the same mirrored fill direction");
 }

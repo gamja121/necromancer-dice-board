@@ -799,8 +799,8 @@
       battlefield.style.backgroundImage = `url("${initialBattlefield}")`;
     }
     units = [
-      ...selectedAllyTeam.map((data, slot) => makeState(data, "ally", slot)),
-      ...selectedEnemyTeam.map((data, slot) => makeState(data, "enemy", slot))
+      ...selectedAllyTeam.map((data, index) => makeState(data, "ally", 3 - index)),
+      ...selectedEnemyTeam.map((data, index) => makeState(data, "enemy", index))
     ];
     if (fromMap && hasMapProphecy) {
       for (const unitState of units) {
@@ -888,11 +888,11 @@
 
   function createUnitElement(unitState) {
       const element = document.createElement("article");
-      element.className = unitState.team === "ally" ? "unit is-pending" : "unit";
+      element.className = "unit is-pending";
       element.dataset.unit = unitState.slug;
       element.dataset.slot = String(unitState.slot);
       element.tabIndex = -1;
-      if (unitState.team === "ally") element.setAttribute("aria-hidden", "true");
+      element.setAttribute("aria-hidden", "true");
       element.setAttribute("role", "img");
       element.setAttribute("aria-label", unitState.name);
       element.innerHTML = `
@@ -1042,16 +1042,21 @@
 
   function renderRosterSelection(notice = "") {
     const scrollTop = unitRoster.scrollTop;
-    const renderSelectedTeam = (host, slugs) => {
+    const renderSelectedTeam = (host, slugs, team) => {
       host.replaceChildren();
+      const visual = team === "ally"
+        ? [...Array(Math.max(0, 4 - slugs.length)).fill(null), ...[...slugs].reverse()]
+        : [...slugs, ...Array(Math.max(0, 4 - slugs.length)).fill(null)];
       for (let index = 0; index < 4; index += 1) {
+        const slug = visual[index];
+        const selected = slug ? ROSTER_BY_SLUG.get(slug) : null;
         const slot = document.createElement("div");
-        const selected = ROSTER_BY_SLUG.get(slugs[index]);
         slot.className = selected ? "selected-slot" : "selected-slot is-empty";
         if (selected) {
+          const selectedOrder = slugs.indexOf(slug);
           const card = document.createElement("img");
           card.src = selected.cardArt || `art/v2-style/ui/unit-card-${selected.slug}.png?v=19`;
-          card.alt = `${index + 1}번째 ${selected.name}`;
+          card.alt = `${selectedOrder + 1}번째 ${selected.name}`;
           slot.title = `${selected.name} 선택 해제`;
           slot.addEventListener("click", () => toggleRosterUnit(selected.slug));
           slot.append(card);
@@ -1059,8 +1064,8 @@
         host.append(slot);
       }
     };
-    renderSelectedTeam(selectedLineup, selectedAllySlugs);
-    renderSelectedTeam(selectedEnemyLineup, selectedEnemySlugs);
+    renderSelectedTeam(selectedLineup, selectedAllySlugs, "ally");
+    renderSelectedTeam(selectedEnemyLineup, selectedEnemySlugs, "enemy");
     allyLineupTab.classList.toggle("is-active", lineupSide === "ally");
     enemyLineupTab.classList.toggle("is-active", lineupSide === "enemy");
     allyLineupTab.setAttribute("aria-pressed", String(lineupSide === "ally"));
@@ -1191,27 +1196,40 @@
     pauseButton.disabled = true;
     speedButton.disabled = true;
     turnDice.hidden = true;
-    message.textContent = "아군을 소환합니다";
+    message.textContent = "양 진영을 전장에 배치합니다";
     let summonFrames = null;
     try { summonFrames = await V2SummonEffect.prepare(); }
     catch (error) { console.warn("소환 효과 로딩 실패 · 등장 연출만 진행합니다.", error); }
     if (!isCurrent()) return;
-    const allies = units.filter(unitState => unitState.team === "ally").sort((a, b) => a.slot - b.slot);
-    for (const unitState of allies) {
-      if (!isCurrent()) return;
-      message.textContent = `${unitState.name} 소환`;
+
+    const allies = units.filter(unitState => unitState.team === "ally").sort((a, b) => b.slot - a.slot);
+    const enemies = units.filter(unitState => unitState.team === "enemy").sort((a, b) => a.slot - b.slot);
+    const revealIntroUnit = async (unitState) => {
+      if (!unitState || !isCurrent()) return;
+      message.textContent = `${unitState.team === "ally" ? "아군" : "적군"} · ${unitState.name} 등장`;
       if (summonFrames) {
         try { await V2SummonEffect.play(unitState, summonFrames, { isCurrent, reveal: revealUnit, wait }); }
         catch (error) {
           if (!isCurrent()) return;
           console.warn("소환 효과 재생 실패", error);
           revealUnit(unitState);
-          await wait(360);
+          await wait(300);
         }
-      } else { revealUnit(unitState); await wait(360); }
+      } else {
+        revealUnit(unitState);
+        await wait(300);
+      }
       if (!isCurrent()) return;
       unitState.element.classList.remove("is-arriving");
-      await wait(80);
+      await wait(60);
+    };
+
+    const introCount = Math.max(allies.length, enemies.length);
+    for (let index = 0; index < introCount; index += 1) {
+      await revealIntroUnit(allies[index]);
+      if (!isCurrent()) return;
+      await revealIntroUnit(enemies[index]);
+      if (!isCurrent()) return;
     }
     if (!isCurrent()) return;
     introRunning = false;
