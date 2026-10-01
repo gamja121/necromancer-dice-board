@@ -24,7 +24,7 @@
           centerPercent = ((rect.left + rect.width / 2 - fieldRect.left) / fieldRect.width) * 100;
         }
       }
-      unit.infoCard.style.left = Math.max(2, Math.min(98, centerPercent)) + '%';
+      unit.infoCard.style.left = Math.max(4, Math.min(96, centerPercent)) + '%';
     }
   }
   function scheduleAlign() {
