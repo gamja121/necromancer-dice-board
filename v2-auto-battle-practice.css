@@ -385,8 +385,8 @@ button, a { font: inherit; }
   .unit-roster { grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px; padding: 3px; }
   .unit-roster button { height: 59px; font-size: 7px; }
   .capture-overflow-panel { width: 96%; max-height: 94%; padding: 1.5% 2%; }
-  .capture-overflow-cards { gap: .6%; padding: .8% .35% 1.5%; }
-  .capture-overflow-card { flex-basis: 8%; min-width: 50px; }
+  .capture-overflow-cards { gap: .3%; padding: .5% .2% 1%; }
+  .capture-overflow-card { min-width: 0; }
   #captureOverflowConfirm { min-width: 28%; padding: 6px 12px; font-size: 10px; }
 }
 @media (max-height: 440px) and (orientation: landscape) {
@@ -453,10 +453,10 @@ button, a { font: inherit; }
 
 .capture-overflow-overlay { z-index: 95; }
 .capture-overflow-panel {
-  width: min(94%, 980px);
+  width: min(97%, 1120px);
   max-width: none;
-  max-height: 88%;
-  padding: 2.2% 2.5%;
+  max-height: 84%;
+  padding: 1.4% 1.6%;
   overflow: hidden;
   border: 2px solid #806447;
   border-radius: 8px;
@@ -468,24 +468,31 @@ button, a { font: inherit; }
 .capture-overflow-panel h2 { margin: 0 0 1%; font-size: clamp(14px, 2vw, 24px); }
 .capture-overflow-panel p { margin: 0 0 2.5%; color: #cfb88e; font-size: clamp(9px, 1vw, 13px); }
 .capture-overflow-cards {
-  display: flex;
-  gap: .7%;
-  align-items: flex-end;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  padding: 1.2% .5% 2%;
+  display: grid;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+  gap: .35%;
+  align-items: end;
+  width: 100%;
+  overflow: visible;
+  padding: .6% .25% 1.2%;
 }
 .capture-overflow-card {
   position: relative;
-  flex: 0 0 8.2%;
-  min-width: 54px;
+  width: 100%;
+  min-width: 0;
   padding: 0;
   border: 0;
   background: transparent;
   cursor: pointer;
   filter: drop-shadow(0 7px 7px #000b);
 }
-.capture-overflow-card img { display: block; width: 100%; height: auto; }
+.capture-overflow-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 150px;
+  object-fit: contain;
+}
 .capture-overflow-card img.is-fallback-portrait { aspect-ratio: 370 / 540; object-fit: contain; background: #ccb990; border-radius: 4px; }
 .capture-overflow-card span {
   display: block;
