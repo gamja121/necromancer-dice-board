@@ -521,12 +521,12 @@
 
   const FULL_HEAL_CROSS_SRC = "art/v2-style/ui/heal-cross.webp?v=3";
   const FULL_HEAL_CROSS_SPECS = Object.freeze([
-    [7, 18, 22, 0, 1280, -1.2], [16, 32, 28, 90, 1160, 1.1], [27, 22, 21, 160, 1320, -.8],
-    [39, 44, 34, 60, 1240, 1.0], [51, 26, 24, 210, 1360, -1.0], [63, 38, 31, 120, 1180, .9],
-    [74, 20, 21, 270, 1300, -.7], [86, 35, 27, 180, 1220, .8], [93, 52, 20, 330, 1260, -.6],
-    [11, 57, 26, 390, 1200, .8], [24, 68, 22, 250, 1340, -.9], [36, 60, 30, 450, 1160, .9],
-    [48, 73, 20, 520, 1280, -.7], [61, 64, 28, 350, 1240, .8], [72, 78, 23, 590, 1320, -.9],
-    [84, 69, 33, 470, 1180, .9], [94, 82, 21, 650, 1260, -.6], [55, 50, 20, 720, 1140, .6]
+    [8, 18, 22, 0, 1080, -4], [18, 30, 26, 70, 1020, 4], [29, 22, 21, 140, 1120, -3],
+    [40, 43, 29, 40, 1060, 4], [52, 27, 24, 180, 1160, -4], [64, 38, 28, 100, 1040, 3],
+    [75, 20, 21, 230, 1100, -3], [87, 34, 25, 150, 1060, 4], [93, 51, 20, 290, 1080, -3],
+    [12, 57, 24, 330, 1040, 3], [25, 69, 22, 220, 1140, -4], [37, 60, 27, 390, 1020, 4],
+    [49, 74, 20, 450, 1100, -3], [61, 64, 25, 300, 1060, 3], [73, 78, 22, 500, 1120, -4],
+    [84, 69, 28, 410, 1040, 4], [94, 82, 21, 540, 1080, -3], [56, 50, 20, 580, 1000, 3]
   ]);
   let fullHealCrossReady = null;
 
@@ -568,7 +568,7 @@
       cross.style.setProperty("--heal-size", `${size}px`);
       cross.style.setProperty("--heal-delay", `${reducedMotion ? Math.min(delay, 180) : delay}ms`);
       cross.style.setProperty("--heal-duration", `${reducedMotion ? Math.min(duration, 1150) : duration}ms`);
-      cross.style.setProperty("--heal-drift", `${drift}vw`);
+      cross.style.setProperty("--heal-drift", `${drift}px`);
 
       const art = document.createElement("img");
       art.className = "full-heal-cross-art";
@@ -586,7 +586,7 @@
     void el.fullHealEffect.offsetWidth;
     el.fullHealEffect.classList.add("is-playing");
 
-    await wait(reducedMotion ? 1350 : 3400);
+    await wait(reducedMotion ? 1050 : 2200);
     el.fullHealEffect.classList.remove("is-playing");
     el.fullHealEffect.hidden = true;
     el.fullHealParticles.replaceChildren();

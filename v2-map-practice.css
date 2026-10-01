@@ -1105,7 +1105,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   width:var(--heal-size);
   height:var(--heal-size);
   opacity:0;
-  transform:translate3d(-50%,6px,0) scale(.82);
+  transform:translate3d(-50%,4px,0) scale(.94);
   will-change:transform,opacity,filter;
 }
 .full-heal-cross-art{
@@ -1123,18 +1123,18 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .full-heal-effect.is-playing .full-heal-cross{
   animation:
     fullHealCrossRise var(--heal-duration) cubic-bezier(.22,.61,.36,1) var(--heal-delay) both,
-    fullHealCrossBlink 520ms steps(2,end) var(--heal-delay) infinite;
+    fullHealCrossBlink 460ms ease-in-out var(--heal-delay) 2 both;
 }
 @keyframes fullHealCrossRise{
-  0%{opacity:0;transform:translate3d(-50%,8px,0) scale(.78)}
-  18%{opacity:.82}
-  48%{opacity:1}
-  78%{opacity:.86}
-  100%{opacity:0;transform:translate3d(calc(-50% + var(--heal-drift)),-18px,0) scale(.92)}
+  0%{opacity:0;transform:translate3d(-50%,4px,0) scale(.94)}
+  18%{opacity:.88;transform:translate3d(-50%,1px,0) scale(1)}
+  62%{opacity:1}
+  82%{opacity:.82}
+  100%{opacity:0;transform:translate3d(calc(-50% + var(--heal-drift)),-10px,0) scale(.98)}
 }
 @keyframes fullHealCrossBlink{
   0%,100%{filter:none}
-  50%{filter:drop-shadow(0 0 3px rgba(190,255,201,.24))}
+  50%{filter:drop-shadow(0 0 2px rgba(190,255,201,.20))}
 }
 @keyframes fullHealGreenFlash{
   0%{opacity:0}
