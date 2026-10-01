@@ -936,7 +936,9 @@
     number.textContent = `+${amount} 회복`;
     number.setAttribute("aria-label", `체력 ${amount} 회복`);
     if (typeof V2DamageDigits !== "undefined") V2DamageDigits.renderHealing(number, amount);
-    unitState.element.querySelector(".sprite-wrap").append(number);
+    const spriteWrap = unitState.element.querySelector(".sprite-wrap");
+    spriteWrap.append(number);
+    if (typeof V2HealEffect !== "undefined") void V2HealEffect.playUnit(spriteWrap, amount);
     number.addEventListener("animationend", () => number.remove(), { once: true });
   }
 
