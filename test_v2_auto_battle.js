@@ -13,8 +13,9 @@ require('./test_v2_rules_ui');
 
   assert(css.includes('.team > .unit,') && css.includes('.team > .summon-slot { grid-row: 1; }'),
     "Battlefield units must stay on one visible formation row");
-  assert(css.includes('.ally-team .unit[data-slot="3"] { grid-column: 4;'),
-    "Ally front/near slot must be the rightmost regular ally position");
+  assert(css.includes('.ally-team .unit[data-slot="0"] { grid-column: 4;') &&
+         css.includes('.ally-team .unit[data-slot="3"] { grid-column: 1;'),
+    "Ally battlefield visual order must match the deck-selection screen order");
   assert(css.includes('.enemy-team .unit[data-slot="0"] { grid-column: 2;'),
     "Enemy front/near slot must be the leftmost regular enemy position");
   assert(js.includes('makeState(data, "ally", 3 - index)'),
