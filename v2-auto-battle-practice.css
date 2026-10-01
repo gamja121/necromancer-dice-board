@@ -173,8 +173,8 @@ button, a { font: inherit; }
   }
   38% {
     scale:
-      calc(var(--unit-size-scale, 1) * 1.035)
-      calc(var(--unit-size-scale, 1) * 1.12);
+      calc(var(--unit-size-scale, 1) * 1.025)
+      calc(var(--unit-size-scale, 1) * 1.08);
   }
   58% {
     scale:
