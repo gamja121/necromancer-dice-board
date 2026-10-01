@@ -70,3 +70,7 @@ const enemies=[3,1,4,0,2].map(slot=>({slug:'enemy'+slot,slot,team:'enemy',alive:
 api.sync(field,enemies,()=>{});
 assert.deepEqual(field.children[0].children[1].children.map(b=>b.dataset.unit),['enemy4','enemy0','enemy1','enemy2','enemy3']);
 console.log('PASS: regular and summoned card mappings, exact unit clicks and replacement');
+
+const css = require('fs').readFileSync(require('path').join(__dirname,'v2-auto-battle-practice.css'),'utf8');
+assert(css.includes('translate: -50% 16px'), 'Battle cards must be centered on their unit anchor.');
+assert(!css.includes('29cqw'), 'Battle card size must not depend on a broken display:contents container query.');
