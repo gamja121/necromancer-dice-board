@@ -206,7 +206,12 @@ button, a { font: inherit; }
 .unit.is-attacking .sprite-wrap { transform: translate(var(--action-shift-x), 14%) scale(1.43); }
 .unit.is-targeted .sprite-wrap { transform: translate(var(--action-shift-x), 11%) scale(1.32); }
 .unit.is-hit img { animation: hit-red-flash 260ms ease-in-out 2; }
-.battlefield.is-cinematic .unit:not(.is-attacking):not(.is-targeted) { opacity: .58; }
+/* During attack focus, keep non-active units fully opaque and darken them.
+   Opacity made sprites look ghostlike because the battlefield showed through. */
+.battlefield.is-cinematic .unit:not(.is-attacking):not(.is-targeted) {
+  opacity: 1;
+  filter: brightness(.48) saturate(.72);
+}
 .battlefield.is-cinematic .battle-shade { background: #0005; }
 .battlefield.is-cinematic .unit.is-attacking { filter: drop-shadow(0 0 5px #f6ce6c); }
 .battlefield.is-cinematic .unit.is-targeted { filter: drop-shadow(0 0 4px #e34839); }
