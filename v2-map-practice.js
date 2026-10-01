@@ -561,21 +561,23 @@
     const specs = reducedMotion ? FULL_HEAL_CROSS_SPECS.slice(0, 9) : FULL_HEAL_CROSS_SPECS;
 
     for (const [left, size, delay, duration, drift] of specs) {
-      const cross = document.createElement(imageReady ? "img" : "span");
+      const cross = document.createElement("span");
       cross.className = "full-heal-cross";
-      if (imageReady) {
-        cross.src = FULL_HEAL_CROSS_SRC;
-        cross.alt = "";
-        cross.decoding = "sync";
-      } else {
-        cross.classList.add("is-css-fallback");
-        cross.setAttribute("aria-hidden", "true");
-      }
+      cross.setAttribute("aria-hidden", "true");
       cross.style.setProperty("--heal-left", `${left}%`);
       cross.style.setProperty("--heal-size", `${size}px`);
       cross.style.setProperty("--heal-delay", `${reducedMotion ? Math.min(delay, 180) : delay}ms`);
       cross.style.setProperty("--heal-duration", `${reducedMotion ? Math.min(duration, 1150) : duration}ms`);
       cross.style.setProperty("--heal-drift", `${drift}vw`);
+
+      if (imageReady) {
+        const art = document.createElement("img");
+        art.className = "full-heal-cross-art";
+        art.src = FULL_HEAL_CROSS_SRC;
+        art.alt = "";
+        art.decoding = "sync";
+        cross.append(art);
+      }
       el.fullHealParticles.append(cross);
     }
 
