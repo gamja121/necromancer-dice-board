@@ -19,8 +19,14 @@
   - 마물 정보창 초상화
 - `art/v2-style/processed/192/` — 49개
   - 전투/목록에서 쓰는 경량 마물 이미지
-- `art/v2-style/animation-sheets/green-raw/` — 51개
-  - 실제 전투 공격/피격/사망 모션 시트
+- `art/v2-style/animation-sheets/green-raw/` — 51개, **혼합 폴더**
+  - 특수 모션 모듈이 일부 시트를 실제 전투에서 직접 사용한다.
+  - 확인된 실사용 예: hell-mantis, guardian-seed, scorpion-knight, bone-hound, hydra-1/2, abyss-harpy, bone-golem, ice-princess, goblin-soldier-1/2/3.
+  - 폴더 전체 삭제/이동 금지. 나머지는 파일별 참조 검사 필요.
+- `art/v2-style/animation-test-frames/` — 약 553개, **현재 전투 런타임 사용**
+  - 일반 마물 모션 프레임 경로로 동적 참조됨.
+- `art/v2-style/dice-test/frames/` — 18개, **현재 맵/전투 런타임 사용**
+  - roll 12장 + result 6장
 - `art/v2-style/animation-sheets/uploaded-raw/` — 1개
   - 드라큘라 등 실제 모션 참조
 - `art/v2-style/battle-backgrounds/` — 6개
@@ -34,7 +40,8 @@
 - `art/v2-style/map-test/hero/` — 1개
   - 맵 주인공 토큰
 - `art/v2-style/event-portraits/` — 17개
-  - 이벤트 NPC 초상화
+  - 재검사 시 현재 런타임 코드에서 직접 파일 경로 참조를 찾지 못했다.
+  - 향후 이벤트용 자산일 가능성이 높으므로 **현재는 Source/Future 후보**로 취급하고 삭제는 보류한다.
 - `art/v2-style/protagonist/` — 2개
   - 주인공 이벤트/맵용 이미지
 - `assets/title/`, `assets/app-icon-*.png`, `assets/v2-battle-castle.png`
@@ -44,16 +51,20 @@
 
 ## B. 개발·테스트용
 
-본 게임 핵심 런타임보다 모션 테스트, 이미지 테스트, 주사위 테스트 등에 주로 사용한다.
-게임 배포 용량을 줄일 때 별도 개발 폴더 또는 외부 백업으로 뺄 수 있지만, 테스트 페이지를 계속 쓸 거면 유지한다.
+재검사 결과 이 구역은 처음 분류보다 훨씬 좁다.
 
-- `art/v2-style/animation-test-frames/` — 약 **553개**
-  - 가장 큰 이미지 묶음
-  - 공격/피격/사망을 낱장 프레임으로 잘라 둔 테스트 자산
-- `art/v2-style/dice-test/frames/` — 18개
 - `art/v2-style/dice-test/source/` — 2개
+  - 주사위 제작 원본 성격
+- 독립 테스트 페이지에서만 쓰는 자산은 파일별 확인 후 이 그룹으로 이동 가능
 
-**원칙: B는 게임 본편만 놓고 보면 정리 후보지만, 개발 중에는 유지 권장.**
+**중요 정정**
+- `art/v2-style/animation-test-frames/`는 이름과 달리 **현재 전투 런타임에서 직접 사용한다.**
+  `v2-auto-battle-practice.js`가 이 경로를 `FRAME_ROOT`로 두고 일반 마물의 공격/피격/사망 프레임을 동적으로 만든다.
+  따라서 약 553개를 통째로 DevOnly로 옮기거나 삭제하면 안 된다.
+- `art/v2-style/dice-test/frames/` 18개도 **현재 런타임 자산**이다.
+  맵 이동 주사위와 전투 턴 주사위가 직접 사용하고 service-worker도 선캐시한다.
+
+**원칙: 이름에 test가 들어가더라도 현재 코드 참조를 우선한다. 폴더명만 보고 정리하지 않는다.**
 
 ## C. 원본·참고·백업 성격
 
@@ -96,9 +107,10 @@
 
 1. **C 원본·참고 자료를 Google Drive 백업 폴더로 복사**
 2. **B의 553개 animation-test-frames를 개발용 보관으로 분리**
-3. D의 JPG/PNG/WEBP 중복을 파일별 참조 검사
-4. A는 경로 구조를 바꾸지 않고 그대로 유지
-5. Unity 전환 시 최종적으로 `Runtime/`, `Source/`, `DevOnly/` 구조로 재편
+3. `animation-test-frames/`와 `dice-test/frames/`는 **이름과 무관하게 Runtime 유지**
+4. D의 JPG/PNG/WEBP 중복을 파일별 참조 검사
+5. A는 경로 구조를 바꾸지 않고 그대로 유지
+6. Unity 전환 시 최종적으로 `Runtime/`, `Source/`, `DevOnly/` 구조로 재편
 
 ## 권장 최종 구조
 
@@ -124,3 +136,16 @@ art/
 
 현재 웹 프로토타입에서는 경로 변경 위험이 크므로 **지금 바로 실제 이동하지 않고 분류표를 먼저 기준으로 삼는다.**
 Unity 이관 시 위 구조로 옮기는 것이 가장 안전하다.
+
+
+## 2026-10-01 재검사 메모
+
+정적 경로 검색을 다시 수행해 다음 누락을 바로잡았다.
+
+1. `animation-test-frames/`는 단순 테스트 산출물이 아니라 현재 자동전투의 동적 프레임 루트다.
+2. `dice-test/frames/`는 현재 맵과 자동전투 양쪽에서 직접 사용한다.
+3. `event-portraits/`는 현재 코드에서 직접 참조가 확인되지 않아 실사용 확정 그룹에서 제외했다.
+4. `processed/512/`, `references/`, `tiles-source/`, `hero-source/`, `animation-sheets/replacements-2026-09-07/`는 현재 런타임 직접 참조를 찾지 못했다. 단, 제작 스크립트나 향후 작업 원본 가치가 있어 백업 후 정리 대상으로만 본다.
+5. 동적 경로(`FRAME_ROOT`, 카드 slug 조합 등)가 있으므로 단순 문자열 검색에서 '미사용'으로 나와도 즉시 삭제하지 않는다.
+
+**삭제 안전 규칙:** 실제 삭제 전에는 (1) 런타임 코드 참조, (2) 동적 경로 생성, (3) service-worker 캐시, (4) 제작 스크립트, (5) 테스트 의존성을 모두 확인한다.
