@@ -71,3 +71,6 @@ assert(nodes.get('unitInfoBrands').innerHTML.includes('brand-icons-extra-sheet.j
  assert(html.indexOf('v2-rules.js')<html.indexOf('v2-auto-battle-practice.js'));
  console.log('PASS: actual UI controller, current roster, 3-slot info, new icons, real round/attack handlers');
 })().catch(e=>{console.error(e);process.exitCode=1;});
+
+assert(source.includes('V2HealEffect.playUnit(spriteWrap, amount)'),
+  "Battle healing must reuse the heal-cross particle effect around the healed unit.");
