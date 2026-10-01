@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261001-heal-image-ready-fix";
+const CACHE_NAME = "necromancer-and-dice-v2-20261001-heal-png-recovery";
 
 const CORE_ASSETS = [
   "./",
@@ -25,7 +25,7 @@ const CORE_ASSETS = [
   "./v2-altar-ritual.css?v=4",
   "./v2-auto-battle-practice.css?v=74",
   "./v2-asset-loader.js?v=1",
-  "./v2-map-practice.js?v=100",
+  "./v2-map-practice.js?v=101",
   "./art/v2-style/map-test/events/fortune-prophecy-ui.png?v=1",
   "./v2-event-data.js?v=1",
   "./v2-map-events.js?v=1",
@@ -56,7 +56,7 @@ const CORE_ASSETS = [
   "./art/v2-style/ui/patrol-route-atlas.webp?v=1",
   "./art/v2-style/ui/patrol-route-frame.webp?v=2",
   "./art/v2-style/ui/patrol-route-current-frame.webp?v=2",
-  "./art/v2-style/ui/heal-cross.webp?v=3",
+  "./art/v2-style/ui/heal-cross.png?v=1",
   "./art/v2-style/ui/map-card-deck-open.png",
   "./art/v2-style/ui/battle-deck-selection-board.png",
   "./art/v2-style/ui/unit-info-window-no-portrait.png",

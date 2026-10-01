@@ -519,7 +519,7 @@
     if (!el.deckOverlay.hidden) renderDeckSelection();
   }
 
-  const FULL_HEAL_CROSS_SRC = "art/v2-style/ui/heal-cross.webp?v=3";
+  const FULL_HEAL_CROSS_SRC = "art/v2-style/ui/heal-cross.png?v=1";
   const FULL_HEAL_CROSS_SPECS = Object.freeze([
     [8, 18, 22, 0, 1080, -4], [18, 30, 26, 70, 1020, 4], [29, 22, 21, 140, 1120, -3],
     [40, 43, 29, 40, 1060, 4], [52, 27, 24, 180, 1160, -4], [64, 38, 28, 100, 1040, 3],
