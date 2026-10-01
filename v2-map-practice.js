@@ -521,12 +521,12 @@
 
   const FULL_HEAL_CROSS_SRC = "art/v2-style/ui/heal-cross.webp?v=2";
   const FULL_HEAL_CROSS_SPECS = Object.freeze([
-    [7, 18, 18, 0, 1280, -1.2], [16, 32, 24, 90, 1160, 1.1], [27, 22, 16, 160, 1320, -.8],
-    [39, 44, 28, 60, 1240, 1.0], [51, 26, 20, 210, 1360, -1.0], [63, 38, 26, 120, 1180, .9],
-    [74, 20, 17, 270, 1300, -.7], [86, 35, 22, 180, 1220, .8], [93, 52, 15, 330, 1260, -.6],
-    [11, 57, 21, 390, 1200, .8], [24, 68, 18, 250, 1340, -.9], [36, 60, 25, 450, 1160, .9],
-    [48, 73, 16, 520, 1280, -.7], [61, 64, 23, 350, 1240, .8], [72, 78, 19, 590, 1320, -.9],
-    [84, 69, 27, 470, 1180, .9], [94, 82, 17, 650, 1260, -.6], [55, 50, 14, 720, 1140, .6]
+    [7, 18, 22, 0, 1280, -1.2], [16, 32, 28, 90, 1160, 1.1], [27, 22, 21, 160, 1320, -.8],
+    [39, 44, 34, 60, 1240, 1.0], [51, 26, 24, 210, 1360, -1.0], [63, 38, 31, 120, 1180, .9],
+    [74, 20, 21, 270, 1300, -.7], [86, 35, 27, 180, 1220, .8], [93, 52, 20, 330, 1260, -.6],
+    [11, 57, 26, 390, 1200, .8], [24, 68, 22, 250, 1340, -.9], [36, 60, 30, 450, 1160, .9],
+    [48, 73, 20, 520, 1280, -.7], [61, 64, 28, 350, 1240, .8], [72, 78, 23, 590, 1320, -.9],
+    [84, 69, 33, 470, 1180, .9], [94, 82, 21, 650, 1260, -.6], [55, 50, 20, 720, 1140, .6]
   ]);
   let fullHealCrossReady = null;
 
@@ -556,7 +556,6 @@
     if (!el.fullHealEffect || !el.fullHealParticles) return;
     el.fullHealParticles.replaceChildren();
 
-    const imageReady = await prepareFullHealCross();
     const reducedMotion = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
     const specs = reducedMotion ? FULL_HEAL_CROSS_SPECS.slice(0, 9) : FULL_HEAL_CROSS_SPECS;
 
@@ -570,15 +569,6 @@
       cross.style.setProperty("--heal-delay", `${reducedMotion ? Math.min(delay, 180) : delay}ms`);
       cross.style.setProperty("--heal-duration", `${reducedMotion ? Math.min(duration, 1150) : duration}ms`);
       cross.style.setProperty("--heal-drift", `${drift}vw`);
-
-      if (imageReady) {
-        const art = document.createElement("img");
-        art.className = "full-heal-cross-art";
-        art.src = FULL_HEAL_CROSS_SRC;
-        art.alt = "";
-        art.decoding = "sync";
-        cross.append(art);
-      }
       el.fullHealParticles.append(cross);
     }
 
