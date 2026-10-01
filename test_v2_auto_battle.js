@@ -21,7 +21,8 @@ require('./test_v2_rules_ui');
     "Allies must fill from the right/near side outward");
   assert(js.includes('makeState(data, "enemy", index)'),
     "Enemies must fill from the left/near side outward");
-  assert(js.includes('sort((a, b) => b.slot - a.slot)') &&
-         js.includes('sort((a, b) => a.slot - b.slot)'),
-    "Intro reveal order must follow the same mirrored fill direction");
+  assert(js.includes('const allies = units.filter(unitState => unitState.team === "ally").sort((a, b) => b.slot - a.slot);'),
+    "Ally intro must reveal from the right/near side outward");
+  assert(js.includes('element.className = unitState.team === "ally" ? "unit is-pending" : "unit";'),
+    "Enemies must already be visible before the ally summon intro");
 }

@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261001-idle-breathe-8pct-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261001-enemy-prepositioned-1";
 
 const CORE_ASSETS = [
   "./",
@@ -25,7 +25,7 @@ const CORE_ASSETS = [
   "./art/v2-style/map-test/events/fortune-prophecy-ui.png?v=1",
   "./v2-event-data.js?v=1",
   "./v2-map-events.js?v=1",
-  "./v2-auto-battle-practice.js?v=121",
+  "./v2-auto-battle-practice.js?v=122",
   "./v2-landscape.js?v=1",
   "./v2-music.js?v=1",
   "./v2-sfx.js?v=3",

@@ -888,11 +888,11 @@
 
   function createUnitElement(unitState) {
       const element = document.createElement("article");
-      element.className = "unit is-pending";
+      element.className = unitState.team === "ally" ? "unit is-pending" : "unit";
       element.dataset.unit = unitState.slug;
       element.dataset.slot = String(unitState.slot);
       element.tabIndex = -1;
-      element.setAttribute("aria-hidden", "true");
+      if (unitState.team === "ally") element.setAttribute("aria-hidden", "true");
       element.setAttribute("role", "img");
       element.setAttribute("aria-label", unitState.name);
       element.innerHTML = `
@@ -1196,40 +1196,31 @@
     pauseButton.disabled = true;
     speedButton.disabled = true;
     turnDice.hidden = true;
-    message.textContent = "양 진영을 전장에 배치합니다";
+    message.textContent = "아군을 소환합니다";
     let summonFrames = null;
     try { summonFrames = await V2SummonEffect.prepare(); }
     catch (error) { console.warn("소환 효과 로딩 실패 · 등장 연출만 진행합니다.", error); }
     if (!isCurrent()) return;
 
     const allies = units.filter(unitState => unitState.team === "ally").sort((a, b) => b.slot - a.slot);
-    const enemies = units.filter(unitState => unitState.team === "enemy").sort((a, b) => a.slot - b.slot);
-    const revealIntroUnit = async (unitState) => {
-      if (!unitState || !isCurrent()) return;
-      message.textContent = `${unitState.team === "ally" ? "아군" : "적군"} · ${unitState.name} 등장`;
+    for (const unitState of allies) {
+      if (!isCurrent()) return;
+      message.textContent = `${unitState.name} 소환`;
       if (summonFrames) {
         try { await V2SummonEffect.play(unitState, summonFrames, { isCurrent, reveal: revealUnit, wait }); }
         catch (error) {
           if (!isCurrent()) return;
           console.warn("소환 효과 재생 실패", error);
           revealUnit(unitState);
-          await wait(300);
+          await wait(360);
         }
       } else {
         revealUnit(unitState);
-        await wait(300);
+        await wait(360);
       }
       if (!isCurrent()) return;
       unitState.element.classList.remove("is-arriving");
-      await wait(60);
-    };
-
-    const introCount = Math.max(allies.length, enemies.length);
-    for (let index = 0; index < introCount; index += 1) {
-      await revealIntroUnit(allies[index]);
-      if (!isCurrent()) return;
-      await revealIntroUnit(enemies[index]);
-      if (!isCurrent()) return;
+      await wait(80);
     }
     if (!isCurrent()) return;
     introRunning = false;
