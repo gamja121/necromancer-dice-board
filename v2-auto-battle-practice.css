@@ -170,15 +170,20 @@ button, a { font: inherit; }
   0%, 100% {
     scale: var(--unit-size-scale, 1) var(--unit-size-scale, 1);
   }
-  46% {
+  38% {
     scale:
-      calc(var(--unit-size-scale, 1) * 1.006)
-      calc(var(--unit-size-scale, 1) * 1.018);
+      calc(var(--unit-size-scale, 1) * 1.035)
+      calc(var(--unit-size-scale, 1) * 1.12);
   }
   58% {
     scale:
-      calc(var(--unit-size-scale, 1) * .998)
-      calc(var(--unit-size-scale, 1) * 1.008);
+      calc(var(--unit-size-scale, 1) * .975)
+      calc(var(--unit-size-scale, 1) * .94);
+  }
+  76% {
+    scale:
+      calc(var(--unit-size-scale, 1) * 1.015)
+      calc(var(--unit-size-scale, 1) * 1.055);
   }
 }
 @media (prefers-reduced-motion: reduce) {
