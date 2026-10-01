@@ -74,3 +74,9 @@ console.log('PASS: regular and summoned card mappings, exact unit clicks and rep
 const css = require('fs').readFileSync(require('path').join(__dirname,'v2-auto-battle-practice.css'),'utf8');
 assert(css.includes('translate: -50% 16px'), 'Battle cards must be centered on their unit anchor.');
 assert(!css.includes('29cqw'), 'Battle card size must not depend on a broken display:contents container query.');
+
+const cardSource = require('fs').readFileSync(require('path').join(__dirname,'v2-unit-cards.js'),'utf8');
+assert(cardSource.includes('offsetLeft') && cardSource.includes('offsetParent'),
+  'Battle card alignment must use battlefield-local offsets, not viewport coordinates.');
+assert(!cardSource.includes("anchor.getBoundingClientRect()"),
+  'Rotated mobile battle card alignment must not use viewport getBoundingClientRect coordinates.');
