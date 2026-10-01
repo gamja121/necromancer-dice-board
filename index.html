@@ -9,7 +9,7 @@
   <title>Necromancer and Dice</title>
   <link rel="manifest" href="manifest.webmanifest?v=20260930-landscape-1">
   <link rel="apple-touch-icon" href="assets/app-icon-192.png">
-  <link rel="stylesheet" href="launch.css?v=20260930-landscape-1">
+  <link rel="stylesheet" href="launch.css?v=20261002-test-menu-1">
 </head>
 <body class="is-locked">
   <video id="titleVideo" class="title-video" autoplay muted loop playsinline preload="auto">
@@ -53,12 +53,25 @@
         <span>영상 사운드 + BGM</span>
         <button id="titleSoundToggle" type="button" aria-pressed="true">ON</button>
       </div>
+      <section class="test-menu" aria-label="개발 테스트">
+        <strong>TEST MENU</strong>
+        <div class="test-menu-grid">
+          <a href="v2-map-practice.html">맵 테스트</a>
+          <a href="v2-auto-battle-practice.html">전투 테스트</a>
+          <a href="v2-animation-practice.html">애니메이션·이펙트</a>
+          <a href="v2-event-lab.html">이벤트 테스트</a>
+          <a href="v2-tile-practice.html">타일 테스트</a>
+          <a href="v2-image-test.html">이미지 테스트</a>
+          <a href="v2-sfx-sampler.html">사운드 테스트</a>
+          <a href="v2.html">구형 전투 화면</a>
+        </div>
+      </section>
       <button id="installAppButton" type="button" hidden>앱으로 설치</button>
     </aside>
 
     <p id="titleToast" class="title-toast" role="status" aria-live="polite"></p>
   </main>
 
-  <script src="launch.js?v=20260930-fullscreen-landscape-2"></script>
+  <script src="launch.js?v=20261002-test-menu-1"></script>
 </body>
 </html>
