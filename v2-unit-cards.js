@@ -3,7 +3,35 @@
   ART.push('mimic','bone-hound','soul-reaper','mummy-guardian','siren','grave-worm','abyss-claw-hunter','yeti','goblin-commoner','guardian-seed','spiderling');
   const CUTOUT_ART = new Set(['corpse-slime','minotaur','plague-frog','ice-lord','yeti','guardian-seed','plague-doctor','ghoul','goblin-chief','goblin-soldier','goblin-commoner','sea-wolf','grave-priest','abyss-eye','doom-executor','death-knight','hell-mantis','scorpion-knight','ancient-treant','stone-golem','kraken','crystal-devourer','skeleton-spear','skeleton-archer','spider-knight','raging-treant','cerberus','mushroom-soldier','goblin-rider','orc-warrior','boulder-ogre','bone-golem','forest-fairy','flesh-golem','hydra','ice-princess','mimic','bone-hound','soul-reaper','mummy-guardian','skeleton-cavalry','spiderling','grave-worm','abyss-harpy','siren','abyss-claw-hunter']);
   let selected;
-  let phase = 'locked', currentUnits = [], currentDock;
+  let phase = 'locked', currentUnits = [], currentDock, currentField;
+  let resizeBound = false;
+  function fallbackCenter(unit) {
+    const ally = [67.2, 48, 28.8, 9.6, 86.4];
+    const enemy = [28.8, 48, 67.2, 86.4, 9.6];
+    const withinTeam = (unit.team === 'ally' ? ally : enemy)[unit.slot] ?? 50;
+    return unit.team === 'ally' ? withinTeam * .5 : 50 + withinTeam * .5;
+  }
+  function alignCards() {
+    if (!currentField || !currentDock) return;
+    const fieldRect = typeof currentField.getBoundingClientRect === 'function' ? currentField.getBoundingClientRect() : null;
+    for (const unit of currentUnits) {
+      if (!unit.infoCard) continue;
+      let centerPercent = fallbackCenter(unit);
+      const anchor = unit.element?.querySelector?.('.sprite-wrap') || unit.element;
+      if (fieldRect?.width && anchor && typeof anchor.getBoundingClientRect === 'function') {
+        const rect = anchor.getBoundingClientRect();
+        if (Number.isFinite(rect.left) && Number.isFinite(rect.width) && rect.width > 0) {
+          centerPercent = ((rect.left + rect.width / 2 - fieldRect.left) / fieldRect.width) * 100;
+        }
+      }
+      unit.infoCard.style.left = Math.max(2, Math.min(98, centerPercent)) + '%';
+    }
+  }
+  function scheduleAlign() {
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => requestAnimationFrame(alignCards));
+    } else alignCards();
+  }
   function setPhase(value) {
     phase = value;
     clearSelection();
@@ -21,7 +49,10 @@
       dock.setAttribute('aria-label','전장 유닛 정보 카드'); field.append(dock);
     }
     dock.replaceChildren();
-    currentDock = dock; currentUnits = units;
+    currentDock = dock; currentUnits = units; currentField = field;
+    if (!resizeBound && typeof window !== 'undefined' && window.addEventListener) {
+      window.addEventListener('resize', scheduleAlign); resizeBound = true;
+    }
     clearSelection();
     for (const team of ['ally','enemy']) {
       const group = document.createElement('div'); group.className = 'unit-card-team';
@@ -63,13 +94,14 @@
       dock.append(group);
     }
     setPhase(phase);
+    scheduleAlign();
   }
   function update(unit) {
     if (!unit.infoCard) return;
     unit.infoCard.classList.toggle('is-dead', !unit.alive);
     unit.infoCard.title = unit.name + ' · ' + Math.max(0,unit.hp) + '/' + unit.maxHp;
   }
-  const api = { ART,CUTOUT_ART,sync,update,clearSelection,setPhase };
+  const api = { ART,CUTOUT_ART,sync,update,clearSelection,setPhase,alignCards };
   if(typeof module !== 'undefined' && module.exports) module.exports=api;
   else root.V2UnitCards=api;
 })(globalThis);
