@@ -521,12 +521,12 @@
 
   const FULL_HEAL_CROSS_SRC = "art/v2-style/ui/heal-cross.webp?v=2";
   const FULL_HEAL_CROSS_SPECS = Object.freeze([
-    [5, 48, 0, 2550, -8], [12, 72, 180, 2260, 8], [19, 54, 80, 2700, -5],
-    [27, 92, 360, 2380, 7], [35, 44, 150, 2820, -9], [43, 66, 470, 2320, 6],
-    [51, 52, 40, 2580, -4], [59, 84, 300, 2460, 8], [67, 42, 540, 2140, -7],
-    [74, 74, 110, 2700, 6], [81, 58, 410, 2360, -9], [88, 98, 230, 2600, 7],
-    [95, 46, 590, 2220, -5], [9, 62, 700, 2100, 7], [31, 80, 660, 2420, -6],
-    [54, 45, 790, 2040, 8], [77, 90, 750, 2380, -7], [92, 64, 860, 2080, 5]
+    [7, 18, 18, 0, 1280, -1.2], [16, 32, 24, 90, 1160, 1.1], [27, 22, 16, 160, 1320, -.8],
+    [39, 44, 28, 60, 1240, 1.0], [51, 26, 20, 210, 1360, -1.0], [63, 38, 26, 120, 1180, .9],
+    [74, 20, 17, 270, 1300, -.7], [86, 35, 22, 180, 1220, .8], [93, 52, 15, 330, 1260, -.6],
+    [11, 57, 21, 390, 1200, .8], [24, 68, 18, 250, 1340, -.9], [36, 60, 25, 450, 1160, .9],
+    [48, 73, 16, 520, 1280, -.7], [61, 64, 23, 350, 1240, .8], [72, 78, 19, 590, 1320, -.9],
+    [84, 69, 27, 470, 1180, .9], [94, 82, 17, 650, 1260, -.6], [55, 50, 14, 720, 1140, .6]
   ]);
   let fullHealCrossReady = null;
 
@@ -560,11 +560,12 @@
     const reducedMotion = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
     const specs = reducedMotion ? FULL_HEAL_CROSS_SPECS.slice(0, 9) : FULL_HEAL_CROSS_SPECS;
 
-    for (const [left, size, delay, duration, drift] of specs) {
+    for (const [left, top, size, delay, duration, drift] of specs) {
       const cross = document.createElement("span");
       cross.className = "full-heal-cross";
       cross.setAttribute("aria-hidden", "true");
       cross.style.setProperty("--heal-left", `${left}%`);
+      cross.style.setProperty("--heal-top", `${top}%`);
       cross.style.setProperty("--heal-size", `${size}px`);
       cross.style.setProperty("--heal-delay", `${reducedMotion ? Math.min(delay, 180) : delay}ms`);
       cross.style.setProperty("--heal-duration", `${reducedMotion ? Math.min(duration, 1150) : duration}ms`);
