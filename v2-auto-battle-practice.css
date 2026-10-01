@@ -384,9 +384,10 @@ button, a { font: inherit; }
   .deck-selection-stage > #lineupStatus { right: 3%; bottom: 17%; }
   .unit-roster { grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px; padding: 3px; }
   .unit-roster button { height: 59px; font-size: 7px; }
-  .capture-overflow-panel { width: 96%; max-height: 94%; padding: 1.5% 2%; }
-  .capture-overflow-cards { gap: .3%; padding: .5% .2% 1%; }
+  .capture-overflow-panel { width: 97%; height: 78%; max-height: 78%; padding: 1% 1.2%; }
+  .capture-overflow-cards { gap: .3%; padding: .2% .15% .35%; }
   .capture-overflow-card { min-width: 0; }
+  .capture-overflow-card img { height: min(17vw, 108px); }
   #captureOverflowConfirm { min-width: 28%; padding: 6px 12px; font-size: 10px; }
 }
 @media (max-height: 440px) and (orientation: landscape) {
@@ -453,10 +454,13 @@ button, a { font: inherit; }
 
 .capture-overflow-overlay { z-index: 95; }
 .capture-overflow-panel {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   width: min(97%, 1120px);
   max-width: none;
-  max-height: 84%;
-  padding: 1.4% 1.6%;
+  height: min(76%, 360px);
+  max-height: 76%;
+  padding: 1.2% 1.4%;
   overflow: hidden;
   border: 2px solid #806447;
   border-radius: 8px;
@@ -465,16 +469,17 @@ button, a { font: inherit; }
   color: #f1dfbd;
   text-align: center;
 }
-.capture-overflow-panel h2 { margin: 0 0 1%; font-size: clamp(14px, 2vw, 24px); }
-.capture-overflow-panel p { margin: 0 0 2.5%; color: #cfb88e; font-size: clamp(9px, 1vw, 13px); }
+.capture-overflow-panel h2 { margin: 0 0 .4%; font-size: clamp(14px, 2vw, 24px); }
+.capture-overflow-panel p { margin: 0 0 1%; color: #cfb88e; font-size: clamp(9px, 1vw, 13px); }
 .capture-overflow-cards {
   display: grid;
   grid-template-columns: repeat(11, minmax(0, 1fr));
   gap: .35%;
-  align-items: end;
+  align-items: center;
   width: 100%;
-  overflow: visible;
-  padding: .6% .25% 1.2%;
+  min-height: 0;
+  overflow: hidden;
+  padding: .25% .2% .4%;
 }
 .capture-overflow-card {
   position: relative;
@@ -489,17 +494,19 @@ button, a { font: inherit; }
 .capture-overflow-card img {
   display: block;
   width: 100%;
-  height: auto;
-  max-height: 150px;
+  height: min(18vw, 118px);
   object-fit: contain;
 }
 .capture-overflow-card img.is-fallback-portrait { aspect-ratio: 370 / 540; object-fit: contain; background: #ccb990; border-radius: 4px; }
 .capture-overflow-card span {
   display: block;
-  margin-top: 3px;
+  margin-top: 1px;
+  overflow: hidden;
   color: #ecd5ad;
-  font-size: clamp(7px, .75vw, 10px);
+  font-size: clamp(6px, .65vw, 9px);
   font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .capture-overflow-card b {
   position: absolute;
@@ -516,8 +523,12 @@ button, a { font: inherit; }
   filter: drop-shadow(0 0 9px #ffe291) drop-shadow(0 8px 8px #000c);
 }
 #captureOverflowConfirm {
-  min-width: 34%;
-  padding: 8px 16px;
+  position: static;
+  justify-self: center;
+  align-self: end;
+  min-width: 30%;
+  margin-top: 4px;
+  padding: 7px 14px;
   border: 1px solid #aa8655;
   border-radius: 4px;
   background: #3a2417;
