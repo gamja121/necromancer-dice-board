@@ -1106,31 +1106,8 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   height:var(--heal-size);
   opacity:0;
   transform:translate3d(-50%,6px,0) scale(.82);
-  filter:brightness(1.12) saturate(1.03) drop-shadow(0 0 4px rgba(194,255,201,.9)) drop-shadow(0 0 10px rgba(111,235,132,.42));
+  filter:drop-shadow(0 0 3px rgba(205,255,211,.72)) drop-shadow(0 0 8px rgba(135,235,149,.28));
   will-change:top,transform,opacity,filter;
-}
-.full-heal-cross::before,
-.full-heal-cross::after{
-  content:"";
-  position:absolute;
-  z-index:0;
-  left:50%;
-  top:50%;
-  border-radius:18%;
-  background:linear-gradient(180deg,#f0fff1 0%,#c9ffd0 32%,#8df29f 70%,#62d87a 100%);
-  box-shadow:
-    0 0 3px rgba(226,255,231,.95),
-    0 0 8px rgba(157,246,172,.72),
-    0 0 14px rgba(104,220,126,.32);
-  transform:translate(-50%,-50%);
-}
-.full-heal-cross::before{
-  width:31%;
-  height:92%;
-}
-.full-heal-cross::after{
-  width:92%;
-  height:31%;
 }
 .full-heal-cross-art{
   position:absolute;
@@ -1140,8 +1117,9 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   width:100%;
   height:100%;
   object-fit:contain;
-  opacity:.78;
-  filter:brightness(1.08) saturate(.96);
+  opacity:1;
+  mix-blend-mode:screen;
+  filter:brightness(1.18) saturate(.88);
   pointer-events:none;
 }
 .full-heal-effect.is-playing .full-heal-cross{
@@ -1157,8 +1135,8 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   100%{opacity:0;transform:translate3d(calc(-50% + var(--heal-drift)),-18px,0) scale(.92)}
 }
 @keyframes fullHealCrossBlink{
-  0%,100%{filter:brightness(.98) drop-shadow(0 0 3px rgba(190,255,198,.68))}
-  50%{filter:brightness(1.14) drop-shadow(0 0 6px rgba(207,255,214,.88)) drop-shadow(0 0 11px rgba(123,234,142,.34))}
+  0%,100%{filter:drop-shadow(0 0 3px rgba(205,255,211,.62))}
+  50%{filter:drop-shadow(0 0 5px rgba(225,255,229,.80)) drop-shadow(0 0 9px rgba(150,235,162,.24))}
 }
 @keyframes fullHealGreenFlash{
   0%{opacity:0}
