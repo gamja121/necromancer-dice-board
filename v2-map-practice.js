@@ -519,6 +519,11 @@
     if (!el.deckOverlay.hidden) renderDeckSelection();
   }
 
+  async function healOwnedRosterFullWithImpact() {
+    healOwnedRosterFull();
+    await playFullHealEffect();
+  }
+
   const FULL_HEAL_CROSS_SRC = "art/v2-style/ui/heal-cross.png?v=1";
   const FULL_HEAL_CROSS_SPECS = Object.freeze([
     [8, 18, 22, 0, 1080, -4], [18, 30, 26, 70, 1020, 4], [29, 22, 21, 140, 1120, -3],
@@ -2267,11 +2272,10 @@
       el.eventHeal.hidden = true;
       return;
     }
-    healOwnedRosterFull();
     el.eventHeal.hidden = true;
     el.eventClose.disabled = true;
     el.diceResult.textContent = "숙영 · 모든 마물 체력 완전 회복";
-    await playFullHealEffect();
+    await healOwnedRosterFullWithImpact();
     el.eventClose.disabled = false;
     el.eventClose.focus();
   }
@@ -2715,7 +2719,7 @@
     } else if (result === 2) {
       label = "축복";
       detail = "아군 전체 완전 회복";
-      healOwnedRosterFull();
+      await healOwnedRosterFullWithImpact();
       // 즉시 회복은 기존 누적 예언을 지우지 않는다.
     } else if (result === 3) {
       label = "축복";
@@ -2757,9 +2761,8 @@
 
     const needsHealing = hasInjuredOwnedUnits();
     if (needsHealing) {
-      healOwnedRosterFull();
       el.diceResult.textContent = "귀환 · 모든 마물 체력 완전 회복";
-      await playFullHealEffect();
+      await healOwnedRosterFullWithImpact();
     }
 
     if (!eventOpen || activeEventTileId !== "home") return;
