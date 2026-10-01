@@ -1,8 +1,7 @@
 :root { color-scheme: dark; font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; background: #080604; color: #f7ead0; }
-.unit-card-dock { position: absolute; z-index: 60; bottom: 8px; left: 2%; right: 2%; display: flex; justify-content: space-between; gap: 3%; pointer-events: none; }
-.unit-card-team { display: flex; align-items: end; justify-content: center; width: 48.5%; overflow: visible; pointer-events: none; }
-.unit-info-card { position: relative; flex: 0 0 auto; width: auto; min-height: 44px; padding: 0; border: 0; border-radius: 4px; background: transparent; touch-action: manipulation; cursor: pointer; pointer-events: auto; transform-origin: 50% 85%; filter: drop-shadow(1px 3px 3px #0009); }
-.unit-info-card + .unit-info-card { margin-left: -3px; }
+.unit-card-dock { position: absolute; z-index: 60; inset: 0; pointer-events: none; }
+.unit-card-team { display: contents; pointer-events: none; }
+.unit-info-card { position: absolute; bottom: 8px; flex: 0 0 auto; width: auto; min-height: 44px; padding: 0; border: 0; border-radius: 4px; background: transparent; touch-action: manipulation; cursor: pointer; pointer-events: auto; transform-origin: 50% 85%; filter: drop-shadow(1px 3px 3px #0009); }
 .unit-info-card { translate: 0 16px; transition: translate 180ms ease-out; }
 .unit-info-card.is-selected { translate: 0 -8px; z-index: 6; }
 .unit-card-dock.is-tucked .unit-info-card { translate: 0 calc(100% - 12px); }
