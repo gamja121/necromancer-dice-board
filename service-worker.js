@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261001-heal-final-phase3";
+const CACHE_NAME = "necromancer-and-dice-v2-20261001-parchment-buttons";
 
 const CORE_ASSETS = [
   "./",
@@ -16,7 +16,11 @@ const CORE_ASSETS = [
   "./launch.js?v=20260930-title-1",
   "./v2-map-practice.html",
   "./v2-auto-battle-practice.html",
-  "./v2-map-practice.css?v=87",
+  "./v2-map-practice.css?v=88",
+  "./art/v2-style/ui/parchment-button-variant-01.png",
+  "./art/v2-style/ui/parchment-button-variant-02.png",
+  "./art/v2-style/ui/parchment-button-variant-03.png",
+  "./art/v2-style/ui/parchment-button-variant-04.png",
   "./v2-home-inheritance.css?v=9",
   "./v2-altar-ritual.css?v=4",
   "./v2-auto-battle-practice.css?v=74",
