@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261002-card-layout-fix-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261002-card-local-coords-1";
 
 const CORE_ASSETS = [
   "./",
