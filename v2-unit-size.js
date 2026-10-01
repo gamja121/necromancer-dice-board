@@ -34,7 +34,10 @@
     function update() {
       if (!metrics || !image.clientWidth || !image.clientHeight) return;
       const result = layout(metrics, image.clientWidth, image.clientHeight, RATIOS[unit.slug] || 1);
-      image.style.scale = String(result.scale);
+      // Store the calibrated battlefield scale in a CSS variable so idle animation
+      // can breathe around the same base size instead of replacing it with scale: 1.
+      image.style.setProperty("--unit-size-scale", String(result.scale));
+      image.style.scale = "var(--unit-size-scale)";
       image.style.transformOrigin = `50% ${result.foot}px`;
     }
     function initialize() {
