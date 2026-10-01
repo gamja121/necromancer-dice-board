@@ -3,7 +3,8 @@
   "private": true,
   "scripts": {
     "test": "node scripts/test-v2-all.js",
-    "test:browser": "node scripts/check-v2-browser.js"
+    "test:browser": "node scripts/check-v2-browser.js",
+    "audit:assets": "node scripts/audit-image-assets.js"
   },
   "devDependencies": {
     "jpeg-js": "0.4.4",
