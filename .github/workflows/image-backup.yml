@@ -14,24 +14,100 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Collect image files only
+
+      - name: Split image files into safe-size backup parts
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p image-backup
-          find . -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' -o -iname '*.gif' \) \
-            -not -path './.git/*' -print0 |
-          while IFS= read -r -d '' file; do
-            rel="${file#./}"
-            mkdir -p "image-backup/$(dirname "$rel")"
-            cp -p "$file" "image-backup/$rel"
-          done
-          echo "image count: $(find image-backup -type f | wc -l)"
-      - name: Upload image-only backup
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+
+          root = Path(".")
+          exts = {".png",".jpg",".jpeg",".webp",".gif"}
+          files = sorted(
+              p for p in root.rglob("*")
+              if p.is_file()
+              and ".git" not in p.parts
+              and p.suffix.lower() in exts
+          )
+
+          MAX = 55 * 1024 * 1024
+          part = 1
+          used = 0
+          count = 0
+          out_root = Path("image-backup-parts")
+          if out_root.exists():
+              shutil.rmtree(out_root)
+
+          for src in files:
+              size = src.stat().st_size
+              if used and used + size > MAX:
+                  part += 1
+                  used = 0
+              dest = out_root / f"part-{part:02d}" / src
+              dest.parent.mkdir(parents=True, exist_ok=True)
+              shutil.copy2(src, dest)
+              used += size
+              count += 1
+
+          print(f"image count={count}, parts={part}")
+          for d in sorted(out_root.iterdir()):
+              total = sum(p.stat().st_size for p in d.rglob("*") if p.is_file())
+              n = sum(1 for p in d.rglob("*") if p.is_file())
+              print(d.name, n, total)
+          PY
+
+      - name: Upload backup part 01
         uses: actions/upload-artifact@v4
         with:
-          name: necromancer-dice-images
-          path: image-backup/
-          if-no-files-found: error
+          name: necromancer-dice-images-part-01
+          path: image-backup-parts/part-01/
+          if-no-files-found: ignore
+          compression-level: 6
+          retention-days: 7
+
+      - name: Upload backup part 02
+        uses: actions/upload-artifact@v4
+        with:
+          name: necromancer-dice-images-part-02
+          path: image-backup-parts/part-02/
+          if-no-files-found: ignore
+          compression-level: 6
+          retention-days: 7
+
+      - name: Upload backup part 03
+        uses: actions/upload-artifact@v4
+        with:
+          name: necromancer-dice-images-part-03
+          path: image-backup-parts/part-03/
+          if-no-files-found: ignore
+          compression-level: 6
+          retention-days: 7
+
+      - name: Upload backup part 04
+        uses: actions/upload-artifact@v4
+        with:
+          name: necromancer-dice-images-part-04
+          path: image-backup-parts/part-04/
+          if-no-files-found: ignore
+          compression-level: 6
+          retention-days: 7
+
+      - name: Upload backup part 05
+        uses: actions/upload-artifact@v4
+        with:
+          name: necromancer-dice-images-part-05
+          path: image-backup-parts/part-05/
+          if-no-files-found: ignore
+          compression-level: 6
+          retention-days: 7
+
+      - name: Upload backup part 06
+        uses: actions/upload-artifact@v4
+        with:
+          name: necromancer-dice-images-part-06
+          path: image-backup-parts/part-06/
+          if-no-files-found: ignore
           compression-level: 6
           retention-days: 7
