@@ -554,6 +554,11 @@
 
   async function playFullHealEffect() {
     if (!el.fullHealEffect || !el.fullHealParticles) return;
+
+    // The heal artwork is an external image. On mobile, starting the short
+    // animation before it has decoded can make every particle finish while
+    // the image is still blank. Wait for the preload/decode before rendering.
+    const artworkReady = await prepareFullHealCross();
     el.fullHealParticles.replaceChildren();
 
     const reducedMotion = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
@@ -561,7 +566,7 @@
 
     for (const [left, top, size, delay, duration, drift] of specs) {
       const cross = document.createElement("span");
-      cross.className = "full-heal-cross";
+      cross.className = artworkReady ? "full-heal-cross" : "full-heal-cross is-fallback";
       cross.setAttribute("aria-hidden", "true");
       cross.style.setProperty("--heal-left", `${left}%`);
       cross.style.setProperty("--heal-top", `${top}%`);
@@ -575,7 +580,8 @@
       art.src = FULL_HEAL_CROSS_SRC;
       art.alt = "";
       art.draggable = false;
-      art.decoding = "async";
+      art.decoding = "sync";
+      art.loading = "eager";
       cross.append(art);
 
       el.fullHealParticles.append(cross);
@@ -584,6 +590,7 @@
     el.fullHealEffect.hidden = false;
     el.fullHealEffect.classList.remove("is-playing");
     void el.fullHealEffect.offsetWidth;
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     el.fullHealEffect.classList.add("is-playing");
 
     await wait(reducedMotion ? 1050 : 2200);

@@ -1230,6 +1230,21 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   pointer-events:none;
   user-select:none;
 }
+.full-heal-cross.is-fallback .full-heal-cross-art{display:none}
+.full-heal-cross.is-fallback::before,
+.full-heal-cross.is-fallback::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  border-radius:18%;
+  background:#a8ffb6;
+  border:1px solid rgba(230,255,234,.95);
+  box-shadow:0 0 4px rgba(170,255,186,.55);
+}
+.full-heal-cross.is-fallback::before{width:34%;height:96%}
+.full-heal-cross.is-fallback::after{width:96%;height:34%}
 .full-heal-effect.is-playing .full-heal-cross{
   animation:
     fullHealCrossRise var(--heal-duration) cubic-bezier(.22,.61,.36,1) var(--heal-delay) both,
