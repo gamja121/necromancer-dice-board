@@ -519,7 +519,7 @@
     if (!el.deckOverlay.hidden) renderDeckSelection();
   }
 
-  const FULL_HEAL_CROSS_SRC = "art/v2-style/ui/heal-cross.webp?v=2";
+  const FULL_HEAL_CROSS_SRC = "art/v2-style/ui/heal-cross.webp?v=3";
   const FULL_HEAL_CROSS_SPECS = Object.freeze([
     [7, 18, 22, 0, 1280, -1.2], [16, 32, 28, 90, 1160, 1.1], [27, 22, 21, 160, 1320, -.8],
     [39, 44, 34, 60, 1240, 1.0], [51, 26, 24, 210, 1360, -1.0], [63, 38, 31, 120, 1180, .9],
@@ -569,6 +569,15 @@
       cross.style.setProperty("--heal-delay", `${reducedMotion ? Math.min(delay, 180) : delay}ms`);
       cross.style.setProperty("--heal-duration", `${reducedMotion ? Math.min(duration, 1150) : duration}ms`);
       cross.style.setProperty("--heal-drift", `${drift}vw`);
+
+      const art = document.createElement("img");
+      art.className = "full-heal-cross-art";
+      art.src = FULL_HEAL_CROSS_SRC;
+      art.alt = "";
+      art.draggable = false;
+      art.decoding = "async";
+      cross.append(art);
+
       el.fullHealParticles.append(cross);
     }
 
