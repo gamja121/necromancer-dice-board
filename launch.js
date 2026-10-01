@@ -11,6 +11,7 @@
   const closeOptions=document.getElementById("closeOptionsButton");
   const soundToggle=document.getElementById("titleSoundToggle");
   const installButton=document.getElementById("installAppButton");
+  const testLinks=[...document.querySelectorAll(".test-menu-grid a")];
   const toast=document.getElementById("titleToast");
   const DB_NAME="necromancer-dice-runs";
   let unlocked=false,soundOn=true,leaving=false,installPrompt=null,toastTimer,selectedMenu=null;
@@ -126,6 +127,11 @@
     panel.hidden=false;
   });
   closeOptions.addEventListener("click",()=>{panel.hidden=true;selectMenu(options)});
+  testLinks.forEach(link=>link.addEventListener("click",async e=>{
+    e.preventDefault();
+    if(!unlocked)await unlockTitle();
+    await fadeTo(link.href);
+  }));
   exit.addEventListener("click",()=>{
     if(!isSecondPress(exit))return;
     window.close();setTimeout(()=>showToast("브라우저에서는 창을 직접 닫아주세요."),80);
