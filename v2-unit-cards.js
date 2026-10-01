@@ -11,19 +11,28 @@
     const withinTeam = (unit.team === 'ally' ? ally : enemy)[unit.slot] ?? 50;
     return unit.team === 'ally' ? withinTeam * .5 : 50 + withinTeam * .5;
   }
+  function localCenterPercent(unit) {
+    const element = unit?.element;
+    if (!element || !currentField) return fallbackCenter(unit);
+    let node = element;
+    let left = 0;
+    let guard = 0;
+    while (node && node !== currentField && guard < 12) {
+      left += Number(node.offsetLeft) || 0;
+      node = node.offsetParent;
+      guard += 1;
+    }
+    if (node !== currentField) return fallbackCenter(unit);
+    const width = Number(element.offsetWidth) || 0;
+    const fieldWidth = Number(currentField.clientWidth) || Number(currentField.offsetWidth) || 0;
+    if (!fieldWidth || !width) return fallbackCenter(unit);
+    return ((left + width / 2) / fieldWidth) * 100;
+  }
   function alignCards() {
     if (!currentField || !currentDock) return;
-    const fieldRect = typeof currentField.getBoundingClientRect === 'function' ? currentField.getBoundingClientRect() : null;
     for (const unit of currentUnits) {
       if (!unit.infoCard) continue;
-      let centerPercent = fallbackCenter(unit);
-      const anchor = unit.element?.querySelector?.('.sprite-wrap') || unit.element;
-      if (fieldRect?.width && anchor && typeof anchor.getBoundingClientRect === 'function') {
-        const rect = anchor.getBoundingClientRect();
-        if (Number.isFinite(rect.left) && Number.isFinite(rect.width) && rect.width > 0) {
-          centerPercent = ((rect.left + rect.width / 2 - fieldRect.left) / fieldRect.width) * 100;
-        }
-      }
+      const centerPercent = localCenterPercent(unit);
       unit.infoCard.style.left = Math.max(4, Math.min(96, centerPercent)) + '%';
     }
   }
