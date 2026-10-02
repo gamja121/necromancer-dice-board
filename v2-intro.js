@@ -26,15 +26,19 @@
 
   let started = false;
   let index = 0;
-  let leaving = false;\n\n  async function ensureLandscape() {\n    if (globalThis.V2Landscape?.request) {\n      try { await V2Landscape.request(); } catch (_) {}\n    }\n  }
+  let leaving = false;
+
+  async function ensureLandscape() {
+    if (!globalThis.V2Landscape?.request) return;
+    try { await V2Landscape.request(); } catch (_) {}
+  }
 
   function renderLine() {
     const line = dialogue[index];
     name.textContent = line.speaker;
     text.textContent = line.text;
     portraits.forEach((portrait) => {
-      const speaking = portrait.dataset.speaker === line.speaker;
-      portrait.classList.toggle("is-speaking", speaking);
+      portrait.classList.toggle("is-speaking", portrait.dataset.speaker === line.speaker);
     });
     if (line.speaker === "시스템") {
       portraits.forEach((portrait) => portrait.classList.remove("is-speaking"));
@@ -58,14 +62,15 @@
     location.href = "v2-map-practice.html";
   }
 
-  advance.addEventListener("click", async () => {\n    await ensureLandscape();
+  advance.addEventListener("click", async () => {
+    await ensureLandscape();
     if (leaving) return;
     if (!started) {
       beginDialogue();
       return;
     }
     if (index >= dialogue.length - 1) {
-      finishIntro();
+      await finishIntro();
       return;
     }
     index += 1;
@@ -77,5 +82,8 @@
     event.preventDefault();
     advance.click();
   });
+
+  window.addEventListener("orientationchange", () => {
+    globalThis.V2Landscape?.request?.();
+  });
 })();
-\nwindow.addEventListener("orientationchange", () => { globalThis.V2Landscape?.request?.(); });\n\n})();\n
