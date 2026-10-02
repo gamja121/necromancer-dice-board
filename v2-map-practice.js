@@ -709,6 +709,7 @@
     if (globalThis.V2RunStateRuntime?.available) {
       V2RunStateRuntime.setMapProgress({ fortuneProphecy: stack, prefix: "fortune-prophecy-stack" });
     }
+    refreshOpenBookUnitInfo();
     return stack;
   }
 
@@ -1823,6 +1824,21 @@
     return `<svg class="map-brand-icon" viewBox="${view.join(" ")}" aria-hidden="true"><image href="art/v2-style/ui/${sheet}" width="1280" height="575" /></svg>`;
   }
 
+  function mapEffectiveUnitStats(unit) {
+    const prophecy = pendingProphecy();
+    const hpBonus = Math.max(0, prophecy.allyHp || 0);
+    const attackBonus = Math.max(0, prophecy.allyAttack || 0);
+    const speedBonus = Math.max(0, prophecy.allySpeed || 0);
+    const baseCurrentHp = Number.isFinite(unit.currentHp) ? unit.currentHp : unit.maxHp;
+    return {
+      currentHp: Math.max(1, baseCurrentHp + hpBonus),
+      maxHp: Math.max(1, unit.maxHp + hpBonus),
+      attack: Math.max(0, unit.attack + attackBonus),
+      speed: Math.max(0, unit.speed + speedBonus),
+      prophecy: { hpBonus, attackBonus, speedBonus }
+    };
+  }
+
   function openBookUnitInfo(unit, { focus = true } = {}) {
     if (!unit) return;
     el.infoOverlay.dataset.instanceId = unit.instanceId || "";
@@ -1832,10 +1848,16 @@
     el.infoPortrait.alt = unit.name;
     el.infoGrade.textContent = GRADE_LABELS[unit.grade] || "미지정";
     el.infoLegion.textContent = unit.legions.map((key) => LEGION_LABELS[key] || key).join(" · ") || "미지정";
-    const currentHp = Number.isFinite(unit.currentHp) ? unit.currentHp : unit.maxHp;
-    el.infoHp.textContent = `${currentHp} / ${unit.maxHp}`;
-    el.infoAttack.textContent = String(unit.attack);
-    el.infoSpeed.textContent = String(unit.speed);
+    const effective = mapEffectiveUnitStats(unit);
+    el.infoHp.textContent = `${effective.currentHp} / ${effective.maxHp}`;
+    el.infoAttack.textContent = String(effective.attack);
+    el.infoSpeed.textContent = String(effective.speed);
+    el.infoHp.dataset.prophecyBonus = String(effective.prophecy.hpBonus);
+    el.infoAttack.dataset.prophecyBonus = String(effective.prophecy.attackBonus);
+    el.infoSpeed.dataset.prophecyBonus = String(effective.prophecy.speedBonus);
+    el.infoHp.title = effective.prophecy.hpBonus ? `예언 체력 +${effective.prophecy.hpBonus} 적용 중` : "";
+    el.infoAttack.title = effective.prophecy.attackBonus ? `예언 공격력 +${effective.prophecy.attackBonus} 적용 중` : "";
+    el.infoSpeed.title = effective.prophecy.speedBonus ? `예언 속도 +${effective.prophecy.speedBonus} 적용 중` : "";
     const passiveName = unit.passive?.name || "패시브 없음";
     el.infoBrands.innerHTML = `<div class="map-passive-heading"><span class="map-passive-symbol" aria-hidden="true">◇</span><span>${escapeInfo(passiveName)}</span></div>` +
       (unit.brands.map((brand) => `<div class="map-brand-heading">${bookBrandIcon(brand.type)}<h4>${escapeInfo(V2Rules.definitions[brand.type]?.name || brand.type)}</h4></div>`).join("") || '<p class="map-unit-info-empty">낙인 없음</p>');
