@@ -375,7 +375,7 @@
     const normalized = { ...unit };
     normalized.instanceId = typeof unit?.instanceId === "string" && unit.instanceId ? unit.instanceId : createUnitInstanceId(unit?.slug || "unit");
     normalized.currentHp = Math.max(0, Math.min(normalized.maxHp, Number.isFinite(normalized.currentHp) ? normalized.currentHp : normalized.maxHp));
-    normalized.brands = V2Rules.normalizeBrands(normalized.brands);
+    normalized.brands = V2Rules.normalizeUnitBrands(normalized);
     return normalized;
   }
 
@@ -2612,15 +2612,8 @@
     });
   }
 
-  function createMonsterShopBrand(grade) {
-    let card = V2BrandCards.create();
-    if (grade === "normal") return card;
-    if (grade === "advanced") {
-      for (let attempt = 0; attempt < 6 && card.brand.curse.length; attempt += 1) card = V2BrandCards.create();
-      return card;
-    }
-    const clean = { ...card, brand: { ...card.brand, bless: [...card.brand.bless], curse: [] } };
-    return V2BrandCards.validateCard(clean) ? clean : card;
+  function createMonsterShopBrand() {
+    return V2BrandCards.create();
   }
 
   function createMonsterShopOffers(unit) {
