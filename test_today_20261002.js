@@ -112,3 +112,9 @@ for (const required of [
 assert(workflow.includes("cancel-in-progress: true"));
 
 console.log("PASS: 2026-10-02 regression checks for title, battle, healing, map UI, audio, tile art and swamp behavior.");
+
+assert(map.includes('el.infoHp.textContent = `${currentHp} / ${unit.maxHp}`'));
+assert(map.includes("function refreshOpenBookUnitInfo()"));
+assert(map.includes('openBookUnitInfo(latest, { focus: false })'));
+assert(mapHtml.includes("v2-map-practice.js?v=107"));
+assert(worker.includes("./v2-map-practice.js?v=107"));
