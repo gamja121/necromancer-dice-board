@@ -4,6 +4,7 @@ const R=require('./v2-rules'),D=require('./v2-design-data');
 let seed=92741;const rng=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
 function unit(slug,team='ally',slot=0,p=null,brands=[]){const u={...R.individual(slug,rng),team,slot,brands};u.passive=p?{id:p}:null;return u;}
 function b(type,bless=[4],curse=[1]){return {type,bless,curse};}
+function nativeBrandSlug(type){return Object.keys(D.units).find(slug=>D.units[slug].grade!=='special'&&D.units[slug].brands.includes(type));}
 assert.equal(Object.keys(D.units).length,46);
 for(const slug of Object.keys(D.units))for(let i=0;i<100;i++){
  const u=R.individual(slug,rng);assert(u.brands.every(R.validateBrand));assert(u.speed>=1&&u.attack>=0);if(D.units[slug].chance===1)assert(u.passive);
@@ -31,7 +32,7 @@ for(const type of Object.keys(R.definitions))for(let i=0;i<1000;i++)assert(R.val
  const a=unit('hydra','ally',0,null,[b('combo',[4],[1])]),t=unit('hydra','enemy');t.maxHp=100;const s=R.create([a,t]);R.begin(s);R.roll(s,4);const out=R.attack(s,a,t);assert.equal(out.hits.length,2);assert.deepEqual(out.hits,[3,3]);assert.equal(out.damage,6);
 }
 {
- const a=unit('hydra','ally',0,null,[b('combo',[4],[1])]),t=unit('skeleton-spear','enemy');const s=R.create([a,t]);R.begin(s);R.roll(s,1);const hp=t.hp;const out=R.attack(s,a,t);assert(out.cancelled);assert(out.miss);assert.equal(out.damage,0);assert.equal(t.hp,hp);
+ const a=unit(nativeBrandSlug('combo'),'ally',0,null,[b('combo',[4],[1])]),t=unit('skeleton-spear','enemy');const s=R.create([a,t]);R.begin(s);R.roll(s,1);const hp=t.hp;const out=R.attack(s,a,t);assert(out.cancelled);assert(out.miss);assert.equal(out.damage,0);assert.equal(t.hp,hp);
 }
 {
  const a=unit('hydra','ally',0,'grudge',[b('counter')]),t=unit('hydra','enemy',0,'grudge',[b('counter')]);const s=R.create([a,t]);R.begin(s);R.roll(s,4);const hit=R.attack(s,a,t);assert.equal(hit.counterDamage,2);assert.equal(a.grudge,1);assert.equal(t.grudge,1);
