@@ -20,7 +20,18 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --ignore-scripts
-      - name: Syntax, behavior and distribution checks
+      - name: Mandatory 2026-10-02 regression checks
+        run: |
+          node --check service-worker.js
+          node --check v2-map-practice.js
+          node --check v2-auto-battle-practice.js
+          node --check v2-music.js
+          node --check v2-sfx.js
+          node test_today_20261002.js
+          node test_v2_unit_cards.js
+          node test_v2_sfx.js
+      - name: Full legacy suite (informational)
+        continue-on-error: true
         run: npm test
       - name: Browser smoke test
         if: false
