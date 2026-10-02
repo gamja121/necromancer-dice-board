@@ -21,21 +21,53 @@
     while(bless.length<count)bless.push(available.splice(Math.floor(rng()*available.length),1)[0]);
     return {type,bless:bless.sort(),curse};
   }
-  function validateBrand(b){return b&&definitions[b.type]&&Array.isArray(b.bless)&&Array.isArray(b.curse)&&b.curse.length<=1&&b.bless.length<=2&&(b.bless.length+b.curse.length)>0&&(!b.bless.length||!definitions[b.type].count||b.bless.length===definitions[b.type].count)&&new Set([...b.bless,...b.curse]).size===b.bless.length+b.curse.length&&[...b.bless,...b.curse].every(n=>Number.isInteger(n)&&n>=1&&n<=6);}
-  function inherit(receiver,donor,index,part='both'){
-    if(receiver.brands.length>=3||!validateBrand(donor.brands[index])||!['both','bless','curse'].includes(part))throw Error('Invalid inheritance');
-    const source=donor.brands[index];
-    const inherited={type:source.type,bless:part==='curse'?[]:[...source.bless],curse:part==='bless'?[]:[...source.curse]};
-    if(!validateBrand(inherited))throw Error('Invalid inheritance');
+  function validateBrand(b){
+    return b&&definitions[b.type]&&Array.isArray(b.bless)&&Array.isArray(b.curse)&&
+      b.curse.length<=1&&b.bless.length<=2&&(b.bless.length+b.curse.length)>0&&
+      new Set([...b.bless,...b.curse]).size===b.bless.length+b.curse.length&&
+      [...b.bless,...b.curse].every(n=>Number.isInteger(n)&&n>=1&&n<=6);
+  }
+  function normalizeBrands(brands){
+    if(!Array.isArray(brands))return [];
+    const cleaned=brands.filter(validateBrand).map((brandState)=>({
+      type:brandState.type,
+      bless:[...brandState.bless],
+      curse:[...brandState.curse]
+    }));
+    if(!cleaned.length)return [];
+    const baseCurse=new Set(cleaned[0].curse);
+    const normalized=[];
+    for(let index=0;index<cleaned.length&&normalized.length<3;index++){
+      const source=cleaned[index];
+      const next={
+        type:source.type,
+        bless:source.bless.filter(face=>!baseCurse.has(face)),
+        curse:index===0?[...source.curse]:[]
+      };
+      if(index===0||next.bless.length)normalized.push(next);
+    }
+    return normalized;
+  }
+  function inheritedBlessing(receiver,source){
+    if(!receiver||!Array.isArray(receiver.brands)||!validateBrand(source))return null;
+    const normalizedReceiver=normalizeBrands(receiver.brands);
+    const cursedFaces=new Set(normalizedReceiver.flatMap(brandState=>brandState.curse));
+    const bless=[...new Set(source.bless)].filter(face=>!cursedFaces.has(face)).sort((a,b)=>a-b);
+    if(!bless.length)return null;
+    return {type:source.type,bless,curse:[]};
+  }
+  function inherit(receiver,donor,index){
+    if(receiver.brands.length>=3||!validateBrand(donor.brands[index]))throw Error('Invalid inheritance');
+    receiver.brands=normalizeBrands(receiver.brands);
+    const inherited=inheritedBlessing(receiver,donor.brands[index]);
+    if(!inherited)throw Error('No inheritable blessing');
     receiver.brands.push(inherited);
     donor.brands.splice(index,1);
+    return inherited;
   }
-  function inheritancePart(source,rng=Math.random){
+  function inheritancePart(source){
     if(!validateBrand(source))throw Error('Invalid inheritance');
-    if(!source.bless.length)return 'curse';
-    if(!source.curse.length)return 'bless';
-    const roll=rng();
-    return roll<.5?'bless':roll<.8?'both':'curse';
+    return 'bless';
   }
   function individual(slug,rng=Math.random){
     const d=D.units[slug];if(!d)throw Error('Unknown unit '+slug);
@@ -160,6 +192,6 @@
     for(const u of s.units){u.poisonStacks=(u.poisonStacks||[]).map(p=>({remaining:p.remaining,source:s.units[p.source]||null}));u.poison=u.poisonStacks.length;}
     refresh(s);return s;
   }
-  const api={definitions,RULES,TARGET_RATES,individual,brand,validateBrand,inherit,inheritancePart,create,init,applyUnit,active,suppressed,begin,roll,before,attack,addSummon,bloomPlans,bloomSeed,targetWeights,pickTarget,refresh,mode,heal,damage,snapshot,restore};
+  const api={definitions,RULES,TARGET_RATES,individual,brand,validateBrand,normalizeBrands,inheritedBlessing,inherit,inheritancePart,create,init,applyUnit,active,suppressed,begin,roll,before,attack,addSummon,bloomPlans,bloomSeed,targetWeights,pickTarget,refresh,mode,heal,damage,snapshot,restore};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.V2Rules=api;
 })(globalThis);
