@@ -94,7 +94,7 @@ console.log("PASS: base curse only, blessing-only inheritance/cards, duplicate f
 
 // 6) Old battle checkpoints must be normalized at restore time too.
 {
-  const native = nativeBrandSlug("critical");
+  const native = baseSlug;
   const enemySlug = Object.keys(D.units).find((slug) => D.units[slug].grade !== "special" && slug !== native);
   const ally = {
     ...R.individual(native, () => 0.2),
