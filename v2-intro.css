@@ -14,19 +14,11 @@ button{font:inherit}
 @keyframes hint-pulse{0%,100%{opacity:.35}50%{opacity:1}}
 .dialogue-stage{position:absolute;inset:0;background:#000;overflow:hidden}
 .dialogue-stage[hidden]{display:none}
-.dialogue-stage::before{content:"";position:absolute;z-index:1;inset:0;background:linear-gradient(180deg,#000a 0,#0001 36%,#0000 62%,#0008 100%);pointer-events:none}
-.portrait{position:absolute;z-index:4;bottom:27%;width:34%;height:68%;pointer-events:none;transition:filter 180ms ease,opacity 180ms ease,transform 180ms ease}
-.portrait img{display:block;width:100%;height:100%;object-fit:contain;object-position:center bottom;image-rendering:auto;filter:drop-shadow(0 12px 14px #000a)}
-.portrait-left{left:7%;transform:translateX(-1%)}
-.portrait-right{right:7%;transform:translateX(1%)}
-.portrait-right img{transform:scaleX(-1)}
-.portrait.is-speaking{filter:none;opacity:1;transform:translateX(0) scale(1.015)}
-.portrait:not(.is-speaking){filter:none;opacity:.82}
-.dialogue-box{position:absolute;z-index:6;left:11%;right:11%;bottom:2.2%;height:27%;min-height:0;text-align:left;filter:drop-shadow(0 9px 14px #000c)}
-.dialogue-frame{position:absolute;z-index:0;inset:0;width:100%;height:100%;pointer-events:none;user-select:none;background:#d8bd8b url("art/v2-style/ui/intro-dialogue-box.webp?v=3") center/100% 100% no-repeat;border:2px solid #6b4b2d;border-radius:4px}
-.dialogue-name{position:absolute;z-index:2;left:9%;top:16%;color:#3b291b;font-family:Georgia,"Malgun Gothic",serif;font-size:clamp(12px,1.4vw,19px);font-weight:1000;letter-spacing:.04em;text-shadow:0 1px #ead0a0}
-.dialogue-text{position:absolute;z-index:2;left:9%;right:9%;top:39%;margin:0;color:#25190f;font-size:clamp(15px,1.75vw,26px);font-weight:900;line-height:1.35;letter-spacing:.015em;text-shadow:0 1px #ead0a080}
-.dialogue-next{position:absolute;z-index:2;right:8%;bottom:18%;color:#5e4329;font-size:clamp(13px,1.35vw,20px);animation:next-bob 900ms ease-in-out infinite}
+.intro-scene-art{position:absolute;z-index:1;inset:0;width:100%;height:100%;object-fit:contain;object-position:center;image-rendering:auto;filter:none}
+.dialogue-copy{position:absolute;z-index:3;inset:0;text-align:left;pointer-events:none}
+.dialogue-name{position:absolute;left:18%;top:74.2%;color:#3a2819;font-family:Georgia,"Malgun Gothic",serif;font-size:clamp(12px,1.35vw,19px);font-weight:1000;letter-spacing:.04em;text-shadow:0 1px #efd9ad}
+.dialogue-text{position:absolute;left:18%;right:18%;top:80.2%;margin:0;color:#21150d;font-size:clamp(15px,1.75vw,26px);font-weight:900;line-height:1.35;letter-spacing:.015em;text-shadow:0 1px #efd9ad80}
+.dialogue-next{position:absolute;right:16.5%;bottom:5.5%;color:#5e4329;font-size:clamp(13px,1.35vw,20px);animation:next-bob 900ms ease-in-out infinite}
 @keyframes next-bob{0%,100%{transform:translateY(0);opacity:.45}50%{transform:translateY(4px);opacity:1}}
 .intro-scene.is-ending .dialogue-stage{animation:intro-fade-out 520ms ease forwards}
 @keyframes intro-fade-out{to{opacity:0}}
@@ -35,9 +27,7 @@ button{font:inherit}
   .intro-canvas{visibility:hidden}
 }
 @media (max-height:430px) and (orientation:landscape){
-  .portrait{bottom:27%;width:32%;height:67%}
-  .dialogue-box{left:10%;right:10%;bottom:1.5%;height:28%}
-  .dialogue-name{font-size:clamp(10px,1.3vw,16px)}
-  .dialogue-text{font-size:clamp(12px,1.65vw,21px)}
+  .dialogue-name{font-size:clamp(10px,1.25vw,16px)}
+  .dialogue-text{font-size:clamp(12px,1.55vw,20px)}
 }
-@media (prefers-reduced-motion:reduce){.impact-text,.impact-hint,.dialogue-next{animation:none}.portrait{transition:none}}
+@media (prefers-reduced-motion:reduce){.impact-text,.impact-hint,.dialogue-next{animation:none}}
