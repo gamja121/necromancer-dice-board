@@ -122,6 +122,11 @@
     mapLab: document.querySelector(".map-lab"),
     board: document.getElementById("mapBoard"),
     ring: document.getElementById("tileRing"),
+    optionsButton: document.getElementById("mapOptionsButton"),
+    audioOptions: document.getElementById("mapAudioOptions"),
+    audioOptionsClose: document.getElementById("mapAudioOptionsClose"),
+    bgmToggle: document.getElementById("mapBgmToggle"),
+    sfxToggle: document.getElementById("mapSfxToggle"),
     mapName: document.getElementById("mapName"),
     tileName: document.getElementById("tileName"),
     regenerate: document.getElementById("regenerateButton"),
@@ -309,6 +314,34 @@
     mapRuntimeAssets.forEach((src) => { const image = new Image(); image.src = src; });
   }
 
+
+  function renderAudioOptions() {
+    const bgmOn = typeof V2Music === "undefined" ? true : V2Music.isEnabled();
+    const sfxOn = typeof V2Sfx === "undefined" ? true : V2Sfx.isEnabled();
+    if (el.bgmToggle) {
+      el.bgmToggle.textContent = bgmOn ? "ON" : "OFF";
+      el.bgmToggle.setAttribute("aria-pressed", String(bgmOn));
+    }
+    if (el.sfxToggle) {
+      el.sfxToggle.textContent = sfxOn ? "ON" : "OFF";
+      el.sfxToggle.setAttribute("aria-pressed", String(sfxOn));
+    }
+  }
+
+  function closeAudioOptions() {
+    if (!el.audioOptions || el.audioOptions.hidden) return;
+    el.audioOptions.hidden = true;
+    el.optionsButton?.setAttribute("aria-expanded", "false");
+  }
+
+  function toggleAudioOptions() {
+    if (!el.audioOptions) return;
+    const willOpen = el.audioOptions.hidden;
+    el.audioOptions.hidden = !willOpen;
+    el.optionsButton?.setAttribute("aria-expanded", String(willOpen));
+    if (willOpen) renderAudioOptions();
+  }
+
   function wait(milliseconds) {
     return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
   }
@@ -375,7 +408,8 @@
     }
     selectedDeck = selectedDeck.filter((instanceId) => ownedUnits.has(instanceId));
     saveOwnedRoster("polluted-swamp");
-    renderBookRoster();
+    renderAudioOptions();
+  renderBookRoster();
     if (!el.deckOverlay.hidden) renderDeckSelection();
     renderInventoryCounts();
     const deathText = dead.length ? ` · 사망 ${dead.length}마리` : "";
@@ -3363,6 +3397,18 @@
     if (!el.deckOverlay.hidden) renderDeckSelection();
     renderInventoryCounts();
   });
+  el.optionsButton?.addEventListener("click", toggleAudioOptions);
+  el.audioOptionsClose?.addEventListener("click", closeAudioOptions);
+  el.bgmToggle?.addEventListener("click", () => {
+    if (typeof V2Music === "undefined") return;
+    V2Music.setEnabled(!V2Music.isEnabled());
+    renderAudioOptions();
+  });
+  el.sfxToggle?.addEventListener("click", () => {
+    if (typeof V2Sfx === "undefined") return;
+    V2Sfx.setEnabled(!V2Sfx.isEnabled());
+    renderAudioOptions();
+  });
   el.bookButton.addEventListener("click", toggleBookRoster);
   el.cardDeckButton.addEventListener("click", toggleDiceControlCard);
   el.diceControlBackdrop.addEventListener("click", closeDiceControlCard);
@@ -3375,6 +3421,7 @@
   });
   el.deckConfirm.addEventListener("click", confirmMonsterBattle);
   document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !el.audioOptions.hidden) { closeAudioOptions(); return; }
     if (event.key === "Escape" && !el.rewardOverflowOverlay.hidden) return;
     if (event.key === "Escape" && !el.diceControlOverlay.hidden) closeDiceControlCard();
     else if (event.key === "Escape" && !el.infoOverlay.hidden) closeBookUnitInfo();
