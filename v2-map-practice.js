@@ -377,23 +377,28 @@
     return normalized;
   }
 
-  function saveOwnedRoster(prefix = "map-roster") {
+  async function saveOwnedRoster(prefix = "map-roster") {
     const roster = [...ownedUnits.values()].map((unit) => JSON.parse(JSON.stringify(unit)));
     if (globalThis.V2RunStateRuntime?.available) {
-      V2RunStateRuntime.replaceOwnedMonsters(roster, prefix);
-    } else {
-      try {
-        if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify(roster));
-      } catch (_) { /* Keep the current run usable without storage. */ }
+      const result = await V2RunStateRuntime.replaceOwnedMonsters(roster, prefix);
+      renderInventoryCounts();
+      return Boolean(result?.ok);
     }
-    renderInventoryCounts();
+    try {
+      if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify(roster));
+      renderInventoryCounts();
+      return true;
+    } catch (_) {
+      renderInventoryCounts();
+      return false;
+    }
   }
 
   function renderInventoryCounts() {
     if (el.monsterCount) el.monsterCount.textContent = `${ownedUnits.size}/${MONSTER_CAPACITY}`;
     if (el.diceCardCount) el.diceCardCount.textContent = `${diceControlHand.length}/${DICE_CONTROL_CAPACITY}`;
   }
-  function applyPollutedSwamp(step) {
+  async function applyPollutedSwamp(step) {
     let damaged = 0;
     const dead = [];
     for (const [instanceId, unit] of [...ownedUnits.entries()]) {
@@ -407,17 +412,16 @@
       }
     }
     selectedDeck = selectedDeck.filter((instanceId) => ownedUnits.has(instanceId));
-    saveOwnedRoster("polluted-swamp");
-    renderAudioOptions();
-  renderBookRoster();
+    const saved = await saveOwnedRoster("polluted-swamp");
+    renderBookRoster();
     if (!el.deckOverlay.hidden) renderDeckSelection();
     renderInventoryCounts();
     const deathText = dead.length ? ` · 사망 ${dead.length}마리` : "";
     el.tileName.textContent = `${step}번 · 오염된 늪지대`;
     el.diceResult.textContent = damaged
-      ? `오염된 늪지대 · 모든 마물 HP -1${deathText}`
+      ? `오염된 늪지대 · 모든 마물 HP -1${deathText}${saved ? "" : " · 저장 확인 필요"}`
       : "오염된 늪지대 · 피해를 받을 마물이 없습니다";
-    return { damaged, dead: dead.length };
+    return { damaged, dead: dead.length, saved };
   }
 
 
@@ -425,7 +429,7 @@
     if (!TEST_DECK.some((entry) => entry.slug === slug) || ownedUnits.size >= MONSTER_CAPACITY) return null;
     const unit = normalizeOwnedUnit(V2Rules.individual(slug));
     ownedUnits.set(unit.instanceId, unit);
-    saveOwnedRoster();
+    void saveOwnedRoster();
     renderBookRoster();
     renderInventoryCounts();
     if (!el.deckOverlay.hidden) renderDeckSelection();
@@ -549,7 +553,7 @@
 
   function healOwnedRosterFull() {
     for (const unit of ownedUnits.values()) unit.currentHp = unit.maxHp;
-    saveOwnedRoster();
+    void saveOwnedRoster();
     renderBookRoster();
     if (!el.deckOverlay.hidden) renderDeckSelection();
   }
@@ -2097,7 +2101,7 @@
           if (selectedKey !== "__new__") {
             ownedUnits.delete(selectedKey);
             ownedUnits.set(pending.instanceId, pending);
-            saveOwnedRoster();
+            void saveOwnedRoster();
             renderBookRoster();
             if (!el.deckOverlay.hidden) renderDeckSelection();
           }
@@ -3302,7 +3306,7 @@
       return;
     }
     if (currentTiles[heroIndex]?.id === "swamp") {
-      applyPollutedSwamp(heroIndex + 1);
+      await applyPollutedSwamp(heroIndex + 1);
       await wait(420);
       rolling = false;
       el.diceButton.disabled = false;
