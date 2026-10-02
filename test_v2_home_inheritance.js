@@ -56,10 +56,19 @@ const saved = slugs.map((slug, index) => ({ ...V2Rules.individual(slug), instanc
 saved.push({ ...V2Rules.individual("stone-golem"), instanceId: "test-owned-newly-acquired" });
 // A second card of the donor species must survive instance-scoped consumption.
 saved[9] = { ...V2Rules.individual("death-knight"), instanceId: "test-owned-9" };
-saved[0].brands.push(V2Rules.brand("poison"), V2Rules.brand("guard"));
-saved[2].brands.push(V2Rules.brand("poison"), V2Rules.brand("guard"));
-const donorBrands = JSON.stringify(saved[0].brands);
-const recipientBrands = JSON.stringify(saved[1].brands);
+saved[0].brands = [
+  { type: "critical", bless: [2], curse: [6] },
+  { type: "poison", bless: [3], curse: [] },
+  { type: "guard", bless: [4], curse: [] }
+];
+saved[1].brands = [{ type: "freeze", bless: [2], curse: [6] }];
+saved[2].brands = [
+  { type: "critical", bless: [2], curse: [6] },
+  { type: "poison", bless: [3], curse: [] },
+  { type: "guard", bless: [4], curse: [] }
+];
+const donorBrands = JSON.stringify(V2Rules.normalizeUnitBrands(saved[0]));
+const recipientBrands = JSON.stringify(V2Rules.normalizeUnitBrands(saved[1]));
 let stored = JSON.stringify(saved);
 let brandInventory = [{ id: "brand-card-test", brand: { type: "critical", bless: [3], curse: [] } }];
 const V2BrandCards = {
@@ -113,7 +122,7 @@ const after = JSON.parse(stored);
 if (after.length !== 10 || after.some((unit) => unit.instanceId === donorInstanceId) ||
     !after.some((unit) => unit.instanceId === "test-owned-9" && unit.slug === "death-knight") ||
     JSON.stringify(after.find((unit) => unit.slug === "skeleton-spear").brands) !==
-      JSON.stringify([...JSON.parse(recipientBrands), { ...JSON.parse(donorBrands)[1], curse: [] }]) ||
+      JSON.stringify([...JSON.parse(recipientBrands), V2Rules.inheritedBlessing({ ...saved[1], brands: JSON.parse(recipientBrands) }, JSON.parse(donorBrands)[1])]) ||
     cards.children.length !== 10 || !materialCard.hidden || resultCard.hidden ||
     rosterEvent?.detail.donorInstanceId !== donorInstanceId ||
     rosterEvent?.detail.recipient?.instanceId !== recipientInstanceId ||
