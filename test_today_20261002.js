@@ -118,3 +118,11 @@ assert(map.includes("function refreshOpenBookUnitInfo()"));
 assert(map.includes('openBookUnitInfo(latest, { focus: false })'));
 assert(mapHtml.includes("v2-map-practice.js?v=107"));
 assert(worker.includes("./v2-map-practice.js?v=107"));
+
+assert(map.includes("function mapEffectiveUnitStats(unit)"));
+assert(map.includes("unit.maxHp + hpBonus"));
+assert(map.includes("unit.attack + attackBonus"));
+assert(map.includes("unit.speed + speedBonus"));
+assert(map.includes("refreshOpenBookUnitInfo();\n    return stack;"));
+assert(mapHtml.includes("v2-map-practice.js?v=108"));
+assert(worker.includes("./v2-map-practice.js?v=108"));
