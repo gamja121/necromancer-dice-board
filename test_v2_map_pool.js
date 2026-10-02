@@ -13,7 +13,7 @@ for (const name of ["contaminationStage", "shuffle", "tileDefinitionById", "isVa
   vm.runInContext(source.slice(start, end), ctx);
 }
 vm.runInContext("globalThis.patrolRouteState = { current: [...PATROL_ROUTE_DEFAULT_CURRENT], reserve: [...PATROL_ROUTE_DEFAULT_RESERVE] };", ctx);
-for (const [value, basic, monster, boss] of [[0,2,4,0],[20,2,4,0],[40,1,5,0],[60,1,5,0],[80,0,5,1],[100,0,5,1]]) {
+for (const [value, basic, monster, boss] of [[0,2,5,0],[20,2,5,0],[40,1,6,0],[60,1,6,0],[80,0,6,1],[100,0,6,1]]) {
   ctx.contamination = value;
   const pool = vm.runInContext("createPool()", ctx);
   const counts = id => pool.filter(tile => tile.id === id).length;
@@ -22,7 +22,7 @@ for (const [value, basic, monster, boss] of [[0,2,4,0],[20,2,4,0],[40,1,5,0],[60
   assert.equal(counts("basic"), basic);
   assert.equal(counts("monster"), monster);
   assert.equal(counts("boss"), boss);
-  assert.equal(counts("swamp"), 1);
+  assert.equal(counts("swamp"), 2);
   assert.equal(pool[0].id, "fortune-teller-camp");
   assert.equal(pool[8].id, "village");
   assert.equal(pool[15].id, "home");
