@@ -85,7 +85,11 @@
       } catch (_) {}
     }
     roster = new Map(saved.filter(unit => unit && typeof unit.instanceId === "string" && unit.instanceId)
-      .map(unit => [unit.instanceId, unit]));
+      .map(unit => {
+        const copy = clone(unit);
+        if (globalThis.V2Rules?.normalizeUnitBrands) copy.brands = V2Rules.normalizeUnitBrands(copy);
+        return [copy.instanceId, copy];
+      }));
     return roster;
   }
 
