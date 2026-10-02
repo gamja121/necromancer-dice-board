@@ -84,11 +84,26 @@ for(const type of Object.keys(R.definitions))for(let i=0;i<1000;i++)assert(R.val
  const restored=R.restore(R.snapshot(s),rng);assert.deepEqual(R.snapshot(restored),R.snapshot(s));assert.equal(restored.units[1].alive,false);assert.equal(restored.units[0].undyingUsed,true);assert.equal(restored.units[1].poisonStacks[0].source,restored.units[0]);assert.equal(restored.units[0].instanceId,'ally-instance-a');assert.equal(restored.units[1].instanceId,'enemy-instance-b');assert.equal(restored.units[1].poisonAppliedTurn,7);
  const invalid=R.snapshot(s);invalid.units[1].alive=true;assert.throws(()=>R.restore(invalid));
 }
-// 2,000 seeded full battles. Three random, independently inherited brands each.
+// 2,000 seeded full battles using the current policy:
+// one native/base brand curse at most, plus blessing-only inherited brands.
 const slugs=Object.keys(D.units).filter(k=>D.units[k].grade!=='special'),types=Object.keys(R.definitions);
 let maxRound=0,timeouts=0;
 for(let trial=0;trial<2000;trial++){
- const units=[];for(const team of ['ally','enemy'])for(let slot=0;slot<4;slot++){const u={...R.individual(slugs[Math.floor(rng()*slugs.length)],rng),team,slot};u.brands=Array.from({length:3},()=>R.brand(types[Math.floor(rng()*types.length)],rng));units.push(u);}
+ const units=[];
+ for(const team of ['ally','enemy'])for(let slot=0;slot<4;slot++){
+   const u={...R.individual(slugs[Math.floor(rng()*slugs.length)],rng),team,slot};
+   for(let wanted=u.brands.length;wanted<3;wanted++){
+     let added=false;
+     for(let attempt=0;attempt<8&&!added;attempt++){
+       const source=R.brand(types[Math.floor(rng()*types.length)],rng);
+       const inherited=R.inheritedBlessing(u,source);
+       if(inherited){u.brands.push(inherited);added=true;}
+     }
+     if(!added)break;
+   }
+   u.brands=R.normalizeUnitBrands(u);
+   units.push(u);
+ }
  const s=R.create(units,rng);
  const live=team=>s.units.some(u=>u.alive&&u.team===team);
  while(live('ally')&&live('enemy')&&s.round<250){
@@ -100,4 +115,4 @@ for(let trial=0;trial<2000;trial++){
  maxRound=Math.max(maxRound,s.round);if(s.round===250)timeouts++;
 }
 assert.equal(timeouts,0,'Simulation did not terminate within 250 rounds');
-console.log(JSON.stringify({passed:true,battles:2000,maxRound,timeouts,units:46}));
+console.log(JSON.stringify({passed:true,battles:2000,maxRound,timeouts,units:46,policy:'base-curse-plus-blessing-only-inheritance'}));
