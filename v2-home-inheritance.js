@@ -59,6 +59,7 @@
       while (usedIds.has(copy.instanceId)) copy.instanceId = createInstanceId(copy.slug);
       usedIds.add(copy.instanceId);
       copy.currentHp = Math.max(0, Math.min(copy.maxHp, Number.isFinite(copy.currentHp) ? copy.currentHp : copy.maxHp));
+      copy.brands = V2Rules.normalizeBrands(copy.brands);
       return copy;
     });
     if (!globalThis.V2RunStateRuntime?.available) {
@@ -310,7 +311,13 @@
 
     if (sourceCard) {
       if (!result || result.brands.length >= 3 || !V2Rules.validateBrand(sourceCard.brand)) return;
-      const applied = JSON.parse(JSON.stringify(sourceCard.brand));
+      result.brands = V2Rules.normalizeBrands(result.brands);
+      const applied = V2Rules.inheritedBlessing(result, sourceCard.brand);
+      if (!applied) {
+        notice = "기본 저주와 겹쳐 계승 가능한 축복 눈금이 없습니다";
+        renderSelection();
+        return;
+      }
       result.brands.push(applied);
       const nextBrandCards = V2BrandCards.load().filter((card) => card.id !== sourceCard.id);
       let saved = false;
@@ -331,7 +338,7 @@
         return;
       }
       inheritedBrand = applied;
-      inheritedPart = applied.curse.length ? "both" : "bless";
+      inheritedPart = "bless";
       selectedBrandCardId = null;
       completed = true;
       renderBrandCards();
@@ -345,11 +352,17 @@
     const material = owned.get(materialInstanceId);
     if (!material || !result || !material.brands.length || result.brands.length >= 3) return;
     const randomIndex = Math.floor(Math.random() * material.brands.length);
-    const part = V2Rules.inheritancePart(material.brands[randomIndex], Math.random);
+    result.brands = V2Rules.normalizeBrands(result.brands);
+    const preview = V2Rules.inheritedBlessing(result, material.brands[randomIndex]);
+    if (!preview) {
+      notice = "기본 저주와 겹쳐 계승 가능한 축복 눈금이 없습니다";
+      renderSelection();
+      return;
+    }
     const backupRoster = [...owned.values()].map((unit) => JSON.parse(JSON.stringify(unit)));
-    V2Rules.inherit(result, material, randomIndex, part);
+    V2Rules.inherit(result, material, randomIndex);
     inheritedBrand = result.brands[result.brands.length - 1];
-    inheritedPart = part;
+    inheritedPart = "bless";
     owned.delete(materialInstanceId);
     if (!(await saveOwnedUnits("monster-inheritance"))) {
       ownedUnits = new Map(backupRoster.map((unit) => [unit.instanceId, unit]));
