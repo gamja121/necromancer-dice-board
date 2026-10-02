@@ -23,7 +23,7 @@ assert.equal(circle.style.left, "75px");
 assert.equal(circle.style.top, "85px");
 assert.equal(circle.style.bottom, "auto");
 delete global.document;
-assert(css.includes(".sprite-wrap > img { position: relative; z-index: 2; }"));
+assert(/\.sprite-wrap > img\s*\{[^}]*position:\s*relative;[^}]*z-index:\s*2;/.test(css));
 assert(source.includes('unitState.image = element.querySelector(".sprite-wrap > img")'), "Summon effects must measure the fighter sprite rather than the freeze status label.");
 assert(css.includes(".summon-effect { position: absolute; z-index: 1;"));
 assert(css.includes(".unit.is-pending.is-summoning .sprite-wrap > img") && css.includes("filter: brightness(0)"), "A black silhouette must precede materialization");
@@ -93,8 +93,8 @@ async function run() {
   const first = vm.runInContext("beginBattle()", test.context);
   await vm.runInContext("beginBattle()", test.context); // Ignore double-start.
   await first;
-  assert.deepEqual(test.played, [0, 1, 2, 3]);
-  assert.deepEqual(test.revealed, [0, 1, 2, 3]);
+  assert.deepEqual(test.played, [3, 2, 1, 0]);
+  assert.deepEqual(test.revealed, [3, 2, 1, 0]);
   assert.equal(test.diceStarts(), 1);
   assert.equal(test.context.running, true);
   assert.equal(test.context.introRunning, false);

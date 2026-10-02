@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261003-capture-failure-return-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261003-ci-restore-1";
 
 const CORE_ASSETS = [
   "./",
@@ -18,7 +18,7 @@ const CORE_ASSETS = [
   "./v2-auto-battle-practice.html",
   "./v2-animation-practice.html",
   "./v2-animation-practice.css?v=7",
-  "./v2-animation-practice.js?v=9",
+  "./v2-animation-practice.js?v=82",
   "./v2-event-lab.html",
   "./v2-event-lab.css?v=1",
   "./v2-event-lab.js?v=1",
