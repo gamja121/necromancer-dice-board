@@ -2939,7 +2939,7 @@
     const refreshAfterHome = eventOpen && activeEventTileId === "home";
     const completedLap = refreshAfterHome && lapReadyForRefresh;
     if (completedLap) {
-      addContamination(2);
+      addContamination(4);
       mapStoryEvents?.advanceLoop();
     }
     closeTileEvent();
