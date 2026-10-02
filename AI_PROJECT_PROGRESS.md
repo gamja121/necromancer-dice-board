@@ -78,7 +78,7 @@
 
 ## 2026-10-02: 최종 엔진 Godot 전환 확정
 
-- 최종 제작 엔진 계획을 Unity에서 **Godot**으로 변경했다.
+- 최종 제작 엔진을 **Godot**으로 확정했다.
 - 웹 V2는 계속 규칙·밸런스·콘텐츠 검증용 기준 구현으로 유지한다.
 - Phase 3은 웹 V2의 확정 데이터와 시스템을 Godot로 이관하는 단계로 정의한다.
 - Godot 이관 시 데이터는 `Resource`/JSON 중심, 애니메이션은 `AnimationPlayer`·`AnimationTree` 중심으로 설계한다.
