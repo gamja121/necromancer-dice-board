@@ -121,5 +121,3 @@ jobs:
           compression-level: 0
           if-no-files-found: ignore
           retention-days: 1
-
-# backup-sync-trigger-2026-10-03
