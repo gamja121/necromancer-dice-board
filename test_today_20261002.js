@@ -102,11 +102,11 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=111"));
-assert(battleHtml.includes("v2-auto-battle-practice.js?v=126"));
+assert(mapHtml.includes("v2-map-practice.js?v=112"));
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=127"));
 for (const required of [
-  "./v2-map-practice.js?v=111",
-  "./v2-auto-battle-practice.js?v=126",
+  "./v2-map-practice.js?v=112",
+  "./v2-auto-battle-practice.js?v=127",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
   "./v2-sfx.js?v=4",
@@ -129,5 +129,21 @@ assert(worker.includes("./v2-map-practice.css?v=20261002-options-visible-2"));
 
 assert(battle.includes('makeState(data, "enemy", 3 - index)'));
 assert(!battle.includes('makeState(data, "enemy", index)'));
-assert(battleHtml.includes("v2-auto-battle-practice.js?v=126"));
-assert(worker.includes("./v2-auto-battle-practice.js?v=126"));
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=127"));
+assert(worker.includes("./v2-auto-battle-practice.js?v=127"));
+
+const rulesSource = read("v2-rules.js");
+const brandCardsSource = read("v2-brand-cards.js");
+const homeInheritanceSource = read("v2-home-inheritance.js");
+assert(rulesSource.includes("function normalizeUnitBrands(unit)"));
+assert(rulesSource.includes("function inheritedBlessing(receiver,source)"));
+assert(rulesSource.includes("const cursedFace=brands.some"));
+assert(brandCardsSource.includes("function blessingOnly(brand)"));
+assert(homeInheritanceSource.includes('inheritedPart = "bless"'));
+assert(mapHtml.includes("v2-rules.js?v=8"));
+assert(mapHtml.includes("v2-brand-cards.js?v=5"));
+assert(mapHtml.includes("v2-home-inheritance.js?v=16"));
+assert(battleHtml.includes("v2-rules.js?v=8"));
+assert(worker.includes("./v2-rules.js?v=8"));
+assert(worker.includes("./v2-brand-cards.js?v=5"));
+assert(worker.includes("./v2-home-inheritance.js?v=16"));
