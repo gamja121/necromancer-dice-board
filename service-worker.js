@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261002-map-options-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261002-audio-options-1";
 
 const CORE_ASSETS = [
   "./",
@@ -16,7 +16,7 @@ const CORE_ASSETS = [
   "./launch.js?v=20260930-title-1",
   "./v2-map-practice.html",
   "./v2-auto-battle-practice.html",
-  "./v2-map-practice.css?v=20261002-map-options-1",
+  "./v2-map-practice.css?v=20261002-audio-options-1",
   "./art/v2-style/ui/parchment-button-variant-01.png",
   "./art/v2-style/ui/parchment-button-variant-02.png",
   "./art/v2-style/ui/parchment-button-variant-03.png",
@@ -25,14 +25,14 @@ const CORE_ASSETS = [
   "./v2-altar-ritual.css?v=5",
   "./v2-auto-battle-practice.css?v=78",
   "./v2-asset-loader.js?v=1",
-  "./v2-map-practice.js?v=103",
+  "./v2-map-practice.js?v=104",
   "./art/v2-style/map-test/events/fortune-prophecy-ui.png?v=1",
   "./v2-event-data.js?v=1",
   "./v2-map-events.js?v=1",
   "./v2-auto-battle-practice.js?v=124",\n  "./v2-heal-effect.js?v=1",
   "./v2-landscape.js?v=1",
-  "./v2-music.js?v=2",
-  "./v2-sfx.js?v=3",
+  "./v2-music.js?v=3",
+  "./v2-sfx.js?v=4",
   "./v2-design-data.js?v=1",
   "./v2-rules.js?v=7",
   "./v2-run-state.js?v=4",
