@@ -333,7 +333,7 @@
         Number.isFinite(unit.maxHp) && Number.isFinite(unit.attack) && Number.isFinite(unit.speed) &&
         Array.isArray(unit.brands) && unit.brands.every(V2Rules.validateBrand))
         .map((unit) => {
-          const copy = { ...unit, brands: V2Rules.normalizeBrands(unit.brands) };
+          const copy = { ...unit, brands: V2Rules.normalizeUnitBrands(unit) };
           return [copy.instanceId || copy.slug, copy];
         }));
     } catch (_) { return new Map(); }
