@@ -70,3 +70,12 @@ const mapSource = fs.readFileSync('v2-map-practice.js','utf8');
 assert(mapSource.includes('async function applyPollutedSwamp(step)'));
 assert(mapSource.includes('await saveOwnedRoster("polluted-swamp")'));
 assert(mapSource.includes('await applyPollutedSwamp(heroIndex + 1)'));
+
+const swampMapSource = fs.readFileSync('v2-map-practice.js','utf8');
+const swampMapHtml = fs.readFileSync('v2-map-practice.html','utf8');
+assert(swampMapSource.includes('if (hp <= 1)'));
+assert(swampMapSource.includes('unit.currentHp = 1'));
+assert(swampMapSource.includes('unit.currentHp = hp - 1'));
+assert(!swampMapSource.includes('ownedUnits.delete(instanceId)') || !swampMapSource.slice(swampMapSource.indexOf('async function applyPollutedSwamp'), swampMapSource.indexOf('function addOwnedUnit')).includes('ownedUnits.delete'));
+assert(swampMapSource.includes('playSwampDamageEffect()'));
+assert(swampMapHtml.includes('swamp-damage-minus1.svg?v=1'));
