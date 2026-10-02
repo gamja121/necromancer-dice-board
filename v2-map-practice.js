@@ -24,10 +24,11 @@
     forest: Object.freeze({ title: "언덕", image: `${ROOT}events/forest.jpg?v=${EVENT_ASSET_VERSION}` }),
     gem: Object.freeze({ title: "보물상자", animation: "treasure" })
   });
+  const WORLD_TREE_EVENT_RATIO = 16 / 9;
   const tileEventRatios = Object.freeze({
-    graveyard: 1280 / 714, home: 1280 / 714, "fortune-teller-camp": 1280 / 575,
-    village: 1280 / 956, rest: 1280 / 714, altar: 1280 / 575, unknown: 16 / 9,
-    forest: 1280 / 714, gem: 1280 / 714
+    graveyard: WORLD_TREE_EVENT_RATIO, home: WORLD_TREE_EVENT_RATIO, "fortune-teller-camp": WORLD_TREE_EVENT_RATIO,
+    village: WORLD_TREE_EVENT_RATIO, rest: WORLD_TREE_EVENT_RATIO, altar: WORLD_TREE_EVENT_RATIO, unknown: WORLD_TREE_EVENT_RATIO,
+    forest: WORLD_TREE_EVENT_RATIO, gem: WORLD_TREE_EVENT_RATIO
   });
   const tileTypes = [
     { id: "basic", name: "기본 타일", count: 2 },
@@ -256,7 +257,7 @@
   let enteringBattle = false;
   let eventOpen = false;
   let activeEventTileId = null;
-  let activeEventRatio = 1280 / 714;
+  let activeEventRatio = WORLD_TREE_EVENT_RATIO;
   let battleStep = 0;
   let battleTileType = "monster";
   let battleMimicCount = 0;
@@ -2196,7 +2197,7 @@
     if (!scene || enteringBattle) return false;
     eventOpen = true;
     activeEventTileId = tile.id;
-    activeEventRatio = tileEventRatios[tile.id] || 1280 / 714;
+    activeEventRatio = tileEventRatios[tile.id] || WORLD_TREE_EVENT_RATIO;
     fitTileEventScene();
     el.board.classList.add("is-tile-event-open");
     el.diceButton.disabled = true;
