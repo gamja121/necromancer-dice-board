@@ -1197,12 +1197,12 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   inset:0;
   opacity:0;
   background:
-    radial-gradient(circle at 50% 52%, rgba(190,255,198,.20) 0%, rgba(133,235,151,.11) 40%, rgba(89,185,112,.055) 72%, rgba(49,126,76,.025) 100%),
-    rgba(122,225,140,.025);
-  mix-blend-mode:normal;
+    radial-gradient(circle at 50% 50%, rgba(214,255,220,.72) 0%, rgba(112,255,139,.46) 34%, rgba(35,196,79,.24) 68%, rgba(18,104,48,.10) 100%),
+    rgba(75,255,108,.16);
+  mix-blend-mode:screen;
 }
 .full-heal-effect.is-playing .full-heal-green-flash{
-  animation:fullHealGreenFlash 2.15s ease-in-out both;
+  animation:fullHealGreenFlash 420ms ease-out both;
 }
 .full-heal-particles{
   position:absolute;
@@ -1266,14 +1266,13 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 }
 @keyframes fullHealGreenFlash{
   0%{opacity:0}
-  12%{opacity:.18}
-  26%{opacity:.46}
-  52%{opacity:.38}
-  76%{opacity:.22}
+  12%{opacity:.95}
+  34%{opacity:.72}
+  58%{opacity:.34}
   100%{opacity:0}
 }
 @media (prefers-reduced-motion:reduce){
-  .full-heal-effect.is-playing .full-heal-green-flash{animation-duration:.8s}
+  .full-heal-effect.is-playing .full-heal-green-flash{animation-duration:260ms}
   .full-heal-effect.is-playing .full-heal-cross{
     animation-name:fullHealCrossRise;
     animation-timing-function:ease-out;
