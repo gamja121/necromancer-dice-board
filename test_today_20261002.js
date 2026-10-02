@@ -126,3 +126,9 @@ assert(map.includes("unit.speed + speedBonus"));
 assert(map.includes("refreshOpenBookUnitInfo();\n    return stack;"));
 assert(mapHtml.includes("v2-map-practice.js?v=108"));
 assert(worker.includes("./v2-map-practice.js?v=108"));
+
+assert(map.includes('window.addEventListener("v2-roster-changed"'));
+assert(map.includes("renderInventoryCounts();\n    refreshOpenBookUnitInfo();\n  });"));
+assert(map.includes("renderInventoryCounts();\n      refreshOpenBookUnitInfo();\n    } catch (_)"));
+assert(mapHtml.includes("v2-map-practice.js?v=109"));
+assert(worker.includes("./v2-map-practice.js?v=109"));
