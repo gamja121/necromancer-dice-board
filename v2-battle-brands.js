@@ -18,7 +18,7 @@
   function mode(id, roll) {
     const brand = definitions[id];
     if (!brand || !Number.isInteger(roll) || roll < 1 || roll > 6) return "normal";
-    return brand.bless.includes(roll) ? "blessing" : brand.curse.includes(roll) ? "curse" : "normal";
+    return brand.curse.includes(roll) ? "curse" : brand.bless.includes(roll) ? "blessing" : "normal";
   }
   function heal(unit, amount) {
     if (!unit.alive || unit.hp <= 0) return 0;
