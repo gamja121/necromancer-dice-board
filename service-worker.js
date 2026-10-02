@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261002-swamp-hit-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261002-full-verify-1";
 
 const CORE_ASSETS = [
   "./",
@@ -16,6 +16,15 @@ const CORE_ASSETS = [
   "./launch.js?v=20260930-title-1",
   "./v2-map-practice.html",
   "./v2-auto-battle-practice.html",
+  "./v2-animation-practice.html",
+  "./v2-animation-practice.css?v=7",
+  "./v2-animation-practice.js?v=9",
+  "./v2-event-lab.html",
+  "./v2-event-lab.css?v=1",
+  "./v2-event-lab.js?v=1",
+  "./v2-tile-practice.html",
+  "./v2-tile-practice.css?v=1",
+  "./v2-tile-practice.js?v=2",
   "./v2-map-practice.css?v=20261002-swamp-hit-1",
   "./art/v2-style/ui/parchment-button-variant-01.png",
   "./art/v2-style/ui/parchment-button-variant-02.png",
@@ -36,6 +45,19 @@ const CORE_ASSETS = [
   "./v2-sfx.js?v=4",
   "./v2-design-data.js?v=1",
   "./v2-rules.js?v=7",
+  "./v2-battle-rng.js?v=1",
+  "./v2-summon-effect.js?v=3",
+  "./assets/music/map-board.mp3",
+  "./assets/music/battle.mp3",
+  "./art/v2-style/ui/summon-effect-sheet.jpg",
+  "./art/v2-style/ui/freeze-status-label.png?v=2",
+  "./art/v2-style/ui/brand-card.png?v=4",
+  "./art/v2-style/map-test/events/inheritance-board.png",
+  "./art/v2-style/map-test/events/altar-ritual-slots.png",
+  "./art/v2-style/map-test/events/altar-ritual-info.png",
+  "./art/v2-style/battle-backgrounds/uploaded-raw/wasteland-chasm-battlefield.jpg",
+  "./art/v2-style/battle-backgrounds/uploaded-raw/haunted-forest-ruins-battlefield.jpg",
+  "./art/v2-style/battle-backgrounds/uploaded-raw/necropolis-pyramids-battlefield.jpg",
   "./v2-run-state.js?v=4",
   "./v2-run-state-runtime.js?v=6",
   "./v2-presentation.js?v=1",
@@ -91,6 +113,8 @@ const CORE_ASSETS = [
   "./art/v2-style/map-test/tiles/boss.png",
   "./art/v2-style/map-test/tiles/boss-cleared.png"
 ];
+
+const APP_SHELL = CORE_ASSETS;
 
 for (let i = 1; i <= 12; i += 1) {
   CORE_ASSETS.push(`./art/v2-style/dice-test/frames/roll-${String(i).padStart(2, "0")}.png`);
