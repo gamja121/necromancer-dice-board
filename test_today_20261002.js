@@ -103,10 +103,10 @@ assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
 assert(mapHtml.includes("v2-map-practice.js?v=112"));
-assert(battleHtml.includes("v2-auto-battle-practice.js?v=127"));
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=128"));
 for (const required of [
   "./v2-map-practice.js?v=112",
-  "./v2-auto-battle-practice.js?v=127",
+  "./v2-auto-battle-practice.js?v=128",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
   "./v2-sfx.js?v=4",
@@ -129,8 +129,8 @@ assert(worker.includes("./v2-map-practice.css?v=20261002-options-visible-2"));
 
 assert(battle.includes('makeState(data, "enemy", 3 - index)'));
 assert(!battle.includes('makeState(data, "enemy", index)'));
-assert(battleHtml.includes("v2-auto-battle-practice.js?v=127"));
-assert(worker.includes("./v2-auto-battle-practice.js?v=127"));
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=128"));
+assert(worker.includes("./v2-auto-battle-practice.js?v=128"));
 
 const rulesSource = read("v2-rules.js");
 const brandCardsSource = read("v2-brand-cards.js");
@@ -164,3 +164,7 @@ assert(worker.includes("./v2-altar-ritual.js?v=5"));
 assert(rulesSource.includes("u.brands=normalizeUnitBrands(u)"));
 
 assert(runtimePolicySource.includes("state.battle.state.units = state.battle.state.units.map(normalizePolicyUnit)"));
+
+assert(battle.includes('phase !== "capture-failed"'), "Final capture failure must not queue another resumable battle checkpoint");
+assert(battle.includes('V2RunStateRuntime.clearBattleCheckpoint("returning", "capture-failed-clear")'), "Final capture failure must clear the resumable battle checkpoint");
+assert(battle.includes("Promise.race([") && battle.includes("wait(1200)"), "Map return must not wait forever on runtime flush");
