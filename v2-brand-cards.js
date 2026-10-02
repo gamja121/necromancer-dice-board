@@ -101,12 +101,11 @@
 
   function label(card) {
     if (!validateCard(card)) return "알 수 없는 낙인";
-    const definition = R.definitions[card.brand.type];
-    const name = (definition?.name || card.brand.type).replace(/의 낙인$/, "");
-    const blessing = `축복 ${card.brand.bless.join(", ")}`;
-    return card.brand.curse.length
-      ? `${name} · ${blessing} · 저주 ${card.brand.curse.join(", ")}`
-      : `${name} · ${blessing}`;
+    const brand = blessingOnly(card.brand);
+    if (!brand) return "알 수 없는 낙인";
+    const definition = R.definitions[brand.type];
+    const name = (definition?.name || brand.type).replace(/의 낙인$/, "");
+    return `${name} · 축복 ${brand.bless.join(", ")}`;
   }
 
   const api = Object.freeze({
