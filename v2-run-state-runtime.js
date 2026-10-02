@@ -23,6 +23,37 @@
     return value == null ? value : JSON.parse(JSON.stringify(value));
   }
 
+
+  function normalizePolicyUnit(unit) {
+    const copy = clone(unit);
+    if (!copy || typeof copy !== "object") return copy;
+    if (root.V2Rules?.normalizeUnitBrands) copy.brands = root.V2Rules.normalizeUnitBrands(copy);
+    return copy;
+  }
+
+  function normalizePolicyBrandCard(card) {
+    if (!card || typeof card !== "object") return null;
+    const instanceId = card.id || card.instanceId;
+    const source = card.brand;
+    if (typeof instanceId !== "string" || !instanceId || !source || !Array.isArray(source.bless)) return null;
+    const clean = {
+      type: source.type,
+      bless: [...new Set(source.bless)].filter((face) => Number.isInteger(face) && face >= 1 && face <= 6),
+      curse: []
+    };
+    if (!clean.bless.length) return null;
+    if (root.V2Rules?.validateBrand && !root.V2Rules.validateBrand(clean)) return null;
+    return { instanceId, brand: clean };
+  }
+
+  function normalizePolicyState(state) {
+    if (!state || typeof state !== "object") return state;
+    if (Array.isArray(state.ownedMonsters)) state.ownedMonsters = state.ownedMonsters.map(normalizePolicyUnit);
+    if (Array.isArray(state.graveyardCorpses)) state.graveyardCorpses = state.graveyardCorpses.map(normalizePolicyUnit);
+    if (Array.isArray(state.brandCards)) state.brandCards = state.brandCards.map(normalizePolicyBrandCard).filter(Boolean);
+    return state;
+  }
+
   function opId(prefix) {
     operationCounter += 1;
     const id = root.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${operationCounter.toString(36)}`;
@@ -87,6 +118,17 @@
         if (!migrated.ok) throw new Error("runstate-migration-failed:" + migrated.errors.join(","));
         current = migrated.state;
       }
+      const policyBefore = JSON.stringify(current);
+      normalizePolicyState(current);
+      if (JSON.stringify(current) !== policyBefore) {
+        const policyWrite = await store.commit(
+          current.runId,
+          current.revision,
+          "brand-policy-migration-v1",
+          (draft) => normalizePolicyState(draft)
+        );
+        if (policyWrite?.ok) current = policyWrite.state;
+      }
       projectLegacy(current);
       return clone(current);
     })().catch((error) => {
@@ -104,7 +146,10 @@
   function commitExact(operationId, reducer) {
     queue = queue.then(async () => {
       if (!current) return { ok: false, reason: "runtime-unavailable" };
-      const result = await store.commit(current.runId, current.revision, operationId, reducer);
+      const result = await store.commit(current.runId, current.revision, operationId, (draft) => {
+        reducer(draft);
+        normalizePolicyState(draft);
+      });
       if (result.ok) {
         current = result.state;
         projectLegacy(current);
@@ -126,7 +171,7 @@
   }
 
   function replaceOwnedMonsters(monsters, prefix = "roster") {
-    const next = clone(monsters || []);
+    const next = (monsters || []).map(normalizePolicyUnit);
     return commit(prefix, (draft) => { draft.ownedMonsters = next; });
   }
 
@@ -145,10 +190,7 @@
   }
 
   function replaceBrandCards(cards, prefix = "brand-cards") {
-    const next = (cards || []).map((card) => ({
-      instanceId: card.id || card.instanceId,
-      brand: clone(card.brand)
-    }));
+    const next = (cards || []).map(normalizePolicyBrandCard).filter(Boolean);
     return commit(prefix, (draft) => { draft.brandCards = next; });
   }
 
@@ -230,8 +272,8 @@
   function applyBattleOutcome(options = {}) {
     const encounterId = String(options.encounterId || "");
     if (!encounterId) return Promise.resolve({ ok: false, reason: "encounter-id-required" });
-    const roster = clone(options.ownedMonsters || []);
-    const deadMonsters = clone(options.deadMonsters || []);
+    const roster = (options.ownedMonsters || []).map(normalizePolicyUnit);
+    const deadMonsters = (options.deadMonsters || []).map(normalizePolicyUnit);
     const step = Number(options.clearedStep);
     return commitExact("battle-outcome:" + encounterId, (draft) => {
       draft.ownedMonsters = roster;
@@ -257,11 +299,8 @@
   }
 
   function atomicRosterAndBrands(monsters, brands, prefix = "inheritance") {
-    const roster = clone(monsters || []);
-    const cards = (brands || []).map((card) => ({
-      instanceId: card.id || card.instanceId,
-      brand: clone(card.brand)
-    }));
+    const roster = (monsters || []).map(normalizePolicyUnit);
+    const cards = (brands || []).map(normalizePolicyBrandCard).filter(Boolean);
     return commit(prefix, (draft) => {
       draft.ownedMonsters = roster;
       draft.brandCards = cards;
@@ -269,12 +308,9 @@
   }
 
   function atomicMonsterShopTrade(monsters, diceCardIds, brands, prefix = "monster-shop") {
-    const roster = clone(monsters || []);
+    const roster = (monsters || []).map(normalizePolicyUnit);
     const diceIds = clone(diceCardIds || []);
-    const cards = (brands || []).map((card) => ({
-      instanceId: card.id || card.instanceId,
-      brand: clone(card.brand)
-    }));
+    const cards = (brands || []).map(normalizePolicyBrandCard).filter(Boolean);
     return commit(prefix, (draft) => {
       draft.ownedMonsters = roster;
       const existing = new Map((draft.diceCards || []).map((card) => [card.instanceId, card]));
