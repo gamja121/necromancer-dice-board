@@ -1,0 +1,63 @@
+name: Incremental Backup Export Corrected
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/incremental-backup-export.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build corrected incremental ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import zipfile
+          files = [
+            ".github/workflows/verify-and-deploy.yml",
+            "BACKUP_CLEANUP_CHECKLIST.md",
+            "index.html",
+            "launch.css",
+            "launch.js",
+            "service-worker.js",
+            "test_v2_rules_ui.js",
+            "test_v2_unit_cards.js",
+            "v2-auto-battle-practice.css",
+            "v2-auto-battle-practice.html",
+            "v2-auto-battle-practice.js",
+            "v2-heal-effect.js",
+            "v2-map-practice.css",
+            "v2-map-practice.html",
+            "v2-map-practice.js",
+            "v2-unit-cards.js",
+          ]
+          manifest = """Base full backup commit: cd6750bb246933efb6dd7c82523aa132b3bf90c3
+Incremental target commit: e43d817fe239a40fbcd8d80913192d52879a65c2
+Date: 2026-10-02
+Files: 16
+"""
+          out = Path("necromancer-dice-incremental-2026-10-02.zip")
+          with zipfile.ZipFile(out, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
+              zf.writestr("BACKUP_MANIFEST.txt", manifest)
+              for rel in files:
+                  p = Path(rel)
+                  if not p.exists():
+                      raise SystemExit(f"missing: {rel}")
+                  zf.write(p, arcname=f"files/{rel}")
+          print("created", out, "files", len(files))
+          PY
+      - name: Upload corrected incremental ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: necromancer-dice-incremental-2026-10-02-corrected
+          path: necromancer-dice-incremental-2026-10-02.zip
+          compression-level: 0
+          retention-days: 1
