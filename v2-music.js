@@ -9,11 +9,28 @@
   const track = TRACKS[trackName];
   if (!track || typeof Audio === "undefined") return;
 
+  const AUDIO_SETTINGS_KEY = "necromancer-audio-settings-v1";
+  function readEnabled() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(AUDIO_SETTINGS_KEY) || "null") || {};
+      return saved.bgmEnabled !== false;
+    } catch (_) {
+      return true;
+    }
+  }
+  function writeEnabled(enabled) {
+    try {
+      const saved = JSON.parse(localStorage.getItem(AUDIO_SETTINGS_KEY) || "null") || {};
+      saved.bgmEnabled = Boolean(enabled);
+      localStorage.setItem(AUDIO_SETTINGS_KEY, JSON.stringify(saved));
+    } catch (_) {}
+  }
+
   const music = new Audio(track.source);
   music.loop = true;
   music.preload = "auto";
   music.volume = track.volume;
-  let wanted = true;
+  let wanted = readEnabled();
   let started = false;
   const MAP_POSITION_KEY = "necromancer-v2-music-map-position";
   let pendingResumeTime = null;
@@ -67,6 +84,23 @@
     unbindUnlock();
   }
 
+  function setEnabled(enabled) {
+    wanted = Boolean(enabled);
+    writeEnabled(wanted);
+    if (wanted) {
+      bindUnlock();
+      requestStart();
+    } else {
+      music.pause();
+      unbindUnlock();
+    }
+    return wanted;
+  }
+
+  function isEnabled() {
+    return wanted;
+  }
+
   function handoff(nextTrack) {
     try {
       if (trackName === "map" && nextTrack === "battle") {
@@ -95,9 +129,11 @@
   } catch (_) {}
 
   music.addEventListener("loadedmetadata", applyPendingResume, { once: true });
-  bindUnlock();
-  requestStart();
+  if (wanted) {
+    bindUnlock();
+    requestStart();
+  }
   document.addEventListener("visibilitychange", onVisibilityChange);
   window.addEventListener("pagehide", pause);
-  root.V2Music = Object.freeze({ requestStart, pause, stop, handoff, track: trackName, audio: music });
+  root.V2Music = Object.freeze({ requestStart, pause, stop, handoff, setEnabled, isEnabled, track: trackName, audio: music });
 })(globalThis);
