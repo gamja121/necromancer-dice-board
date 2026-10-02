@@ -26,7 +26,7 @@
 
   let started = false;
   let index = 0;
-  let leaving = false;
+  let leaving = false;\n\n  async function ensureLandscape() {\n    if (globalThis.V2Landscape?.request) {\n      try { await V2Landscape.request(); } catch (_) {}\n    }\n  }
 
   function renderLine() {
     const line = dialogue[index];
@@ -58,7 +58,7 @@
     location.href = "v2-map-practice.html";
   }
 
-  advance.addEventListener("click", () => {
+  advance.addEventListener("click", async () => {\n    await ensureLandscape();
     if (leaving) return;
     if (!started) {
       beginDialogue();
@@ -78,3 +78,4 @@
     advance.click();
   });
 })();
+\nwindow.addEventListener("orientationchange", () => { globalThis.V2Landscape?.request?.(); });\n\n})();\n
