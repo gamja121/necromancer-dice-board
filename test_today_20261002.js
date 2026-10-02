@@ -44,10 +44,15 @@ assert(introJs.includes('오늘부터 네게 외곽 순찰 임무를 맡기겠�
 assert(introJs.includes('location.href = "v2-map-practice.html"'));
 assert(introCss.includes(".dialogue-box"));
 assert(introHtml.includes('v2-landscape.js?v=1'), "Prologue must use landscape helper");
-assert(introHtml.includes('art/v2-style/ui/intro-dialogue-box.webp?v=1'), "Prologue must use supplied parchment dialogue asset");
+assert(introHtml.includes('art/v2-style/ui/intro-dialogue-box.webp?v=2'), "Prologue must use supplied parchment dialogue asset");
 assert(introCss.includes("@media (orientation:portrait)"), "Prologue needs portrait-to-landscape CSS fallback");
-assert(introCss.includes("rotate(90deg)"), "Prologue must rotate to landscape on portrait phones");
-assert(introCss.includes("bottom:29.5%"), "Character artwork must sit above the dialogue box");
+assert(introHtml.includes('class="intro-canvas"'), "Prologue must render inside a fixed landscape canvas");
+assert(introHtml.includes('id="introLandscapeHint"'), "Portrait phones need an explicit rotate-device hint");
+assert(introCss.includes("aspect-ratio:16/9"), "Prologue canvas must stay 16:9");
+assert(introCss.includes(".portrait-right img{transform:scaleX(-1)}"), "Knight commander must face inward with a horizontal flip");
+assert(introJs.includes("ensureLandscape()"), "Prologue must request real landscape orientation on interaction");
+assert(!introCss.includes("rotate(90deg)"), "Prologue must not sideways-rotate the whole UI");
+assert(introCss.includes("bottom:27%"), "Character artwork must sit above the dialogue box");
 
 // Rotated-mobile card placement.
 assert(cards.includes("offsetLeft") && cards.includes("offsetParent"));
@@ -127,11 +132,11 @@ assert(mapHtml.includes("v2-map-practice.js?v=114"));
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=129"));
 for (const required of [
   "./v2-intro.html",
-  "./v2-intro.css?v=2",
-  "./v2-intro.js?v=1",
+  "./v2-intro.css?v=3",
+  "./v2-intro.js?v=2",
   "./art/v2-style/event-portraits/necromancer.png",
   "./art/v2-style/event-portraits/knight-commander.png",
-  "./art/v2-style/ui/intro-dialogue-box.webp?v=1",
+  "./art/v2-style/ui/intro-dialogue-box.webp?v=2",
   "./v2-map-practice.js?v=114",
   "./v2-auto-battle-practice.js?v=129",
   "./v2-heal-effect.js?v=1",
