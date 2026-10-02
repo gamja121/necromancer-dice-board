@@ -83,6 +83,30 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .hero-token { position: absolute; z-index: 16; left: 12%; top: 12%; width: 6.4%; transform: translate(-50%, -72%); pointer-events: none; transition: left 190ms ease, top 190ms ease; }
 .hero-token img { display: block; width: 100%; height: auto; transform: scaleX(var(--hero-facing, 1)); filter: drop-shadow(0 4px 3px #000e) drop-shadow(0 0 4px #d6b66c); }
 .hero-token.is-moving img { animation: hero-step 190ms ease-in-out; }
+.hero-token.is-swamp-hit img { animation: hero-swamp-hit 620ms ease-out both; }
+@keyframes hero-swamp-hit {
+  0%, 100% { filter: drop-shadow(0 4px 3px #000e) drop-shadow(0 0 4px #d6b66c); }
+  18% { filter: brightness(1.7) saturate(2.7) sepia(.25) hue-rotate(320deg) drop-shadow(0 0 7px #ff2b24) drop-shadow(0 0 16px #a40000); }
+  36% { filter: brightness(.75) saturate(2.2) sepia(.45) hue-rotate(320deg) drop-shadow(0 0 5px #cf1712); }
+  54% { filter: brightness(1.65) saturate(3) sepia(.25) hue-rotate(320deg) drop-shadow(0 0 8px #ff3028) drop-shadow(0 0 18px #8e0000); }
+  72% { filter: brightness(.82) saturate(2) sepia(.35) hue-rotate(320deg) drop-shadow(0 0 4px #bf1712); }
+}
+.swamp-damage-overlay { position:absolute; z-index:76; inset:0; display:grid; place-items:center; pointer-events:none; overflow:hidden; }
+.swamp-damage-overlay[hidden] { display:none; }
+.swamp-damage-overlay img { display:block; width:clamp(170px,30vw,430px); max-width:52%; height:auto; opacity:0; transform:scale(.52); filter:drop-shadow(0 0 8px #ff2b21) drop-shadow(0 8px 14px #000b); }
+.swamp-damage-overlay.is-showing img { animation:swamp-minus-one-pop 780ms cubic-bezier(.17,.89,.32,1.18) both; }
+@keyframes swamp-minus-one-pop {
+  0% { opacity:0; transform:scale(.42) translateY(12%); }
+  16% { opacity:1; transform:scale(1.14) translateY(0); }
+  42% { opacity:1; transform:scale(1); }
+  72% { opacity:.92; transform:scale(1.03) translateY(-3%); }
+  100% { opacity:0; transform:scale(.88) translateY(-13%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-token.is-swamp-hit img { animation-duration:260ms; }
+  .swamp-damage-overlay.is-showing img { animation-duration:420ms; }
+}
+
 .dice-controller { position: absolute; z-index: 19; inset: 0; pointer-events: none; }
 .dice-controller > button { position: absolute; left: 50%; top: 48%; display: grid; place-items: center; width: clamp(54px, 7vw, 76px); height: clamp(54px, 7vw, 76px); padding: 0; border: 0; border-radius: 50%; background: transparent; transform: translate(-50%, -50%); transform-origin: center; pointer-events: auto; cursor: pointer; -webkit-tap-highlight-color: transparent; filter: drop-shadow(0 7px 5px #000b); will-change: left, top, transform; }
 .dice-controller > button:disabled { cursor: default; }
