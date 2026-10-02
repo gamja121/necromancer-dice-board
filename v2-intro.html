@@ -7,7 +7,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>네크로멘서 앤드 다이스 · 도입부</title>
-  <link rel="stylesheet" href="v2-intro.css?v=4">
+  <link rel="stylesheet" href="v2-intro.css?v=5">
 </head>
 <body>
   <main id="introScene" class="intro-scene is-impact" aria-live="polite">
@@ -23,15 +23,8 @@
         </section>
 
         <section id="dialogueStage" class="dialogue-stage" hidden>
-          <div class="portrait portrait-left" data-speaker="주인공">
-            <img src="art/v2-style/protagonist/event-scene/necromancer-protagonist-event-fullbody.jpg" alt="주인공">
-          </div>
-          <div class="portrait portrait-right" data-speaker="기사단장">
-            <img src="art/v2-style/event-portraits/knight-commander.png" alt="기사단장">
-          </div>
-
-          <div class="dialogue-box">
-            <div class="dialogue-frame" aria-hidden="true"></div>
+          <img id="introSceneArt" class="intro-scene-art" alt="주인공과 기사단장의 대화 장면">
+          <div class="dialogue-copy">
             <div id="dialogueName" class="dialogue-name">기사단장</div>
             <p id="dialogueText" class="dialogue-text">여기 있었구만.</p>
             <span class="dialogue-next" aria-hidden="true">▼</span>
@@ -41,6 +34,6 @@
     </div>
   </main>
   <script src="v2-landscape.js?v=1"></script>
-  <script src="v2-intro.js?v=2"></script>
+  <script src="v2-intro.js?v=3"></script>
 </body>
 </html>
