@@ -21,7 +21,6 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - name: Syntax, behavior and distribution checks
-        continue-on-error: true
         run: npm test
       - name: Browser smoke test
         if: false
