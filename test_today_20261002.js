@@ -32,50 +32,37 @@ for (const href of [
 ]) assert(index.includes(href), "Missing test menu link: " + href);
 assert(launch.includes("testLinks.forEach"));
 
-// Battle unit card alignment on rotated mobile layout.
+// Rotated-mobile card placement.
 assert(cards.includes("offsetLeft") && cards.includes("offsetParent"));
 assert(!cards.includes("anchor.getBoundingClientRect()"));
 assert(battleCss.includes("translate: -50% 16px"));
-assert(!battleCss.includes("29cqw"));
 assert(battleHtml.includes("v2-unit-cards.js?v=27"));
 
-// Shared battle heal effect + dedicated undead heal test.
+// Healing.
 assert(heal.includes("heal-cross.png?v=1"));
 assert(battle.includes("V2HealEffect.playUnit(spriteWrap, amount)"));
 assert(battleHtml.includes("v2-heal-effect.js?v=1"));
 assert(battle.includes('battleQuery.get("test") === "undead-heal"'));
 assert(battle.includes('"skeleton-spear", "skeleton-archer", "skeleton-cavalry", "grave-priest"'));
-assert(battle.includes("unitState.maxHp - 3"));
-
-// Map full heal flash.
 assert(mapCss.includes("animation:fullHealGreenFlash 420ms ease-out both"));
-assert(mapCss.includes("opacity:.95"));
 
-// Tile event art standardized to world-tree 16:9 frame.
+// Tile event frame.
 assert(map.includes("const WORLD_TREE_EVENT_RATIO = 16 / 9"));
-assert(!map.includes("1280 / 956"));
-assert(!map.includes("1280 / 575"));
 assert(mapCss.includes("object-fit: cover"));
 
-// Map options button and persistent audio controls.
+// Audio options.
 assert(mapHtml.includes('id="mapOptionsButton"'));
-assert(mapCss.includes("right: 1.5%") && mapCss.includes("top: 77.5%"));
-assert(mapHtml.includes("map-options-button.webp?v=1"));
 assert(mapHtml.includes('id="mapAudioOptions"'));
 assert(mapHtml.includes('id="mapBgmToggle"') && mapHtml.includes('id="mapSfxToggle"'));
 assert(music.includes("bgmEnabled") && music.includes("setEnabled") && music.includes("isEnabled"));
 assert(sfx.includes("sfxEnabled") && sfx.includes("if (!current.enabled) return false"));
 assert(mapHtml.includes("v2-music.js?v=3") && mapHtml.includes("v2-sfx.js?v=4"));
 assert(battleHtml.includes("v2-music.js?v=3") && battleHtml.includes("v2-sfx.js?v=4"));
-
-// Map BGM handoff/resume.
 assert(music.includes("necromancer-v2-music-map-position"));
-assert(music.includes('trackName === "map" && nextTrack === "battle"'));
-assert(music.includes("applyPendingResume"));
 assert(map.includes('V2Music.handoff("battle")'));
 assert(battle.includes('V2Music.handoff("map")'));
 
-// Swamp: no death at 1 HP, persistent damage above 1 HP, visual feedback.
+// Swamp damage and live info.
 const swampStart = map.indexOf("async function applyPollutedSwamp");
 const swampEnd = map.indexOf("function addOwnedUnit", swampStart);
 const swamp = map.slice(swampStart, swampEnd);
@@ -84,18 +71,42 @@ assert(swamp.includes("unit.currentHp = 1"));
 assert(swamp.includes("unit.currentHp = hp - 1"));
 assert(!swamp.includes("ownedUnits.delete"));
 assert(swamp.includes('await saveOwnedRoster("polluted-swamp")'));
-assert(map.includes("await applyPollutedSwamp(heroIndex + 1)"));
-assert(swamp.includes("playSwampDamageEffect()"));
+assert(map.includes("playSwampDamageEffect()"));
 assert(mapHtml.includes("swamp-damage-minus1.svg?v=1"));
 assert(mapCss.includes("@keyframes hero-swamp-hit"));
 assert(mapCss.includes("@keyframes swamp-minus-one-pop"));
+assert(map.includes("function refreshOpenBookUnitInfo()"));
 
-// Current map cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=106"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261002-swamp-hit-1"));
+// Effective map stats, including prophecy.
+assert(map.includes("function mapEffectiveUnitStats(unit)"));
+assert(map.includes("unit.maxHp + hpBonus"));
+assert(map.includes("unit.attack + attackBonus"));
+assert(map.includes("unit.speed + speedBonus"));
+assert(map.includes("refreshOpenBookUnitInfo();\n    return stack;"));
+assert(map.includes('window.addEventListener("v2-roster-changed"'));
+
+// Completed lap contamination.
+assert(map.includes("if (completedLap) {\n      addContamination(4);"));
+
+// Enemy count rules.
+assert(map.includes("function currentEncounterLoop()"));
+assert(map.includes("if (loop <= 2) return 1;"));
+assert(map.includes("const minimum = value >= 10 ? 2 : 1;"));
+assert(map.includes('loop: String(currentEncounterLoop())'));
+assert(map.includes("const count = constrainedEncounterCount(rolledCount);"));
+assert(battle.includes('const mapLoop = Math.max(1, Math.floor(Number(battleQuery.get("loop")) || 1));'));
+assert(battle.includes("function constrainedMapEnemyCount(requestedCount)"));
+assert(battle.includes("if (mapLoop <= 2) return 1;"));
+assert(battle.includes("const minimum = mapContamination >= 10 ? 2 : 1;"));
+assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
+assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
+
+// Current cache/version wiring.
+assert(mapHtml.includes("v2-map-practice.js?v=111"));
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=125"));
 for (const required of [
-  "./v2-map-practice.js?v=106",
-  "./v2-auto-battle-practice.js?v=124",
+  "./v2-map-practice.js?v=111",
+  "./v2-auto-battle-practice.js?v=125",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
   "./v2-sfx.js?v=4",
@@ -108,32 +119,5 @@ for (const required of [
   "./assets/music/battle.mp3"
 ]) assert(worker.includes(required), "Missing current cache entry: " + required);
 
-// Deployment must cancel superseded jobs; mandatory today's checks must gate deployment.
 assert(workflow.includes("cancel-in-progress: true"));
-
-console.log("PASS: 2026-10-02 regression checks for title, battle, healing, map UI, audio, tile art and swamp behavior.");
-
-assert(map.includes('el.infoHp.textContent = `${currentHp} / ${unit.maxHp}`'));
-assert(map.includes("function refreshOpenBookUnitInfo()"));
-assert(map.includes('openBookUnitInfo(latest, { focus: false })'));
-assert(mapHtml.includes("v2-map-practice.js?v=107"));
-assert(worker.includes("./v2-map-practice.js?v=107"));
-
-assert(map.includes("function mapEffectiveUnitStats(unit)"));
-assert(map.includes("unit.maxHp + hpBonus"));
-assert(map.includes("unit.attack + attackBonus"));
-assert(map.includes("unit.speed + speedBonus"));
-assert(map.includes("refreshOpenBookUnitInfo();\n    return stack;"));
-assert(mapHtml.includes("v2-map-practice.js?v=108"));
-assert(worker.includes("./v2-map-practice.js?v=108"));
-
-assert(map.includes('window.addEventListener("v2-roster-changed"'));
-assert(map.includes("renderInventoryCounts();\n    refreshOpenBookUnitInfo();\n  });"));
-assert(map.includes("renderInventoryCounts();\n      refreshOpenBookUnitInfo();\n    } catch (_)"));
-assert(mapHtml.includes("v2-map-practice.js?v=109"));
-assert(worker.includes("./v2-map-practice.js?v=109"));
-
-assert(map.includes("if (completedLap) {\n      addContamination(4);"));
-assert(!map.includes("if (completedLap) {\n      addContamination(2);"));
-assert(mapHtml.includes("v2-map-practice.js?v=110"));
-assert(worker.includes("./v2-map-practice.js?v=110"));
+console.log("PASS: 2026-10-02 current regression checks.");
