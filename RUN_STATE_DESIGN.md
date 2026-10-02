@@ -9,7 +9,7 @@
 
 - RunState의 `brandCards[]`는 저장 경계에서 항상 `curse=[]`로 정규화한다.
 - `ownedMonsters[]`와 `graveyardCorpses[]`는 저장 경계에서 `V2Rules.normalizeUnitBrands()`를 적용한다.
-- 기존 저장의 후속 낙인 저주/저주와 겹친 축복 및 구형 낙인카드 저주는 bootstrap의 `brand-policy-migration-v1`에서 한 번 영구 정리한다.
+- 기존 저장의 후속 낙인 저주/저주와 겹친 축복, 구형 낙인카드 저주, RunState 전투 체크포인트 내부의 구형 낙인은 bootstrap의 `brand-policy-migration-v1`에서 한 번 영구 정리한다.
 - 이후 `replaceOwnedMonsters`, 전투 종료, capture, 상점 교환, 계승 등 어떤 commit 경로도 이 불변식을 우회할 수 없다.
 
 ## 1. 현재 저장 지점과 누락
@@ -18,7 +18,7 @@
 |---|---|---|
 | session: necromancer-map-roster-v2 | map, auto-battle, home-inheritance, altar-ritual이 개체 배열 작성 | ownedMonsters |
 | session: necromancer-map-dice-control-v1 | map의 카드 종류 ID 배열, 중복 가능 | diceCards, 각 카드 별 instanceId |
-| session: necromancer-map-brand-cards-v1 | V2BrandCards 및 집 UI의 독립 소비형 낙인 카드 | brandCards: 기존 id를 instanceId로 보존, brand 눈금 그대로 |
+| session: necromancer-map-brand-cards-v1 | V2BrandCards 및 집 UI의 독립 소비형 낙인 카드 | brandCards: 기존 id를 instanceId로 보존, **축복 눈금만 보존하고 curse=[] 강제** |
 | session: necromancer-map-contamination-v1 | map/auto-battle의 오염도 숫자 | contamination |
 | session: necromancer-map-layout-v2 | map의 타일 종류 ID 24개 | currentMap.tiles |
 | session: necromancer-map-layout-v1 | 기존 layout 읽기에서 제거하는 구형 값 | 원문 백업만, 자동 삭제 금지 |
