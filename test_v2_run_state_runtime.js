@@ -65,3 +65,8 @@ assert(runtime.includes("legacyBrandCards") && runtime.includes("clearedSteps") 
   "Legacy compatibility output must be projected from authoritative RunState.");
 
 console.log("PASS: RunState runtime wiring across map, home, altar, battle, cache and idempotent rewards");
+
+const mapSource = fs.readFileSync('v2-map-practice.js','utf8');
+assert(mapSource.includes('async function applyPollutedSwamp(step)'));
+assert(mapSource.includes('await saveOwnedRoster("polluted-swamp")'));
+assert(mapSource.includes('await applyPollutedSwamp(heroIndex + 1)'));
