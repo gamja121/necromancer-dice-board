@@ -12,7 +12,7 @@ const enterArt = "art/v2-style/map-test/events/enter-parchment.png";
 if (!fs.existsSync(path.join(root, art))) throw Error("Home interior image is missing");
 if (!fs.existsSync(path.join(root, enterArt))) throw Error("Enter parchment cutout is missing");
 if (fs.readFileSync(path.join(root, enterArt)).equals(fs.readFileSync(path.join(root, "art/v2-style/map-test/events/exit-parchment.png")))) throw Error("Enter and exit must use different parchment shapes");
-for (const file of ["v2-tile-practice.html", "v2-tile-practice.css?v=1", "v2-tile-practice.js?v=2", art, enterArt]) {
+for (const file of ["v2-tile-practice.html", "v2-tile-practice.css?v=1", "v2-tile-practice.js?v=2"]) {
   if (!worker.includes(file)) throw Error(`Tile test is not cached: ${file}`);
 }
 if (!html.includes('id="tileTestEnter"') || !html.includes('id="tileTestExit"') || !html.includes('id="tileTestImage"') || !html.includes('id="tileTestInheritance"')) throw Error("Home tile controls are missing");

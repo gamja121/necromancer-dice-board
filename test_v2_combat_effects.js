@@ -46,9 +46,11 @@ async function main(){
   const vm=require('node:vm');
   for(const [slug,effect] of [['forest-fairy','wind'],['siren','music'],['ghoul','claw'],['raging-treant','claw'],['abyss-harpy','claw'],['bone-golem','claw'],['sea-wolf','claw'],['plague-frog','poison'],['mushroom-soldier','poison'],['plague-doctor','poison'],['grave-worm','toxicLiquid'],['abyss-claw-hunter','toxicLiquid'],['corpse-slime','toxicLiquid'],['bone-hound','bite'],['hydra','bite'],['spiderling','bite'],['flesh-golem','bite'],['cerberus','bite'],['crystal-devourer','bite'],['death-knight','slash'],['skeleton-spear','slash'],['goblin-rider','slash'],['ice-lord','slash'],['minotaur','slash'],['skeleton-cavalry','slash'],['soul-reaper','slash'],['doom-executor','slash'],['mimic','slash'],['hell-mantis','slash'],['scorpion-knight','slash'],['goblin-soldier','slash'],['goblin-chief','magic'],['grave-priest','magic'],['spider-knight','magic'],['ice-princess','magic'],['skeleton-archer','physical'],['boulder-ogre','physical'],['yeti','physical'],['goblin-commoner','physical'],['abyss-eye','physical'],['ancient-treant','physical'],['stone-golem','physical'],['kraken','physical'],['orc-warrior','physical'],['mummy-guardian','physical']]) for(const damage of [0,2]) {
     const host={},events=[];
-    const unit=slug=>({slug,name:slug,team:'ally',alive:true,hp:10,frames:{attack:5,hit:4,death:7},image:{},element:{classList:{add(){},remove(){}},querySelector(){return host;}}});
+    const unit=slug=>({slug,name:slug,team:'ally',alive:true,hp:10,frames:{attack:5,hit:4,death:7},image:{},element:{classList:{add(){},remove(){},contains(){return false;}},querySelector(){return host;}}});
     const actor=unit(slug),target=unit('ghoul');target.team='enemy';
     const ctx={actor,Math,battleToken:1,running:true,turnNumber:1,actionCount:0,turnQueue:[],speedMultiplier:1,message:{},
+      presentation:{play:async(event,presenter)=>presenter()}, presentationWait:async()=>{}, battleWait:async()=>{},
+      impactTier:()=>1, triggerImpactFeedback(){}, honorHitStop:async()=>{},
       rulesState:{events:[]}, saveBattle(){}, combatSoundProfile:()=>({}),
       V2Rules:{before:()=>0,pickTarget:()=>target,attack:()=>{target.hp-=damage;return {damage,hits:damage?[damage]:[],miss:damage===0};}},
       V2Legions:{consumeFreeze:()=>false,beforeAttack:()=>({}),afterAttack:()=>({}),afterAction:()=>0},legionState:{},

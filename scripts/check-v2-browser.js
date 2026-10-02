@@ -1,30 +1,42 @@
 "use strict";
-// Optional end-to-end distribution check: install Playwright or expose it via NODE_PATH.
+// Mandatory CI smoke test. Every wait and the complete run are bounded.
 const { chromium } = require("playwright");
 const assert = require("node:assert/strict");
 const os = require("node:os");
 const path = require("node:path");
 const base = process.env.GAME_TEST_URL || "http://localhost:8788/";
+const watchdog = setTimeout(() => { console.error("Browser smoke exceeded 180 seconds"); process.exit(1); }, 180000);
+async function unlock(page) {
+  await page.locator("#titleUnlock").click();
+  await page.waitForFunction(() => document.body.classList.contains("is-unlocked"));
+}
+async function activate(page, selector) {
+  await page.locator(selector).click();
+  await page.locator(selector).click();
+}
 (async () => {
   const browser = await chromium.launch({ ...(process.env.CI ? {} : { channel: "msedge" }), headless: true });
   try {
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
     const page = await context.newPage();
+    page.setDefaultTimeout(15000);
+    page.setDefaultNavigationTimeout(30000);
     const errors = [], failed = [];
     page.on("pageerror", error => errors.push(error.message));
     page.on("response", response => { if (response.status() >= 400) failed.push(`${response.status()} ${response.url()}`); });
     await page.goto(base);
-    await page.evaluate(async () => {
+    await page.evaluate(() => {
       sessionStorage.setItem("v2-migration-preserve", "kept");
       localStorage.setItem("v2-migration-preserve", "kept");
-      await navigator.serviceWorker.ready;
     });
+    await page.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: 30000 });
     await page.screenshot({ path: path.join(os.tmpdir(), "necromancer-launch-desktop.png") });
-    await page.locator('a.play').click();
+    await unlock(page);
+    await activate(page, "#newGameButton");
     await page.waitForSelector(".map-tile");
     assert.equal(await page.locator(".map-tile").count(), 24);
     await page.locator("#mapDiceButton").click();
-    await page.waitForFunction(() => !document.getElementById("mapDiceButton").classList.contains("is-rolling"), { timeout: 15000 });
+    await page.waitForFunction(() => !document.getElementById("mapDiceButton").classList.contains("is-rolling"), null, { timeout: 15000 });
     assert(await page.locator("#mapDiceImage").getAttribute("src"));
     console.log("PASS: launch -> 24-tile map -> dice roll");
     const screens = ["v2.html", "v2-auto-battle-practice.html", "v2-event-lab.html", "v2-animation-practice.html", "v2-image-test.html", "v2-tile-practice.html", "v2-sfx-sampler.html"];
@@ -68,17 +80,14 @@ const base = process.env.GAME_TEST_URL || "http://localhost:8788/";
     console.log("PASS: real browser dice -> attack -> reload -> mid-battle resume");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(base);
-    assert(await page.locator("a.play").isVisible());
+    assert(await page.locator("#titleUnlock").isVisible());
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     await page.screenshot({ path: path.join(os.tmpdir(), "necromancer-launch-mobile.png") });
-    await page.evaluate(async () => {
-      await navigator.serviceWorker.ready;
-      if (!navigator.serviceWorker.controller) await new Promise(resolve => navigator.serviceWorker.addEventListener("controllerchange", resolve, { once: true }));
-    });
+    await page.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: 30000 });
     await context.setOffline(true);
     await page.reload();
-    assert(await page.locator("a.play").isVisible());
-    await page.locator("a.play").click();
+    await unlock(page);
+    await activate(page, "#continueButton");
     await page.waitForSelector(".map-tile");
     assert.equal(await page.locator(".map-tile").count(), 24);
     const saved = await page.evaluate(() => [sessionStorage.getItem("v2-migration-preserve"), localStorage.getItem("v2-migration-preserve")]);
@@ -87,4 +96,4 @@ const base = process.env.GAME_TEST_URL || "http://localhost:8788/";
     assert.deepEqual(errors, [], "Browser runtime errors");
     assert.deepEqual([...new Set(failed)], [], "Broken resource requests");
   } finally { await browser.close(); }
-})().catch(error => { console.error(error); process.exitCode = 1; });
+})().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => clearTimeout(watchdog));

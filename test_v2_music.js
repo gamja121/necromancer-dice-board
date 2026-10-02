@@ -16,9 +16,11 @@ assert(source.includes('pointerdown') && source.includes('touchstart') && source
 assert(source.includes('necromancer-v2-music-map-position'));
 assert(source.includes('trackName === "map" && nextTrack === "battle"'));
 assert(source.includes('applyPendingResume'));
-assert(mapHtml.includes('data-v2-music="map"') && mapHtml.includes('v2-music.js?v=2'));
-assert(battleHtml.includes('data-v2-music="battle"') && battleHtml.includes('v2-music.js?v=2'));
+assert(mapHtml.includes('data-v2-music="map"') && mapHtml.includes('src="v2-music.js?'));
+assert(battleHtml.includes('data-v2-music="battle"') && battleHtml.includes('src="v2-music.js?'));
 assert(mapJs.includes('V2Music.handoff("battle")'));
 assert(battleJs.includes('V2Music.handoff("map")'));
 assert(worker.includes('assets/music/map-board.mp3') && worker.includes('assets/music/battle.mp3'));
+require('./scripts/assert-linked-cache')(mapHtml, worker, ['v2-music.js']);
+require('./scripts/assert-linked-cache')(battleHtml, worker, ['v2-music.js']);
 console.log('PASS: map and battle BGM files, mobile unlock, looping, and page handoff');

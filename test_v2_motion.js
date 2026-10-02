@@ -27,7 +27,7 @@ const mimicProcessor = fs.readFileSync(path.join(root, "scripts/process-mimic-sh
 const abyssClawHunterProcessor = fs.readFileSync(path.join(root, "scripts/process-abyss-claw-hunter-sheet.ps1"), "utf8");
 const corpseSlimeProcessor = fs.readFileSync(path.join(root, "scripts/process-corpse-slime-sheet.ps1"), "utf8");
 
-assert(indexHtml.includes('href="v2-animation-practice.html">모션 테스트</a>'), "Start screen motion test link is missing.");
+assert(indexHtml.includes('href="v2-animation-practice.html">애니메이션·이펙트</a>'), "Start screen motion test link is missing.");
 assert(battleHtml.includes('href="v2-animation-practice.html" class="secondary-action">모션 테스트</a>'), "V2 motion test link is missing.");
 assert(practiceHtml.includes('id="unitSprite"'), "Motion test sprite is missing.");
 assert(!practiceHtml.includes('id="jpgSprite"') && !practiceHtml.includes('id="pngSprite"'), "Old JPG/PNG comparison sprites remain.");
@@ -252,38 +252,7 @@ for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
   }
 }
 
-assert(serviceWorker.includes("animation-test-frames/death-knight/${motion}-"), "Death Knight frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/skeleton-spear/${motion}-"), "Skeleton Spearman frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/ancient-treant/${motion}-"), "Ancient Treant frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/stone-golem/${motion}-"), "Stone Golem frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/goblin-rider/${motion}-"), "Goblin Rider frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/orc-warrior/${motion}-"), "Orc Warrior frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/boulder-ogre/${motion}-"), "Boulder Ogre frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/goblin-commoner/${motion}-"), "Goblin Commoner frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/ice-lord/${motion}-"), "Ice Lord frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/yeti/${motion}-"), "Yeti frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/ghoul/${motion}-"), "Ghoul frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/minotaur/${motion}-"), "Minotaur frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/skeleton-cavalry/${motion}-"), "Skeleton Cavalry frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/soul-reaper/${motion}-"), "Soul Reaper frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/mummy-guardian/${motion}-"), "Mummy Guardian frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/doom-executor/${motion}-"), "Doom Executor frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/plague-frog/${motion}-"), "Plague Frog frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/plague-doctor/${motion}-"), "Plague Doctor frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/goblin-chief/${motion}-"), "Goblin Chief frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/grave-priest/${motion}-"), "Grave Priest frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/forest-fairy/${motion}-"), "Forest Fairy frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/mushroom-soldier/${motion}-"), "Mushroom Soldier frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/spider-knight/${motion}-"), "Spider Knight frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/skeleton-archer/${motion}-"), "Skeleton Archer frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/sea-wolf/${motion}-"), "Sea Wolf frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/abyss-eye/${motion}-"), "Abyss Eye frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/kraken/${motion}-"), "Kraken frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/raging-treant/${motion}-"), "Raging Treant frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/crystal-devourer/${motion}-"), "Crystal Devourer frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/grave-worm/${motion}-"), "Grave Worm frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/siren/${motion}-"), "Siren frame cache generator is missing.");
-assert(serviceWorker.includes("animation-test-frames/mimic/${motion}-"), "Mimic frame cache generator is missing.");
+// Frames are fetched on demand; file coverage above and test_v2_service_worker.js verify this contract.
 
 for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
   for (let index = 1; index <= count; index += 1) {
@@ -461,7 +430,8 @@ for (const [motion, count] of Object.entries({attack:5, hit:4, death:6})) {
   }
 }
 const rawSheets = [...serviceWorker.matchAll(/"\.\/([^"]*animation-sheets\/uploaded-raw[^"]*)"/g)].map(match=>match[1]);
-assert(rawSheets.length===1 && rawSheets[0]===require("./v2-dracula-frames").SHEET, "Only the active Dracula loader's source sheet may remain cached.");
+assert(rawSheets.every(sheet => sheet === require("./v2-dracula-frames").SHEET), "Retired raw sheets must not be precached.");
+assert(fs.existsSync(require("./v2-dracula-frames").SHEET.split("?")[0]), "The on-demand Dracula source sheet must exist.");
 assert(!serviceWorker.includes("animation-test-crops"), "Deleted comparison crops remain in offline cache.");
 for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$/gm)) {
   assert(fs.existsSync(path.join(root, match[1].slice(2))), `Offline static asset is missing: ${match[1]}`);
@@ -469,7 +439,7 @@ for (const match of serviceWorker.matchAll(/^\s*"(\.\/[^"?]+)(?:\?[^\"]*)?"[,]?$
 
 assert(practiceHtml.includes('data-unit="cerberus"'), "Cerberus picker is missing.");
 assert(practiceSource.includes('"cerberus": { name: "케르베로스", root: "art/v2-style/animation-test-frames/cerberus/", counts: { attack: 5, hit: 4, death: 6 } }'), "Cerberus frame counts are incorrect.");
-assert(serviceWorker.includes("animation-test-frames/cerberus/${motion}-"), "Cerberus cache generator is missing.");
+// Frames are fetched on demand; file coverage above and test_v2_service_worker.js verify this contract.
 for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
   for (let index = 1; index <= count; index += 1) {
     const relative = `art/v2-style/animation-test-frames/cerberus/${motion}-${String(index).padStart(2, "0")}.png`;
@@ -481,7 +451,7 @@ for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
 }
 assert(practiceHtml.includes('data-unit="spiderling"'), "Spiderling picker is missing.");
 assert(practiceSource.includes('"spiderling": { name: "새끼거미", root: "art/v2-style/animation-test-frames/spiderling/", counts: { attack: 5, hit: 4, death: 6 } }'), "Spiderling must exclude hit 5.");
-assert(serviceWorker.includes("animation-test-frames/spiderling/${motion}-"), "Spiderling cache generator is missing.");
+// Frames are fetched on demand; file coverage above and test_v2_service_worker.js verify this contract.
 assert(!fs.existsSync(path.join(root, "art/v2-style/animation-test-frames/spiderling/hit-05.png")), "Excluded hit 5 must not be exported.");
 for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
   for (let index = 1; index <= count; index += 1) {
@@ -493,7 +463,7 @@ for (const [motion, count] of Object.entries({ attack: 5, hit: 4, death: 6 })) {
 }
 assert(practiceHtml.includes('data-unit="flesh-golem"'), "Flesh Golem picker is missing.");
 assert(practiceSource.includes('"flesh-golem": { name: "누더기 포식자", root: "art/v2-style/animation-test-frames/flesh-golem/", counts: { attack: 5, hit: 5, death: 5 }, deathFrames: [1, 2, 3, 5, 6] }'), "Flesh Golem must skip original death frame 4 and preserve five hit frames.");
-assert(serviceWorker.includes("animation-test-frames/flesh-golem/${motion}-"), "Flesh Golem cache generator is missing.");
+// Frames are fetched on demand; file coverage above and test_v2_service_worker.js verify this contract.
 for (const [motion, count] of Object.entries({ attack: 5, hit: 5, death: 6 })) {
   for (let index = 1; index <= count; index += 1) {
     const relative = `art/v2-style/animation-test-frames/flesh-golem/${motion}-${String(index).padStart(2, "0")}.png`;
@@ -504,7 +474,7 @@ for (const [motion, count] of Object.entries({ attack: 5, hit: 5, death: 6 })) {
 }
 assert(practiceHtml.includes('data-unit="abyss-claw-hunter"'), "Abyss Claw Hunter picker is missing.");
 assert(practiceSource.includes('"abyss-claw-hunter": { name: "심연 집게사냥꾼", root: "art/v2-style/animation-test-frames/abyss-claw-hunter/", counts: { attack: 5, hit: 4, death: 5 } }'), "Abyss Claw Hunter frame counts are incorrect.");
-assert(serviceWorker.includes("animation-test-frames/abyss-claw-hunter/${motion}-"), "Abyss Claw Hunter cache generator is missing.");
+// Frames are fetched on demand; file coverage above and test_v2_service_worker.js verify this contract.
 assert(abyssClawHunterProcessor.includes("BuildAttackThree") && abyssClawHunterProcessor.includes('graphics.DrawImageUnscaled(originalBody, 0, 0);') && abyssClawHunterProcessor.includes('SaveFrame(attackThree, new Rectangle(0, 0, attackThree.Width, attackThree.Height), outputDirectory, "attack", 3, false);'), "Attack frame 3 must preserve the uploaded body, add only the repaired raised pincer, and use the requested flipped direction.");
 assert(abyssClawHunterProcessor.includes('SaveFrame(sheet, attack[0], outputDirectory, "attack", 1, true);') && abyssClawHunterProcessor.includes('SaveFrame(sheet, hit[0], outputDirectory, "hit", 1, true);'), "Mirrored source poses must be normalized to one direction.");
 assert(abyssClawHunterProcessor.includes('SaveFrame(sheet, attack[4], outputDirectory, "attack", 5, true);'), "Attack frame 5 must be mirrored to the canonical direction.");
@@ -521,7 +491,7 @@ assert(fs.existsSync(path.join(root, "art/v2-style/animation-sheets/green-raw/ab
 assert(fs.existsSync(path.join(root, "art/v2-style/processed/192/abyss-claw-hunter.png")), "Abyss Claw Hunter portrait is missing.");
 assert(practiceHtml.includes('data-unit="corpse-slime"'), "Corpse Slime picker is missing.");
 assert(practiceSource.includes('"corpse-slime": { name: "시체 슬라임", root: "art/v2-style/animation-test-frames/corpse-slime/", counts: { attack: 7, hit: 4, death: 5 } }'), "Corpse Slime frame counts are incorrect.");
-assert(serviceWorker.includes("animation-test-frames/corpse-slime/${motion}-"), "Corpse Slime cache generator is missing.");
+// Frames are fetched on demand; file coverage above and test_v2_service_worker.js verify this contract.
 assert(corpseSlimeProcessor.includes("Rectangle[] attack = { row1col2, row2col2, row2col3, row1col4, row1col5, row2col3, row1col2 }"), "Corpse Slime attack sequence must match the requested cells.");
 assert(corpseSlimeProcessor.includes("Rectangle[] hit = { row2col1, row1col3, row2col4, row1col3 }"), "Corpse Slime hit sequence must match the requested cells.");
 for (const [motion, count] of Object.entries({ attack: 7, hit: 4, death: 5 })) {

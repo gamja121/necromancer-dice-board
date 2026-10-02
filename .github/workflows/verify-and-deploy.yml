@@ -20,23 +20,22 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --ignore-scripts
-      - name: Mandatory 2026-10-02 regression checks
-        run: |
-          node --check service-worker.js
-          node --check v2-map-practice.js
-          node --check v2-auto-battle-practice.js
-          node --check v2-music.js
-          node --check v2-sfx.js
-          node test_today_20261002.js
-          node test_v2_unit_cards.js
-          node test_v2_brand_inheritance_policy.js
-          node test_v2_sfx.js
-      - name: Full legacy suite (informational)
-        continue-on-error: true
+      - name: Mandatory full regression suite
         run: npm test
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
       - name: Browser smoke test
-        if: false
-        run: echo "Temporarily disabled to unblock Pages deployment."
+        timeout-minutes: 5
+        run: |
+          node scripts/v2-dev-server.js > /tmp/v2-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" || true' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://localhost:8788/ > /dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://localhost:8788/ > /dev/null
+          npm run test:browser
       - name: Assemble Pages artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: node scripts/build-pages.js

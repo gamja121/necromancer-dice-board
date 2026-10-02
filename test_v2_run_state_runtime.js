@@ -23,7 +23,7 @@ for (const file of ["v2-run-state.js?v=4", "v2-run-state-runtime.js?v=8"]) {
 }
 assert(mapHtml.indexOf("v2-run-state-runtime.js?v=8") < mapHtml.indexOf("v2-brand-cards.js?v=6"),
   "RunState runtime must load before brand/home/map consumers.");
-assert(battleHtml.indexOf("v2-run-state-runtime.js?v=8") < battleHtml.indexOf("v2-auto-battle-practice.js?v=127"),
+assert(battleHtml.indexOf("v2-run-state-runtime.js?v=8") < battleHtml.indexOf("v2-auto-battle-practice.js?"),
   "RunState runtime must load before the battle controller.");
 
 for (const token of ["ensureFreshDefaults", "projectLegacy", "commitExact", "applyBattleOutcome", "setMapLayout", "setMapProgress", "setBattleCheckpoint", "clearBattleCheckpoint", "atomicRosterAndBrands", "normalizePolicyState", "normalizePolicyBrandCard"]) {
@@ -38,7 +38,7 @@ assert(home.includes('saveOwnedUnits("monster-inheritance")'), "Monster inherita
 assert(altar.includes("V2RunStateRuntime.replaceOwnedMonsters"), "Altar sacrifice/enhancement must persist through RunState.");
 assert(battle.includes("V2RunStateRuntime.applyBattleOutcome"), "Battle finish must atomically persist HP/death/contamination/cleared tile.");
 assert(battleHtml.includes("v2-battle-rng.js?v=1") && worker.includes("v2-battle-rng.js?v=1") &&
-  battleHtml.indexOf("v2-battle-rng.js?v=1") < battleHtml.indexOf("v2-auto-battle-practice.js?v=127"),
+  battleHtml.indexOf("v2-battle-rng.js?v=1") < battleHtml.indexOf("v2-auto-battle-practice.js?"),
   "Serializable battle RNG must load and cache before the battle controller.");
 assert(battle.includes("rng: battleRng.snapshot()") && battle.includes("V2BattleRng.restore(saved.rng)") &&
   battle.includes("V2Rules.restore(saved.state, battleRandom)") && battle.includes("V2Rules.create(units, battleRandom)"),
