@@ -32,16 +32,16 @@
   });
   const tileTypes = [
     { id: "basic", name: "기본 타일", count: 2 },
-    { id: "graveyard", name: "공동묘지 타일", count: 2 },
+    { id: "graveyard", name: "공동묘지 타일", count: 1 },
     { id: "altar", name: "제단 타일", count: 1 },
     { id: "unknown", name: "세계수 타일", count: 1 },
-    { id: "forest", name: "언덕 타일", count: 2 },
+    { id: "forest", name: "언덕 타일", count: 1 },
     { id: "rest", name: "휴식 타일", count: 2 },
-    { id: "monster", name: "일반 마물 타일", count: 2 },
+    { id: "monster", name: "일반 마물 타일", count: 3 },
     { id: "rare-monster", name: "희귀 마물 타일", count: 1 },
     { id: "gem", name: "보석 타일", count: 1 },
     { id: "event", name: "이벤트 타일", count: 2 },
-    { id: "swamp", name: "오염된 늪지대", count: 1 },
+    { id: "swamp", name: "오염된 늪지대", count: 2 },
     { id: "warp", name: "워프 타일", count: 2 }
   ];
   const fixedTiles = Object.freeze({
