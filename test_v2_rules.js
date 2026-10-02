@@ -10,20 +10,14 @@ for(const slug of Object.keys(D.units))for(let i=0;i<100;i++){
 }
 for(const type of Object.keys(R.definitions))for(let i=0;i<1000;i++)assert(R.validateBrand(R.brand(type,rng)));
 {
- const a=unit('hydra'),d=unit('siren');d.brands=[b('freeze')];R.inherit(a,d,0);assert.deepEqual(a.brands,[b('freeze')]);assert.equal(d.brands.length,0);assert.deepEqual(JSON.parse(JSON.stringify(a)).brands,a.brands);
+ const a=unit('hydra'),d=unit('siren');d.brands=[b('freeze')];R.inherit(a,d,0);assert.deepEqual(a.brands,[b('freeze',[4],[])]);assert.equal(d.brands.length,0);assert.deepEqual(JSON.parse(JSON.stringify(a)).brands,a.brands);
  a.brands=[b('freeze'),b('freeze'),b('freeze')];d.brands=[b('freeze')];assert.throws(()=>R.inherit(a,d,0));
- a.brands=[];d.brands=[b('freeze',[4],[1])];R.inherit(a,d,0,'bless');assert.deepEqual(a.brands,[b('freeze',[4],[])]);assert(R.validateBrand(a.brands[0]));
- a.brands=[];d.brands=[b('freeze',[4],[1])];R.inherit(a,d,0,'curse');assert.deepEqual(a.brands,[b('freeze',[],[1])]);assert(R.validateBrand(a.brands[0]));
- a.brands=[];d.brands=[b('freeze',[4],[1])];R.inherit(a,d,0,'both');assert.deepEqual(a.brands,[b('freeze',[4],[1])]);
+ a.brands=[];d.brands=[b('freeze',[4],[1])];R.inherit(a,d,0);assert.deepEqual(a.brands,[b('freeze',[4],[])]);assert(R.validateBrand(a.brands[0]));
  assert(!R.validateBrand(b('freeze',[],[])));
  assert(!R.validateBrand(b('freeze',[4],[4])));
  assert.equal(R.inheritancePart(b('freeze'),()=>0),'bless');
- assert.equal(R.inheritancePart(b('freeze'),()=>.499),'bless');
- assert.equal(R.inheritancePart(b('freeze'),()=>.5),'both');
- assert.equal(R.inheritancePart(b('freeze'),()=>.799),'both');
- assert.equal(R.inheritancePart(b('freeze'),()=>.8),'curse');
- assert.equal(R.inheritancePart(b('freeze',[4],[]),()=>.9),'bless');
- assert.equal(R.inheritancePart(b('freeze',[],[1]),()=>.1),'curse');
+ assert.equal(R.inheritancePart(b('freeze'),()=>.5),'bless');
+ assert.equal(R.inheritancePart(b('freeze',[],[1]),()=>.9),'bless');
 }
 {
  const a=unit('hydra','ally',0,null,[b('critical'),b('critical'),b('combo')]),t=unit('hydra','enemy');t.maxHp=100;
