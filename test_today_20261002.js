@@ -103,10 +103,10 @@ assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
 assert(mapHtml.includes("v2-map-practice.js?v=111"));
-assert(battleHtml.includes("v2-auto-battle-practice.js?v=125"));
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=126"));
 for (const required of [
   "./v2-map-practice.js?v=111",
-  "./v2-auto-battle-practice.js?v=125",
+  "./v2-auto-battle-practice.js?v=126",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
   "./v2-sfx.js?v=4",
@@ -126,3 +126,8 @@ assert(!mapCss.includes(".map-options-button { visibility: hidden; }"));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
 assert(mapHtml.includes("v2-map-practice.css?v=20261002-options-visible-2"));
 assert(worker.includes("./v2-map-practice.css?v=20261002-options-visible-2"));
+
+assert(battle.includes('makeState(data, "enemy", 3 - index)'));
+assert(!battle.includes('makeState(data, "enemy", index)'));
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=126"));
+assert(worker.includes("./v2-auto-battle-practice.js?v=126"));
