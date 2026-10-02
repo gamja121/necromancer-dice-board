@@ -16,17 +16,17 @@ const mapHtml = fs.readFileSync(path.join(root, "v2-map-practice.html"), "utf8")
 const battleHtml = fs.readFileSync(path.join(root, "v2-auto-battle-practice.html"), "utf8");
 const worker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
 
-for (const file of ["v2-run-state.js?v=1", "v2-run-state-runtime.js?v=1"]) {
+for (const file of ["v2-run-state.js?v=4", "v2-run-state-runtime.js?v=8"]) {
   assert(mapHtml.includes(file), `Map HTML missing ${file}`);
   assert(battleHtml.includes(file), `Battle HTML missing ${file}`);
   assert(worker.includes(file), `Service worker missing ${file}`);
 }
-assert(mapHtml.indexOf("v2-run-state-runtime.js?v=1") < mapHtml.indexOf("v2-brand-cards.js?v=4"),
+assert(mapHtml.indexOf("v2-run-state-runtime.js?v=8") < mapHtml.indexOf("v2-brand-cards.js?v=6"),
   "RunState runtime must load before brand/home/map consumers.");
-assert(battleHtml.indexOf("v2-run-state-runtime.js?v=1") < battleHtml.indexOf("v2-auto-battle-practice.js?v=108"),
+assert(battleHtml.indexOf("v2-run-state-runtime.js?v=8") < battleHtml.indexOf("v2-auto-battle-practice.js?v=127"),
   "RunState runtime must load before the battle controller.");
 
-for (const token of ["ensureFreshDefaults", "projectLegacy", "commitExact", "applyBattleOutcome", "setMapLayout", "setMapProgress", "setBattleCheckpoint", "clearBattleCheckpoint", "atomicRosterAndBrands"]) {
+for (const token of ["ensureFreshDefaults", "projectLegacy", "commitExact", "applyBattleOutcome", "setMapLayout", "setMapProgress", "setBattleCheckpoint", "clearBattleCheckpoint", "atomicRosterAndBrands", "normalizePolicyState", "normalizePolicyBrandCard"]) {
   assert(runtime.includes(token), `Runtime API missing ${token}`);
 }
 assert(map.includes("await V2RunStateRuntime.bootstrap()"), "Map must bootstrap RunState before reading expedition state.");
@@ -38,7 +38,7 @@ assert(home.includes('saveOwnedUnits("monster-inheritance")'), "Monster inherita
 assert(altar.includes("V2RunStateRuntime.replaceOwnedMonsters"), "Altar sacrifice/enhancement must persist through RunState.");
 assert(battle.includes("V2RunStateRuntime.applyBattleOutcome"), "Battle finish must atomically persist HP/death/contamination/cleared tile.");
 assert(battleHtml.includes("v2-battle-rng.js?v=1") && worker.includes("v2-battle-rng.js?v=1") &&
-  battleHtml.indexOf("v2-battle-rng.js?v=1") < battleHtml.indexOf("v2-auto-battle-practice.js?v=108"),
+  battleHtml.indexOf("v2-battle-rng.js?v=1") < battleHtml.indexOf("v2-auto-battle-practice.js?v=127"),
   "Serializable battle RNG must load and cache before the battle controller.");
 assert(battle.includes("rng: battleRng.snapshot()") && battle.includes("V2BattleRng.restore(saved.rng)") &&
   battle.includes("V2Rules.restore(saved.state, battleRandom)") && battle.includes("V2Rules.create(units, battleRandom)"),
@@ -79,3 +79,10 @@ assert(swampMapSource.includes('unit.currentHp = hp - 1'));
 assert(!swampMapSource.includes('ownedUnits.delete(instanceId)') || !swampMapSource.slice(swampMapSource.indexOf('async function applyPollutedSwamp'), swampMapSource.indexOf('function addOwnedUnit')).includes('ownedUnits.delete'));
 assert(swampMapSource.includes('playSwampDamageEffect()'));
 assert(swampMapHtml.includes('swamp-damage-minus1.svg?v=1'));
+
+assert(runtime.includes("state.battle.state.units = state.battle.state.units.map(normalizePolicyUnit)"),
+  "RunState must normalize old battle checkpoint brands at the storage boundary.");
+assert(runtime.includes('"brand-policy-migration-v1"'),
+  "RunState bootstrap must persist the one-time brand policy migration.");
+assert(runtime.includes("curse: []"),
+  "RunState brand-card normalization must force blessing-only storage.");
