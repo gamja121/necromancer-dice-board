@@ -51,6 +51,9 @@
     if (Array.isArray(state.ownedMonsters)) state.ownedMonsters = state.ownedMonsters.map(normalizePolicyUnit);
     if (Array.isArray(state.graveyardCorpses)) state.graveyardCorpses = state.graveyardCorpses.map(normalizePolicyUnit);
     if (Array.isArray(state.brandCards)) state.brandCards = state.brandCards.map(normalizePolicyBrandCard).filter(Boolean);
+    if (Array.isArray(state.battle?.state?.units)) {
+      state.battle.state.units = state.battle.state.units.map(normalizePolicyUnit);
+    }
     return state;
   }
 
