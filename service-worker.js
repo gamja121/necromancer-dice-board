@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261002-brand-policy-2";
+const CACHE_NAME = "necromancer-and-dice-v2-20261002-brand-policy-audit-1";
 
 const CORE_ASSETS = [
   "./",
@@ -59,12 +59,12 @@ const CORE_ASSETS = [
   "./art/v2-style/battle-backgrounds/uploaded-raw/haunted-forest-ruins-battlefield.jpg",
   "./art/v2-style/battle-backgrounds/uploaded-raw/necropolis-pyramids-battlefield.jpg",
   "./v2-run-state.js?v=4",
-  "./v2-run-state-runtime.js?v=6",
+  "./v2-run-state-runtime.js?v=7",
   "./v2-presentation.js?v=1",
   "./v2-presentation-rail.js?v=2",
   "./v2-brand-cards.js?v=6",
   "./v2-home-inheritance.js?v=16",
-  "./v2-altar-ritual.js?v=4",
+  "./v2-altar-ritual.js?v=5",
   "./v2-dice-control.js?v=1",
   "./v2-world-tree-prayer-digits.js?v=2",
   "./art/v2-style/map-test/maps/default-map.jpg",
