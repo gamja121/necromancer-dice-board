@@ -16,12 +16,12 @@ require('./test_v2_rules_ui');
   assert(css.includes('.ally-team .unit[data-slot="0"] { grid-column: 4;') &&
          css.includes('.ally-team .unit[data-slot="3"] { grid-column: 1;'),
     "Ally battlefield visual order must match the deck-selection screen order");
-  assert(css.includes('.enemy-team .unit[data-slot="0"] { grid-column: 2;'),
-    "Enemy front/near slot must be the leftmost regular enemy position");
+  assert(css.includes('.enemy-team .unit[data-slot="3"] { grid-column: 5;'),
+    "Enemy first occupied slot must be the far/right edge position");
   assert(js.includes('makeState(data, "ally", 3 - index)'),
     "Allies must fill from the right/near side outward");
-  assert(js.includes('makeState(data, "enemy", index)'),
-    "Enemies must fill from the left/near side outward");
+  assert(js.includes('makeState(data, "enemy", 3 - index)'),
+    "Enemies must fill from the far/right edge inward");
   assert(js.includes('const allies = units.filter(unitState => unitState.team === "ally").sort((a, b) => b.slot - a.slot);'),
     "Ally intro must reveal from the right/near side outward");
   assert(js.includes('element.className = unitState.team === "ally" ? "unit is-pending" : "unit";'),
