@@ -204,7 +204,12 @@
   function restore(data,rng=Math.random){
     if(data?.version!==1||!Array.isArray(data.units)||data.units.length>10||!Number.isInteger(data.round)||data.round<0)throw Error('Unsupported battle save');
     const copy=JSON.parse(JSON.stringify(data)),seen=new Set();
-    for(const u of copy.units){const id=u.team+':'+u.slot;if(!D.units[u.slug]||!['ally','enemy'].includes(u.team)||!Number.isInteger(u.slot)||u.slot<0||u.slot>4||seen.has(id)||!Number.isFinite(u.hp)||u.hp<0||u.hp>u.maxHp||u.alive!==(u.hp>0)||!Array.isArray(u.brands)||u.brands.length>3||!u.brands.every(validateBrand))throw Error('Invalid battle save');seen.add(id);}
+    for(const u of copy.units){
+      if(D.units[u.slug])u.brands=normalizeUnitBrands(u);
+      const id=u.team+':'+u.slot;
+      if(!D.units[u.slug]||!['ally','enemy'].includes(u.team)||!Number.isInteger(u.slot)||u.slot<0||u.slot>4||seen.has(id)||!Number.isFinite(u.hp)||u.hp<0||u.hp>u.maxHp||u.alive!==(u.hp>0)||!Array.isArray(u.brands)||u.brands.length>3||!u.brands.every(validateBrand))throw Error('Invalid battle save');
+      seen.add(id);
+    }
     const s={units:copy.units,round:copy.round,rng,events:[],last:copy.units[copy.last]||null,legions:{teams:Object.fromEntries(Object.entries(copy.legions).map(([k,v])=>[k,{counts:v.counts,active:new Set(v.active)}]))}};
     for(const u of s.units){u.poisonStacks=(u.poisonStacks||[]).map(p=>({remaining:p.remaining,source:s.units[p.source]||null}));u.poison=u.poisonStacks.length;}
     refresh(s);return s;
