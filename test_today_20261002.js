@@ -5,6 +5,9 @@ const read = (file) => fs.readFileSync(file, "utf8").replace(/\r\n/g, "\n");
 
 const index = read("index.html");
 const launch = read("launch.js");
+const introHtml = read("v2-intro.html");
+const introCss = read("v2-intro.css");
+const introJs = read("v2-intro.js");
 const battle = read("v2-auto-battle-practice.js");
 const battleHtml = read("v2-auto-battle-practice.html");
 const battleCss = read("v2-auto-battle-practice.css");
@@ -31,6 +34,15 @@ for (const href of [
   "v2-sfx-sampler.html"
 ]) assert(index.includes(href), "Missing test menu link: " + href);
 assert(launch.includes("testLinks.forEach"));
+assert(launch.includes('fadeTo("v2-intro.html")'), "New Game must enter the prologue before the map");
+assert(introHtml.includes('art/v2-style/event-portraits/necromancer.png'));
+assert(introHtml.includes('art/v2-style/event-portraits/knight-commander.png'));
+assert(introHtml.includes('쿵쾅쾅.'));
+assert(introJs.includes('{ speaker: "주인공", text: "..." }'));
+assert(!introJs.match(/speaker: "주인공", text: "(?!\.\.\.)/), "Every protagonist dialogue line must stay silent");
+assert(introJs.includes('오늘부터 네게 외곽 순찰 임무를 맡기겠다.'));
+assert(introJs.includes('location.href = "v2-map-practice.html"'));
+assert(introCss.includes(".dialogue-box"));
 
 // Rotated-mobile card placement.
 assert(cards.includes("offsetLeft") && cards.includes("offsetParent"));
@@ -109,6 +121,11 @@ assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 assert(mapHtml.includes("v2-map-practice.js?v=114"));
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=129"));
 for (const required of [
+  "./v2-intro.html",
+  "./v2-intro.css?v=1",
+  "./v2-intro.js?v=1",
+  "./art/v2-style/event-portraits/necromancer.png",
+  "./art/v2-style/event-portraits/knight-commander.png",
   "./v2-map-practice.js?v=114",
   "./v2-auto-battle-practice.js?v=129",
   "./v2-heal-effect.js?v=1",
