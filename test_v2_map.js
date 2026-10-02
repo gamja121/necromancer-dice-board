@@ -90,7 +90,7 @@ assert(source.includes('Object.values(globalThis.V2DesignData?.units || {})') &&
   "Map monster/reward pool must include every non-summon design monster.");
 assert(source.includes('const SCOUT_ENEMY_SLUGS = Object.freeze(TEST_DECK.map((unit) => unit.slug))'),
   "Hill scouting must use the same full monster pool.");
-assert(source.includes('{ id: "swamp", name: "오염된 늪지대", count: 1 }'), "Polluted swamp must occupy one map tile.");
+assert(source.includes('{ id: "swamp", name: "오염된 늪지대", count: 2 }'), "Polluted swamp must occupy two map tiles.");
 assert(source.includes('applyPollutedSwamp(heroIndex + 1)') && source.includes('unit.currentHp = hp - 1') && source.includes('if (hp <= 1)'), "Landing on polluted swamp must damage every owned monster by 1.");
 assert(source.includes('saveOwnedRoster("polluted-swamp")'), "Polluted swamp damage must persist immediately.");
 const eventScenes = {
