@@ -15,6 +15,8 @@
   music.volume = track.volume;
   let wanted = true;
   let started = false;
+  const MAP_POSITION_KEY = "necromancer-v2-music-map-position";
+  let pendingResumeTime = null;
 
   const unlockEvents = ["pointerdown", "touchstart", "click", "keydown"];
   function unbindUnlock() {
@@ -25,8 +27,22 @@
     unlockEvents.forEach(type => document.addEventListener(type, requestStart, { capture: true, passive: type === "touchstart" }));
   }
 
+  function applyPendingResume() {
+    if (!Number.isFinite(pendingResumeTime) || pendingResumeTime < 0) return false;
+    let target = pendingResumeTime;
+    if (Number.isFinite(music.duration) && music.duration > 0) target %= music.duration;
+    try {
+      music.currentTime = target;
+      pendingResumeTime = null;
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   function requestStart() {
     if (!wanted || document.hidden) return Promise.resolve(false);
+    applyPendingResume();
     music.volume = track.volume;
     const attempt = music.play();
     if (!attempt?.then) { started = true; unbindUnlock(); return Promise.resolve(true); }
@@ -52,7 +68,12 @@
   }
 
   function handoff(nextTrack) {
-    try { sessionStorage.setItem("necromancer-v2-music-handoff", nextTrack || ""); } catch (_) {}
+    try {
+      if (trackName === "map" && nextTrack === "battle") {
+        sessionStorage.setItem(MAP_POSITION_KEY, String(Math.max(0, music.currentTime || 0)));
+      }
+      sessionStorage.setItem("necromancer-v2-music-handoff", nextTrack || "");
+    } catch (_) {}
     stop();
   }
 
@@ -62,11 +83,18 @@
   }
 
   try {
-    if (sessionStorage.getItem("necromancer-v2-music-handoff") === trackName) {
+    const incomingHandoff = sessionStorage.getItem("necromancer-v2-music-handoff");
+    if (incomingHandoff === trackName) {
       sessionStorage.removeItem("necromancer-v2-music-handoff");
+      if (trackName === "map") {
+        const savedTime = Number(sessionStorage.getItem(MAP_POSITION_KEY));
+        if (Number.isFinite(savedTime) && savedTime >= 0) pendingResumeTime = savedTime;
+        sessionStorage.removeItem(MAP_POSITION_KEY);
+      }
     }
   } catch (_) {}
 
+  music.addEventListener("loadedmetadata", applyPendingResume, { once: true });
   bindUnlock();
   requestStart();
   document.addEventListener("visibilitychange", onVisibilityChange);
