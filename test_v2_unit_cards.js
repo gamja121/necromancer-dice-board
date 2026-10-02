@@ -80,3 +80,27 @@ assert(cardSource.includes('offsetLeft') && cardSource.includes('offsetParent'),
   'Battle card alignment must use battlefield-local offsets, not viewport coordinates.');
 assert(!cardSource.includes("anchor.getBoundingClientRect()"),
   'Rotated mobile battle card alignment must not use viewport getBoundingClientRect coordinates.');
+
+
+/* enemy edge-first card fallback alignment */
+{
+  const field2 = node();
+  const makeEnemy = (slot, slug) => ({
+    slug, slot, team:'enemy', name:slug, alive:true, hp:5, maxHp:5, portrait:'fallback.png'
+  });
+  const cases = [
+    [makeEnemy(3, 'skeleton-spear')],
+    [makeEnemy(3, 'skeleton-spear'), makeEnemy(2, 'skeleton-archer')],
+    [makeEnemy(3, 'skeleton-spear'), makeEnemy(2, 'skeleton-archer'), makeEnemy(1, 'skeleton-cavalry')],
+    [makeEnemy(3, 'skeleton-spear'), makeEnemy(2, 'skeleton-archer'), makeEnemy(1, 'skeleton-cavalry'), makeEnemy(0, 'bone-hound')]
+  ];
+  const expected = {3:'93.2%', 2:'83.6%', 1:'74%', 0:'64.4%'};
+  for (const lineup of cases) {
+    api.sync(field2, lineup, () => {});
+    for (const unit of lineup) {
+      assert.equal(unit.infoCard.style.left, expected[unit.slot],
+        'Enemy card must follow edge-first battlefield slot ' + unit.slot);
+    }
+  }
+}
+console.log('PASS: enemy 1-4 unit cards follow the same edge-first formation as battlefield units');
