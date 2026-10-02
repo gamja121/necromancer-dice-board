@@ -147,3 +147,16 @@ assert(battleHtml.includes("v2-rules.js?v=8"));
 assert(worker.includes("./v2-rules.js?v=8"));
 assert(worker.includes("./v2-brand-cards.js?v=6"));
 assert(worker.includes("./v2-home-inheritance.js?v=16"));
+
+const runtimePolicySource = read("v2-run-state-runtime.js");
+assert(runtimePolicySource.includes("function normalizePolicyState(state)"));
+assert(runtimePolicySource.includes("function normalizePolicyBrandCard(card)"));
+assert(runtimePolicySource.includes('"brand-policy-migration-v1"'));
+assert(runtimePolicySource.includes("normalizePolicyState(draft)"));
+assert(runtimePolicySource.includes("state.graveyardCorpses = state.graveyardCorpses.map(normalizePolicyUnit)"));
+assert(runtimePolicySource.includes("curse: []"));
+assert(mapHtml.includes("v2-run-state-runtime.js?v=7"));
+assert(battleHtml.includes("v2-run-state-runtime.js?v=7"));
+assert(mapHtml.includes("v2-altar-ritual.js?v=5"));
+assert(worker.includes("./v2-run-state-runtime.js?v=7"));
+assert(worker.includes("./v2-altar-ritual.js?v=5"));
