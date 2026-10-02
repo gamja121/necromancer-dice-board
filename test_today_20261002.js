@@ -42,7 +42,7 @@ assert(introJs.includes('{ speaker: "주인공", text: "..." }'));
 assert(!introJs.match(/speaker: "주인공", text: "(?!\.\.\.)/), "Every protagonist dialogue line must stay silent");
 assert(introJs.includes('오늘부터 네게 외곽 순찰 임무를 맡기겠다.'));
 assert(introJs.includes('location.href = "v2-map-practice.html"'));
-assert(introCss.includes(".dialogue-box"));
+assert(introCss.includes(".dialogue-copy"), "Dialogue text must overlay the parchment in the HD composite scene");
 assert(introHtml.includes('v2-landscape.js?v=1'), "Prologue must use landscape helper");
 assert(introHtml.includes('id="introSceneArt"'), "Prologue must render the HD composite scene");
 assert(introCss.includes("@media (orientation:portrait)"), "Prologue needs portrait-to-landscape CSS fallback");
