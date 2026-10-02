@@ -90,3 +90,26 @@ assert.equal(legacyCards.length, 1);
 assert.deepEqual(legacyCards[0].brand, { type: "critical", bless: [3], curse: [] });
 
 console.log("PASS: base curse only, blessing-only inheritance/cards, duplicate face curse priority.");
+
+
+// 6) Old battle checkpoints must be normalized at restore time too.
+{
+  const native = nativeBrandSlug("critical");
+  const enemySlug = Object.keys(D.units).find((slug) => D.units[slug].grade !== "special" && slug !== native);
+  const ally = {
+    ...R.individual(native, () => 0.2),
+    team: "ally",
+    slot: 0,
+    brands: [
+      { type: "critical", bless: [2], curse: [6] },
+      { type: "healing", bless: [6], curse: [1] }
+    ]
+  };
+  const enemy = { ...R.individual(enemySlug, () => 0.3), team: "enemy", slot: 0, brands: [] };
+  const state = R.create([ally, enemy], () => 0.4);
+  const snap = R.snapshot(state);
+  snap.units[0].brands[1] = { type: "healing", bless: [6], curse: [1] };
+  const restored = R.restore(snap, () => 0.4);
+  assert.equal(restored.units[0].brands.length, 1);
+}
+console.log("PASS: Legacy battle snapshots normalize inherited curses on restore.");
