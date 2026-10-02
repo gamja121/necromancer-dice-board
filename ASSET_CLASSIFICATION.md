@@ -110,7 +110,7 @@
 3. `animation-test-frames/`와 `dice-test/frames/`는 **이름과 무관하게 Runtime 유지**
 4. D의 JPG/PNG/WEBP 중복을 파일별 참조 검사
 5. A는 경로 구조를 바꾸지 않고 그대로 유지
-6. Unity 전환 시 최종적으로 `Runtime/`, `Source/`, `DevOnly/` 구조로 재편
+6. Godot 전환 시 최종적으로 `Runtime/`, `Source/`, `DevOnly/` 구조로 재편
 
 ## 자동 검수 도구
 
@@ -142,7 +142,7 @@ art/
 ```
 
 현재 웹 프로토타입에서는 경로 변경 위험이 크므로 **지금 바로 실제 이동하지 않고 분류표를 먼저 기준으로 삼는다.**
-Unity 이관 시 위 구조로 옮기는 것이 가장 안전하다.
+Godot 이관 시 위 구조로 옮기는 것이 가장 안전하다.
 
 
 ## 2026-10-01 재검사 메모
