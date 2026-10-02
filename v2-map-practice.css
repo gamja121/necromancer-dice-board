@@ -65,9 +65,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .contamination-test-presets { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; }
 .contamination-test-presets button { min-width: 0; height: clamp(20px, 2.4vw, 27px); padding: 0 3px; border: 1px solid #72583f; border-radius: 3px; background: #241710; color: #e6d3b3; font-size: clamp(7px, .78vw, 9px); font-weight: 900; cursor: pointer; }
 .contamination-test-presets button.is-active { border-color: #d18a50; background: #5b241d; color: #fff0cc; box-shadow: 0 0 7px #b63c2b66; }
-.map-board.is-tile-event-open .contamination-test-control, .map-board.is-tile-event-open .contamination-test-toggle, .map-board.is-tile-event-open .map-options-button { visibility: hidden; }
-
-.tile-ring { position: absolute; z-index: 8; inset: 0; }
+.map-board.is-tile-event-open .contamination-test-control, .map-board.is-tile-event-open .contamination-test-toggle, .map-board.is-tile-event-open .tile-ring { position: absolute; z-index: 8; inset: 0; }
 .map-tile { position: absolute; left: var(--x); top: var(--y); width: 12.4%; aspect-ratio: 1.42; transform: translate(-50%, -50%); padding: 0; border: 0; background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .map-tile img { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 3px 3px #000b); transition: transform 120ms ease, filter 120ms ease; }
 .map-tile.is-selected { z-index: 4; }
