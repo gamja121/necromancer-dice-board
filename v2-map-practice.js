@@ -131,6 +131,7 @@
     tileName: document.getElementById("tileName"),
     regenerate: document.getElementById("regenerateButton"),
     hero: document.getElementById("heroToken"),
+    swampDamageOverlay: document.getElementById("swampDamageOverlay"),
     diceButton: document.getElementById("mapDiceButton"),
     diceImage: document.getElementById("mapDiceImage"),
     diceResult: document.getElementById("diceResult"),
@@ -398,32 +399,52 @@
     if (el.monsterCount) el.monsterCount.textContent = `${ownedUnits.size}/${MONSTER_CAPACITY}`;
     if (el.diceCardCount) el.diceCardCount.textContent = `${diceControlHand.length}/${DICE_CONTROL_CAPACITY}`;
   }
+  function playSwampDamageEffect() {
+    if (el.hero) {
+      el.hero.classList.remove("is-swamp-hit");
+      void el.hero.offsetWidth;
+      el.hero.classList.add("is-swamp-hit");
+      window.setTimeout(() => el.hero?.classList.remove("is-swamp-hit"), 680);
+    }
+    if (el.swampDamageOverlay) {
+      el.swampDamageOverlay.hidden = false;
+      el.swampDamageOverlay.classList.remove("is-showing");
+      void el.swampDamageOverlay.offsetWidth;
+      el.swampDamageOverlay.classList.add("is-showing");
+      window.setTimeout(() => {
+        el.swampDamageOverlay?.classList.remove("is-showing");
+        if (el.swampDamageOverlay) el.swampDamageOverlay.hidden = true;
+      }, 820);
+    }
+  }
+
   async function applyPollutedSwamp(step) {
     let damaged = 0;
-    const dead = [];
-    for (const [instanceId, unit] of [...ownedUnits.entries()]) {
+    let protectedAtOne = 0;
+    for (const unit of ownedUnits.values()) {
       const hp = Number.isFinite(unit.currentHp) ? unit.currentHp : unit.maxHp;
       if (!Number.isFinite(hp) || hp <= 0) continue;
-      unit.currentHp = Math.max(0, hp - 1);
-      damaged += 1;
-      if (unit.currentHp <= 0) {
-        dead.push(unit);
-        ownedUnits.delete(instanceId);
+      if (hp <= 1) {
+        unit.currentHp = 1;
+        protectedAtOne += 1;
+        continue;
       }
+      unit.currentHp = hp - 1;
+      damaged += 1;
     }
-    selectedDeck = selectedDeck.filter((instanceId) => ownedUnits.has(instanceId));
     const saved = await saveOwnedRoster("polluted-swamp");
     renderBookRoster();
     if (!el.deckOverlay.hidden) renderDeckSelection();
     renderInventoryCounts();
-    const deathText = dead.length ? ` · 사망 ${dead.length}마리` : "";
+    playSwampDamageEffect();
+
+    const protectedText = protectedAtOne ? ` · HP 1 유지 ${protectedAtOne}마리` : "";
     el.tileName.textContent = `${step}번 · 오염된 늪지대`;
     el.diceResult.textContent = damaged
-      ? `오염된 늪지대 · 모든 마물 HP -1${deathText}${saved ? "" : " · 저장 확인 필요"}`
-      : "오염된 늪지대 · 피해를 받을 마물이 없습니다";
-    return { damaged, dead: dead.length, saved };
+      ? `오염된 늪지대 · HP -1 (${damaged}마리)${protectedText}${saved ? "" : " · 저장 확인 필요"}`
+      : `오염된 늪지대 · HP 1 보호${protectedText}`;
+    return { damaged, protectedAtOne, saved };
   }
-
 
   function addOwnedUnit(slug) {
     if (!TEST_DECK.some((entry) => entry.slug === slug) || ownedUnits.size >= MONSTER_CAPACITY) return null;
