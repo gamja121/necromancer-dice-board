@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
   <title>네크로멘서 앤드 다이스 · 외곽 타일 맵 테스트</title>
-  <link rel="stylesheet" href="v2-map-practice.css?v=20261002-map-options-1">
+  <link rel="stylesheet" href="v2-map-practice.css?v=20261002-audio-options-1">
   <link rel="stylesheet" href="v2-home-inheritance.css?v=9">
   <link rel="stylesheet" href="v2-altar-ritual.css?v=5">
 </head>
@@ -29,9 +29,23 @@
         <a href="v2-tile-practice.html" aria-label="집 타일 기능 테스트 열기">집 테스트</a>
       </header>
       <div id="tileRing" class="tile-ring" aria-label="생성된 외곽 타일 24칸"></div>
-      <button id="mapOptionsButton" class="map-options-button" type="button" aria-label="옵션">
+      <button id="mapOptionsButton" class="map-options-button" type="button" aria-label="오디오 옵션" aria-controls="mapAudioOptions" aria-expanded="false">
         <img data-v2-src="art/v2-style/ui/map-options-button.webp?v=1" alt="">
       </button>
+      <section id="mapAudioOptions" class="map-audio-options" aria-label="오디오 옵션" hidden>
+        <div class="map-audio-options-head">
+          <strong>OPTION</strong>
+          <button id="mapAudioOptionsClose" type="button" aria-label="옵션 닫기">×</button>
+        </div>
+        <div class="map-audio-option-row">
+          <span>배경음악</span>
+          <button id="mapBgmToggle" type="button" aria-pressed="true">ON</button>
+        </div>
+        <div class="map-audio-option-row">
+          <span>효과음</span>
+          <button id="mapSfxToggle" type="button" aria-pressed="true">ON</button>
+        </div>
+      </section>
       <div id="heroToken" class="hero-token" aria-label="주인공 말, 현재 1번 타일">
         <img data-v2-src="art/v2-style/map-test/hero/necromancer-hero.png" alt="주인공 네크로맨서">
       </div>
@@ -295,8 +309,8 @@
   <aside class="portrait-warning" aria-hidden="true"></aside>
   <script src="v2-asset-loader.js?v=1"></script>
   <script src="v2-landscape.js?v=1"></script>
-  <script src="v2-music.js?v=2"></script>
-  <script src="v2-sfx.js?v=3"></script>
+  <script src="v2-music.js?v=3"></script>
+  <script src="v2-sfx.js?v=4"></script>
   <script src="v2-design-data.js?v=1"></script>
   <script src="v2-rules.js?v=7"></script>
   <script src="v2-run-state.js?v=4"></script>
@@ -308,6 +322,6 @@
   <script src="v2-world-tree-prayer-digits.js?v=2"></script>
   <script src="v2-event-data.js?v=1"></script>
   <script src="v2-map-events.js?v=1"></script>
-  <script src="v2-map-practice.js?v=103"></script>
+  <script src="v2-map-practice.js?v=104"></script>
 </body>
 </html>
