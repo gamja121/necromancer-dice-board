@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261002-brand-policy-audit-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261002-brand-policy-audit-2";
 
 const CORE_ASSETS = [
   "./",
@@ -44,7 +44,7 @@ const CORE_ASSETS = [
   "./v2-music.js?v=3",
   "./v2-sfx.js?v=4",
   "./v2-design-data.js?v=1",
-  "./v2-rules.js?v=8",
+  "./v2-rules.js?v=9",
   "./v2-battle-rng.js?v=1",
   "./v2-summon-effect.js?v=3",
   "./assets/music/map-board.mp3",
