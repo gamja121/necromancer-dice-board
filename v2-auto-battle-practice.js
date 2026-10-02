@@ -332,7 +332,10 @@
       return new Map(saved.filter((unit) => PLAYABLE_MONSTER_SLUGS.includes(unit?.slug) &&
         Number.isFinite(unit.maxHp) && Number.isFinite(unit.attack) && Number.isFinite(unit.speed) &&
         Array.isArray(unit.brands) && unit.brands.every(V2Rules.validateBrand))
-        .map((unit) => [unit.instanceId || unit.slug, unit]));
+        .map((unit) => {
+          const copy = { ...unit, brands: V2Rules.normalizeBrands(unit.brands) };
+          return [copy.instanceId || copy.slug, copy];
+        }));
     } catch (_) { return new Map(); }
   })();
 
