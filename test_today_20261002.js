@@ -89,6 +89,10 @@ assert(map.includes('window.addEventListener("v2-roster-changed"'));
 assert(map.includes("if (completedLap) {\n      addContamination(4);"));
 
 // Enemy count rules.
+assert(map.includes('{ id: "graveyard", name: "공동묘지 타일", count: 1 }'));
+assert(map.includes('{ id: "forest", name: "언덕 타일", count: 1 }'));
+assert(map.includes('{ id: "monster", name: "일반 마물 타일", count: 3 }'));
+assert(map.includes('{ id: "swamp", name: "오염된 늪지대", count: 2 }'));
 assert(map.includes("function currentEncounterLoop()"));
 assert(map.includes("if (loop <= 2) return 1;"));
 assert(map.includes("const minimum = 2;"));
@@ -102,10 +106,10 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=113"));
+assert(mapHtml.includes("v2-map-practice.js?v=114"));
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=129"));
 for (const required of [
-  "./v2-map-practice.js?v=113",
+  "./v2-map-practice.js?v=114",
   "./v2-auto-battle-practice.js?v=129",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
