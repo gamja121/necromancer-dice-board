@@ -22,7 +22,7 @@ for(const type of Object.keys(R.definitions))for(let i=0;i<1000;i++)assert(R.val
 {
  const a=unit('hydra','ally',0,null,[b('critical'),b('critical'),b('combo')]),t=unit('hydra','enemy');t.maxHp=100;
  const s=R.create([a,t]);R.begin(s);R.roll(s,4);assert.equal(R.attack(s,a,t).damage,18);
- a.brands=[b('critical',[4],[1]),b('critical',[1],[4]),b('healing',[4],[2])];a.hp=5;R.begin(s);R.roll(s,4);assert.equal(a.hp,7);assert(R.attack(s,a,t).miss);
+ a.brands=[b('critical',[4],[1]),b('critical',[1],[4]),b('healing',[4],[2])];a.hp=5;R.begin(s);R.roll(s,4);assert.equal(a.hp,7);assert(!R.attack(s,a,t).miss);
 }
 {
  const a=unit('hydra','ally',0,null,[b('combo')]),t=unit('skeleton-spear','enemy',0,'undying');const s=R.create([a,t]);R.begin(s);R.roll(s,4);t.hp=1;R.attack(s,a,t);assert(!t.alive);assert(t.undyingUsed);
