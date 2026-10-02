@@ -59,7 +59,7 @@
       while (usedIds.has(copy.instanceId)) copy.instanceId = createInstanceId(copy.slug);
       usedIds.add(copy.instanceId);
       copy.currentHp = Math.max(0, Math.min(copy.maxHp, Number.isFinite(copy.currentHp) ? copy.currentHp : copy.maxHp));
-      copy.brands = V2Rules.normalizeBrands(copy.brands);
+      copy.brands = V2Rules.normalizeUnitBrands(copy);
       return copy;
     });
     if (!globalThis.V2RunStateRuntime?.available) {
@@ -311,7 +311,7 @@
 
     if (sourceCard) {
       if (!result || result.brands.length >= 3 || !V2Rules.validateBrand(sourceCard.brand)) return;
-      result.brands = V2Rules.normalizeBrands(result.brands);
+      result.brands = V2Rules.normalizeUnitBrands(result);
       const applied = V2Rules.inheritedBlessing(result, sourceCard.brand);
       if (!applied) {
         notice = "기본 저주와 겹쳐 계승 가능한 축복 눈금이 없습니다";
