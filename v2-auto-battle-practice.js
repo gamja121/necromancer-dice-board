@@ -815,7 +815,7 @@
     }
     units = [
       ...selectedAllyTeam.map((data, index) => makeState(data, "ally", 3 - index)),
-      ...selectedEnemyTeam.map((data, index) => makeState(data, "enemy", index))
+      ...selectedEnemyTeam.map((data, index) => makeState(data, "enemy", 3 - index))
     ];
     if (fromMap && hasMapProphecy) {
       for (const unitState of units) {
