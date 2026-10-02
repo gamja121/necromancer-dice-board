@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261002-prophecy-layout-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261002-map-music-resume-1";
 
 const CORE_ASSETS = [
   "./",
@@ -31,7 +31,7 @@ const CORE_ASSETS = [
   "./v2-map-events.js?v=1",
   "./v2-auto-battle-practice.js?v=124",\n  "./v2-heal-effect.js?v=1",
   "./v2-landscape.js?v=1",
-  "./v2-music.js?v=1",
+  "./v2-music.js?v=2",
   "./v2-sfx.js?v=3",
   "./v2-design-data.js?v=1",
   "./v2-rules.js?v=7",
