@@ -35,6 +35,7 @@
   }
   const MONSTER_CAPACITY = 10;
   const mapContamination = Math.max(0, Math.min(100, Number(battleQuery.get("contamination")) || 0));
+  const mapLoop = Math.max(1, Math.floor(Number(battleQuery.get("loop")) || 1));
   const MAP_ENCOUNTER_STAGES = Object.freeze([
     Object.freeze({ min: 0, counts: Object.freeze([1, 2]), countWeights: Object.freeze([.65, .35]), grades: Object.freeze({ normal: .90, advanced: .10, hero: 0 }) }),
     Object.freeze({ min: 20, counts: Object.freeze([2]), countWeights: Object.freeze([1]), grades: Object.freeze({ normal: .75, advanced: .25, hero: 0 }) }),
@@ -241,10 +242,19 @@
     return MAP_ENCOUNTER_STAGES[0];
   }
 
+  function constrainedMapEnemyCount(requestedCount) {
+    if (mapLoop <= 2) return 1;
+    const minimum = mapContamination >= 10 ? 2 : 1;
+    return Math.max(minimum, Math.max(1, Math.min(4, Math.floor(Number(requestedCount) || 1))));
+  }
+
   function createMapEnemySlugs() {
-    if (mapEncounterType === "mimic") return Array.from({ length: mimicCount }, () => "mimic");
+    if (mapEncounterType === "mimic") {
+      return Array.from({ length: constrainedMapEnemyCount(mimicCount) }, () => "mimic");
+    }
     const stage = mapEncounterStage();
-    const count = scoutCount || weightedChoice(stage.counts, stage.countWeights);
+    const rolledCount = scoutCount || weightedChoice(stage.counts, stage.countWeights);
+    const count = constrainedMapEnemyCount(rolledCount);
     const gradeNames = ["normal", "advanced", "hero"];
     const gradeWeights = gradeNames.map((grade) => stage.grades[grade]);
     const available = ROSTER.filter((entry) => PLAYABLE_MONSTER_SLUGS.includes(entry.slug) && gradeNames.includes(entry.grade));
