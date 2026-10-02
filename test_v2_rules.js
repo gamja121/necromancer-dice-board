@@ -44,7 +44,7 @@ for(const type of Object.keys(R.definitions))for(let i=0;i<1000;i++)assert(R.val
  const a=unit('hydra','ally',0,null,[b('poison'),b('poison')]),t=unit('hydra','enemy');const s=R.create([a,t]);R.begin(s);R.roll(s,4);R.attack(s,a,t);assert.equal(t.poison,2);const hp=t.hp;assert.equal(R.before(s,t),2);assert.equal(t.hp,hp-2);assert.equal(R.before(s,t),2);assert.equal(R.before(s,t),0);
 }
 {
- const a=unit('skeleton-spear','ally',0,'initiative',[b('lightspeed',[2,3],[1])]),t=unit('siren','enemy');const s=R.create([a,t]);R.begin(s);assert.equal(R.roll(s,1)[0],a);R.begin(s);assert.equal(R.roll(s,1).at(-1),a);
+ const a=unit(nativeBrandSlug('lightspeed'),'ally',0,'initiative',[b('lightspeed',[2,3],[1])]),t=unit('siren','enemy');const s=R.create([a,t]);R.begin(s);assert.equal(R.roll(s,1)[0],a);R.begin(s);assert.equal(R.roll(s,1).at(-1),a);
 }
 {
  const a=unit('hydra','ally',0,'pack'),b1=unit('plague-doctor','ally',1),c=unit('doom-executor','ally',2);const s=R.create([a,b1,c]);R.begin(s);assert.equal(a.attack,a.baseAttack+1);c.alive=false;R.refresh(s);assert.equal(a.attack,a.baseAttack);
