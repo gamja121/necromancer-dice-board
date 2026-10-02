@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261002-world-tree-frame-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261002-prophecy-layout-1";
 
 const CORE_ASSETS = [
   "./",
@@ -16,7 +16,7 @@ const CORE_ASSETS = [
   "./launch.js?v=20260930-title-1",
   "./v2-map-practice.html",
   "./v2-auto-battle-practice.html",
-  "./v2-map-practice.css?v=20261002-world-tree-frame-1",
+  "./v2-map-practice.css?v=20261002-prophecy-layout-1",
   "./art/v2-style/ui/parchment-button-variant-01.png",
   "./art/v2-style/ui/parchment-button-variant-02.png",
   "./art/v2-style/ui/parchment-button-variant-03.png",
