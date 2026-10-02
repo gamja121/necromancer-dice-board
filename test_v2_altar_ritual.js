@@ -14,7 +14,7 @@ for (const file of assets) {
   if (!fs.existsSync(path.join(root, file))) throw Error("Missing altar ritual asset: " + file);
   if (!worker.includes(file)) throw Error("Altar ritual asset is not cached: " + file);
 }
-if (!html.includes("v2-altar-ritual.css?v=3")) throw Error("Altar ritual CSS is not linked");
+if (!html.includes("v2-altar-ritual.css?v=5")) throw Error("Altar ritual CSS is not linked");
 if (!html.includes("v2-altar-ritual.js?v=5")) throw Error("Altar ritual JS is not linked");
 if (!js.includes('V2RunStateRuntime?.snapshot') || !js.includes('V2RunStateRuntime.replaceOwnedMonsters')) throw Error("Ritual must read and atomically persist the current RunState roster");
 if (!js.includes('document.getElementById("mapBoard")?.append(overlay)')) throw Error("Ritual overlay must mount inside mapBoard");
