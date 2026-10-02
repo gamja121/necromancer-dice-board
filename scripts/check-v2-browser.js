@@ -34,6 +34,13 @@ async function activate(page, selector) {
     await unlock(page);
     await activate(page, "#newGameButton");
     await page.waitForSelector("#introAdvance");
+    await page.locator("#introAdvance").click();
+    await page.waitForFunction(() => {
+      const art = document.getElementById("introSceneArt");
+      return art?.complete && art.naturalWidth === 1280 && art.naturalHeight === 720;
+    }, null, { timeout: 15000 });
+    assert.equal(await page.locator("#dialogueStage").isVisible(), true);
+    assert.equal(await page.locator("#introSceneArt").evaluate(img => [img.naturalWidth, img.naturalHeight].join("x")), "1280x720");
     for (let step = 0; step < 20 && !page.url().includes("v2-map-practice.html"); step += 1) {
       await page.locator("#introAdvance").click();
       await page.waitForTimeout(60);
