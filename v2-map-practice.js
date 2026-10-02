@@ -375,6 +375,7 @@
     const normalized = { ...unit };
     normalized.instanceId = typeof unit?.instanceId === "string" && unit.instanceId ? unit.instanceId : createUnitInstanceId(unit?.slug || "unit");
     normalized.currentHp = Math.max(0, Math.min(normalized.maxHp, Number.isFinite(normalized.currentHp) ? normalized.currentHp : normalized.maxHp));
+    normalized.brands = V2Rules.normalizeBrands(normalized.brands);
     return normalized;
   }
 
