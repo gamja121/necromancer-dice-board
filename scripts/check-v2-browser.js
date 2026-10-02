@@ -33,6 +33,12 @@ async function activate(page, selector) {
     await page.screenshot({ path: path.join(os.tmpdir(), "necromancer-launch-desktop.png") });
     await unlock(page);
     await activate(page, "#newGameButton");
+    await page.waitForSelector("#introAdvance");
+    for (let step = 0; step < 20 && !page.url().includes("v2-map-practice.html"); step += 1) {
+      await page.locator("#introAdvance").click();
+      await page.waitForTimeout(60);
+    }
+    await page.waitForURL("**/v2-map-practice.html");
     await page.waitForSelector(".map-tile");
     assert.equal(await page.locator(".map-tile").count(), 24);
     await page.locator("#mapDiceButton").click();
