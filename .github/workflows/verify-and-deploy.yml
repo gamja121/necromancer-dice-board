@@ -29,6 +29,7 @@ jobs:
           node --check v2-sfx.js
           node test_today_20261002.js
           node test_v2_unit_cards.js
+          node test_v2_brand_inheritance_policy.js
           node test_v2_sfx.js
       - name: Full legacy suite (informational)
         continue-on-error: true
