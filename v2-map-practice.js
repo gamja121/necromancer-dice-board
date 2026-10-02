@@ -811,6 +811,16 @@
     return SCOUT_ENCOUNTER_STAGES[0];
   }
 
+  function currentEncounterLoop() {
+    return Math.max(1, Math.floor(Number(mapStoryEvents?.snapshot?.()?.loop) || 1));
+  }
+
+  function constrainedEncounterCount(requestedCount, value = contamination, loop = currentEncounterLoop()) {
+    if (loop <= 2) return 1;
+    const minimum = value >= 10 ? 2 : 1;
+    return Math.max(minimum, Math.max(1, Math.min(4, Math.floor(Number(requestedCount) || 1))));
+  }
+
   function scoutWeightedChoice(values, weights) {
     let roll = Math.random() * weights.reduce((sum, weight) => sum + weight, 0);
     for (let index = 0; index < values.length; index += 1) {
@@ -822,7 +832,8 @@
 
   function createScoutIntelForStep(tile, step) {
     const stage = scoutEncounterStage();
-    const count = scoutWeightedChoice(stage.counts, stage.countWeights);
+    const rolledCount = scoutWeightedChoice(stage.counts, stage.countWeights);
+    const count = constrainedEncounterCount(rolledCount);
     const gradeNames = ["normal", "advanced", "hero"];
     const gradeWeights = gradeNames.map((grade) => stage.grades[grade]);
     let grade = scoutWeightedChoice(gradeNames, gradeWeights);
@@ -1969,7 +1980,8 @@
       allyIds: selectedUnits.map((unit) => unit.instanceId).join(","),
       encounter: encounterId,
       encounterType: battleTileType,
-      contamination: String(contamination)
+      contamination: String(contamination),
+      loop: String(currentEncounterLoop())
     });
     if (battleTileType === "mimic" && battleMimicCount > 0) {
       params.set("mimicCount", String(battleMimicCount));
