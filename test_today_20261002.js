@@ -132,3 +132,8 @@ assert(map.includes("renderInventoryCounts();\n    refreshOpenBookUnitInfo();\n 
 assert(map.includes("renderInventoryCounts();\n      refreshOpenBookUnitInfo();\n    } catch (_)"));
 assert(mapHtml.includes("v2-map-practice.js?v=109"));
 assert(worker.includes("./v2-map-practice.js?v=109"));
+
+assert(map.includes("if (completedLap) {\n      addContamination(4);"));
+assert(!map.includes("if (completedLap) {\n      addContamination(2);"));
+assert(mapHtml.includes("v2-map-practice.js?v=110"));
+assert(worker.includes("./v2-map-practice.js?v=110"));
