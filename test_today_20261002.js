@@ -124,5 +124,5 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!mapCss.includes(".map-options-button { visibility: hidden; }"));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261002-options-visible-1"));
-assert(worker.includes("./v2-map-practice.css?v=20261002-options-visible-1"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261002-options-visible-2"));
+assert(worker.includes("./v2-map-practice.css?v=20261002-options-visible-2"));
