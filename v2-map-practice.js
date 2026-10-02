@@ -776,6 +776,7 @@
       renderDiceControlHand();
       if (!el.deckOverlay.hidden) renderDeckSelection();
       renderInventoryCounts();
+      refreshOpenBookUnitInfo();
     } catch (_) { /* Keep current in-memory inventory if storage cannot be read. */ }
   }
 
@@ -3461,6 +3462,7 @@
     renderBookRoster();
     if (!el.deckOverlay.hidden) renderDeckSelection();
     renderInventoryCounts();
+    refreshOpenBookUnitInfo();
   });
   el.optionsButton?.addEventListener("click", toggleAudioOptions);
   el.audioOptionsClose?.addEventListener("click", closeAudioOptions);
