@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>Necromancer and Dice · Prologue</title>
+  <link rel="stylesheet" href="v2-intro.css?v=1">
+</head>
+<body>
+  <main id="introScene" class="intro-scene is-impact" aria-live="polite">
+    <button id="introAdvance" class="intro-advance" type="button" aria-label="도입부 계속">
+      <section id="impactStage" class="impact-stage" aria-label="문을 두드리는 소리">
+        <strong id="impactText" class="impact-text">쿵쾅쾅.</strong>
+        <span class="impact-hint">화면을 터치</span>
+      </section>
+
+      <section id="dialogueStage" class="dialogue-stage" hidden>
+        <div class="portrait portrait-left" data-speaker="주인공">
+          <img src="art/v2-style/event-portraits/necromancer.png" alt="주인공">
+        </div>
+        <div class="portrait portrait-right" data-speaker="기사단장">
+          <img src="art/v2-style/event-portraits/knight-commander.png" alt="기사단장">
+        </div>
+
+        <div class="dialogue-box">
+          <div id="dialogueName" class="dialogue-name">기사단장</div>
+          <p id="dialogueText" class="dialogue-text">여기 있었구만.</p>
+          <span class="dialogue-next" aria-hidden="true">▼</span>
+        </div>
+      </section>
+    </button>
+  </main>
+  <script src="v2-intro.js?v=1"></script>
+</body>
+</html>
