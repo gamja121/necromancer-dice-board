@@ -1299,3 +1299,14 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
     animation-timing-function:ease-out;
   }
 }
+
+.map-audio-options { position:absolute; z-index:80; right:10.5%; top:70.5%; width:clamp(180px,20%,280px); padding:10px 12px 12px; box-sizing:border-box; border:1px solid #786048; border-radius:5px; background:linear-gradient(180deg,rgba(35,25,18,.97),rgba(17,12,9,.98)); box-shadow:0 8px 18px #000c,inset 0 0 0 1px #b6925d22; color:#ead9bb; }
+.map-audio-options[hidden]{display:none}
+.map-audio-options-head{display:flex;align-items:center;justify-content:space-between;padding-bottom:7px;margin-bottom:7px;border-bottom:1px solid #70583f88}
+.map-audio-options-head strong{font-size:clamp(10px,1vw,13px);letter-spacing:.14em;color:#cbb68f}
+.map-audio-options-head button{width:28px;height:28px;padding:0;border:1px solid #70583f;background:#241912;color:#d9c4a1;font-weight:900;cursor:pointer}
+.map-audio-option-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:38px;font-size:clamp(11px,1.1vw,14px);font-weight:800}
+.map-audio-option-row>button{min-width:54px;height:30px;border:1px solid #866943;border-radius:3px;background:#35261a;color:#f0ddb9;font-weight:900;cursor:pointer}
+.map-audio-option-row>button[aria-pressed="false"]{opacity:.62;background:#171310;color:#9c9387}
+.map-audio-option-row>button:focus-visible,.map-audio-options-head button:focus-visible{outline:2px solid #d9ae67;outline-offset:2px}
+.map-board.is-tile-event-open .map-audio-options{display:none}
