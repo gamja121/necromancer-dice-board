@@ -35,8 +35,8 @@ for (const href of [
 ]) assert(index.includes(href), "Missing test menu link: " + href);
 assert(launch.includes("testLinks.forEach"));
 assert(launch.includes('fadeTo("v2-intro.html")'), "New Game must enter the prologue before the map");
-assert(introHtml.includes('art/v2-style/event-portraits/necromancer.png'));
-assert(introHtml.includes('art/v2-style/event-portraits/knight-commander.png'));
+assert(!introHtml.includes('art/v2-style/event-portraits/necromancer.png'), "Prologue must not use the 96x72 portrait");
+assert(!introHtml.includes('art/v2-style/event-portraits/knight-commander.png'), "Prologue must not use the 64x48 commander portrait");
 assert(introHtml.includes('쿵쾅쾅.'));
 assert(introJs.includes('{ speaker: "주인공", text: "..." }'));
 assert(!introJs.match(/speaker: "주인공", text: "(?!\.\.\.)/), "Every protagonist dialogue line must stay silent");
@@ -44,15 +44,18 @@ assert(introJs.includes('오늘부터 네게 외곽 순찰 임무를 맡기겠�
 assert(introJs.includes('location.href = "v2-map-practice.html"'));
 assert(introCss.includes(".dialogue-box"));
 assert(introHtml.includes('v2-landscape.js?v=1'), "Prologue must use landscape helper");
-assert(introHtml.includes('art/v2-style/ui/intro-dialogue-box.webp?v=2'), "Prologue must use supplied parchment dialogue asset");
+assert(introHtml.includes('id="introSceneArt"'), "Prologue must render the HD composite scene");
 assert(introCss.includes("@media (orientation:portrait)"), "Prologue needs portrait-to-landscape CSS fallback");
 assert(introHtml.includes('class="intro-canvas"'), "Prologue must render inside a fixed landscape canvas");
 assert(introHtml.includes('id="introLandscapeHint"'), "Portrait phones need an explicit rotate-device hint");
 assert(introCss.includes("aspect-ratio:16/9"), "Prologue canvas must stay 16:9");
-assert(introCss.includes(".portrait-right img{transform:scaleX(-1)}"), "Knight commander must face inward with a horizontal flip");
+assert(!introCss.includes(".portrait"), "Separate low-resolution portrait rendering must stay removed");
 assert(introJs.includes("ensureLandscape()"), "Prologue must request real landscape orientation on interaction");
+assert(introJs.includes("encoded.length !== 58376"), "HD scene data length must be verified before display");
+assert(introJs.includes("sceneArt.naturalWidth !== 1280") && introJs.includes("sceneArt.naturalHeight !== 720"), "HD scene must verify 1280x720 decode");
+for (const part of ["prologue-scene.b64.0","prologue-scene.b64.gap","prologue-scene.b64.1","prologue-scene.b64.2"]) assert(introJs.includes(part), "Missing HD prologue data part: " + part);
 assert(!introCss.includes("rotate(90deg)"), "Prologue must not sideways-rotate the whole UI");
-assert(introCss.includes("bottom:27%"), "Character artwork must sit above the dialogue box");
+assert(introCss.includes(".intro-scene-art"), "HD prologue scene art must fill the fixed canvas");
 
 // Rotated-mobile card placement.
 assert(cards.includes("offsetLeft") && cards.includes("offsetParent"));
@@ -132,11 +135,12 @@ assert(mapHtml.includes("v2-map-practice.js?v=114"));
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=129"));
 for (const required of [
   "./v2-intro.html",
-  "./v2-intro.css?v=3",
-  "./v2-intro.js?v=2",
-  "./art/v2-style/event-portraits/necromancer.png",
-  "./art/v2-style/event-portraits/knight-commander.png",
-  "./art/v2-style/ui/intro-dialogue-box.webp?v=2",
+  "./v2-intro.css?v=5",
+  "./v2-intro.js?v=3",
+  "./art/v2-style/ui/prologue-scene.b64.0",
+  "./art/v2-style/ui/prologue-scene.b64.gap",
+  "./art/v2-style/ui/prologue-scene.b64.1",
+  "./art/v2-style/ui/prologue-scene.b64.2",
   "./v2-map-practice.js?v=114",
   "./v2-auto-battle-practice.js?v=129",
   "./v2-heal-effect.js?v=1",
