@@ -1,14 +1,14 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261003-prologue-landscape-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261003-prologue-canvas-1";
 
 const CORE_ASSETS = [
   "./",
   "./index.html",
   "./v2-intro.html",
-  "./v2-intro.css?v=2",
-  "./v2-intro.js?v=1",
+  "./v2-intro.css?v=3",
+  "./v2-intro.js?v=2",
   "./art/v2-style/event-portraits/necromancer.png",
   "./art/v2-style/event-portraits/knight-commander.png",
-  "./art/v2-style/ui/intro-dialogue-box.webp?v=1",
+  "./art/v2-style/ui/intro-dialogue-box.webp?v=2",
   "./assets/title/exit.webp",
   "./assets/title/options.webp",
   "./assets/title/continue.webp",
