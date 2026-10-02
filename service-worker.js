@@ -1,8 +1,13 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261003-start-tile-balance-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261003-prologue-1";
 
 const CORE_ASSETS = [
   "./",
   "./index.html",
+  "./v2-intro.html",
+  "./v2-intro.css?v=1",
+  "./v2-intro.js?v=1",
+  "./art/v2-style/event-portraits/necromancer.png",
+  "./art/v2-style/event-portraits/knight-commander.png",
   "./assets/title/exit.webp",
   "./assets/title/options.webp",
   "./assets/title/continue.webp",
@@ -10,7 +15,7 @@ const CORE_ASSETS = [
   "./assets/title/title-logo.webp",
   "./assets/title/title-theme.mp3",
   "./assets/title/title-loop.mp4",
-  "./launch.js?v=20261002-test-menu-1",
+  "./launch.js?v=20261003-prologue-1",
   "./launch.css?v=20261002-test-menu-1",
   "./launch.css?v=20260930-title-1",
   "./launch.js?v=20260930-title-1",
