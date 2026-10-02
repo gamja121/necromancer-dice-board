@@ -91,22 +91,22 @@ assert(map.includes("if (completedLap) {\n      addContamination(4);"));
 // Enemy count rules.
 assert(map.includes("function currentEncounterLoop()"));
 assert(map.includes("if (loop <= 2) return 1;"));
-assert(map.includes("const minimum = value >= 10 ? 2 : 1;"));
+assert(map.includes("const minimum = 2;"));
 assert(map.includes('loop: String(currentEncounterLoop())'));
 assert(map.includes("const count = constrainedEncounterCount(rolledCount);"));
 assert(battle.includes('const mapLoop = Math.max(1, Math.floor(Number(battleQuery.get("loop")) || 1));'));
 assert(battle.includes("function constrainedMapEnemyCount(requestedCount)"));
 assert(battle.includes("if (mapLoop <= 2) return 1;"));
-assert(battle.includes("const minimum = mapContamination >= 10 ? 2 : 1;"));
+assert(battle.includes("const minimum = 2;"));
 assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=112"));
-assert(battleHtml.includes("v2-auto-battle-practice.js?v=128"));
+assert(mapHtml.includes("v2-map-practice.js?v=113"));
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=129"));
 for (const required of [
-  "./v2-map-practice.js?v=112",
-  "./v2-auto-battle-practice.js?v=128",
+  "./v2-map-practice.js?v=113",
+  "./v2-auto-battle-practice.js?v=129",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
   "./v2-sfx.js?v=4",
@@ -129,8 +129,8 @@ assert(worker.includes("./v2-map-practice.css?v=20261002-options-visible-2"));
 
 assert(battle.includes('makeState(data, "enemy", 3 - index)'));
 assert(!battle.includes('makeState(data, "enemy", index)'));
-assert(battleHtml.includes("v2-auto-battle-practice.js?v=128"));
-assert(worker.includes("./v2-auto-battle-practice.js?v=128"));
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=129"));
+assert(worker.includes("./v2-auto-battle-practice.js?v=129"));
 
 const rulesSource = read("v2-rules.js");
 const brandCardsSource = read("v2-brand-cards.js");
