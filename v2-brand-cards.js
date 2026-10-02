@@ -9,8 +9,14 @@
     return `brand-card-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
   }
 
+  function blessingOnly(brand) {
+    if (!brand || !R?.validateBrand?.(brand)) return null;
+    const clean = { type: brand.type, bless: [...brand.bless], curse: [] };
+    return clean.bless.length && R.validateBrand(clean) ? clean : null;
+  }
+
   function validateCard(card) {
-    return Boolean(card && typeof card.id === "string" && card.id && R?.validateBrand?.(card.brand));
+    return Boolean(card && typeof card.id === "string" && card.id && blessingOnly(card.brand));
   }
 
   function create(rng = Math.random) {
@@ -18,22 +24,16 @@
     if (!types.length) throw Error("Brand definitions are unavailable");
     const type = types[Math.floor(rng() * types.length)];
     const generated = R.brand(type, rng);
-    const includeCurse = rng() >= 0.5;
-    const brand = {
-      type: generated.type,
-      bless: [...generated.bless],
-      curse: includeCurse ? [...generated.curse] : []
-    };
-    if (!R.validateBrand(brand)) throw Error("Invalid generated brand card");
+    const brand = blessingOnly(generated);
+    if (!brand) throw Error("Invalid generated brand card");
     return { id: createId(), brand };
   }
 
   function load() {
     const run = root.V2RunStateRuntime?.snapshot?.();
     if (run && Array.isArray(run.brandCards)) {
-      return run.brandCards.map((card) => ({ id: card.instanceId, brand: {
-        type: card.brand.type, bless: [...card.brand.bless], curse: [...card.brand.curse]
-      }})).filter(validateCard);
+      return run.brandCards.map((card) => ({ id: card.instanceId, brand: blessingOnly(card.brand) }))
+        .filter((card) => card.brand && validateCard(card));
     }
     let saved = [];
     try {
@@ -42,9 +42,8 @@
         if (Array.isArray(parsed)) saved = parsed.filter(validateCard);
       }
     } catch (_) {}
-    return saved.map((card) => ({ id: card.id, brand: {
-      type: card.brand.type, bless: [...card.brand.bless], curse: [...card.brand.curse]
-    }}));
+    return saved.map((card) => ({ id: card.id, brand: blessingOnly(card.brand) }))
+      .filter((card) => card.brand && validateCard(card));
   }
 
   function save(cards) {
