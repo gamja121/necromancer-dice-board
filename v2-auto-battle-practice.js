@@ -606,7 +606,7 @@
       try { localStorage.setItem(BATTLE_SAVE_KEY, JSON.stringify(checkpoint)); }
       catch(error) { console.warn('전투 저장 실패',error); message.textContent += ' · 저장 실패'; }
     }
-    if (phase !== "complete" && phase !== "capture-complete" && fromMap && globalThis.V2RunStateRuntime?.available) {
+    if (phase !== "complete" && phase !== "capture-complete" && phase !== "capture-failed" && fromMap && globalThis.V2RunStateRuntime?.available) {
       V2RunStateRuntime.setBattleCheckpoint(checkpoint, `battle-${phase}`);
     }
     return checkpoint;
@@ -2106,7 +2106,16 @@
     const params = new URLSearchParams();
     if (MAP_BATTLEFIELDS[map]) params.set("map", map);
     params.set("resume", String(tile));
-    if (globalThis.V2RunStateRuntime?.available) await V2RunStateRuntime.flush();
+    if (globalThis.V2RunStateRuntime?.available) {
+      try {
+        await Promise.race([
+          V2RunStateRuntime.flush(),
+          wait(1200)
+        ]);
+      } catch (error) {
+        console.warn("맵 복귀 전 저장 대기 실패 · 화면 전환은 계속합니다.", error);
+      }
+    }
     if (typeof V2Music !== "undefined") V2Music.handoff("map");
     window.location.assign(`v2-map-practice.html?${params.toString()}`);
   }
@@ -2209,6 +2218,9 @@
     } else {
       captureStatus.textContent = captureSummary(selectedCorpse, "실패");
       saveBattle("capture-failed");
+      if (fromMap && globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.clearBattleCheckpoint === "function") {
+        V2RunStateRuntime.clearBattleCheckpoint("returning", "capture-failed-clear");
+      }
       await wait(900);
       await returnToMap();
     }
