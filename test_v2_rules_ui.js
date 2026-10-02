@@ -74,3 +74,8 @@ assert(nodes.get('unitInfoBrands').innerHTML.includes('brand-icons-extra-sheet.j
 
 assert(source.includes('V2HealEffect.playUnit(spriteWrap, amount)'),
   "Battle healing must reuse the heal-cross particle effect around the healed unit.");
+
+assert(source.includes('UNDEAD_HEAL_TEST_SLUGS'));
+assert(source.includes('"skeleton-spear", "skeleton-archer", "skeleton-cavalry", "grave-priest"'));
+assert(source.includes('unitState.maxHp - 3'));
+assert(source.includes('testLineupReady'));
