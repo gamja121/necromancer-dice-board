@@ -5,6 +5,13 @@
 - 기준: GAME_DESIGN_RULES.md, CODEX_DEVELOPMENT_WORKFLOW.md §19·20. 이후 규칙 변경은 별도 승인.
 - 현재 구현 단위: UI와 분리된 순수 schema 검증기·legacy 변환기·IndexedDB 저장소 어댑터와 실패 주입 테스트. 다음 단계는 최신 main의 map/home/altar writer를 어댑터 뒤로 점진 전환하는 것이다.
 
+## 2026-10-02 낙인 정책 저장 불변식
+
+- RunState의 `brandCards[]`는 저장 경계에서 항상 `curse=[]`로 정규화한다.
+- `ownedMonsters[]`와 `graveyardCorpses[]`는 저장 경계에서 `V2Rules.normalizeUnitBrands()`를 적용한다.
+- 기존 저장의 후속 낙인 저주/저주와 겹친 축복 및 구형 낙인카드 저주는 bootstrap의 `brand-policy-migration-v1`에서 한 번 영구 정리한다.
+- 이후 `replaceOwnedMonsters`, 전투 종료, capture, 상점 교환, 계승 등 어떤 commit 경로도 이 불변식을 우회할 수 없다.
+
 ## 1. 현재 저장 지점과 누락
 
 | 기존 위치/키 | 실제 내용·작성자 | 이행 대상 |
@@ -60,7 +67,7 @@ JSON 직렬화 가능한 값만 저장한다. DOM, 이미지, 타이머, 함수,
 | ownedMonsters[] | instanceId, slug, maxHp, currentHp, attack, speed, brands, altarEnhancements; 영구 수치만 |
 | party[] | 소유 개체 instanceId, 슬롯 순서 1~4. 공유 소환 슬롯은 battle 안에만 존재 |
 | diceCards[] | instanceId, cardId. 같은 카드 종류의 복수 보유 보존 |
-| brandCards[] | instanceId, brand(type, bless[], curse[]). 마물에 붙은 낙인과 별도인 소모품 |
+| brandCards[] | instanceId, brand(type, bless[], curse=[]). 마물에 붙은 낙인과 별도인 **축복 전용** 소모품 |
 | diceContext | previousRoll(null 또는 1..6), previousEffectiveCardId(null 또는 카드 종류), pendingCardInstanceId |
 | movement | null 또는 operationId, fromIndex, targetIndex, resolvedRoll, 경유 집 효과 등 확정된 이동 결과 |
 | clearedTiles | 현재 mapInstanceId의 tileInstanceId 배열 |
@@ -181,7 +188,7 @@ rewardId는 단순 tile type이나 칸 번호가 아니라 run/map/visit 또는 
 - 모든 18종 주사위 카드, 중복 카드, repeat/echo 이력의 저장 왕복 및 소비 직후 중단.
 - 같은 slug 2개체, 사망 1개체, 계승 donor 영구 제거, 소환물 roster 제외.
 - 제단 강화 및 낙인 눈금·순서 보존, 임시 전투 HP 보정 제외.
-- 독립 낙인 카드의 축복 전용/축복+저주 원문 보존, 보물 획득·적용·소비 도중 중단, 카드만 소모되거나 낙인만 복제되는 부분 저장 금지.
+- 독립 낙인 카드는 **축복 전용**으로 저장한다. 구형 카드의 저주는 bootstrap 정책 마이그레이션에서 제거하며, 보물 획득·적용·소비 도중 중단 시 카드만 소모되거나 낙인만 복제되는 부분 저장을 금지한다.
 - 전투 전/행동 전후/종료/capture 시도/초과 교환/귀환 단계에서 강제 중단.
 - 같은 operation 2회 호출, 같은 보상 복귀 2회, 이전 맵 조우 URL, 다른 runId 거절.
 - 정상·빈·손상·일부 키 누락·중복 ID·초과 보유·미래 버전 legacy fixture.
