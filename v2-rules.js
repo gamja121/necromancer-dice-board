@@ -27,7 +27,7 @@
       new Set([...b.bless,...b.curse]).size===b.bless.length+b.curse.length&&
       [...b.bless,...b.curse].every(n=>Number.isInteger(n)&&n>=1&&n<=6);
   }
-  function normalizeBrands(brands){
+  function normalizeBrands(brands,allowBaseCurse=true){
     if(!Array.isArray(brands))return [];
     const cleaned=brands.filter(validateBrand).map((brandState)=>({
       type:brandState.type,
@@ -35,22 +35,29 @@
       curse:[...brandState.curse]
     }));
     if(!cleaned.length)return [];
-    const baseCurse=new Set(cleaned[0].curse);
+    const baseCurse=new Set(allowBaseCurse?cleaned[0].curse:[]);
     const normalized=[];
     for(let index=0;index<cleaned.length&&normalized.length<3;index++){
       const source=cleaned[index];
       const next={
         type:source.type,
         bless:source.bless.filter(face=>!baseCurse.has(face)),
-        curse:index===0?[...source.curse]:[]
+        curse:index===0&&allowBaseCurse?[...source.curse]:[]
       };
-      if(index===0||next.bless.length)normalized.push(next);
+      if((index===0&&next.curse.length)||next.bless.length)normalized.push(next);
     }
     return normalized;
   }
+  function normalizeUnitBrands(unit){
+    if(!unit)return [];
+    const baseTypes=D.units[unit.slug]?.brands||[];
+    const firstType=Array.isArray(unit.brands)&&unit.brands[0]?.type;
+    const allowBaseCurse=Boolean(firstType&&baseTypes.includes(firstType));
+    return normalizeBrands(unit.brands,allowBaseCurse);
+  }
   function inheritedBlessing(receiver,source){
     if(!receiver||!Array.isArray(receiver.brands)||!validateBrand(source))return null;
-    const normalizedReceiver=normalizeBrands(receiver.brands);
+    const normalizedReceiver=normalizeUnitBrands(receiver);
     const cursedFaces=new Set(normalizedReceiver.flatMap(brandState=>brandState.curse));
     const bless=[...new Set(source.bless)].filter(face=>!cursedFaces.has(face)).sort((a,b)=>a-b);
     if(!bless.length)return null;
@@ -58,7 +65,7 @@
   }
   function inherit(receiver,donor,index){
     if(receiver.brands.length>=3||!validateBrand(donor.brands[index]))throw Error('Invalid inheritance');
-    receiver.brands=normalizeBrands(receiver.brands);
+    receiver.brands=normalizeUnitBrands(receiver);
     const inherited=inheritedBlessing(receiver,donor.brands[index]);
     if(!inherited)throw Error('No inheritable blessing');
     receiver.brands.push(inherited);
@@ -146,7 +153,17 @@
   }
   function begin(s){s.round++;s.events=[];for(const u of s.units){u.bless={};u.curse={};u.shields=0;if(u.alive&&has(s,u,'skeleton')){const amount=heal(u,1);if(amount)s.events.push({type:'heal',unit:u,amount,source:'skeleton'});}}refresh(s);return summonPlans(s);}
   function roll(s,face){
-    for(const u of s.units){u.bless={};u.curse={};if(!u.alive)continue;for(const b of u.brands||[]){if(b.bless.includes(face))u.bless[b.type]=(u.bless[b.type]||0)+1;if(b.curse.includes(face))u.curse[b.type]=(u.curse[b.type]||0)+1;}u.shields=u.curse.guard?0:u.bless.guard||0;u.brand=u.brands[0]?.type;u.brandMode=mode(u.brands[0],face);}
+    for(const u of s.units){
+      u.bless={};u.curse={};if(!u.alive)continue;
+      const brands=normalizeUnitBrands(u);
+      u.brands=brands;
+      const cursedFace=brands.some(brandState=>brandState.curse.includes(face));
+      for(const b of brands){
+        if(b.curse.includes(face))u.curse[b.type]=(u.curse[b.type]||0)+1;
+        else if(!cursedFace&&b.bless.includes(face))u.bless[b.type]=(u.bless[b.type]||0)+1;
+      }
+      u.shields=u.curse.guard?0:u.bless.guard||0;u.brand=u.brands[0]?.type;u.brandMode=cursedFace?'curse':mode(u.brands[0],face);
+    }
     refresh(s);
     // Stable team/slot order for simultaneous support effects: healing before damage.
     const actors=s.units.filter(u=>u.alive).slice().sort((a,b)=>a.team.localeCompare(b.team)||a.slot-b.slot);
@@ -192,6 +209,6 @@
     for(const u of s.units){u.poisonStacks=(u.poisonStacks||[]).map(p=>({remaining:p.remaining,source:s.units[p.source]||null}));u.poison=u.poisonStacks.length;}
     refresh(s);return s;
   }
-  const api={definitions,RULES,TARGET_RATES,individual,brand,validateBrand,normalizeBrands,inheritedBlessing,inherit,inheritancePart,create,init,applyUnit,active,suppressed,begin,roll,before,attack,addSummon,bloomPlans,bloomSeed,targetWeights,pickTarget,refresh,mode,heal,damage,snapshot,restore};
+  const api={definitions,RULES,TARGET_RATES,individual,brand,validateBrand,normalizeBrands,normalizeUnitBrands,inheritedBlessing,inherit,inheritancePart,create,init,applyUnit,active,suppressed,begin,roll,before,attack,addSummon,bloomPlans,bloomSeed,targetWeights,pickTarget,refresh,mode,heal,damage,snapshot,restore};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.V2Rules=api;
 })(globalThis);
