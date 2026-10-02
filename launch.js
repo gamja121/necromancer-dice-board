@@ -114,7 +114,7 @@
     const saved=await hasSavedRun();
     if(saved&&!confirm("기존 원정 기록을 지우고 새 게임을 시작할까요?"))return;
     await deleteDb();clearLegacy(localStorage);clearLegacy(sessionStorage);
-    await fadeTo("v2-map-practice.html");
+    await fadeTo("v2-intro.html");
   });
   cont.addEventListener("click",async e=>{
     e.preventDefault();if(cont.hidden)return;
