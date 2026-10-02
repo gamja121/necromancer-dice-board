@@ -47,7 +47,10 @@
   }
 
   function save(cards) {
-    const valid = Array.isArray(cards) ? cards.filter(validateCard) : [];
+    const valid = Array.isArray(cards) ? cards.map((card) => {
+      const brand = blessingOnly(card?.brand);
+      return brand && typeof card?.id === "string" && card.id ? { id: card.id, brand } : null;
+    }).filter(Boolean) : [];
     try {
       if (typeof sessionStorage !== "undefined") sessionStorage.setItem(STORAGE_KEY, JSON.stringify(valid));
       return true;
@@ -57,7 +60,8 @@
   function add(card) {
     if (!validateCard(card)) return false;
     const cards = load();
-    const copy = JSON.parse(JSON.stringify(card));
+    const copy = { id: card.id, brand: blessingOnly(card.brand) };
+    if (!copy.brand) return false;
     if (cards.some((item) => item.id === copy.id)) copy.id = createId();
     cards.push(copy);
     return save(cards) ? copy : false;
@@ -73,7 +77,8 @@
   async function addAsync(card) {
     if (!validateCard(card)) return false;
     const cards = load();
-    const copy = JSON.parse(JSON.stringify(card));
+    const copy = { id: card.id, brand: blessingOnly(card.brand) };
+    if (!copy.brand) return false;
     if (cards.some((item) => item.id === copy.id)) copy.id = createId();
     cards.push(copy);
     if (root.V2RunStateRuntime?.available) {
