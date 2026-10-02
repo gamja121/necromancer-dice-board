@@ -37,14 +37,34 @@
   const proceduralUrls = new Map();
   let audioContext = null;
 
-  function settings() {
+  const AUDIO_SETTINGS_KEY = "necromancer-audio-settings-v1";
+
+  function readSettings() {
     try {
-      const saved = JSON.parse(localStorage.getItem("necromancer-audio-settings-v1") || "null");
-      const savedVolume = Number.isFinite(saved?.sfxVolume) ? saved.sfxVolume : .85;
-      return { volume: savedVolume > 0 ? Math.max(.7, Math.min(1, savedVolume)) : .85 };
+      const saved = JSON.parse(localStorage.getItem(AUDIO_SETTINGS_KEY) || "null") || {};
+      const savedVolume = Number.isFinite(saved.sfxVolume) ? saved.sfxVolume : .85;
+      return {
+        volume: savedVolume > 0 ? Math.max(.7, Math.min(1, savedVolume)) : .85,
+        enabled: saved.sfxEnabled !== false
+      };
     } catch (_) {
-      return { volume: .85 };
+      return { volume: .85, enabled: true };
     }
+  }
+
+  function setEnabled(enabled) {
+    const next = Boolean(enabled);
+    try {
+      const saved = JSON.parse(localStorage.getItem(AUDIO_SETTINGS_KEY) || "null") || {};
+      saved.sfxEnabled = next;
+      if (!Number.isFinite(saved.sfxVolume)) saved.sfxVolume = .85;
+      localStorage.setItem(AUDIO_SETTINGS_KEY, JSON.stringify(saved));
+    } catch (_) {}
+    return next;
+  }
+
+  function isEnabled() {
+    return readSettings().enabled;
   }
 
   function ensureContext() {
@@ -132,7 +152,8 @@
   }
 
   function play(name, options = {}) {
-    const current = settings();
+    const current = readSettings();
+    if (!current.enabled) return false;
     const config = variant(name, options.variant);
     const base = template(name, options.variant);
     if (!base) return false;
@@ -169,5 +190,5 @@
     document.addEventListener("keydown", unlock, { capture: true, once: true });
   }
 
-  root.V2Sfx = Object.freeze({ play, preload, unlock, sources: SOURCES, variants: VARIANTS });
+  root.V2Sfx = Object.freeze({ play, preload, unlock, setEnabled, isEnabled, sources: SOURCES, variants: VARIANTS });
 })(globalThis);
