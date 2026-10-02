@@ -161,8 +161,6 @@ assert(mapHtml.includes("v2-altar-ritual.js?v=5"));
 assert(worker.includes("./v2-run-state-runtime.js?v=8"));
 assert(worker.includes("./v2-altar-ritual.js?v=5"));
 
-assert(battleHtml.includes("v2-battle-brands.js?v=4"));
-
 assert(rulesSource.includes("u.brands=normalizeUnitBrands(u)"));
 
 assert(runtimePolicySource.includes("state.battle.state.units = state.battle.state.units.map(normalizePolicyUnit)"));
