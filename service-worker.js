@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261002-enemy-edge-fill-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261002-brand-policy-1";
 
 const CORE_ASSETS = [
   "./",
@@ -34,17 +34,17 @@ const CORE_ASSETS = [
   "./v2-altar-ritual.css?v=5",
   "./v2-auto-battle-practice.css?v=78",
   "./v2-asset-loader.js?v=1",
-  "./v2-map-practice.js?v=111",
+  "./v2-map-practice.js?v=112",
   "./art/v2-style/map-test/events/fortune-prophecy-ui.png?v=1",
   "./v2-event-data.js?v=1",
   "./v2-map-events.js?v=1",
-  "./v2-auto-battle-practice.js?v=126",
+  "./v2-auto-battle-practice.js?v=127",
   "./v2-heal-effect.js?v=1",
   "./v2-landscape.js?v=1",
   "./v2-music.js?v=3",
   "./v2-sfx.js?v=4",
   "./v2-design-data.js?v=1",
-  "./v2-rules.js?v=7",
+  "./v2-rules.js?v=8",
   "./v2-battle-rng.js?v=1",
   "./v2-summon-effect.js?v=3",
   "./assets/music/map-board.mp3",
@@ -62,8 +62,8 @@ const CORE_ASSETS = [
   "./v2-run-state-runtime.js?v=6",
   "./v2-presentation.js?v=1",
   "./v2-presentation-rail.js?v=2",
-  "./v2-brand-cards.js?v=4",
-  "./v2-home-inheritance.js?v=15",
+  "./v2-brand-cards.js?v=5",
+  "./v2-home-inheritance.js?v=16",
   "./v2-altar-ritual.js?v=4",
   "./v2-dice-control.js?v=1",
   "./v2-world-tree-prayer-digits.js?v=2",
