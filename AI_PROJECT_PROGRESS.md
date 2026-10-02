@@ -78,7 +78,7 @@
 - 제단 화면도 RunState 로스터를 읽을 때 `normalizeUnitBrands()`를 적용한다.
 - `RUN_STATE_DESIGN.md`의 “축복+저주 카드 보존” 구형 계약을 축복 전용 저장 계약으로 수정했다.
 - 과거 2026-09-29 낙인카드 규칙 기록은 현재 정책과 혼동되지 않도록 **과거 규칙·폐기**로 표시했다.
-- 캐시 버전은 RunState runtime v7, altar ritual v5 기준으로 갱신한다.
+- 캐시 버전은 RunState runtime v8, altar ritual v5 기준으로 갱신한다.
 
 
 - 구형 RunState/localStorage 전투 체크포인트도 `V2Rules.restore()`에서 복원 즉시 `normalizeUnitBrands()`를 적용해 과거 저주가 전투 이어하기로 재등장하지 않게 했다.
