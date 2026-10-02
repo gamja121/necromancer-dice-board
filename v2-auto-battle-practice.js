@@ -244,7 +244,7 @@
 
   function constrainedMapEnemyCount(requestedCount) {
     if (mapLoop <= 2) return 1;
-    const minimum = mapContamination >= 10 ? 2 : 1;
+    const minimum = 2;
     return Math.max(minimum, Math.max(1, Math.min(4, Math.floor(Number(requestedCount) || 1))));
   }
 
