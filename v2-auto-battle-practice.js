@@ -11,6 +11,8 @@
   });
   const battleQuery = typeof location === "undefined" ? new URLSearchParams() : new URLSearchParams(location.search);
   const fromMap = battleQuery.get("from") === "map";
+  const undeadHealTest = battleQuery.get("test") === "undead-heal";
+  const UNDEAD_HEAL_TEST_SLUGS = Object.freeze(["skeleton-spear", "skeleton-archer", "skeleton-cavalry", "grave-priest"]);
   const mapEncounterId = battleQuery.get("encounter") || "";
   const mapEncounterType = battleQuery.get("encounterType") || "monster";
   const scoutCount = Math.max(0, Math.min(4, Math.floor(Number(battleQuery.get("scoutCount")) || 0)));
@@ -649,12 +651,15 @@
   let captureTargetLocked = false;
   let lineupRequest = 0;
   let lineupSide = "ally";
-  let selectedAllySlugs = requestedAllySlugs.length >= 1 && requestedAllySlugs.length <= 4 ? requestedAllySlugs : [];
+  let selectedAllySlugs = undeadHealTest
+    ? [...UNDEAD_HEAL_TEST_SLUGS]
+    : (requestedAllySlugs.length >= 1 && requestedAllySlugs.length <= 4 ? requestedAllySlugs : []);
   let selectedAllyInstanceIds = fromMap && requestedAllyInstanceIds.length === selectedAllySlugs.length &&
     requestedAllyInstanceIds.every((instanceId, index) => mapOwnedRoster.get(instanceId)?.slug === selectedAllySlugs[index])
       ? requestedAllyInstanceIds : [];
   if (fromMap && selectedAllyInstanceIds.length !== selectedAllySlugs.length) selectedAllySlugs = [];
   let selectedEnemySlugs = fromMap ? createMapEnemySlugs() : TEAM_DATA.enemy.map(entry => entry.slug);
+  if (undeadHealTest) selectedEnemySlugs = TEAM_DATA.enemy.slice(0, 4).map(entry => entry.slug);
   let rosterTouchScroll = null;
   let selectedAllyTeam = TEAM_DATA.ally.map(entry => ({ ...entry }));
   let selectedEnemyTeam = TEAM_DATA.enemy.map(entry => ({ ...entry }));
@@ -817,6 +822,11 @@
     battleRng = V2BattleRng.create();
     rulesState = V2Rules.create(units, battleRandom);
     legionState = rulesState.legions;
+    if (undeadHealTest) {
+      for (const unitState of units.filter((unit) => unit.team === "ally" && !unit.isSummon)) {
+        unitState.hp = Math.max(1, unitState.maxHp - 3);
+      }
+    }
     if (fromMap) {
       for (const unitState of units.filter((unit) => unit.team === "ally" && !unit.isSummon)) {
         const owned = unitState.instanceId ? mapOwnedRoster.get(unitState.instanceId) : null;
@@ -833,7 +843,9 @@
     if (prophecyHpBonus) prophecyParts.push(`아군 체력 +${prophecyHpBonus}`);
     if (prophecyAllySpeedBonus) prophecyParts.push(`아군 속도 +${prophecyAllySpeedBonus}`);
     if (prophecyEnemyAttackBonus) prophecyParts.push(`적 공격력 +${prophecyEnemyAttackBonus}`);
-    message.textContent = prophecyParts.length ? `누적 예언 · ${prophecyParts.join(" · ")}` : "전투 시작을 눌러주세요";
+    message.textContent = undeadHealTest
+      ? "회복 테스트 · 언데드 4마리 HP -3 · 라운드 시작마다 +1 회복"
+      : (prophecyParts.length ? `누적 예언 · ${prophecyParts.join(" · ")}` : "전투 시작을 눌러주세요");
     updateHud();
   }
 
@@ -2225,6 +2237,7 @@
   });
 
   const mapLineupReady = fromMap && selectedAllySlugs.length >= 1 && selectedAllySlugs.length <= 4;
+  const testLineupReady = undeadHealTest && selectedAllySlugs.length === 4;
   const matchingCheckpoint = loadBattleCheckpoint();
   if (mapLineupReady && matchingCheckpoint) {
     startOverlay.hidden = true;
@@ -2233,6 +2246,9 @@
   } else if (mapLineupReady) {
     // Do not render the default/demo teams first. startSelectedBattle() prepares
     // the real map lineup and only then calls resetBattle(false).
+    startOverlay.hidden = true;
+    await startSelectedBattle();
+  } else if (testLineupReady) {
     startOverlay.hidden = true;
     await startSelectedBattle();
   } else {
