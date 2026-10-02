@@ -82,7 +82,7 @@
 - `v2-rules.js`에 `normalizeUnitBrands()`, `inheritedBlessing()`을 추가했고, 맵/집/전투 로더가 모두 같은 정규화 규칙을 사용한다.
 - `v2-brand-cards.js`는 생성·저장·로드·추가 모든 경로에서 축복 전용 카드만 유지한다.
 - 전용 필수 회귀 테스트 `test_v2_brand_inheritance_policy.js`를 추가하고 배포 게이트에 연결했다.
-- 새 정책 기준 스크립트 버전: `v2-rules.js?v=8`, `v2-brand-cards.js?v=5`, `v2-home-inheritance.js?v=16`, 맵 `v112`, 전투 `v127`.
+- 새 정책 기준 스크립트 버전: `v2-rules.js?v=8`, `v2-brand-cards.js?v=6`, `v2-home-inheritance.js?v=16`, 맵 `v112`, 전투 `v127`.
 - 이전 문서의 “낙인 카드 50% 확률 저주 포함”, “계승 시 저주 전달”, “같은 숫자에서 축복·저주 동시 발동” 규칙은 이 항목으로 대체한다.
 
 
