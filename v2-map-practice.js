@@ -383,14 +383,17 @@
     if (globalThis.V2RunStateRuntime?.available) {
       const result = await V2RunStateRuntime.replaceOwnedMonsters(roster, prefix);
       renderInventoryCounts();
+      refreshOpenBookUnitInfo();
       return Boolean(result?.ok);
     }
     try {
       if (typeof sessionStorage !== "undefined") sessionStorage.setItem(OWNED_ROSTER_KEY, JSON.stringify(roster));
       renderInventoryCounts();
+      refreshOpenBookUnitInfo();
       return true;
     } catch (_) {
       renderInventoryCounts();
+      refreshOpenBookUnitInfo();
       return false;
     }
   }
@@ -1820,26 +1823,41 @@
     return `<svg class="map-brand-icon" viewBox="${view.join(" ")}" aria-hidden="true"><image href="art/v2-style/ui/${sheet}" width="1280" height="575" /></svg>`;
   }
 
-  function openBookUnitInfo(unit) {
+  function openBookUnitInfo(unit, { focus = true } = {}) {
     if (!unit) return;
+    el.infoOverlay.dataset.instanceId = unit.instanceId || "";
     el.infoName.textContent = unit.name;
     const portraitVersion = unit.slug === "siren" ? 3 : unit.slug === "minotaur" ? 2 : 1;
     el.infoPortrait.src = `art/v2-style/ui/info-portraits/${unit.slug}.png?v=${portraitVersion}`;
     el.infoPortrait.alt = unit.name;
     el.infoGrade.textContent = GRADE_LABELS[unit.grade] || "미지정";
     el.infoLegion.textContent = unit.legions.map((key) => LEGION_LABELS[key] || key).join(" · ") || "미지정";
-    el.infoHp.textContent = `${unit.maxHp} / ${unit.maxHp}`;
+    const currentHp = Number.isFinite(unit.currentHp) ? unit.currentHp : unit.maxHp;
+    el.infoHp.textContent = `${currentHp} / ${unit.maxHp}`;
     el.infoAttack.textContent = String(unit.attack);
     el.infoSpeed.textContent = String(unit.speed);
     const passiveName = unit.passive?.name || "패시브 없음";
     el.infoBrands.innerHTML = `<div class="map-passive-heading"><span class="map-passive-symbol" aria-hidden="true">◇</span><span>${escapeInfo(passiveName)}</span></div>` +
       (unit.brands.map((brand) => `<div class="map-brand-heading">${bookBrandIcon(brand.type)}<h4>${escapeInfo(V2Rules.definitions[brand.type]?.name || brand.type)}</h4></div>`).join("") || '<p class="map-unit-info-empty">낙인 없음</p>');
     el.infoOverlay.hidden = false;
-    el.infoClose.focus();
+    if (focus) el.infoClose.focus();
+  }
+
+  function refreshOpenBookUnitInfo() {
+    if (!el.infoOverlay || el.infoOverlay.hidden) return;
+    const instanceId = el.infoOverlay.dataset.instanceId;
+    if (!instanceId) return;
+    const latest = ownedUnits.get(instanceId);
+    if (!latest) {
+      closeBookUnitInfo();
+      return;
+    }
+    openBookUnitInfo(latest, { focus: false });
   }
 
   function closeBookUnitInfo() {
     el.infoOverlay.hidden = true;
+    delete el.infoOverlay.dataset.instanceId;
   }
 
   function setBookVisual(isOpen) {
