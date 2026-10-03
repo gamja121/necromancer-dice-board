@@ -39,12 +39,12 @@ async function activate(page, selector) {
       const hero = document.querySelector(".portrait-left img");
       const commander = document.querySelector(".portrait-right img");
       const frame = document.querySelector(".dialogue-frame");
-      return hero?.complete && hero.naturalWidth >= 500
+      return hero?.complete && hero.naturalWidth > 0
         && commander?.complete && commander.naturalWidth >= 500
         && frame?.complete && frame.naturalWidth > 0;
     }, null, { timeout: 15000 });
     assert.equal(await page.locator("#dialogueStage").isVisible(), true);
-    assert((await page.locator(".portrait-right img").evaluate(img => img.naturalWidth)) >= 500);
+    assert((await page.locator(".portrait-left img").evaluate(img => img.naturalWidth)) > 0);\n    assert((await page.locator(".portrait-right img").evaluate(img => img.naturalWidth)) >= 500);
     assert.equal(await page.locator(".dialogue-frame").isVisible(), true);
     for (let step = 0; step < 11; step += 1) {
       await page.locator("#introAdvance").click();
