@@ -37,7 +37,7 @@ assert(launch.includes("testLinks.forEach"));
 assert(launch.includes('fadeTo("v2-intro.html")'), "New Game must enter the prologue before the map");
 assert(!introHtml.includes('art/v2-style/event-portraits/necromancer.png'), "Prologue must not use the 96x72 portrait");
 assert(!introHtml.includes('art/v2-style/event-portraits/knight-commander.png'), "Prologue must not use the 64x48 commander portrait");
-assert(introHtml.includes('art/v2-style/protagonist/event-scene/necromancer-protagonist-event-fullbody.jpg?v=2'));
+assert(introHtml.includes('art/v2-style/event-portraits/necromancer.png?v=2'));
 assert(introHtml.includes('art/v2-style/event-portraits/knight-commander-hd.webp?v=1'));
 assert(introHtml.includes('art/v2-style/ui/intro-dialogue-box.webp?v=4'));
 assert(introHtml.includes('쿵쾅쾅.'));
@@ -137,7 +137,7 @@ for (const required of [
   "./v2-intro.html",
   "./v2-intro.css?v=6",
   "./v2-intro.js?v=4",
-  "./art/v2-style/protagonist/event-scene/necromancer-protagonist-event-fullbody.jpg?v=2",
+  "./art/v2-style/event-portraits/necromancer.png?v=2",
   "./art/v2-style/event-portraits/knight-commander-hd.webp?v=1",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=4",
   "./v2-map-practice.js?v=114",
