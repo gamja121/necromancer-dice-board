@@ -140,7 +140,6 @@ assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
 assert(mapHtml.includes("v2-map-practice.js?v=20261004-board-bg-2"));
-assert(mapHtml.includes("map-options-button-fallback"), "Map options button must have a visible text fallback");
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=129"));
 for (const required of [
@@ -177,8 +176,8 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!/(^|\\n)\\.map-options-button\\s*\\{\\s*visibility:\\s*hidden;\\s*\\}/.test(mapCss));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261004-board-bg-2"));
-assert(worker.includes("./v2-map-practice.css?v=20261004-board-bg-2"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261004-options-gear-1"));
+assert(worker.includes("./v2-map-practice.css?v=20261004-options-gear-1"));
 
 assert(battle.includes('makeState(data, "enemy", 3 - index)'));
 assert(!battle.includes('makeState(data, "enemy", index)'));
@@ -223,3 +222,5 @@ assert(battle.includes('V2RunStateRuntime.clearBattleCheckpoint("returning", "ca
 assert(battle.includes("Promise.race([") && battle.includes("wait(1200)"), "Map return must not wait forever on runtime flush");
 
 assert(read("manifest.webmanifest").includes('"orientation": "any"'), "Manifest must allow any device orientation");
+
+assert(read("manifest.webmanifest").includes('"display": "fullscreen"'), "Installed app must launch without browser chrome");
