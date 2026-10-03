@@ -146,6 +146,8 @@ async function activate(page, selector) {
       };
     });
     console.log("INTRO_ASSET_METRICS " + JSON.stringify(introAssetMetrics));
+    assert(introAssetMetrics.frame.visiblePixels > 1000, "Intro parchment artwork must contain visible pixels");
+    assert(introAssetMetrics.commander.visiblePixels > 1000, "Commander portrait artwork must contain visible pixels");
 
     await page.goto(new URL("v2-auto-battle-practice.html", base).href);
     await page.waitForSelector("#unitRoster button");
