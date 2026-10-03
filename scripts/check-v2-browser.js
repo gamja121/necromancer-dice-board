@@ -73,7 +73,14 @@ async function activate(page, selector) {
     await page.goto(new URL("v2-intro.html", base).href);
     await page.waitForSelector("#introAdvance");
     await page.locator("#introAdvance").click();
-    await page.waitForFunction(() => document.querySelector(".portrait-right img")?.dataset.assetReady === "hd");
+    await page.waitForFunction(() => {
+      const hero = document.querySelector(".portrait-left img");
+      const commander = document.querySelector(".portrait-right img");
+      const frame = document.querySelector(".dialogue-frame");
+      return hero?.dataset.assetReady === "hero-hd"
+        && commander?.dataset.assetReady === "commander-hd"
+        && frame?.dataset.assetReady === "frame-visible";
+    });
     await page.waitForFunction(() => {
       const commander = document.querySelector(".portrait-right img");
       const frame = document.querySelector(".dialogue-frame");
@@ -148,6 +155,7 @@ async function activate(page, selector) {
     });
     console.log("INTRO_ASSET_METRICS " + JSON.stringify(introAssetMetrics));
     assert(introAssetMetrics.frame.visiblePixels > 1000, "Intro parchment artwork must contain visible pixels");
+    assert(introAssetMetrics.hero.visiblePixels > 1000, "Protagonist portrait artwork must contain visible pixels");
     assert(introAssetMetrics.commander.visiblePixels > 1000, "Commander portrait artwork must contain visible pixels");
 
     await page.goto(new URL("v2-auto-battle-practice.html", base).href);
