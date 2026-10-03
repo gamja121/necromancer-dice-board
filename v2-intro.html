@@ -7,7 +7,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>네크로멘서 앤드 다이스 · 도입부</title>
-  <link rel="stylesheet" href="v2-intro.css?v=5">
+  <link rel="stylesheet" href="v2-intro.css?v=6">
 </head>
 <body>
   <main id="introScene" class="intro-scene is-impact" aria-live="polite">
@@ -18,22 +18,31 @@
     <div class="intro-canvas">
       <button id="introAdvance" class="intro-advance" type="button" aria-label="도입부 계속">
         <section id="impactStage" class="impact-stage" aria-label="문을 두드리는 소리">
-          <strong id="impactText" class="impact-text">쿵쾅쾅.</strong>
+          <strong class="impact-text">쿵쾅쾅.</strong>
           <span class="impact-hint">화면을 터치</span>
         </section>
 
         <section id="dialogueStage" class="dialogue-stage" hidden>
-          <img id="introSceneArt" class="intro-scene-art" alt="주인공과 기사단장의 대화 장면">
-          <div class="dialogue-copy">
-            <div id="dialogueName" class="dialogue-name">기사단장</div>
-            <p id="dialogueText" class="dialogue-text">여기 있었구만.</p>
-            <span class="dialogue-next" aria-hidden="true">▼</span>
+          <div class="portrait portrait-left" data-speaker="주인공">
+            <img src="art/v2-style/protagonist/event-scene/necromancer-protagonist-event-fullbody.jpg?v=2" alt="주인공">
+          </div>
+          <div class="portrait portrait-right" data-speaker="기사단장">
+            <img src="art/v2-style/event-portraits/knight-commander-hd.webp?v=1" alt="기사단장">
+          </div>
+
+          <div class="dialogue-box">
+            <img class="dialogue-frame" src="art/v2-style/ui/intro-dialogue-box.webp?v=4" alt="" aria-hidden="true">
+            <div class="dialogue-copy">
+              <div id="dialogueName" class="dialogue-name">기사단장</div>
+              <p id="dialogueText" class="dialogue-text">여기 있었구만.</p>
+              <span class="dialogue-next" aria-hidden="true">▼</span>
+            </div>
           </div>
         </section>
       </button>
     </div>
   </main>
   <script src="v2-landscape.js?v=1"></script>
-  <script src="v2-intro.js?v=3"></script>
+  <script src="v2-intro.js?v=4"></script>
 </body>
 </html>
