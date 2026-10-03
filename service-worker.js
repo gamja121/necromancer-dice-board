@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261004-fullscreen-shell-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261004-forest-diorama-2";
 
 const CORE_ASSETS = [
   "./",
@@ -61,7 +61,7 @@ const CORE_ASSETS = [
   "./v2-tile-practice.html",
   "./v2-tile-practice.css?v=1",
   "./v2-tile-practice.js?v=2",
-  "./v2-map-practice.css?v=20261004-options-gear-1",
+  "./v2-map-practice.css?v=20261004-forest-diorama-1",
   "./art/v2-style/ui/parchment-button-variant-01.png",
   "./art/v2-style/ui/parchment-button-variant-02.png",
   "./art/v2-style/ui/parchment-button-variant-03.png",
@@ -70,7 +70,7 @@ const CORE_ASSETS = [
   "./v2-altar-ritual.css?v=5",
   "./v2-auto-battle-practice.css?v=78",
   "./v2-asset-loader.js?v=1",
-  "./v2-map-practice.js?v=20261004-board-bg-2",
+  "./v2-map-practice.js?v=20261004-forest-diorama-1",
   "./art/v2-style/map-test/events/fortune-prophecy-ui.png?v=1",
   "./v2-event-data.js?v=1",
   "./v2-map-events.js?v=1",
@@ -112,6 +112,9 @@ const CORE_ASSETS = [
   "./art/v2-style/ui/map-book-open.png",
   "./art/v2-style/ui/map-card-deck.png",
   "./art/v2-style/ui/map-options-button.webp?v=1",
+  "./art/v2-style/map-test/diorama/forest-tree-01.webp",
+  "./art/v2-style/map-test/diorama/forest-tree-02.webp",
+  "./art/v2-style/map-test/diorama/forest-tree-03.webp",
   "./art/v2-style/ui/swamp-damage-minus1.svg?v=1",
   "./art/v2-style/ui/monster-shop-counter.png?v=3",
   "./art/v2-style/ui/patrol-route-frame.webp?v=2",
