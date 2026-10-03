@@ -12,23 +12,23 @@
   const frameImg = document.querySelector(".dialogue-frame");
 
   const heroChunks = [
-    { path: ".tmp/intro-assets/hero/part-000.txt", mode: "plain" },
-    { path: ".tmp/intro-assets/hero/part-001.txt", mode: "plain" },
-    { path: ".tmp/intro-assets/hero/part-002.txt", mode: "plain" }
+    { path: "assets/intro-data/hero/part-000.txt", mode: "plain" },
+    { path: "assets/intro-data/hero/part-001.txt", mode: "plain" },
+    { path: "assets/intro-data/hero/part-002.txt", mode: "plain" }
   ];
   const frameChunks = [
-    { path: ".tmp/intro-assets/frame/part-000.txt", mode: "plain" },
-    { path: ".tmp/intro-assets/frame/part-001.txt", mode: "plain" }
+    { path: "assets/intro-data/frame/part-000.txt", mode: "plain" },
+    { path: "assets/intro-data/frame/part-001.txt", mode: "plain" }
   ];
   const commanderChunks = [
-    ...Array.from({ length: 8 }, (_, i) => ({ path: `.tmp/intro-assets/commander/part-${String(i).padStart(3, "0")}.txt`, mode: "plain" })),
-    { path: ".tmp/intro-assets/commander/part-008.rev.txt", mode: "reverse" },
-    { path: ".tmp/intro-assets/commander/part-009.rev.txt", mode: "reverse" },
-    { path: ".tmp/intro-assets/commander/part-010.rev.txt", mode: "reverse" },
-    { path: ".tmp/intro-assets/commander/part-011.rev.txt", mode: "reverse" },
-    { path: ".tmp/intro-assets/commander/part-012.b64txt.txt", mode: "base64-text" },
-    { path: ".tmp/intro-assets/commander/part-013.rev.txt", mode: "reverse" },
-    { path: ".tmp/intro-assets/commander/part-014.rev.txt", mode: "reverse" }
+    ...Array.from({ length: 8 }, (_, i) => ({ path: `assets/intro-data/commander/part-${String(i).padStart(3, "0")}.txt`, mode: "plain" })),
+    { path: "assets/intro-data/commander/part-008.rev.txt", mode: "reverse" },
+    { path: "assets/intro-data/commander/part-009.rev.txt", mode: "reverse" },
+    { path: "assets/intro-data/commander/part-010.rev.txt", mode: "reverse" },
+    { path: "assets/intro-data/commander/part-011.rev.txt", mode: "reverse" },
+    { path: "assets/intro-data/commander/part-012.b64txt.txt", mode: "base64-text" },
+    { path: "assets/intro-data/commander/part-013.rev.txt", mode: "reverse" },
+    { path: "assets/intro-data/commander/part-014.rev.txt", mode: "reverse" }
   ];
 
   async function loadChunkImage(img, chunks, fallback, readyValue) {
