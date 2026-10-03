@@ -84,7 +84,6 @@ const CORE_ASSETS = [
   "./art/v2-style/ui/map-options-button.webp?v=1",
   "./art/v2-style/ui/swamp-damage-minus1.svg?v=1",
   "./art/v2-style/ui/monster-shop-counter.png?v=3",
-  "./art/v2-style/ui/patrol-route-atlas.webp?v=1",
   "./art/v2-style/ui/patrol-route-frame.webp?v=2",
   "./art/v2-style/ui/patrol-route-current-frame.webp?v=2",
   "./art/v2-style/ui/heal-cross.png?v=1",
