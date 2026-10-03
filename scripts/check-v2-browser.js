@@ -44,7 +44,8 @@ async function activate(page, selector) {
         && frame?.complete && frame.naturalWidth > 0;
     }, null, { timeout: 15000 });
     assert.equal(await page.locator("#dialogueStage").isVisible(), true);
-    assert((await page.locator(".portrait-left img").evaluate(img => img.naturalWidth)) > 0);\n    assert((await page.locator(".portrait-right img").evaluate(img => img.naturalWidth)) >= 500);
+    assert((await page.locator(".portrait-left img").evaluate(img => img.naturalWidth)) > 0);
+    assert((await page.locator(".portrait-right img").evaluate(img => img.naturalWidth)) >= 500);
     assert.equal(await page.locator(".dialogue-frame").isVisible(), true);
     for (let step = 0; step < 11; step += 1) {
       await page.locator("#introAdvance").click();
