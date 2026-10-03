@@ -9,7 +9,7 @@
   const resultFrames = Array.from({ length: 6 }, (_, index) => `${DICE_ROOT}result-${String(index + 1).padStart(2, "0")}.png`);
   const treasureChestFrames = Array.from({ length: 4 }, (_, index) => `${ROOT}events/treasure-chest-frame-${index + 1}.png`);
   const maps = {
-    default: { name: "기본 지역", image: `${ROOT}maps/default-map.jpg` },
+    default: { name: "기본 지역", image: `${ROOT}maps/default-map.jpg?v=20261003-board-bg-1` },
     winter: { name: "겨울 지역", image: `${ROOT}maps/winter-map.jpg` },
     hell: { name: "지옥 지역", image: `${ROOT}maps/hell-map.jpg` }
   };
