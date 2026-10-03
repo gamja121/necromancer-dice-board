@@ -5,4 +5,20 @@ __pycache__/
 node_modules/
 _site/
 
+# Temporary AI / conversion / transport artifacts
+.tmp/
+tmp/
+temp/
+*.b64
+*.base64
+*.tmp
+*.bak
+*.orig
+*.zip
+_backup_parts/
+image-backup-parts/
 
+# Local test/build outputs
+playwright-report/
+test-results/
+coverage/
