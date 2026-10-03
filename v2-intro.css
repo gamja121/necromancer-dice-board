@@ -17,10 +17,10 @@ button{font:inherit}
 .dialogue-stage[hidden]{display:none}
 .portrait{position:absolute;z-index:3;bottom:26%;pointer-events:none;overflow:hidden}
 .portrait img{display:block;position:absolute;max-width:none;max-height:none;image-rendering:auto;filter:none}
-.portrait-left img{width:185%;height:auto;left:50%;bottom:-2%;transform:translateX(-50%)}
+.portrait-left img{width:270%;height:auto;left:63%;bottom:-7%;transform:translateX(-50%)}
 .portrait-right img{width:145%;height:auto;right:50%;bottom:-1%;transform:translateX(50%) scaleX(-1)}
-.portrait-left{left:3%;width:42%;height:72%}
-.portrait-right{right:1%;width:44%;height:76%}
+.portrait-left{left:3%;width:40%;height:71%;overflow:hidden}
+.portrait-right{right:1%;width:44%;height:76%;overflow:hidden}
 
 .portrait:not(.is-speaking){opacity:1}
 .portrait.is-speaking{opacity:1}
