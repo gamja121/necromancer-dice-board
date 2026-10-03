@@ -16,6 +16,16 @@
   const DB_NAME="necromancer-dice-runs";
   let unlocked=false,soundOn=true,leaving=false,installPrompt=null,toastTimer,selectedMenu=null;
 
+  async function requestGameFullscreen(){
+    if(document.fullscreenElement)return true;
+    try{
+      const root=document.documentElement;
+      if(root.requestFullscreen){await root.requestFullscreen({navigationUI:"hide"});return true}
+      if(root.webkitRequestFullscreen){root.webkitRequestFullscreen();return true}
+    }catch(_){}
+    return false;
+  }
+
   video.volume=.72;
   bgm.volume=.34;
   video.muted=true;
@@ -31,6 +41,7 @@
     await Promise.allSettled([video.play(),bgm.play()]);
   }
   async function unlockTitle(){
+    await requestGameFullscreen();
     if(unlocked)return;
     unlocked=true;
     document.body.classList.remove("is-locked");
@@ -89,6 +100,7 @@
 
   newGame.addEventListener("click",async()=>{
     if(!isSecondPress(newGame))return;
+    await requestGameFullscreen();
     if(!unlocked)await unlockTitle();
     const saved=await hasSavedRun();
     if(saved&&!confirm("기존 원정 기록을 지우고 새 게임을 시작할까요?"))return;
@@ -98,6 +110,7 @@
   cont.addEventListener("click",async e=>{
     e.preventDefault();if(cont.hidden)return;
     if(!isSecondPress(cont))return;
+    await requestGameFullscreen();
     if(!unlocked)await unlockTitle();
     await fadeTo(cont.href);
   });
@@ -108,6 +121,7 @@
   closeOptions.addEventListener("click",()=>{panel.hidden=true;selectMenu(options)});
   testLinks.forEach(link=>link.addEventListener("click",async e=>{
     e.preventDefault();
+    await requestGameFullscreen();
     if(!unlocked)await unlockTitle();
     await fadeTo(link.href);
   }));
