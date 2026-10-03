@@ -292,3 +292,52 @@ AI가 작업하기 전 아래 7개를 확인한다.
 - `README.md`
 
 이 문서는 **외부 개발 환경 운영 규칙의 최상위 기준**으로 사용한다. 게임 개발 순서, Codex 역할, 원본/Runtime 자산 분리, 저장소 용량 정책, Godot 이관 방식은 `CODEX_DEVELOPMENT_WORKFLOW.md`를 따른다.
+---
+
+## 13. 저장소 위생 게이트 (모든 AI 필수)
+
+이 규칙은 ChatGPT, Codex 및 기타 AI가 파일을 추가·교체·삭제할 때 항상 적용한다.
+
+### 작업 시작 전
+
+1. 최신 `main`과 실제 대상 경로를 다시 확인한다.
+2. 게임 규칙은 `GAME_DESIGN_RULES.md`, 최신 구현 상태는 `AI_PROJECT_PROGRESS.md`, 자산 정책은 `CODEX_DEVELOPMENT_WORKFLOW.md`와 `ASSET_CLASSIFICATION.md`를 기준으로 한다.
+3. 현재 구현 중인 기능의 파일은 단순히 참조가 적다는 이유로 정리/삭제하지 않는다.
+
+### 새 자산을 넣기 전
+
+1. GitHub에는 게임이 실제 사용하는 Runtime 자산을 우선 보관한다.
+2. AI 생성 원본, 고해상도 원본, 누끼 전 이미지, 후보안, 임시 교체본은 원칙적으로 Git 밖 Source Vault/Google Drive에 둔다.
+3. Runtime 재생성에 실제 필요한 원본만 예외적으로 Git에 둘 수 있으며, 제작 스크립트/테스트 의존성을 확인한다.
+4. 같은 용도의 PNG/JPG/WebP를 새로 추가하기 전에 기존 파일과 fallback 사용 여부를 확인한다.
+5. 파일명에 `temp`, `tmp`, `backup`, `copy`, `replacement`, 날짜형 임시 폴더를 만들어 장기 보관하지 않는다.
+6. Base64 운반 파일, ZIP, 테스트 출력물, 변환 중간 파일은 commit하지 않는다.
+
+### 삭제 전 5중 확인
+
+파일을 삭제하려면 아래를 모두 확인한다.
+
+1. 런타임 코드의 직접 참조
+2. slug/ROOT 등 동적 경로 생성
+3. service worker / manifest / HTML 캐시 참조
+4. 제작·변환 스크립트의 source 입력
+5. 테스트 및 CI 의존성
+
+하나라도 불명확하면 자동 삭제하지 않고 보류한다. `ASSET_CLASSIFICATION.md`의 분류가 실제 tree와 다르면 실제 최신 tree를 우선하고 분류 문서를 갱신한다.
+
+### 작업 완료 전
+
+1. 임시 파일·임시 workflow·중간 산출물이 남지 않았는지 확인한다.
+2. 관련 테스트를 실행하고, 가능하면 `npm test`와 브라우저 smoke/CI 결과를 확인한다.
+3. 삭제/교체한 경로가 실제 최신 `main`에서 원하는 상태인지 재조회한다.
+4. 게임 동작에 영향을 주는 변경이면 `AI_PROJECT_PROGRESS.md`에 기록한다.
+5. 완료 보고는 실제 검증된 내용만 적는다.
+
+### 정기 위생 원칙
+
+- 대규모 청소를 반복하는 대신 새 파일이 들어오는 시점에 위 규칙으로 막는다.
+- GitHub는 **현재 실행 가능한 프로젝트 + 필요한 재생성 원본 + 테스트/문서**를 유지한다.
+- Google Drive/Source Vault는 **고해상도 제작 원본과 재난복구 백업**을 담당한다.
+- Git history를 백업 창고처럼 사용하지 않는다.
+- 용량 절감을 위해 기능상 필요한 fallback, 테스트, 제작 원본을 임의 삭제하지 않는다.
+
