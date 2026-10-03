@@ -3,6 +3,7 @@ const CACHE_NAME = "necromancer-and-dice-v2-20261004-board-bg-2";
 const CORE_ASSETS = [
   "./",
   "./index.html",
+  "./fresh-start.html",
   "./manifest.webmanifest?v=20261004-orientation-any-1",
   "./v2-intro.html",
   "./v2-intro.css?v=15",
