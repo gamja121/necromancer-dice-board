@@ -76,6 +76,41 @@ async function activate(page, selector) {
     await page.locator("#startButton").click();
     await page.waitForFunction(() => document.getElementById("startOverlay").hidden);
     console.log("PASS: V2 battle roster and start");
+    await page.setViewportSize({ width: 844, height: 390 });
+    await page.goto(new URL("v2-intro.html", base).href);
+    await page.waitForSelector("#introAdvance");
+    await page.locator("#introAdvance").click();
+    await page.waitForFunction(() => {
+      const commander = document.querySelector(".portrait-right img");
+      const frame = document.querySelector(".dialogue-frame");
+      return commander?.complete && commander.naturalWidth >= 500
+        && frame?.complete && frame.naturalWidth > 0;
+    });
+    const landscapeIntro = await page.evaluate(() => {
+      const box = (selector) => {
+        const rect = document.querySelector(selector)?.getBoundingClientRect();
+        return rect ? { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height } : null;
+      };
+      return {
+        frame: box(".dialogue-box"),
+        commander: box(".portrait-right"),
+        heroVisible: getComputedStyle(document.querySelector(".portrait-left")).visibility !== "hidden",
+        commanderVisible: getComputedStyle(document.querySelector(".portrait-right")).visibility !== "hidden",
+        viewport: { width: innerWidth, height: innerHeight }
+      };
+    });
+    assert(landscapeIntro.frame.width >= landscapeIntro.viewport.width * 0.8, "Landscape dialogue frame should span most of the screen");
+    assert(landscapeIntro.frame.bottom <= landscapeIntro.viewport.height + 1, "Landscape dialogue frame must stay inside the viewport");
+    assert(landscapeIntro.frame.top >= landscapeIntro.viewport.height * 0.6, "Landscape dialogue frame should stay in the lower area");
+    assert.equal(landscapeIntro.commanderVisible, true, "Commander must be visible on the first line");
+    assert.equal(landscapeIntro.heroVisible, false, "Protagonist must be hidden on the commander line");
+    assert(landscapeIntro.commander.width >= landscapeIntro.viewport.width * 0.4, "Commander portrait should remain large in landscape");
+    await page.locator("#introAdvance").click();
+    await page.waitForTimeout(80);
+    assert.equal(await page.locator(".portrait-left").isVisible(), true, "Protagonist must appear on protagonist line");
+    assert.equal(await page.locator(".portrait-right").isVisible(), false, "Commander must hide on protagonist line");
+    await page.screenshot({ path: path.join(os.tmpdir(), "necromancer-intro-mobile-landscape.png") });
+    console.log("PASS: mobile landscape intro frame and speaker portraits");
     await page.locator("#turnDiceButton").click();
     await page.waitForFunction(() => {
       const saved = JSON.parse(localStorage.getItem("necromancer-v2-battle-v1") || "null");
