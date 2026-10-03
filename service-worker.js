@@ -1,13 +1,13 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261003-intro-protagonist-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261003-intro-commander-1";
 
 const CORE_ASSETS = [
   "./",
   "./index.html",
   "./v2-intro.html",
-  "./v2-intro.css?v=12",
+  "./v2-intro.css?v=13",
   "./v2-intro.js?v=4",
   "./art/v2-style/event-portraits/necromancer-upperbody-hd.webp?v=2",
-  "./art/v2-style/event-portraits/knight-commander-upperbody-hd.webp?v=1",
+  "./art/v2-style/event-portraits/knight-commander-upperbody-hd.webp?v=2",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=5",
   "./assets/title/exit.webp",
   "./assets/title/options.webp",
