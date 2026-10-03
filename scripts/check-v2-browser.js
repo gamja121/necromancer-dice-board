@@ -69,13 +69,6 @@ async function activate(page, selector) {
       assert((await page.title()).startsWith("네크로멘서 앤드 다이스"));
       console.log("PASS: " + screen);
     }
-    await page.goto(new URL("v2-auto-battle-practice.html", base).href);
-    await page.waitForSelector("#unitRoster button");
-    const choices = page.locator("#unitRoster button");
-    for (let i = 0; i < 4; i++) await choices.nth(i).click();
-    await page.locator("#startButton").click();
-    await page.waitForFunction(() => document.getElementById("startOverlay").hidden);
-    console.log("PASS: V2 battle roster and start");
     await page.setViewportSize({ width: 844, height: 390 });
     await page.goto(new URL("v2-intro.html", base).href);
     await page.waitForSelector("#introAdvance");
@@ -113,6 +106,14 @@ async function activate(page, selector) {
     assert.equal(await page.locator(".portrait-right").isVisible(), false, "Commander must hide on protagonist line");
     await page.screenshot({ path: path.join(os.tmpdir(), "necromancer-intro-mobile-landscape.png") });
     console.log("PASS: mobile landscape intro frame and speaker portraits");
+    await page.goto(new URL("v2-auto-battle-practice.html", base).href);
+    await page.waitForSelector("#unitRoster button");
+    const choices = page.locator("#unitRoster button");
+    for (let i = 0; i < 4; i++) await choices.nth(i).click();
+    await page.locator("#startButton").click();
+    await page.waitForFunction(() => document.getElementById("startOverlay").hidden);
+    console.log("PASS: V2 battle roster and start");
+
     await page.locator("#turnDiceButton").click();
     await page.waitForFunction(() => {
       const saved = JSON.parse(localStorage.getItem("necromancer-v2-battle-v1") || "null");
