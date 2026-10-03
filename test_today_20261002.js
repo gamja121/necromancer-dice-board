@@ -52,7 +52,7 @@ assert(introCss.includes("@media (orientation:portrait)"), "Prologue needs portr
 assert(introHtml.includes('class="intro-canvas"'), "Prologue must render inside a fixed landscape canvas");
 assert(introHtml.includes('id="introLandscapeHint"'), "Portrait phones need an explicit rotate-device hint");
 assert(introCss.includes("aspect-ratio:16/9"), "Prologue canvas must stay 16:9");
-assert(introCss.includes(".portrait-right{right:2%;width:48%;height:78%}"), "HD commander must render large on the right");
+assert(introCss.includes(".portrait-right{right:1%;width:44%;height:76%;overflow:visible}"), "HD commander must render large on the right");
 assert(introJs.includes("ensureLandscape()"), "Prologue must request real landscape orientation on interaction");
 assert(!introCss.includes("rotate(90deg)"), "Prologue must not sideways-rotate the whole UI");
 assert(introHtml.includes('intro-dialogue-box.webp?v=4'), "Prologue must show the parchment dialogue frame");
