@@ -18,6 +18,13 @@ async function activate(page, selector) {
   const browser = await chromium.launch({ ...(process.env.CI ? {} : { channel: "msedge" }), headless: true });
   try {
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    if (process.env.CI) {
+      await context.addInitScript(() => {
+        const noopFullscreen = async () => {};
+        try { Object.defineProperty(Element.prototype, "requestFullscreen", { configurable: true, writable: true, value: noopFullscreen }); } catch (_) {}
+        try { Object.defineProperty(HTMLElement.prototype, "webkitRequestFullscreen", { configurable: true, writable: true, value: noopFullscreen }); } catch (_) {}
+      });
+    }
     const page = await context.newPage();
     page.setDefaultTimeout(15000);
     page.setDefaultNavigationTimeout(30000);
@@ -31,13 +38,6 @@ async function activate(page, selector) {
     });
     await page.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: 30000 });
     await page.screenshot({ path: path.join(os.tmpdir(), "necromancer-launch-desktop.png") });
-    // Headless Chromium can enter a real fullscreen state that blocks later navigation/viewport changes.
-    // Stub fullscreen only inside CI smoke coverage; fullscreen behavior is covered by static/runtime tests separately.
-    if (process.env.CI) {
-      await page.evaluate(() => {
-        document.documentElement.requestFullscreen = async () => {};
-      });
-    }
     await unlock(page);
     await activate(page, "#newGameButton");
     // The launcher now opens gameplay inside #gameFrame. Verify that handoff, then
