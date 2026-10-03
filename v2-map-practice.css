@@ -1339,7 +1339,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .map-board.is-tile-event-open .map-options-button { visibility: hidden; }
 
 
-/* Forest diorama prototype: a reusable paper-theater stage over the central dice area. */
+/* Forest diorama prototype: zoom toward the center dice stage, tilt down into a front-facing paper theater, then stand the trees up. */
 .map-diorama-test-row{border-top:1px solid #70583f66;margin-top:5px;padding-top:7px}
 .map-diorama-test-row>button{background:#43301f;color:#ffe0a8}
 
@@ -1349,7 +1349,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   inset:0;
   overflow:hidden;
   pointer-events:auto;
-  perspective:900px;
+  perspective:1400px;
   isolation:isolate;
 }
 .forest-diorama-test[hidden]{display:none}
@@ -1358,59 +1358,69 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   inset:0;
   z-index:0;
   background:
-    radial-gradient(ellipse at 50% 55%,rgba(15,12,8,.04) 0 20%,rgba(9,7,5,.36) 58%,rgba(3,2,2,.80) 100%);
+    radial-gradient(ellipse at 50% 50%,rgba(16,12,8,.02) 0 15%,rgba(8,6,4,.38) 56%,rgba(2,2,2,.82) 100%);
   opacity:0;
-  transition:opacity 420ms ease;
+  transition:opacity 500ms ease;
+}
+.forest-diorama-camera{
+  position:absolute;
+  z-index:2;
+  inset:0;
+  transform-origin:50% 52%;
+  transform-style:preserve-3d;
+  pointer-events:none;
+  will-change:transform;
 }
 .forest-diorama-stage{
   position:absolute;
-  z-index:2;
   left:50%;
-  top:49%;
-  width:min(48%,720px);
-  height:48%;
-  transform:translate(-50%,-47%) rotateX(9deg) scale(.86);
-  transform-origin:50% 82%;
+  top:50%;
+  width:min(46%,700px);
+  height:50%;
+  transform:translate(-50%,-46%);
+  transform-origin:50% 88%;
   transform-style:preserve-3d;
   opacity:0;
-  transition:transform 700ms cubic-bezier(.16,.78,.18,1),opacity 280ms ease;
+  transition:opacity 240ms ease 140ms;
 }
 .forest-diorama-ground{
   position:absolute;
   z-index:0;
-  left:3%;
-  right:3%;
-  bottom:0;
-  height:34%;
+  left:0;
+  right:0;
+  bottom:-1%;
+  height:35%;
   border-radius:50%;
-  background:radial-gradient(ellipse at center,rgba(75,57,37,.44),rgba(37,29,20,.18) 50%,transparent 75%);
-  transform:rotateX(66deg) translateZ(-18px);
+  background:
+    radial-gradient(ellipse at center,rgba(102,76,45,.38) 0 34%,rgba(48,35,22,.20) 57%,transparent 75%);
+  transform:rotateX(68deg) translateZ(-28px) scale(.82);
   transform-origin:center bottom;
-  filter:blur(.4px);
+  filter:blur(.35px);
+  transition:transform 980ms cubic-bezier(.16,.78,.18,1) 100ms;
 }
 .forest-diorama-tree{
   position:absolute;
   z-index:2;
-  bottom:9%;
+  bottom:8%;
   width:auto;
   height:auto;
   max-height:88%;
   object-fit:contain;
   transform-origin:50% 100%;
   opacity:0;
-  filter:drop-shadow(0 12px 8px rgba(0,0,0,.72));
+  filter:drop-shadow(0 13px 8px rgba(0,0,0,.72));
   will-change:transform,opacity;
 }
-.tree-back-left{left:10%;max-height:58%;z-index:1}
-.tree-back-right{right:8%;max-height:61%;z-index:1}
-.tree-front-left{left:20%;max-height:83%;z-index:3}
-.tree-front-center{left:50%;max-height:72%;z-index:4}
-.tree-front-right{right:20%;max-height:79%;z-index:3}
+.tree-back-left{left:11%;max-height:56%;z-index:1}
+.tree-back-right{right:9%;max-height:60%;z-index:1}
+.tree-front-left{left:21%;max-height:82%;z-index:3}
+.tree-front-center{left:50%;max-height:71%;z-index:4}
+.tree-front-right{right:20%;max-height:78%;z-index:3}
 .forest-diorama-caption{
   position:absolute;
   z-index:5;
   left:50%;
-  bottom:5.5%;
+  bottom:4.5%;
   transform:translateX(-50%);
   padding:5px 10px;
   border:1px solid #8a6a42aa;
@@ -1419,7 +1429,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   font:900 clamp(7px,.72vw,10px)/1 "Malgun Gothic",sans-serif;
   letter-spacing:.12em;
   opacity:0;
-  transition:opacity 260ms ease 1.05s;
+  transition:opacity 260ms ease 1.7s;
 }
 .forest-diorama-close{
   position:absolute;
@@ -1437,34 +1447,53 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   line-height:1;
   cursor:pointer;
   opacity:0;
-  transition:opacity 220ms ease 1s;
+  transition:opacity 220ms ease 1.6s;
 }
 .forest-diorama-test.is-playing .forest-diorama-vignette{opacity:1}
-.forest-diorama-test.is-playing .forest-diorama-stage{
-  opacity:1;
-  transform:translate(-50%,-47%) rotateX(0deg) scale(1);
+.forest-diorama-test.is-playing .forest-diorama-camera{
+  animation:forestCameraMove 1220ms cubic-bezier(.16,.78,.18,1) both;
+}
+.forest-diorama-test.is-playing .forest-diorama-stage{opacity:1}
+.forest-diorama-test.is-playing .forest-diorama-ground{
+  transform:rotateX(68deg) translateZ(-28px) scale(1.04);
 }
 .forest-diorama-test.is-playing .forest-diorama-tree{
-  animation:forestTreeStand 650ms cubic-bezier(.16,.82,.22,1) both;
+  animation:forestTreeStand 620ms cubic-bezier(.16,.82,.22,1) both;
 }
-.forest-diorama-test.is-playing .tree-back-left{animation-delay:180ms}
-.forest-diorama-test.is-playing .tree-back-right{animation-delay:300ms}
-.forest-diorama-test.is-playing .tree-front-left{animation-delay:430ms}
-.forest-diorama-test.is-playing .tree-front-right{animation-delay:560ms}
-.forest-diorama-test.is-playing .tree-front-center{animation-delay:690ms}
+.forest-diorama-test.is-playing .tree-back-left{animation-delay:650ms}
+.forest-diorama-test.is-playing .tree-back-right{animation-delay:770ms}
+.forest-diorama-test.is-playing .tree-front-left{animation-delay:900ms}
+.forest-diorama-test.is-playing .tree-front-right{animation-delay:1030ms}
+.forest-diorama-test.is-playing .tree-front-center{animation-delay:1160ms}
 .forest-diorama-test.is-playing .forest-diorama-caption,
 .forest-diorama-test.is-playing .forest-diorama-close{opacity:1}
+
+@keyframes forestCameraMove{
+  0%{
+    transform:translate3d(0,10%,0) scale(.74) rotateX(58deg);
+  }
+  42%{
+    transform:translate3d(0,3%,0) scale(.92) rotateX(37deg);
+  }
+  72%{
+    transform:translate3d(0,-1%,0) scale(1.08) rotateX(24deg);
+  }
+  100%{
+    transform:translate3d(0,-2%,0) scale(1.16) rotateX(17deg);
+  }
+}
 @keyframes forestTreeStand{
-  0%{opacity:0;transform:translateY(16%) rotateX(82deg) scaleY(.16)}
-  24%{opacity:1}
+  0%{opacity:0;transform:translateY(18%) rotateX(84deg) scaleY(.12)}
+  22%{opacity:1}
   76%{transform:translateY(-1.5%) rotateX(-4deg) scaleY(1.025)}
   100%{opacity:1;transform:translateY(0) rotateX(0deg) scaleY(1)}
 }
 @media(max-height:420px) and (orientation:landscape){
-  .forest-diorama-stage{width:44%;height:54%;top:48%}
+  .forest-diorama-stage{width:44%;height:54%;top:49%}
   .forest-diorama-caption{bottom:3%}
 }
 @media(prefers-reduced-motion:reduce){
+  .forest-diorama-test.is-playing .forest-diorama-camera,
   .forest-diorama-test.is-playing .forest-diorama-tree{animation-duration:1ms;animation-delay:0ms}
-  .forest-diorama-stage,.forest-diorama-vignette{transition-duration:1ms}
+  .forest-diorama-stage,.forest-diorama-vignette,.forest-diorama-ground{transition-duration:1ms}
 }
