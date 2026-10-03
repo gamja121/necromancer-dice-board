@@ -5,6 +5,7 @@ const read = (file) => fs.readFileSync(file, "utf8").replace(/\r\n/g, "\n");
 
 const index = read("index.html");
 const launch = read("launch.js");
+assert(launch.includes('requestFullscreen({navigationUI:"hide"})'), "Title screen must request browser fullscreen from a user gesture");
 const introHtml = read("v2-intro.html");
 const introCss = read("v2-intro.css");
 const introJs = read("v2-intro.js");
@@ -46,7 +47,7 @@ assert(!introJs.match(/speaker: "주인공", text: "(?!\.\.\.)/), "Every protago
 assert(introJs.includes('오늘부터 네게 외곽 순찰 임무를 맡기겠다.'));
 assert(introJs.includes('location.href = "v2-map-practice.html"'));
 assert(introCss.includes(".dialogue-box"), "Dialogue UI must render over the parchment frame");
-assert(!introHtml.includes('v2-landscape.js?v=1'), "Prologue should render a fixed 16:9 canvas without orientation lock");
+assert(introHtml.includes('v2-landscape.js?v=2'), "Prologue should use the fullscreen gesture helper");
 assert(introJs.includes('loadChunkImage(commanderImg, commanderChunks'), "Prologue must reconstruct the commander HD portrait from chunk data");
 assert(introJs.includes('loadChunkImage(frameImg, frameChunks'), "Prologue must reconstruct the visible parchment frame from chunk data");
 assert(introCss.includes("@media (orientation:portrait)"), "Prologue needs portrait-to-landscape CSS fallback");
