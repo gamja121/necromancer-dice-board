@@ -5,7 +5,6 @@ button{font:inherit}
 .intro-scene{position:fixed;inset:0;display:grid;place-items:center;background:#000;overflow:hidden}
 .intro-canvas{position:relative;width:min(100vw,177.7778dvh);height:min(100dvh,56.25vw);aspect-ratio:16/9;background:#000;overflow:hidden}
 .intro-advance{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;background:#000;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;overflow:hidden}
-.intro-landscape-hint{display:none;position:fixed;z-index:100;inset:0;place-items:center;background:#000;color:#dfd2bc;font-size:clamp(20px,5vw,32px);font-weight:900;text-align:center}
 .impact-stage{position:absolute;inset:0;display:grid;place-items:center;background:#000}
 .impact-stage[hidden]{display:none}
 .impact-text{font-family:Georgia,"Malgun Gothic",serif;font-size:clamp(42px,8vw,108px);font-weight:1000;letter-spacing:.12em;color:#eee8dc;animation:impact-hit 820ms cubic-bezier(.16,.8,.2,1) both}
@@ -36,7 +35,6 @@ button{font:inherit}
 @keyframes next-bob{0%,100%{transform:translateY(0);opacity:.45}50%{transform:translateY(4px);opacity:1}}
 .intro-scene.is-ending .dialogue-stage{animation:intro-fade-out 520ms ease forwards}
 @keyframes intro-fade-out{to{opacity:0}}
-@media (orientation:portrait){.intro-landscape-hint{display:grid}.intro-canvas{visibility:hidden}}
 @media (max-height:430px) and (orientation:landscape){
   .portrait-left{left:3%;width:41%;height:72%}
   .portrait-right{right:0%;width:47%;height:79%}
