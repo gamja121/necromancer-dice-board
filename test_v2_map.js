@@ -30,8 +30,9 @@ assert(html.includes('id="tileEventOverlay"') && html.includes('id="tileEventIma
 assert(html.includes('id="mapDeckOverlay"') && html.includes('id="mapSelectedLineup"') && html.includes('id="mapDeckRoster"'), "Map battle deck selection overlay is missing.");
 assert(css.includes("@media (orientation: portrait)"), "Portrait landscape fallback is missing.");
 assert(css.includes("rotate(90deg)"), "Map must rotate itself in portrait mode.");
-assert(html.includes("v2-landscape.js?v=1"), "Landscape orientation helper is missing.");
-assert(landscape.includes('screen.orientation.lock("landscape")'), "Landscape orientation lock is missing.");
+assert(html.includes("v2-landscape.js?v=2"), "Fullscreen helper is missing.");
+assert(!landscape.includes("orientation.lock"), "Fullscreen helper must not force device orientation.");
+assert(landscape.includes("requestFullscreen"), "Fullscreen request is missing.");
 assert(source.includes("for (let index = 0; index < 8") && source.includes("for (let index = 0; index < 7"), "Top eight and bottom seven perimeter positions are missing.");
 assert(source.includes("for (let index = 0; index < 4") && source.includes("for (let index = 0; index < 5"), "Right four and left five perimeter positions are missing.");
 const perimeterSource = source.match(/  function perimeterPositions\(\) \{[\s\S]*?\n  \}/)?.[0];
@@ -124,7 +125,7 @@ assert(html.includes('src="v2-run-state.js?') && html.includes('src="v2-run-stat
   worker.includes('v2-run-state.js?') && worker.includes('v2-run-state-runtime.js?'),
   "RunState core/runtime must load and cache before map persistence.");
 assert(worker.includes("v2-map-practice.html"), "Map test page is not cached.");
-assert(worker.includes("v2-landscape.js?v=1"), "Landscape helper is not cached.");
+assert(worker.includes("v2-landscape.js?v=2"), "Fullscreen helper is not cached.");
 assert(html.includes('id="diceControlHand"') && html.includes('v2-dice-control.js?v=1'), "The five-card dice control hand and ability engine must load on the map.");
 assert(source.includes("V2DiceControl.canUse") && source.includes("V2DiceControl.resolve") && source.includes("pendingDiceControlId"), "Dice control cards must arm and resolve on the next roll.");
 assert(source.includes("previousDiceRoll") && source.includes("previousDiceControlId"), "Repeat and effect reactivation history must be tracked.");
