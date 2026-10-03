@@ -36,9 +36,9 @@ for (const href of [
 assert(launch.includes("testLinks.forEach"));
 assert(launch.includes('fadeTo("v2-intro.html")'), "New Game must enter the prologue before the map");
 assert(introHtml.includes('art/v2-style/event-portraits/necromancer-upperbody-hd.webp?v=2'), "Prologue must use the dedicated protagonist upper-body portrait");
-assert(!introHtml.includes('art/v2-style/event-portraits/knight-commander.png'), "Prologue must not use the 64x48 commander portrait");
+assert(introHtml.includes('art/v2-style/event-portraits/knight-commander.png?v=2'), "Prologue must keep a visible commander fallback while HD chunks load");
 assert(introHtml.includes('art/v2-style/event-portraits/necromancer-upperbody-hd.webp?v=2'));
-assert(introHtml.includes('art/v2-style/event-portraits/knight-commander-upperbody-hd.webp?v=2'));
+assert(introJs.includes('data:image/webp;base64,'), "Prologue must reconstruct the commander HD portrait from chunk data");
 assert(introHtml.includes('art/v2-style/ui/intro-dialogue-box.webp?v=6'));
 assert(introHtml.includes('쿵쾅쾅.'));
 assert(introJs.includes('{ speaker: "주인공", text: "..." }'));
@@ -47,7 +47,7 @@ assert(introJs.includes('오늘부터 네게 외곽 순찰 임무를 맡기겠�
 assert(introJs.includes('location.href = "v2-map-practice.html"'));
 assert(introCss.includes(".dialogue-box"), "Dialogue UI must render over the parchment frame");
 assert(introHtml.includes('v2-landscape.js?v=1'), "Prologue must use landscape helper");
-assert(introHtml.includes('knight-commander-upperbody-hd.webp?v=2'), "Prologue must use the HD commander upper-body asset");
+assert(introJs.includes('commanderImg.dataset.assetReady = "hd"'), "Prologue must confirm the reconstructed commander HD portrait is ready");
 assert(introCss.includes("@media (orientation:portrait)"), "Prologue needs portrait-to-landscape CSS fallback");
 assert(introHtml.includes('class="intro-canvas"'), "Prologue must render inside a fixed landscape canvas");
 assert(introHtml.includes('id="introLandscapeHint"'), "Portrait phones need an explicit rotate-device hint");
@@ -142,9 +142,11 @@ assert(battleHtml.includes("v2-auto-battle-practice.js?v=129"));
 for (const required of [
   "./v2-intro.html",
   "./v2-intro.css?v=13",
-  "./v2-intro.js?v=4",
+  "./v2-intro.js?v=5",
   "./art/v2-style/event-portraits/necromancer-upperbody-hd.webp?v=2",
-  "./art/v2-style/event-portraits/knight-commander-upperbody-hd.webp?v=2",
+  "./art/v2-style/event-portraits/knight-commander.png?v=2",
+  "./.tmp/intro-assets/commander/part-000.txt",
+  "./.tmp/intro-assets/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
   "./v2-map-practice.js?v=114",
   "./v2-auto-battle-practice.js?v=129",
