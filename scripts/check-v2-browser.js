@@ -36,11 +36,16 @@ async function activate(page, selector) {
     await page.waitForSelector("#introAdvance");
     await page.locator("#introAdvance").click();
     await page.waitForFunction(() => {
-      const art = document.getElementById("introSceneArt");
-      return art?.complete && art.naturalWidth === 1280 && art.naturalHeight === 720;
+      const hero = document.querySelector(".portrait-left img");
+      const commander = document.querySelector(".portrait-right img");
+      const frame = document.querySelector(".dialogue-frame");
+      return hero?.complete && hero.naturalWidth >= 500
+        && commander?.complete && commander.naturalWidth >= 500
+        && frame?.complete && frame.naturalWidth > 0;
     }, null, { timeout: 15000 });
     assert.equal(await page.locator("#dialogueStage").isVisible(), true);
-    assert.equal(await page.locator("#introSceneArt").evaluate(img => [img.naturalWidth, img.naturalHeight].join("x")), "1280x720");
+    assert((await page.locator(".portrait-right img").evaluate(img => img.naturalWidth)) >= 500);
+    assert.equal(await page.locator(".dialogue-frame").isVisible(), true);
     for (let step = 0; step < 20 && !page.url().includes("v2-map-practice.html"); step += 1) {
       await page.locator("#introAdvance").click();
       await page.waitForTimeout(60);
