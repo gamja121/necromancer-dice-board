@@ -35,7 +35,7 @@ for (const href of [
 ]) assert(index.includes(href), "Missing test menu link: " + href);
 assert(launch.includes("testLinks.forEach"));
 assert(launch.includes('fadeTo("v2-intro.html")'), "New Game must enter the prologue before the map");
-assert(!introHtml.includes('art/v2-style/event-portraits/necromancer.png'), "Prologue must not use the 96x72 portrait");
+assert(introHtml.includes('art/v2-style/event-portraits/necromancer.png?v=2'), "Prologue must use the dedicated protagonist upper-body portrait");
 assert(!introHtml.includes('art/v2-style/event-portraits/knight-commander.png'), "Prologue must not use the 64x48 commander portrait");
 assert(introHtml.includes('art/v2-style/event-portraits/necromancer.png?v=2'));
 assert(introHtml.includes('art/v2-style/event-portraits/knight-commander-hd.webp?v=1'));
