@@ -221,4 +221,4 @@ assert(battle.includes('phase !== "capture-failed"'), "Final capture failure mus
 assert(battle.includes('V2RunStateRuntime.clearBattleCheckpoint("returning", "capture-failed-clear")'), "Final capture failure must clear the resumable battle checkpoint");
 assert(battle.includes("Promise.race([") && battle.includes("wait(1200)"), "Map return must not wait forever on runtime flush");
 
-assert(!read("manifest.webmanifest").includes('"orientation"'), "Manifest must not force device orientation");
+assert(read("manifest.webmanifest").includes('"orientation": "any"'), "Manifest must allow any device orientation");
