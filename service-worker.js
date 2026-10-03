@@ -1,10 +1,10 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261004-fullscreen-gesture-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261004-fullscreen-pwa-1";
 
 const CORE_ASSETS = [
   "./",
   "./index.html",
   "./fresh-start.html",
-  "./manifest.webmanifest?v=20261004-orientation-any-1",
+  "./manifest.webmanifest?v=20261004-fullscreen-pwa-1",
   "./v2-intro.html",
   "./v2-intro.css?v=15",
   "./v2-intro.js?v=9",
@@ -61,7 +61,7 @@ const CORE_ASSETS = [
   "./v2-tile-practice.html",
   "./v2-tile-practice.css?v=1",
   "./v2-tile-practice.js?v=2",
-  "./v2-map-practice.css?v=20261004-board-bg-2",
+  "./v2-map-practice.css?v=20261004-options-gear-1",
   "./art/v2-style/ui/parchment-button-variant-01.png",
   "./art/v2-style/ui/parchment-button-variant-02.png",
   "./art/v2-style/ui/parchment-button-variant-03.png",
