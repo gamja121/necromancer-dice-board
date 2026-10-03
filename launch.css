@@ -59,3 +59,5 @@ button{font:inherit}
   .test-menu-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
   .test-menu-grid a{min-height:31px;padding:5px 6px;font-size:9px}
 }
+
+@media (orientation:portrait){html,body{width:100%;height:100%;overflow:hidden}.title-video,.shade,.title-unlock,.title-shell{position:fixed;left:50%;top:50%;right:auto;bottom:auto;width:100dvh;height:100vw;transform:translate(-50%,-50%) rotate(90deg);transform-origin:center}.title-video{object-fit:cover}.title-shell{padding:3.5vh 5vw}.title-menu{position:absolute;right:6vw;top:50%}.title-panel{position:absolute}.options-panel{position:absolute}}
