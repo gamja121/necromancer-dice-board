@@ -3,7 +3,7 @@
 html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
 button { font: inherit; }
 body { background: radial-gradient(circle, #2d2119, #070504 72%); }
-.map-lab { position: relative; display: grid; place-items: center; width: 100vw; height: 100dvh; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); perspective: 1200px; perspective-origin: 50% 50%; }
+.map-lab { position: relative; display: grid; place-items: center; width: 100vw; height: 100dvh; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); perspective: 900px; perspective-origin: 50% 45%; }
 .map-board { position: relative; width: min(100vw, 179.28dvh); height: min(100dvh, 55.78vw); overflow: hidden; background: #1b1712 url("art/v2-style/map-test/maps/default-map.jpg?v=20261004-board-bg-hq-1") center / 100% 100% no-repeat; box-shadow: 0 0 36px #000, inset 0 0 0 2px #c5a56b55; isolation: isolate; transform-origin: 50% 54%; transform-style: preserve-3d; will-change: transform; }
 .map-shade { position: absolute; z-index: 1; inset: 0; background: radial-gradient(ellipse at center, transparent 30%, #120b0640 76%, #05030299 100%); pointer-events: none; }
 
@@ -1361,10 +1361,9 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   position:absolute;
   inset:0;
   z-index:0;
-  background:
-    radial-gradient(ellipse at 50% 50%,rgba(16,12,8,.02) 0 15%,rgba(8,6,4,.38) 56%,rgba(2,2,2,.82) 100%);
+  background:none;
   opacity:0;
-  transition:opacity 500ms ease;
+  pointer-events:none;
 }
 .forest-diorama-camera{
   position:absolute;
@@ -1412,7 +1411,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   object-fit:contain;
   transform-origin:50% 100%;
   opacity:0;
-  filter:drop-shadow(0 13px 8px rgba(0,0,0,.72));
+  filter:saturate(1.28) contrast(1.06) brightness(1.08) drop-shadow(0 13px 8px rgba(0,0,0,.72));
   will-change:transform,opacity;
 }
 .tree-back-left{left:11%;max-height:56%;z-index:1}
@@ -1453,7 +1452,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   opacity:0;
   transition:opacity 220ms ease 2.05s;
 }
-.forest-diorama-test.is-playing .forest-diorama-vignette{opacity:1}
+.forest-diorama-test.is-playing .forest-diorama-vignette{opacity:0}
 .forest-diorama-test.is-playing .forest-diorama-camera{
   animation:forestCameraMove 520ms cubic-bezier(.16,.78,.18,1) 1120ms both;
 }
@@ -1485,13 +1484,13 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
     transform:translate3d(0,0,0) rotateX(0deg) scale(1);
   }
   42%{
-    transform:translate3d(0,2%,0) rotateX(8deg) scale(1.10);
+    transform:translate3d(0,3%,0) rotateX(13deg) scale(1.13);
   }
   74%{
-    transform:translate3d(0,4%,0) rotateX(14deg) scale(1.21);
+    transform:translate3d(0,6%,0) rotateX(23deg) scale(1.27);
   }
   100%{
-    transform:translate3d(0,6%,0) rotateX(19deg) scale(1.30);
+    transform:translate3d(0,9%,0) rotateX(31deg) scale(1.38);
   }
 }
 @keyframes forestTreeStand{
