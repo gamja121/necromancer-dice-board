@@ -7,7 +7,19 @@
   const name = document.getElementById("dialogueName");
   const text = document.getElementById("dialogueText");
   const portraits = [...document.querySelectorAll(".portrait")];
+  const heroImg = document.querySelector(".portrait-left img");
   const commanderImg = document.querySelector(".portrait-right img");
+  const frameImg = document.querySelector(".dialogue-frame");
+
+  const heroChunks = [
+    { path: ".tmp/intro-assets/hero/part-000.txt", mode: "plain" },
+    { path: ".tmp/intro-assets/hero/part-001.txt", mode: "plain" },
+    { path: ".tmp/intro-assets/hero/part-002.txt", mode: "plain" }
+  ];
+  const frameChunks = [
+    { path: ".tmp/intro-assets/frame/part-000.txt", mode: "plain" },
+    { path: ".tmp/intro-assets/frame/part-001.txt", mode: "plain" }
+  ];
   const commanderChunks = [
     ...Array.from({ length: 8 }, (_, i) => ({ path: `.tmp/intro-assets/commander/part-${String(i).padStart(3, "0")}.txt`, mode: "plain" })),
     { path: ".tmp/intro-assets/commander/part-008.rev.txt", mode: "reverse" },
@@ -19,28 +31,32 @@
     { path: ".tmp/intro-assets/commander/part-014.rev.txt", mode: "reverse" }
   ];
 
-  async function loadCommanderHd() {
-    if (!commanderImg) return;
+  async function loadChunkImage(img, chunks, fallback, readyValue) {
+    if (!img) return;
     try {
-      const parts = await Promise.all(commanderChunks.map(async ({ path, mode }) => {
+      const parts = await Promise.all(chunks.map(async ({ path, mode }) => {
         const response = await fetch(path, { cache: "force-cache" });
-        if (!response.ok) throw new Error(`Commander chunk failed: ${path}`);
+        if (!response.ok) throw new Error(`Intro asset chunk failed: ${path}`);
         let chunk = (await response.text()).trim();
         if (mode === "reverse") chunk = [...chunk].reverse().join("");
         if (mode === "base64-text") chunk = atob(chunk.replace(/\s+/g, ""));
         return chunk;
       }));
-      commanderImg.src = `data:image/webp;base64,${parts.join("")}`;
-      await commanderImg.decode();
-      commanderImg.dataset.assetReady = "hd";
+      img.src = `data:image/webp;base64,${parts.join("")}`;
+      await img.decode();
+      img.dataset.assetReady = readyValue;
     } catch (error) {
       console.error(error);
-      commanderImg.src = "art/v2-style/event-portraits/knight-commander.png?v=2";
-      commanderImg.dataset.assetReady = "fallback";
+      if (fallback) img.src = fallback;
+      img.dataset.assetReady = "fallback";
     }
   }
 
-  const commanderAssetReady = loadCommanderHd();
+  const introAssetsReady = Promise.all([
+    loadChunkImage(heroImg, heroChunks, "art/v2-style/event-portraits/necromancer.png?v=2", "hero-hd"),
+    loadChunkImage(commanderImg, commanderChunks, "art/v2-style/event-portraits/knight-commander.png?v=2", "commander-hd"),
+    loadChunkImage(frameImg, frameChunks, null, "frame-visible")
+  ]);
 
   const dialogue = [
     { speaker: "기사단장", text: "여기 있었구만." },
@@ -95,7 +111,7 @@
 
   advance.addEventListener("click", async () => {
     await ensureLandscape();
-    await commanderAssetReady;
+    await introAssetsReady;
     if (leaving) return;
     if (!started) { beginDialogue(); return; }
     if (index >= dialogue.length - 1) { await finishIntro(); return; }
