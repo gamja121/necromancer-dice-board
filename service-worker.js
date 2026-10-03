@@ -1,10 +1,11 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261003-map-options-visible-3";
+const CACHE_NAME = "necromancer-and-dice-v2-20261003-css-landscape-1";
 
 const CORE_ASSETS = [
   "./",
   "./index.html",
+  "./manifest.webmanifest?v=20261003-css-landscape-1",
   "./v2-intro.html",
-  "./v2-intro.css?v=14",
+  "./v2-intro.css?v=15",
   "./v2-intro.js?v=9",
   "./art/v2-style/event-portraits/necromancer.png?v=2",
   "./assets/intro-data/hero/part-000.txt",
@@ -44,7 +45,7 @@ const CORE_ASSETS = [
   "./assets/title/title-logo.webp",
   "./assets/title/title-theme.mp3",
   "./assets/title/title-loop.mp4",
-  "./launch.js?v=20261003-prologue-1",
+  "./launch.js?v=20261003-css-landscape-1",
   "./launch.css?v=20261002-test-menu-1",
   "./launch.css?v=20260930-title-1",
   "./launch.js?v=20260930-title-1",
