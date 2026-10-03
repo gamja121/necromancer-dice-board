@@ -1,12 +1,17 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261003-intro-commander-chunks-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261003-intro-all-assets-1";
 
 const CORE_ASSETS = [
   "./",
   "./index.html",
   "./v2-intro.html",
   "./v2-intro.css?v=13",
-  "./v2-intro.js?v=5",
-  "./art/v2-style/event-portraits/necromancer-upperbody-hd.webp?v=2",
+  "./v2-intro.js?v=6",
+  "./art/v2-style/event-portraits/necromancer.png?v=2",
+  "./.tmp/intro-assets/hero/part-000.txt",
+  "./.tmp/intro-assets/hero/part-001.txt",
+  "./.tmp/intro-assets/hero/part-002.txt",
+  "./.tmp/intro-assets/frame/part-000.txt",
+  "./.tmp/intro-assets/frame/part-001.txt",
   "./art/v2-style/event-portraits/knight-commander.png?v=2",
   "./.tmp/intro-assets/commander/part-000.txt",
   "./.tmp/intro-assets/commander/part-001.txt",
