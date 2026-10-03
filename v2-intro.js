@@ -1,13 +1,12 @@
 (() => {
   "use strict";
-
   const scene = document.getElementById("introScene");
   const advance = document.getElementById("introAdvance");
   const impactStage = document.getElementById("impactStage");
   const dialogueStage = document.getElementById("dialogueStage");
-  const sceneArt = document.getElementById("introSceneArt");
   const name = document.getElementById("dialogueName");
   const text = document.getElementById("dialogueText");
+  const portraits = [...document.querySelectorAll(".portrait")];
 
   const dialogue = [
     { speaker: "기사단장", text: "여기 있었구만." },
@@ -24,56 +23,26 @@
     { speaker: "시스템", text: "[외곽 순찰 임무를 받았습니다.]" }
   ];
 
-  const scenePartUrls = [
-    "art/v2-style/ui/prologue-scene.b64.0",
-    "art/v2-style/ui/prologue-scene.b64.gap",
-    "art/v2-style/ui/prologue-scene.b64.1",
-    "art/v2-style/ui/prologue-scene.b64.2"
-  ];
-
   let started = false;
   let index = 0;
   let leaving = false;
-  let sceneObjectUrl = "";
 
   async function ensureLandscape() {
     if (!globalThis.V2Landscape?.request) return;
     try { await V2Landscape.request(); } catch (_) {}
   }
 
-  async function loadSceneArt() {
-    const parts = await Promise.all(scenePartUrls.map(async (url) => {
-      const response = await fetch(url, { cache: "force-cache" });
-      if (!response.ok) throw new Error(`도입부 원화 데이터 로드 실패: ${response.status}`);
-      return response.text();
-    }));
-    const encoded = parts.join("");
-    if (encoded.length !== 58376) throw new Error(`도입부 원화 데이터 길이 오류: ${encoded.length}`);
-    const binary = atob(encoded);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
-    sceneObjectUrl = URL.createObjectURL(new Blob([bytes], { type: "image/webp" }));
-    sceneArt.src = sceneObjectUrl;
-    await sceneArt.decode();
-    if (sceneArt.naturalWidth !== 1280 || sceneArt.naturalHeight !== 720) {
-      throw new Error(`도입부 원화 해상도 오류: ${sceneArt.naturalWidth}x${sceneArt.naturalHeight}`);
-    }
-  }
-
-  const sceneArtReady = loadSceneArt().catch((error) => {
-    console.error(error);
-    text.textContent = "도입부 이미지를 불러오지 못했습니다.";
-    throw error;
-  });
-
   function renderLine() {
     const line = dialogue[index];
     name.textContent = line.speaker;
     text.textContent = line.text;
+    portraits.forEach((portrait) => {
+      portrait.classList.toggle("is-speaking", portrait.dataset.speaker === line.speaker);
+    });
+    if (line.speaker === "시스템") portraits.forEach((portrait) => portrait.classList.remove("is-speaking"));
   }
 
-  async function beginDialogue() {
-    await sceneArtReady;
+  function beginDialogue() {
     started = true;
     impactStage.hidden = true;
     dialogueStage.hidden = false;
@@ -93,14 +62,8 @@
   advance.addEventListener("click", async () => {
     await ensureLandscape();
     if (leaving) return;
-    if (!started) {
-      await beginDialogue();
-      return;
-    }
-    if (index >= dialogue.length - 1) {
-      await finishIntro();
-      return;
-    }
+    if (!started) { beginDialogue(); return; }
+    if (index >= dialogue.length - 1) { await finishIntro(); return; }
     index += 1;
     renderLine();
   });
@@ -110,12 +73,5 @@
     event.preventDefault();
     advance.click();
   });
-
-  window.addEventListener("orientationchange", () => {
-    globalThis.V2Landscape?.request?.();
-  });
-
-  window.addEventListener("pagehide", () => {
-    if (sceneObjectUrl) URL.revokeObjectURL(sceneObjectUrl);
-  }, { once: true });
+  window.addEventListener("orientationchange", () => globalThis.V2Landscape?.request?.());
 })();
