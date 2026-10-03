@@ -40,6 +40,12 @@ async function activate(page, selector) {
     }
     await unlock(page);
     await activate(page, "#newGameButton");
+    // The launcher now opens gameplay inside #gameFrame. Verify that handoff, then
+    // continue the smoke test on the intro page directly so later URL/viewport checks
+    // are not coupled to iframe shell behavior.
+    await page.waitForSelector("#gameFrame");
+    await page.waitForFunction(() => document.getElementById("gameFrame")?.getAttribute("src")?.includes("v2-intro.html"));
+    await page.goto(new URL("v2-intro.html", base).href);
     await page.waitForSelector("#introAdvance");
     await page.locator("#introAdvance").click();
     await page.waitForFunction(() => {
