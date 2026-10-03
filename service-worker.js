@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261003-intro-fixed-landscape-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261003-map-options-visible-3";
 
 const CORE_ASSETS = [
   "./",
@@ -59,7 +59,7 @@ const CORE_ASSETS = [
   "./v2-tile-practice.html",
   "./v2-tile-practice.css?v=1",
   "./v2-tile-practice.js?v=2",
-  "./v2-map-practice.css?v=20261002-options-visible-2",
+  "./v2-map-practice.css?v=20261003-options-visible-3",
   "./art/v2-style/ui/parchment-button-variant-01.png",
   "./art/v2-style/ui/parchment-button-variant-02.png",
   "./art/v2-style/ui/parchment-button-variant-03.png",
