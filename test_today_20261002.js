@@ -46,15 +46,15 @@ assert(!introJs.match(/speaker: "주인공", text: "(?!\.\.\.)/), "Every protago
 assert(introJs.includes('오늘부터 네게 외곽 순찰 임무를 맡기겠다.'));
 assert(introJs.includes('location.href = "v2-map-practice.html"'));
 assert(introCss.includes(".dialogue-box"), "Dialogue UI must render over the parchment frame");
-assert(introHtml.includes('v2-landscape.js?v=1'), "Prologue must use landscape helper");
+assert(!introHtml.includes('v2-landscape.js?v=1'), "Prologue should render a fixed 16:9 canvas without orientation lock");
 assert(introJs.includes('loadChunkImage(commanderImg, commanderChunks'), "Prologue must reconstruct the commander HD portrait from chunk data");
 assert(introJs.includes('loadChunkImage(frameImg, frameChunks'), "Prologue must reconstruct the visible parchment frame from chunk data");
 assert(introCss.includes("@media (orientation:portrait)"), "Prologue needs portrait-to-landscape CSS fallback");
 assert(introHtml.includes('class="intro-canvas"'), "Prologue must render inside a fixed landscape canvas");
-assert(introHtml.includes('id="introLandscapeHint"'), "Portrait phones need an explicit rotate-device hint");
+assert(!introHtml.includes('introLandscapeHint'), "Prologue must not show a rotate-device hint");
 assert(introCss.includes("aspect-ratio:16/9"), "Prologue canvas must stay 16:9");
 assert(introCss.includes(".portrait-right{right:1%;width:46%;height:78%;overflow:visible;z-index:4}"), "HD commander must render large on the right");
-assert(introJs.includes("ensureLandscape()"), "Prologue must request real landscape orientation on interaction");
+assert(!introJs.includes("ensureLandscape()"), "Prologue must not request device rotation");
 assert(introJs.includes('portrait.classList.toggle("is-speaking", portrait.dataset.speaker === line.speaker)'), "Speaker line must activate only its matching portrait");
 assert(introJs.includes('if (line.speaker === "시스템") portraits.forEach((portrait) => portrait.classList.remove("is-speaking"));'), "System line must hide all portraits");
 assert(introCss.includes(".portrait-left:not(.is-speaking){opacity:0;visibility:hidden}"), "Inactive protagonist portrait must stay hidden");
@@ -142,8 +142,8 @@ assert(mapHtml.includes("v2-map-practice.js?v=114"));
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=129"));
 for (const required of [
   "./v2-intro.html",
-  "./v2-intro.css?v=13",
-  "./v2-intro.js?v=8",
+  "./v2-intro.css?v=14",
+  "./v2-intro.js?v=9",
   "./art/v2-style/event-portraits/necromancer.png?v=2",
   "./assets/intro-data/hero/part-000.txt",
   "./assets/intro-data/hero/part-002.txt",
