@@ -224,3 +224,6 @@ assert(battle.includes("Promise.race([") && battle.includes("wait(1200)"), "Map 
 assert(read("manifest.webmanifest").includes('"orientation": "any"'), "Manifest must allow any device orientation");
 
 assert(read("manifest.webmanifest").includes('"display": "fullscreen"'), "Installed app must launch without browser chrome");
+
+assert(read("launch.js").includes("openGameFrame(href)"), "Game screens must load inside the fullscreen title shell");
+assert(read("launch.css").includes(".game-frame"), "Fullscreen game shell iframe styles are missing");
