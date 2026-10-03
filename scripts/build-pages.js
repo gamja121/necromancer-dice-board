@@ -7,7 +7,7 @@ const output = path.join(root, "_site");
 fs.mkdirSync(output); // Refuse to silently overwrite an existing build.
 for (const name of fs.readdirSync(root)) {
   if (["art", "assets"].includes(name) ||
-      /^(?:v2-.*\.(?:js|css|html)|v2\.html|index\.html|launch\.(?:js|css)|service-worker\.js|manifest\.webmanifest|\.nojekyll)$/.test(name)) {
+      /^(?:v2-.*\.(?:js|css|html)|v2\.html|index\.html|fresh-start\.html|launch\.(?:js|css)|service-worker\.js|manifest\.webmanifest|\.nojekyll)$/.test(name)) {
     fs.cpSync(path.join(root, name), path.join(output, name), { recursive: true });
   }
 }
