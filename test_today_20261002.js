@@ -39,7 +39,7 @@ assert(introHtml.includes('art/v2-style/event-portraits/necromancer-upperbody-hd
 assert(!introHtml.includes('art/v2-style/event-portraits/knight-commander.png'), "Prologue must not use the 64x48 commander portrait");
 assert(introHtml.includes('art/v2-style/event-portraits/necromancer-upperbody-hd.webp?v=2'));
 assert(introHtml.includes('art/v2-style/event-portraits/knight-commander-upperbody-hd.webp?v=2'));
-assert(introHtml.includes('art/v2-style/ui/intro-dialogue-box.webp?v=5'));
+assert(introHtml.includes('art/v2-style/ui/intro-dialogue-box.webp?v=6'));
 assert(introHtml.includes('쿵쾅쾅.'));
 assert(introJs.includes('{ speaker: "주인공", text: "..." }'));
 assert(!introJs.match(/speaker: "주인공", text: "(?!\.\.\.)/), "Every protagonist dialogue line must stay silent");
@@ -61,7 +61,7 @@ assert(introCss.includes(".portrait-left.is-speaking{opacity:1;visibility:visibl
 assert(introCss.includes(".portrait-right:not(.is-speaking){opacity:0;visibility:hidden}"), "Inactive commander portrait must stay hidden");
 assert(introCss.includes(".portrait-right.is-speaking{opacity:1;visibility:visible}"), "Active commander portrait must be visible");
 assert(!introCss.includes("rotate(90deg)"), "Prologue must not sideways-rotate the whole UI");
-assert(introHtml.includes('intro-dialogue-box.webp?v=5'), "Prologue must show the parchment dialogue frame");
+assert(introHtml.includes('intro-dialogue-box.webp?v=6'), "Prologue must show the parchment dialogue frame");
 
 // Rotated-mobile card placement.
 assert(cards.includes("offsetLeft") && cards.includes("offsetParent"));
@@ -145,7 +145,7 @@ for (const required of [
   "./v2-intro.js?v=4",
   "./art/v2-style/event-portraits/necromancer-upperbody-hd.webp?v=2",
   "./art/v2-style/event-portraits/knight-commander-upperbody-hd.webp?v=2",
-  "./art/v2-style/ui/intro-dialogue-box.webp?v=5",
+  "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
   "./v2-map-practice.js?v=114",
   "./v2-auto-battle-practice.js?v=129",
   "./v2-heal-effect.js?v=1",
