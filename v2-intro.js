@@ -16,10 +16,10 @@
     { path: "assets/intro-data/hero/part-001.txt", mode: "plain" },
     { path: "assets/intro-data/hero/part-002.txt", mode: "plain" }
   ];
-  const frameChunks = [
-    { path: "assets/intro-data/frame/part-000.txt", mode: "plain" },
-    { path: "assets/intro-data/frame/part-001.txt", mode: "plain" }
-  ];
+  const frameChunks = Array.from({ length: 8 }, (_, i) => ({
+    path: `assets/intro-data/frame-v2/part-${String(i).padStart(3, "0")}.txt`,
+    mode: "plain"
+  }));
   const commanderChunks = [
     ...Array.from({ length: 8 }, (_, i) => ({ path: `assets/intro-data/commander/part-${String(i).padStart(3, "0")}.txt`, mode: "plain" })),
     { path: "assets/intro-data/commander/part-008.rev.txt", mode: "reverse" },
