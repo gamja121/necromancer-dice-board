@@ -31,6 +31,13 @@ async function activate(page, selector) {
     });
     await page.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: 30000 });
     await page.screenshot({ path: path.join(os.tmpdir(), "necromancer-launch-desktop.png") });
+    // Headless Chromium can enter a real fullscreen state that blocks later navigation/viewport changes.
+    // Stub fullscreen only inside CI smoke coverage; fullscreen behavior is covered by static/runtime tests separately.
+    if (process.env.CI) {
+      await page.evaluate(() => {
+        document.documentElement.requestFullscreen = async () => {};
+      });
+    }
     await unlock(page);
     await activate(page, "#newGameButton");
     await page.waitForSelector("#introAdvance");
