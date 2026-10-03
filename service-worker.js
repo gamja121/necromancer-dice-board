@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261003-css-landscape-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261004-board-bg-1";
 
 const CORE_ASSETS = [
   "./",
@@ -102,7 +102,7 @@ const CORE_ASSETS = [
   "./v2-altar-ritual.js?v=5",
   "./v2-dice-control.js?v=1",
   "./v2-world-tree-prayer-digits.js?v=2",
-  "./art/v2-style/map-test/maps/default-map.jpg",
+  "./art/v2-style/map-test/maps/default-map.jpg?v=20261004-board-bg-1",
   "./art/v2-style/map-test/maps/winter-map.jpg",
   "./art/v2-style/map-test/maps/hell-map.jpg",
   "./art/v2-style/map-test/hero/necromancer-hero.png",
