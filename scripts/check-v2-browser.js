@@ -106,6 +106,47 @@ async function activate(page, selector) {
     assert.equal(await page.locator(".portrait-right").isVisible(), false, "Commander must hide on protagonist line");
     await page.screenshot({ path: path.join(os.tmpdir(), "necromancer-intro-mobile-landscape.png") });
     console.log("PASS: mobile landscape intro frame and speaker portraits");
+    const introAssetMetrics = await page.evaluate(() => {
+      function metrics(selector) {
+        const img = document.querySelector(selector);
+        const c = document.createElement("canvas");
+        c.width = Math.max(1, img.naturalWidth);
+        c.height = Math.max(1, img.naturalHeight);
+        const ctx = c.getContext("2d", { willReadFrequently: true });
+        ctx.drawImage(img, 0, 0);
+        const data = ctx.getImageData(0, 0, c.width, c.height).data;
+        let visible = 0, alphaSum = 0, rgbSpread = 0;
+        let minR=255,minG=255,minB=255,maxR=0,maxG=0,maxB=0;
+        for (let i=0;i<data.length;i+=4) {
+          const a=data[i+3];
+          alphaSum += a;
+          if (a > 8) {
+            visible++;
+            const r=data[i], g=data[i+1], b=data[i+2];
+            if(r<minR)minR=r;if(g<minG)minG=g;if(b<minB)minB=b;
+            if(r>maxR)maxR=r;if(g>maxG)maxG=g;if(b>maxB)maxB=b;
+          }
+        }
+        rgbSpread=(maxR-minR)+(maxG-minG)+(maxB-minB);
+        return {
+          src: img.getAttribute("src"),
+          naturalWidth: img.naturalWidth,
+          naturalHeight: img.naturalHeight,
+          visiblePixels: visible,
+          totalPixels: c.width*c.height,
+          visibleRatio: visible/(c.width*c.height),
+          meanAlpha: alphaSum/(c.width*c.height*255),
+          rgbSpread
+        };
+      }
+      return {
+        hero: metrics(".portrait-left img"),
+        commander: metrics(".portrait-right img"),
+        frame: metrics(".dialogue-frame")
+      };
+    });
+    console.log("INTRO_ASSET_METRICS " + JSON.stringify(introAssetMetrics));
+
     await page.goto(new URL("v2-auto-battle-practice.html", base).href);
     await page.waitForSelector("#unitRoster button");
     const choices = page.locator("#unitRoster button");
