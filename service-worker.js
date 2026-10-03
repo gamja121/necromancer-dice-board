@@ -1,17 +1,25 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261003-intro-public-assets-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261003-intro-cutout-frame-1";
 
 const CORE_ASSETS = [
   "./",
   "./index.html",
   "./v2-intro.html",
   "./v2-intro.css?v=13",
-  "./v2-intro.js?v=7",
+  "./v2-intro.js?v=8",
   "./art/v2-style/event-portraits/necromancer.png?v=2",
   "./assets/intro-data/hero/part-000.txt",
   "./assets/intro-data/hero/part-001.txt",
   "./assets/intro-data/hero/part-002.txt",
   "./assets/intro-data/frame/part-000.txt",
   "./assets/intro-data/frame/part-001.txt",
+  "./assets/intro-data/frame-v2/part-000.txt",
+  "./assets/intro-data/frame-v2/part-001.txt",
+  "./assets/intro-data/frame-v2/part-002.txt",
+  "./assets/intro-data/frame-v2/part-003.txt",
+  "./assets/intro-data/frame-v2/part-004.txt",
+  "./assets/intro-data/frame-v2/part-005.txt",
+  "./assets/intro-data/frame-v2/part-006.txt",
+  "./assets/intro-data/frame-v2/part-007.txt",
   "./art/v2-style/event-portraits/knight-commander.png?v=2",
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-001.txt",
