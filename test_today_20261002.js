@@ -35,9 +35,9 @@ for (const href of [
 ]) assert(index.includes(href), "Missing test menu link: " + href);
 assert(launch.includes("testLinks.forEach"));
 assert(launch.includes('fadeTo("v2-intro.html")'), "New Game must enter the prologue before the map");
-assert(introHtml.includes('art/v2-style/event-portraits/necromancer-upperbody-hd.webp?v=2'), "Prologue must use the dedicated protagonist upper-body portrait");
+assert(introHtml.includes('art/v2-style/event-portraits/necromancer.png?v=2'), "Prologue must keep a visible protagonist fallback while HD chunks load");
 assert(introHtml.includes('art/v2-style/event-portraits/knight-commander.png?v=2'), "Prologue must keep a visible commander fallback while HD chunks load");
-assert(introHtml.includes('art/v2-style/event-portraits/necromancer-upperbody-hd.webp?v=2'));
+assert(introJs.includes('loadChunkImage(heroImg, heroChunks'), "Prologue must reconstruct the protagonist HD portrait from chunk data");
 assert(introJs.includes('data:image/webp;base64,'), "Prologue must reconstruct the commander HD portrait from chunk data");
 assert(introHtml.includes('art/v2-style/ui/intro-dialogue-box.webp?v=6'));
 assert(introHtml.includes('쿵쾅쾅.'));
@@ -47,7 +47,8 @@ assert(introJs.includes('오늘부터 네게 외곽 순찰 임무를 맡기겠�
 assert(introJs.includes('location.href = "v2-map-practice.html"'));
 assert(introCss.includes(".dialogue-box"), "Dialogue UI must render over the parchment frame");
 assert(introHtml.includes('v2-landscape.js?v=1'), "Prologue must use landscape helper");
-assert(introJs.includes('commanderImg.dataset.assetReady = "hd"'), "Prologue must confirm the reconstructed commander HD portrait is ready");
+assert(introJs.includes('loadChunkImage(commanderImg, commanderChunks'), "Prologue must reconstruct the commander HD portrait from chunk data");
+assert(introJs.includes('loadChunkImage(frameImg, frameChunks'), "Prologue must reconstruct the visible parchment frame from chunk data");
 assert(introCss.includes("@media (orientation:portrait)"), "Prologue needs portrait-to-landscape CSS fallback");
 assert(introHtml.includes('class="intro-canvas"'), "Prologue must render inside a fixed landscape canvas");
 assert(introHtml.includes('id="introLandscapeHint"'), "Portrait phones need an explicit rotate-device hint");
@@ -142,8 +143,12 @@ assert(battleHtml.includes("v2-auto-battle-practice.js?v=129"));
 for (const required of [
   "./v2-intro.html",
   "./v2-intro.css?v=13",
-  "./v2-intro.js?v=5",
-  "./art/v2-style/event-portraits/necromancer-upperbody-hd.webp?v=2",
+  "./v2-intro.js?v=6",
+  "./art/v2-style/event-portraits/necromancer.png?v=2",
+  "./.tmp/intro-assets/hero/part-000.txt",
+  "./.tmp/intro-assets/hero/part-002.txt",
+  "./.tmp/intro-assets/frame/part-000.txt",
+  "./.tmp/intro-assets/frame/part-001.txt",
   "./art/v2-style/event-portraits/knight-commander.png?v=2",
   "./.tmp/intro-assets/commander/part-000.txt",
   "./.tmp/intro-assets/commander/part-014.rev.txt",
