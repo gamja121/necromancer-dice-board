@@ -47,7 +47,7 @@ assert(introJs.includes('오늘부터 네게 외곽 순찰 임무를 맡기겠�
 assert(introJs.includes('location.href = "v2-map-practice.html"'));
 assert(introCss.includes(".dialogue-box"), "Dialogue UI must render over the parchment frame");
 assert(introHtml.includes('v2-landscape.js?v=1'), "Prologue must use landscape helper");
-assert(introHtml.includes('knight-commander-hd.webp?v=1'), "Prologue must use the HD commander asset");
+assert(introHtml.includes('knight-commander-upperbody-hd.webp?v=1'), "Prologue must use the HD commander upper-body asset");
 assert(introCss.includes("@media (orientation:portrait)"), "Prologue needs portrait-to-landscape CSS fallback");
 assert(introHtml.includes('class="intro-canvas"'), "Prologue must render inside a fixed landscape canvas");
 assert(introHtml.includes('id="introLandscapeHint"'), "Portrait phones need an explicit rotate-device hint");
