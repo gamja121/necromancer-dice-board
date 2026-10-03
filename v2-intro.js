@@ -7,6 +7,40 @@
   const name = document.getElementById("dialogueName");
   const text = document.getElementById("dialogueText");
   const portraits = [...document.querySelectorAll(".portrait")];
+  const commanderImg = document.querySelector(".portrait-right img");
+  const commanderChunks = [
+    ...Array.from({ length: 8 }, (_, i) => ({ path: `.tmp/intro-assets/commander/part-${String(i).padStart(3, "0")}.txt`, mode: "plain" })),
+    { path: ".tmp/intro-assets/commander/part-008.rev.txt", mode: "reverse" },
+    { path: ".tmp/intro-assets/commander/part-009.rev.txt", mode: "reverse" },
+    { path: ".tmp/intro-assets/commander/part-010.rev.txt", mode: "reverse" },
+    { path: ".tmp/intro-assets/commander/part-011.rev.txt", mode: "reverse" },
+    { path: ".tmp/intro-assets/commander/part-012.b64txt.txt", mode: "base64-text" },
+    { path: ".tmp/intro-assets/commander/part-013.rev.txt", mode: "reverse" },
+    { path: ".tmp/intro-assets/commander/part-014.rev.txt", mode: "reverse" }
+  ];
+
+  async function loadCommanderHd() {
+    if (!commanderImg) return;
+    try {
+      const parts = await Promise.all(commanderChunks.map(async ({ path, mode }) => {
+        const response = await fetch(path, { cache: "force-cache" });
+        if (!response.ok) throw new Error(`Commander chunk failed: ${path}`);
+        let chunk = (await response.text()).trim();
+        if (mode === "reverse") chunk = [...chunk].reverse().join("");
+        if (mode === "base64-text") chunk = atob(chunk.replace(/\s+/g, ""));
+        return chunk;
+      }));
+      commanderImg.src = `data:image/webp;base64,${parts.join("")}`;
+      await commanderImg.decode();
+      commanderImg.dataset.assetReady = "hd";
+    } catch (error) {
+      console.error(error);
+      commanderImg.src = "art/v2-style/event-portraits/knight-commander.png?v=2";
+      commanderImg.dataset.assetReady = "fallback";
+    }
+  }
+
+  const commanderAssetReady = loadCommanderHd();
 
   const dialogue = [
     { speaker: "기사단장", text: "여기 있었구만." },
@@ -61,6 +95,7 @@
 
   advance.addEventListener("click", async () => {
     await ensureLandscape();
+    await commanderAssetReady;
     if (leaving) return;
     if (!started) { beginDialogue(); return; }
     if (index >= dialogue.length - 1) { await finishIntro(); return; }
