@@ -138,7 +138,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=114"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261004-board-bg-2"));
 assert(mapHtml.includes("map-options-button-fallback"), "Map options button must have a visible text fallback");
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=129"));
@@ -157,7 +157,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=114",
+  "./v2-map-practice.js?v=20261004-board-bg-2",
   "./v2-auto-battle-practice.js?v=129",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -176,8 +176,8 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!/(^|\\n)\\.map-options-button\\s*\\{\\s*visibility:\\s*hidden;\\s*\\}/.test(mapCss));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261003-options-visible-3"));
-assert(worker.includes("./v2-map-practice.css?v=20261002-options-visible-2"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261004-board-bg-2"));
+assert(worker.includes("./v2-map-practice.css?v=20261004-board-bg-2"));
 
 assert(battle.includes('makeState(data, "enemy", 3 - index)'));
 assert(!battle.includes('makeState(data, "enemy", index)'));
