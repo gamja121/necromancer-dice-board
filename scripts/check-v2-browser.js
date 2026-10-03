@@ -219,8 +219,11 @@ async function activate(page, selector) {
     await page.reload();
     await unlock(page);
     await activate(page, "#continueButton");
-    await page.waitForSelector(".map-tile");
-    assert.equal(await page.locator(".map-tile").count(), 24);
+    await page.waitForSelector("#gameFrame");
+    await page.waitForFunction(() => document.getElementById("gameFrame")?.getAttribute("src")?.includes("v2-map-practice.html"));
+    const offlineGame = page.frameLocator("#gameFrame");
+    await offlineGame.locator(".map-tile").first().waitFor();
+    assert.equal(await offlineGame.locator(".map-tile").count(), 24);
     const saved = await page.evaluate(() => [sessionStorage.getItem("v2-migration-preserve"), localStorage.getItem("v2-migration-preserve")]);
     assert.deepEqual(saved, ["kept", "kept"]);
     console.log("PASS: mobile layout, offline launch/map, storage preserved");
