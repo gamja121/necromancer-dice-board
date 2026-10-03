@@ -77,11 +77,6 @@
   let index = 0;
   let leaving = false;
 
-  async function ensureLandscape() {
-    if (!globalThis.V2Landscape?.request) return;
-    try { await V2Landscape.request(); } catch (_) {}
-  }
-
   function renderLine() {
     const line = dialogue[index];
     name.textContent = line.speaker;
@@ -110,7 +105,6 @@
   }
 
   advance.addEventListener("click", async () => {
-    await ensureLandscape();
     await introAssetsReady;
     if (leaving) return;
     if (!started) { beginDialogue(); return; }
@@ -124,5 +118,4 @@
     event.preventDefault();
     advance.click();
   });
-  window.addEventListener("orientationchange", () => globalThis.V2Landscape?.request?.());
 })();
