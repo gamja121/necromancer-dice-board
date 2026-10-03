@@ -43,3 +43,5 @@ button{font:inherit}
   .dialogue-text{font-size:clamp(12px,1.7vw,22px)}
 }
 @media (prefers-reduced-motion:reduce){.impact-text,.impact-hint,.dialogue-next{animation:none}}
+
+@media (orientation:portrait){.intro-scene{position:fixed;left:50%;top:50%;right:auto;bottom:auto;width:100dvh;height:100vw;transform:translate(-50%,-50%) rotate(90deg);transform-origin:center}.intro-canvas{width:100%;height:100%;aspect-ratio:auto}}
