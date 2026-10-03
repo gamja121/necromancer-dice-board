@@ -1,27 +1,24 @@
 (function () {
-  async function requestLandscape() {
-    if (!window.matchMedia("(orientation: portrait)").matches) return true;
-
+  async function requestFullscreen() {
+    if (document.fullscreenElement) return true;
     try {
-      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-        await document.documentElement.requestFullscreen({ navigationUI: "hide" });
+      const root = document.documentElement;
+      if (root.requestFullscreen) {
+        await root.requestFullscreen({ navigationUI: "hide" });
+        return true;
       }
-    } catch (_) {
-      // Fullscreen is optional. CSS keeps the view landscape when permission is denied.
-    }
-
-    try {
-      if (screen.orientation && screen.orientation.lock) {
-        await screen.orientation.lock("landscape");
+      if (root.webkitRequestFullscreen) {
+        root.webkitRequestFullscreen();
         return true;
       }
     } catch (_) {
-      // Mobile browsers can reject orientation lock outside an installed app.
+      // Browsers may reject fullscreen unless this is called from a user gesture.
     }
     return false;
   }
 
-  window.V2Landscape = { request: requestLandscape };
-  requestLandscape();
-  window.addEventListener("pointerdown", requestLandscape, { once: true, capture: true });
+  window.V2Landscape = { request: requestFullscreen, requestFullscreen };
+
+  window.addEventListener("pointerdown", requestFullscreen, { once: true, capture: true });
+  window.addEventListener("touchstart", requestFullscreen, { once: true, capture: true, passive: true });
 })();
