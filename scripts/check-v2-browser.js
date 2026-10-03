@@ -190,6 +190,12 @@ async function activate(page, selector) {
     assert.deepEqual(resumed.rng, checkpointBeforeReload.rng);
     assert(!await page.locator("#battleMessage").textContent().then(text => text.includes("불러오지 못했습니다")));
     console.log("PASS: real browser dice -> attack -> reload -> mid-battle resume");
+    await page.evaluate(async () => {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        try { await document.exitFullscreen(); } catch (_) {}
+      }
+    });
+    await page.waitForTimeout(100);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(base);
     assert(await page.locator("#titleUnlock").isVisible());
