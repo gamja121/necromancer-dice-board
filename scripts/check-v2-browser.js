@@ -46,11 +46,14 @@ async function activate(page, selector) {
     assert.equal(await page.locator("#dialogueStage").isVisible(), true);
     assert((await page.locator(".portrait-right img").evaluate(img => img.naturalWidth)) >= 500);
     assert.equal(await page.locator(".dialogue-frame").isVisible(), true);
-    for (let step = 0; step < 20 && !page.url().includes("v2-map-practice.html"); step += 1) {
+    for (let step = 0; step < 11; step += 1) {
       await page.locator("#introAdvance").click();
       await page.waitForTimeout(60);
     }
-    await page.waitForURL("**/v2-map-practice.html");
+    await Promise.all([
+      page.waitForURL("**/v2-map-practice.html"),
+      page.locator("#introAdvance").click()
+    ]);
     await page.waitForSelector(".map-tile");
     assert.equal(await page.locator(".map-tile").count(), 24);
     await page.locator("#mapDiceButton").click();
