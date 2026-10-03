@@ -127,6 +127,9 @@
     audioOptionsClose: document.getElementById("mapAudioOptionsClose"),
     bgmToggle: document.getElementById("mapBgmToggle"),
     sfxToggle: document.getElementById("mapSfxToggle"),
+    forestDioramaTestButton: document.getElementById("forestDioramaTestButton"),
+    forestDioramaTest: document.getElementById("forestDioramaTest"),
+    forestDioramaClose: document.getElementById("forestDioramaClose"),
     mapName: document.getElementById("mapName"),
     tileName: document.getElementById("tileName"),
     regenerate: document.getElementById("regenerateButton"),
@@ -341,6 +344,21 @@
     el.audioOptions.hidden = !willOpen;
     el.optionsButton?.setAttribute("aria-expanded", String(willOpen));
     if (willOpen) renderAudioOptions();
+  }
+
+  function openForestDioramaTest() {
+    if (!el.forestDioramaTest) return;
+    closeAudioOptions();
+    el.forestDioramaTest.hidden = false;
+    el.forestDioramaTest.classList.remove("is-playing");
+    void el.forestDioramaTest.offsetWidth;
+    el.forestDioramaTest.classList.add("is-playing");
+  }
+
+  function closeForestDioramaTest() {
+    if (!el.forestDioramaTest || el.forestDioramaTest.hidden) return;
+    el.forestDioramaTest.classList.remove("is-playing");
+    el.forestDioramaTest.hidden = true;
   }
 
   function wait(milliseconds) {
@@ -3482,6 +3500,11 @@
     V2Sfx.setEnabled(!V2Sfx.isEnabled());
     renderAudioOptions();
   });
+  el.forestDioramaTestButton?.addEventListener("click", openForestDioramaTest);
+  el.forestDioramaClose?.addEventListener("click", closeForestDioramaTest);
+  el.forestDioramaTest?.addEventListener("click", (event) => {
+    if (event.target === el.forestDioramaTest || event.target?.classList?.contains("forest-diorama-vignette")) closeForestDioramaTest();
+  });
   el.bookButton.addEventListener("click", toggleBookRoster);
   el.cardDeckButton.addEventListener("click", toggleDiceControlCard);
   el.diceControlBackdrop.addEventListener("click", closeDiceControlCard);
@@ -3494,6 +3517,7 @@
   });
   el.deckConfirm.addEventListener("click", confirmMonsterBattle);
   document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && el.forestDioramaTest && !el.forestDioramaTest.hidden) { closeForestDioramaTest(); return; }
     if (event.key === "Escape" && !el.audioOptions.hidden) { closeAudioOptions(); return; }
     if (event.key === "Escape" && !el.rewardOverflowOverlay.hidden) return;
     if (event.key === "Escape" && !el.diceControlOverlay.hidden) closeDiceControlCard();
