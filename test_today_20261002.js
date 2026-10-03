@@ -61,7 +61,7 @@ assert(introCss.includes(".portrait-left:not(.is-speaking){opacity:0;visibility:
 assert(introCss.includes(".portrait-left.is-speaking{opacity:1;visibility:visible}"), "Active protagonist portrait must be visible");
 assert(introCss.includes(".portrait-right:not(.is-speaking){opacity:0;visibility:hidden}"), "Inactive commander portrait must stay hidden");
 assert(introCss.includes(".portrait-right.is-speaking{opacity:1;visibility:visible}"), "Active commander portrait must be visible");
-assert(!introCss.includes("rotate(90deg)"), "Prologue must not sideways-rotate the whole UI");
+assert(introCss.includes("rotate(90deg)"), "Portrait phones must render the intro as a CSS-rotated landscape canvas");
 assert(introHtml.includes('intro-dialogue-box.webp?v=6'), "Prologue must show the parchment dialogue frame");
 
 // Rotated-mobile card placement.
@@ -144,7 +144,7 @@ assert(mapCss.includes("z-index:120"), "Map options button must stay above map U
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=129"));
 for (const required of [
   "./v2-intro.html",
-  "./v2-intro.css?v=14",
+  "./v2-intro.css?v=15",
   "./v2-intro.js?v=9",
   "./art/v2-style/event-portraits/necromancer.png?v=2",
   "./assets/intro-data/hero/part-000.txt",
@@ -220,3 +220,5 @@ assert(runtimePolicySource.includes("state.battle.state.units = state.battle.sta
 assert(battle.includes('phase !== "capture-failed"'), "Final capture failure must not queue another resumable battle checkpoint");
 assert(battle.includes('V2RunStateRuntime.clearBattleCheckpoint("returning", "capture-failed-clear")'), "Final capture failure must clear the resumable battle checkpoint");
 assert(battle.includes("Promise.race([") && battle.includes("wait(1200)"), "Map return must not wait forever on runtime flush");
+
+assert(!read("manifest.webmanifest").includes('"orientation"'), "Manifest must not force device orientation");
