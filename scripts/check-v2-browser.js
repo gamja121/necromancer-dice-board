@@ -92,6 +92,7 @@ async function activate(page, selector) {
         return rect ? { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height } : null;
       };
       return {
+        canvas: box(".intro-canvas"),
         frame: box(".dialogue-box"),
         commander: box(".portrait-right"),
         heroVisible: getComputedStyle(document.querySelector(".portrait-left")).visibility !== "hidden",
@@ -99,12 +100,13 @@ async function activate(page, selector) {
         viewport: { width: innerWidth, height: innerHeight }
       };
     });
-    assert(landscapeIntro.frame.width >= landscapeIntro.viewport.width * 0.8, "Landscape dialogue frame should span most of the screen");
-    assert(landscapeIntro.frame.bottom <= landscapeIntro.viewport.height + 1, "Landscape dialogue frame must stay inside the viewport");
-    assert(landscapeIntro.frame.top >= landscapeIntro.viewport.height * 0.6, "Landscape dialogue frame should stay in the lower area");
+    assert(landscapeIntro.frame.width >= landscapeIntro.canvas.width * 0.8, "Landscape dialogue frame should span most of the 16:9 canvas");
+    assert(landscapeIntro.frame.left >= landscapeIntro.canvas.left - 1 && landscapeIntro.frame.right <= landscapeIntro.canvas.right + 1, "Landscape dialogue frame must stay inside the 16:9 canvas horizontally");
+    assert(landscapeIntro.frame.bottom <= landscapeIntro.canvas.bottom + 1, "Landscape dialogue frame must stay inside the 16:9 canvas");
+    assert(landscapeIntro.frame.top >= landscapeIntro.canvas.top + landscapeIntro.canvas.height * 0.6, "Landscape dialogue frame should stay in the lower area");
     assert.equal(landscapeIntro.commanderVisible, true, "Commander must be visible on the first line");
     assert.equal(landscapeIntro.heroVisible, false, "Protagonist must be hidden on the commander line");
-    assert(landscapeIntro.commander.width >= landscapeIntro.viewport.width * 0.4, "Commander portrait should remain large in landscape");
+    assert(landscapeIntro.commander.width >= landscapeIntro.canvas.width * 0.4, "Commander portrait should remain large in landscape");
     await page.locator("#introAdvance").click();
     await page.waitForTimeout(80);
     assert.equal(await page.locator(".portrait-left").isVisible(), true, "Protagonist must appear on protagonist line");
