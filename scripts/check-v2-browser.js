@@ -73,6 +73,7 @@ async function activate(page, selector) {
     await page.goto(new URL("v2-intro.html", base).href);
     await page.waitForSelector("#introAdvance");
     await page.locator("#introAdvance").click();
+    await page.waitForFunction(() => document.querySelector(".portrait-right img")?.dataset.assetReady === "hd");
     await page.waitForFunction(() => {
       const commander = document.querySelector(".portrait-right img");
       const frame = document.querySelector(".dialogue-frame");
