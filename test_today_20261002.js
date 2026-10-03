@@ -135,7 +135,7 @@ assert(mapHtml.includes("v2-map-practice.js?v=114"));
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=129"));
 for (const required of [
   "./v2-intro.html",
-  "./v2-intro.css?v=6",
+  "./v2-intro.css?v=9",
   "./v2-intro.js?v=4",
   "./art/v2-style/event-portraits/necromancer.png?v=2",
   "./art/v2-style/event-portraits/knight-commander-hd.webp?v=1",
