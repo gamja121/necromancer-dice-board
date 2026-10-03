@@ -75,6 +75,20 @@
       };
     });
   }
+  function openGameFrame(href){
+    let frame=document.getElementById("gameFrame");
+    if(!frame){
+      frame=document.createElement("iframe");
+      frame.id="gameFrame";
+      frame.className="game-frame";
+      frame.setAttribute("title","Necromancer and Dice");
+      frame.setAttribute("allow","fullscreen; autoplay");
+      document.body.appendChild(frame);
+    }
+    frame.src=href;
+    frame.hidden=false;
+  }
+
   async function fadeTo(href){
     if(leaving)return;leaving=true;document.body.classList.add("is-leaving");
     const start=performance.now(),vv=video.volume,bv=bgm.volume;
@@ -82,7 +96,8 @@
       const step=now=>{const p=Math.min(1,(now-start)/550),q=1-p;video.volume=vv*q;bgm.volume=bv*q;p<1?requestAnimationFrame(step):resolve()};requestAnimationFrame(step);
     });
     try{sessionStorage.setItem("necromancer-v2-music-handoff","map")}catch(_){}
-    video.pause();bgm.pause();location.href=href;
+    video.pause();bgm.pause();
+    openGameFrame(href);
   }
   const menuButtons=[newGame,cont,options,exit];
   function selectMenu(target){
@@ -130,7 +145,7 @@
     window.close();setTimeout(()=>showToast("브라우저에서는 창을 직접 닫아주세요."),80);
   });
 
-  document.addEventListener("visibilitychange",()=>{if(document.hidden){video.pause();bgm.pause()}else if(unlocked&&!leaving)startAudio(false);else video.play().catch(()=>{})});
+  document.addEventListener("visibilitychange",()=>{if(document.hidden){video.pause();bgm.pause()}else if(unlocked&&!leaving)startAudio(false);else if(!leaving)video.play().catch(()=>{})});
   window.addEventListener("pagehide",()=>{video.pause();bgm.pause()});
   window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();installPrompt=e;installButton.hidden=false});
   installButton.addEventListener("click",async()=>{if(!installPrompt)return;const p=installPrompt;installPrompt=null;installButton.hidden=true;await p.prompt()});
