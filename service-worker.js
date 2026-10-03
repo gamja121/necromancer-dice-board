@@ -1,11 +1,11 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261003-intro-cutout-frame-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261003-intro-fixed-landscape-1";
 
 const CORE_ASSETS = [
   "./",
   "./index.html",
   "./v2-intro.html",
-  "./v2-intro.css?v=13",
-  "./v2-intro.js?v=8",
+  "./v2-intro.css?v=14",
+  "./v2-intro.js?v=9",
   "./art/v2-style/event-portraits/necromancer.png?v=2",
   "./assets/intro-data/hero/part-000.txt",
   "./assets/intro-data/hero/part-001.txt",
