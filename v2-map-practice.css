@@ -1424,21 +1424,8 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .sprite-4 .forest-tree-atlas-image{left:-300%;top:0%}
 .sprite-5 .forest-tree-atlas-image{left:0%;top:-100%}
 .sprite-6 .forest-tree-atlas-image{left:-100%;top:-100%}
-.sprite-7{
-  /* The green ancient tree is wider than its nominal 384px atlas cell. */
-  overflow:visible;
-}
-.sprite-7 .forest-tree-atlas-image{
-  left:-200%;
-  top:-100%;
-  /* Keep the bottom-row cell, but include ~8% of a cell on both sides
-     so the original crown/branches are not cut at the atlas boundary. */
-  clip-path:inset(50% 23% 0 48%);
-}
+.sprite-7 .forest-tree-atlas-image{left:-200%;top:-100%}
 .sprite-8 .forest-tree-atlas-image{left:-300%;top:-100%}
-.tree-front-d .forest-tree-atlas-image{
-  clip-path:inset(50% 0 0 77.75%);
-}
 
 /* Final forest composition:
    - 45~60% overlap between neighbors
