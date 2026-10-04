@@ -1693,6 +1693,29 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   font-weight:800;
 }
 .village-size-controls button:disabled{opacity:.4}
+.village-save-controls{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-wrap:wrap;
+  margin:0 0 10px;
+}
+.village-save-controls button{
+  min-height:36px;
+  padding:6px 10px;
+  border:1px solid rgba(205,166,111,.45);
+  border-radius:6px;
+  background:#4b3523;
+  color:#f7ead2;
+  font-weight:900;
+}
+.village-save-controls [data-village-layout-reset]{background:#2f241c}
+#villageLayoutSaveStatus{
+  flex:1 1 100%;
+  min-height:16px;
+  color:#d9c59e;
+  font-size:11px;
+}
 .village-building-image{
   position:relative;
   display:block;
