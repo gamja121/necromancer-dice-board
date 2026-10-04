@@ -219,7 +219,7 @@ async function activate(page, selector) {
     // Reproduce the mobile-only village asset path before going offline. Each of the
     // six buildings must resolve to its own file and finish in the ready state.
     await page.goto(new URL("v2-map-practice.html", base).href);
-    await page.waitForSelector(".village-building-image");
+    await page.waitForSelector(".village-building-image", { state: "attached" });
     await page.waitForFunction(() => {
       const images = [...document.querySelectorAll(".village-building-image")];
       return images.length === 6 && images.every((img, index) => {
