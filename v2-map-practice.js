@@ -394,7 +394,7 @@
   }
 
   function ensureVillageBuildingAssets() {
-    const version = "20261005-village-stage6-asset-repair-1";
+    const version = "20261005-village-stage7-drag-layout-1";
     document.querySelectorAll(".village-building-image").forEach((img, index) => {
       if (!(img instanceof HTMLImageElement)) return;
       const assetNumber = String(index + 1).padStart(2, "0");
@@ -441,6 +441,62 @@
     el.villageLayerDebug?.querySelectorAll("[data-village-building-toggle]").forEach((button) => button.setAttribute("aria-pressed", "true"));
   }
 
+  function moveVillageBuilding(building, clientX, clientY, grabOffsetX, grabOffsetY) {
+    const stage = building.closest(".village-building-stage");
+    if (!stage) return;
+    const stageRect = stage.getBoundingClientRect();
+    const buildingRect = building.getBoundingClientRect();
+    const maxLeft = Math.max(0, stageRect.width - buildingRect.width);
+    const maxTop = Math.max(0, stageRect.height - buildingRect.height);
+    const leftPx = Math.min(maxLeft, Math.max(0, clientX - stageRect.left - grabOffsetX));
+    const topPx = Math.min(maxTop, Math.max(0, clientY - stageRect.top - grabOffsetY));
+
+    building.style.left = `${(leftPx / stageRect.width) * 100}%`;
+    building.style.top = `${(topPx / stageRect.height) * 100}%`;
+    building.style.bottom = "auto";
+  }
+
+  function enableVillageBuildingDragging() {
+    document.querySelectorAll(".village-scene-building").forEach((building) => {
+      if (building.dataset.dragReady === "1") return;
+      building.dataset.dragReady = "1";
+
+      building.addEventListener("pointerdown", (event) => {
+        if (event.button !== undefined && event.button !== 0) return;
+        const rect = building.getBoundingClientRect();
+        building.dataset.dragPointerId = String(event.pointerId);
+        building.dataset.dragOffsetX = String(event.clientX - rect.left);
+        building.dataset.dragOffsetY = String(event.clientY - rect.top);
+        building.classList.add("is-layout-dragging");
+        building.setPointerCapture?.(event.pointerId);
+        event.preventDefault();
+      });
+
+      building.addEventListener("pointermove", (event) => {
+        if (building.dataset.dragPointerId !== String(event.pointerId)) return;
+        moveVillageBuilding(
+          building,
+          event.clientX,
+          event.clientY,
+          Number(building.dataset.dragOffsetX || 0),
+          Number(building.dataset.dragOffsetY || 0)
+        );
+        event.preventDefault();
+      });
+
+      const finishDrag = (event) => {
+        if (building.dataset.dragPointerId !== String(event.pointerId)) return;
+        building.releasePointerCapture?.(event.pointerId);
+        delete building.dataset.dragPointerId;
+        delete building.dataset.dragOffsetX;
+        delete building.dataset.dragOffsetY;
+        building.classList.remove("is-layout-dragging");
+      };
+      building.addEventListener("pointerup", finishDrag);
+      building.addEventListener("pointercancel", finishDrag);
+    });
+  }
+
   function openVillageDioramaTest() {
     if (!el.villageDioramaTest || !el.board) return;
     closeAudioOptions();
@@ -453,6 +509,7 @@
     el.villageDioramaTest.classList.remove("is-zooming", "is-tilted", "is-playing");
     if (el.villageLayerDebug) el.villageLayerDebug.hidden = false;
     ensureVillageBuildingAssets();
+    enableVillageBuildingDragging();
     el.villageDioramaTest.hidden = false;
     void el.board.offsetWidth;
 
@@ -3741,6 +3798,7 @@
     else if (event.key === "Escape" && eventOpen) closeTileEvent();
   });
   ensureVillageBuildingAssets();
+  enableVillageBuildingDragging();
   renderBookRoster();
   dealDiceControlHand();
   renderInventoryCounts();
