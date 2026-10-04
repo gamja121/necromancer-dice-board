@@ -359,7 +359,7 @@
     clearForestDioramaTimers();
 
     el.board.classList.remove("is-forest-zooming", "is-forest-tilted");
-    el.forestDioramaTest.classList.remove("is-zooming", "is-tilted", "is-playing");
+    el.forestDioramaTest.classList.remove("is-zooming", "is-tilted");
     el.forestDioramaTest.hidden = false;
     void el.board.offsetWidth;
 
@@ -372,17 +372,12 @@
       el.board.classList.add("is-forest-tilted");
       el.forestDioramaTest.classList.add("is-tilted");
     }, 470));
-
-    // 3) Only after the 3D board/wall is established do the paper trees stand up.
-    forestDioramaTimers.push(window.setTimeout(() => {
-      el.forestDioramaTest.classList.add("is-playing");
-    }, 1180));
   }
 
   function closeForestDioramaTest() {
     if (!el.forestDioramaTest || el.forestDioramaTest.hidden) return;
     clearForestDioramaTimers();
-    el.forestDioramaTest.classList.remove("is-playing", "is-tilted", "is-zooming");
+    el.forestDioramaTest.classList.remove("is-tilted", "is-zooming");
     el.board?.classList.remove("is-forest-tilted", "is-forest-zooming");
     el.forestDioramaTest.hidden = true;
   }
