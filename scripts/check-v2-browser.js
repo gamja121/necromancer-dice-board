@@ -353,28 +353,28 @@ async function activate(page, selector) {
     assert.equal(exportedLayout.B4.width, "26.5%");
     assert.equal(exportedLayout.B4.zIndex, "7");
     console.log("PASS: village layout JSON export");
-    await page.locator('[data-village-item-toggle=".village-tree-1"]').evaluate((button) => button.click());
-    const treeBefore = await page.locator(".village-tree-1").evaluate((tree) => ({
+    await page.locator('[data-village-item-toggle=".village-tree-4"]').evaluate((button) => button.click());
+    const treeBefore = await page.locator(".village-tree-4").evaluate((tree) => ({
       hidden: tree.classList.contains("is-debug-hidden"),
       selected: tree.classList.contains("is-layout-selected")
     }));
-    assert.equal(treeBefore.hidden, false, "T1 must become visible from editor toggle");
-    assert.equal(treeBefore.selected, true, "Newly shown T1 must become selected");
+    assert.equal(treeBefore.hidden, false, "T4 must become visible from editor toggle");
+    assert.equal(treeBefore.selected, true, "Newly shown T4 must become selected");
 
     await page.locator("[data-village-flip]").evaluate((button) => button.click());
-    const flipped = await page.locator(".village-tree-1").evaluate((tree) => tree.classList.contains("is-layout-flipped"));
+    const flipped = await page.locator(".village-tree-4").evaluate((tree) => tree.classList.contains("is-layout-flipped"));
     assert.equal(flipped, true, "Selected village tree must support horizontal flip");
 
     await page.locator("[data-village-layout-save]").evaluate((button) => button.click());
     await page.reload();
-    await page.waitForSelector(".village-tree-1", { state: "attached" });
+    await page.waitForSelector(".village-tree-4", { state: "attached" });
     await page.waitForFunction(() => {
-      const tree = document.querySelector(".village-tree-1");
+      const tree = document.querySelector(".village-tree-4");
       return tree
         && !tree.classList.contains("is-debug-hidden")
         && tree.classList.contains("is-layout-flipped");
     }, null, { timeout: 30000 });
-    const restoredTree = await page.locator(".village-tree-1").evaluate((tree) => ({
+    const restoredTree = await page.locator(".village-tree-4").evaluate((tree) => ({
       hidden: tree.classList.contains("is-debug-hidden"),
       flipped: tree.classList.contains("is-layout-flipped")
     }));
@@ -386,8 +386,8 @@ async function activate(page, selector) {
     await page.locator("[data-village-layout-copy]").evaluate((button) => button.click());
     const treeExport = JSON.parse(await page.locator("#villageLayoutExport").inputValue());
     assert(treeExport.T1 && treeExport.T4, "Village layout JSON must export T1-T4");
-    assert.equal(treeExport.T1.flipX, true);
-    assert.equal(treeExport.T1.hidden, false);
+    assert.equal(treeExport.T4.flipX, true);
+    assert.equal(treeExport.T4.hidden, false);
     console.log("PASS: village tree editor add flip save restore export");
     console.log("PASS: mobile village six distinct building assets " + JSON.stringify(villageAssets));
 
