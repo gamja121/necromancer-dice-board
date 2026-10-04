@@ -1339,7 +1339,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .map-board.is-tile-event-open .map-options-button { visibility: hidden; }
 
 
-/* Forest diorama prototype: invisible stage. The board stays fixed; only a subtle central focus, ground shadow and upright paper trees appear. */
+/* Forest diorama prototype: central scene zooms and tilts; paper trees counter-tilt to stay upright. */
 .map-diorama-test-row{border-top:1px solid #70583f66;margin-top:5px;padding-top:7px}
 .map-diorama-test-row>button{background:#43301f;color:#ffe0a8}
 
@@ -1354,6 +1354,8 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   overflow:hidden;
   pointer-events:auto;
   isolation:isolate;
+  perspective:900px;
+  perspective-origin:50% 44%;
 }
 .forest-diorama-test[hidden]{display:none}
 
@@ -1361,11 +1363,10 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   position:absolute;
   inset:0;
   z-index:0;
-  background:
-    radial-gradient(ellipse at 50% 54%,rgba(28,23,17,0) 0 30%,rgba(11,8,6,.08) 48%,rgba(5,4,3,.26) 100%);
+  background:rgba(6,4,3,.12);
   opacity:0;
   pointer-events:none;
-  transition:opacity 500ms ease;
+  transition:opacity 360ms ease;
 }
 
 .forest-diorama-camera{
@@ -1378,95 +1379,92 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .forest-diorama-stage{
   position:absolute;
   left:50%;
-  top:54%;
-  width:min(46%,710px);
-  height:48%;
-  transform:translate(-50%,-46%) scale(.84);
-  transform-origin:50% 78%;
+  top:55%;
+  width:min(48%,740px);
+  height:50%;
+  transform:
+    translate(-50%,-47%)
+    rotateX(0deg)
+    scale(.84);
+  transform-origin:50% 82%;
+  transform-style:preserve-3d;
   opacity:0;
   transition:
-    opacity 180ms ease 300ms,
-    transform 900ms cubic-bezier(.16,.78,.18,1) 260ms;
+    opacity 180ms ease 220ms,
+    transform 980ms cubic-bezier(.16,.78,.18,1) 180ms;
+  will-change:transform;
 }
 
+/* Broad, borderless event floor: enough to reveal tilt, but not a visible "disc". */
 .forest-diorama-stage::before{
   content:"";
   position:absolute;
   z-index:0;
-  left:8%;
-  right:8%;
-  bottom:15%;
-  height:28%;
-  border-radius:50%;
+  left:3%;
+  right:3%;
+  bottom:8%;
+  height:50%;
+  border-radius:46% 46% 50% 50% / 42% 42% 58% 58%;
   background:
-    radial-gradient(ellipse at center,rgba(0,0,0,.40) 0 24%,rgba(0,0,0,.20) 47%,rgba(0,0,0,0) 76%);
-  filter:blur(8px);
+    linear-gradient(180deg,rgba(108,86,57,.16),rgba(62,46,31,.13) 58%,rgba(24,17,12,.09));
+  box-shadow:
+    0 26px 32px rgba(0,0,0,.22),
+    inset 0 -18px 32px rgba(0,0,0,.12);
   opacity:0;
-  transform:scale(.72);
-  transition:opacity 340ms ease 500ms,transform 700ms ease 460ms;
+  filter:blur(.2px);
+  transform:translateZ(-8px);
+  -webkit-mask-image:radial-gradient(ellipse at center,#000 52%,rgba(0,0,0,.78) 68%,transparent 92%);
+  mask-image:radial-gradient(ellipse at center,#000 52%,rgba(0,0,0,.78) 68%,transparent 92%);
+  transition:opacity 360ms ease 380ms;
 }
 
 .forest-diorama-stage::after{
   content:"";
   position:absolute;
-  z-index:1;
-  left:5%;
-  right:5%;
-  bottom:19%;
-  height:34%;
+  z-index:0;
+  left:14%;
+  right:14%;
+  bottom:10%;
+  height:10%;
   border-radius:50%;
-  background:
-    radial-gradient(ellipse at center,rgba(185,175,157,.10) 0 26%,rgba(132,124,111,.06) 42%,rgba(90,84,76,0) 72%);
-  filter:blur(12px);
+  background:radial-gradient(ellipse at center,rgba(0,0,0,.42) 0 25%,rgba(0,0,0,.18) 50%,transparent 78%);
+  filter:blur(5px);
   opacity:0;
-  transform:translateY(14%) scale(.82);
-  transition:opacity 500ms ease 620ms,transform 900ms ease 560ms;
+  transform:translateZ(-2px);
+  transition:opacity 360ms ease 520ms;
 }
 
 .forest-diorama-ground{
   position:absolute;
-  z-index:0;
+  z-index:1;
   left:18%;
   right:18%;
-  bottom:18%;
-  height:8%;
+  bottom:15%;
+  height:5%;
   border-radius:50%;
-  background:radial-gradient(ellipse at center,rgba(0,0,0,.34) 0 20%,rgba(0,0,0,.16) 48%,transparent 76%);
-  filter:blur(4px);
+  background:radial-gradient(ellipse at center,rgba(0,0,0,.30) 0 24%,rgba(0,0,0,.12) 54%,transparent 80%);
+  filter:blur(3px);
   opacity:0;
-  transform:scaleX(.65);
-  transition:opacity 320ms ease 620ms,transform 640ms ease 580ms;
+  transform:translateZ(2px);
+  transition:opacity 300ms ease 620ms;
 }
 
 .forest-diorama-tree{
   position:absolute;
-  z-index:2;
-  bottom:20%;
+  z-index:3;
+  bottom:17%;
   width:auto;
   height:auto;
   object-fit:contain;
   transform-origin:50% 100%;
   opacity:0;
-  filter:drop-shadow(0 10px 6px rgba(0,0,0,.68));
+  filter:drop-shadow(0 10px 6px rgba(0,0,0,.70));
   will-change:transform,opacity;
   backface-visibility:hidden;
 }
-.tree-left{
-  left:8%;
-  max-height:61%;
-  transform:scaleX(-1);
-  z-index:2;
-}
-.tree-center{
-  left:50%;
-  max-height:76%;
-  z-index:4;
-}
-.tree-right{
-  right:8%;
-  max-height:64%;
-  z-index:3;
-}
+.tree-left{left:8%;max-height:60%;z-index:2}
+.tree-center{left:50%;max-height:75%;z-index:4}
+.tree-right{right:8%;max-height:63%;z-index:3}
 
 .forest-diorama-caption{
   position:absolute;
@@ -1481,7 +1479,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   font:900 clamp(7px,.72vw,10px)/1 "Malgun Gothic",sans-serif;
   letter-spacing:.12em;
   opacity:0;
-  transition:opacity 220ms ease 1.95s;
+  transition:opacity 220ms ease 2.05s;
 }
 .forest-diorama-close{
   position:absolute;
@@ -1499,60 +1497,53 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   line-height:1;
   cursor:pointer;
   opacity:0;
-  transition:opacity 220ms ease 1.85s;
+  transition:opacity 220ms ease 1.95s;
 }
 
 .forest-diorama-test.is-playing .forest-diorama-vignette{opacity:1}
 .forest-diorama-test.is-playing .forest-diorama-stage{
   opacity:1;
-  transform:translate(-50%,-46%) scale(1.07);
+  transform:
+    translate(-50%,-50%)
+    rotateX(22deg)
+    scale(1.24);
 }
-.forest-diorama-test.is-playing .forest-diorama-stage::before{
-  opacity:1;
-  transform:scale(1);
-}
-.forest-diorama-test.is-playing .forest-diorama-stage::after{
-  opacity:1;
-  transform:translateY(0) scale(1);
-}
-.forest-diorama-test.is-playing .forest-diorama-ground{
-  opacity:1;
-  transform:scaleX(1);
-}
+.forest-diorama-test.is-playing .forest-diorama-stage::before{opacity:1}
+.forest-diorama-test.is-playing .forest-diorama-stage::after{opacity:1}
+.forest-diorama-test.is-playing .forest-diorama-ground{opacity:1}
+
+/* Trees unfold after the stage settles, and finish with -22deg counter-tilt so they read upright to the camera. */
 .forest-diorama-test.is-playing .forest-diorama-tree{
-  animation:forestTreeStand 620ms cubic-bezier(.16,.82,.22,1) both;
+  animation:forestTreeStand 640ms cubic-bezier(.16,.82,.22,1) both;
 }
-.forest-diorama-test.is-playing .tree-left{animation-delay:900ms}
-.forest-diorama-test.is-playing .tree-right{animation-delay:1080ms}
-.forest-diorama-test.is-playing .tree-center{animation-delay:1260ms}
+.forest-diorama-test.is-playing .tree-left{animation:forestTreeStandMirrored 640ms cubic-bezier(.16,.82,.22,1) 980ms both}
+.forest-diorama-test.is-playing .tree-right{animation-delay:1160ms}
+.forest-diorama-test.is-playing .tree-center{animation-delay:1340ms}
 .forest-diorama-test.is-playing .forest-diorama-caption,
 .forest-diorama-test.is-playing .forest-diorama-close{opacity:1}
 
 @keyframes forestTreeStand{
-  0%{opacity:0;transform:translateY(18%) rotateX(80deg) scaleY(.12)}
+  0%{opacity:0;transform:translateY(20%) rotateX(72deg) scaleY(.14)}
   22%{opacity:1}
-  78%{transform:translateY(-1.5%) rotateX(-2deg) scaleY(1.02)}
-  100%{opacity:1;transform:translateY(0) rotateX(0deg) scaleY(1)}
+  78%{transform:translateY(-1%) rotateX(-25deg) scaleY(1.02)}
+  100%{opacity:1;transform:translateY(0) rotateX(-22deg) scaleY(1)}
 }
 @keyframes forestTreeStandMirrored{
-  0%{opacity:0;transform:translateY(18%) rotateX(80deg) scaleX(-1) scaleY(.12)}
+  0%{opacity:0;transform:translateY(20%) rotateX(72deg) scaleX(-1) scaleY(.14)}
   22%{opacity:1}
-  78%{transform:translateY(-1.5%) rotateX(-2deg) scaleX(-1) scaleY(1.02)}
-  100%{opacity:1;transform:translateY(0) rotateX(0deg) scaleX(-1) scaleY(1)}
-}
-.forest-diorama-test.is-playing .tree-left{
-  animation-name:forestTreeStandMirrored;
+  78%{transform:translateY(-1%) rotateX(-25deg) scaleX(-1) scaleY(1.02)}
+  100%{opacity:1;transform:translateY(0) rotateX(-22deg) scaleX(-1) scaleY(1)}
 }
 
 @media(max-height:420px) and (orientation:landscape){
-  .forest-diorama-stage{width:44%;height:50%;top:53%}
+  .forest-diorama-stage{width:46%;height:52%;top:54%}
   .forest-diorama-caption{bottom:3%}
 }
 @media(prefers-reduced-motion:reduce){
   .forest-diorama-test.is-playing .forest-diorama-tree{animation-duration:1ms;animation-delay:0ms}
   .forest-diorama-stage,
-  .forest-diorama-ground,
   .forest-diorama-vignette,
   .forest-diorama-stage::before,
-  .forest-diorama-stage::after{transition-duration:1ms}
+  .forest-diorama-stage::after,
+  .forest-diorama-ground{transition-duration:1ms}
 }
