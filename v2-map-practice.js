@@ -359,7 +359,7 @@
     closeAudioOptions();
     clearForestDioramaTimers();
 
-    el.board.classList.remove("is-forest-zooming", "is-forest-tilted");
+    el.board.classList.remove("is-forest-zooming", "is-forest-tilted", "is-forest-trees");
     el.forestDioramaTest.classList.remove("is-zooming", "is-tilted", "is-playing");
     el.forestDioramaTest.hidden = false;
     void el.board.offsetWidth;
@@ -377,6 +377,7 @@
 
     // 3) After the viewpoint has settled, only the tree standees rise into the scene.
     forestDioramaTimers.push(window.setTimeout(() => {
+      el.board.classList.add("is-forest-trees");
       el.forestDioramaTest.classList.add("is-playing");
     }, 1560));
   }
@@ -385,7 +386,7 @@
     if (!el.forestDioramaTest || el.forestDioramaTest.hidden) return;
     clearForestDioramaTimers();
     el.forestDioramaTest.classList.remove("is-playing", "is-tilted", "is-zooming");
-    el.board?.classList.remove("is-forest-tilted", "is-forest-zooming");
+    el.board?.classList.remove("is-forest-trees", "is-forest-tilted", "is-forest-zooming");
     el.forestDioramaTest.hidden = true;
   }
 

@@ -1381,9 +1381,9 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   position:absolute;
   z-index:1;
   left:50%;
-  top:47%;
-  width:66%;
-  height:43%;
+  top:45%;
+  width:78%;
+  height:47%;
   transform:translateX(-50%);
   pointer-events:none;
   overflow:visible;
@@ -1400,29 +1400,48 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   backface-visibility:hidden;
   will-change:transform,opacity,filter;
 }
+.forest-scene-tree.tree-far-left{
+  left:0%;
+  bottom:4%;
+  max-height:58%;
+  transform:scaleX(-1);
+}
 .forest-scene-tree.tree-left{
-  left:5%;
-  max-height:73%;
+  left:17%;
+  bottom:0;
+  max-height:76%;
 }
 .forest-scene-tree.tree-center{
-  left:50%;
-  max-height:96%;
+  left:46%;
+  bottom:2%;
+  max-height:98%;
 }
 .forest-scene-tree.tree-right{
-  right:4%;
-  max-height:78%;
+  right:17%;
+  bottom:0;
+  max-height:80%;
   transform:scaleX(-1);
+}
+.forest-scene-tree.tree-far-right{
+  right:0%;
+  bottom:5%;
+  max-height:61%;
 }
 
 .forest-diorama-test.is-playing .forest-scene-tree{
   animation:forestSceneTreeRise 680ms cubic-bezier(.16,.82,.22,1) both;
 }
-.forest-diorama-test.is-playing .tree-left{animation-delay:0ms}
+.forest-diorama-test.is-playing .tree-far-left{
+  animation-name:forestSceneTreeRiseMirrored;
+  animation-delay:0ms;
+}
+.forest-diorama-test.is-playing .tree-left{animation-delay:100ms}
+.forest-diorama-test.is-playing .tree-far-right{animation-delay:180ms}
 .forest-diorama-test.is-playing .tree-right{
   animation-name:forestSceneTreeRiseMirrored;
-  animation-delay:150ms;
+  animation-delay:260ms;
 }
-.forest-diorama-test.is-playing .tree-center{animation-delay:300ms}
+.forest-diorama-test.is-playing .tree-center{animation-delay:360ms}
 
 @keyframes forestSceneTreeRise{
   0%{
@@ -1460,6 +1479,46 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   }
 }
 
+
+/* Shadows are children of mapBoard, so when the map tilts they stay flat on the board surface. */
+.forest-floor-shadows{
+  position:absolute;
+  z-index:5;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 520ms ease;
+}
+.map-board.is-forest-trees .forest-floor-shadows{opacity:1}
+
+.forest-floor-shadow{
+  position:absolute;
+  display:block;
+  height:3.2%;
+  border-radius:50%;
+  background:radial-gradient(ellipse at center,
+    rgba(0,0,0,.62) 0 24%,
+    rgba(0,0,0,.36) 46%,
+    rgba(0,0,0,.14) 66%,
+    transparent 82%);
+  filter:blur(4px);
+  transform-origin:50% 50%;
+  opacity:0;
+}
+.map-board.is-forest-trees .forest-floor-shadow{
+  animation:forestFloorShadowIn 620ms ease-out both;
+}
+.shadow-1{left:37%;top:48%;width:11%;transform:rotate(-10deg) scaleX(1.45);animation-delay:0ms!important}
+.shadow-2{left:43%;top:53%;width:13%;transform:rotate(-6deg) scaleX(1.55);animation-delay:100ms!important}
+.shadow-3{left:49%;top:57%;width:15%;transform:rotate(-2deg) scaleX(1.72);animation-delay:360ms!important}
+.shadow-4{left:56%;top:53%;width:13%;transform:rotate(6deg) scaleX(1.55);animation-delay:260ms!important}
+.shadow-5{left:63%;top:48%;width:11%;transform:rotate(10deg) scaleX(1.45);animation-delay:180ms!important}
+
+@keyframes forestFloorShadowIn{
+  0%{opacity:0;filter:blur(8px)}
+  100%{opacity:.9;filter:blur(4px)}
+}
+
 .forest-diorama-close{
   position:absolute;
   z-index:2;
@@ -1484,5 +1543,6 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 @media(prefers-reduced-motion:reduce){
   .map-board.is-forest-zooming,
   .map-board.is-forest-tilted,
-  .forest-scene-tree{transition-duration:1ms!important;animation-duration:1ms!important;animation-delay:0ms!important}
+  .forest-scene-tree,
+  .forest-floor-shadow{transition-duration:1ms!important;animation-duration:1ms!important;animation-delay:0ms!important}
 }
