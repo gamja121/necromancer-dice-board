@@ -131,6 +131,16 @@
     forestDioramaTestButton: document.getElementById("forestDioramaTestButton"),
     forestDioramaTest: document.getElementById("forestDioramaTest"),
     forestDioramaClose: document.getElementById("forestDioramaClose"),
+    forestStoryPanel: document.getElementById("forestStoryEventPanel"),
+    forestStoryPortrait: document.getElementById("forestStoryPortrait"),
+    forestStoryTitle: document.getElementById("forestStoryEventTitle"),
+    forestStoryText: document.getElementById("forestStoryEventText"),
+    forestStoryChoices: document.getElementById("forestStoryEventChoices"),
+    forestStoryRoll: document.getElementById("forestStoryEventRoll"),
+    forestStoryRollLabel: document.getElementById("forestStoryEventRollLabel"),
+    forestStoryRollButton: document.getElementById("forestStoryEventRollButton"),
+    forestStoryRollResult: document.getElementById("forestStoryEventRollResult"),
+    forestStoryOutcome: document.getElementById("forestStoryEventOutcome"),
     mapName: document.getElementById("mapName"),
     tileName: document.getElementById("tileName"),
     regenerate: document.getElementById("regenerateButton"),
@@ -355,7 +365,7 @@
   }
 
   function ensureForestTreeAssets(){
-    const atlasSrc = "art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage6-final-tune-1";
+    const atlasSrc = "art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage7-story-sequence-1";
     document.querySelectorAll(".forest-tree-atlas-image").forEach((img)=>{
       if(!(img instanceof HTMLImageElement)) return;
       img.onerror=()=>{
@@ -372,35 +382,58 @@
     closeAudioOptions();
     clearForestDioramaTimers();
 
+    forestStoryEvents?.close();
+    if (el.forestStoryPanel) el.forestStoryPanel.hidden = true;
     el.board.classList.remove("is-forest-zooming", "is-forest-tilted", "is-forest-trees");
-    el.forestDioramaTest.classList.remove("is-zooming", "is-tilted", "is-playing");
+    el.forestDioramaTest.classList.remove("is-zooming", "is-tilted", "is-playing", "is-story-visible", "is-story-choices");
     ensureForestTreeAssets();
     el.forestDioramaTest.hidden = false;
     void el.board.offsetWidth;
 
-    // 1) Camera rushes INTO the exact center of the board.
-    // The board grows because the viewer is getting closer, not because a popup is enlarging.
+    // 1) Camera moves into the center of the board.
     el.board.classList.add("is-forest-zooming");
     el.forestDioramaTest.classList.add("is-zooming");
 
-    // 2) At the destination, the map plane drops into a floor. No rear wall is used.
+    // 2) The board settles into the forest floor.
     forestDioramaTimers.push(window.setTimeout(() => {
       el.board.classList.add("is-forest-tilted");
       el.forestDioramaTest.classList.add("is-tilted");
     }, 560));
 
-    // 3) After the viewpoint has settled, only the tree standees rise into the scene.
+    // 3) Tree layers rise after the camera is stable.
     forestDioramaTimers.push(window.setTimeout(() => {
       el.board.classList.add("is-forest-trees");
       el.forestDioramaTest.classList.add("is-playing");
     }, 1560));
+
+    // 4) Dialogue and the event character arrive only after the forest is established.
+    forestDioramaTimers.push(window.setTimeout(() => {
+      const storyOpened = Boolean(forestStoryEvents?.openForTile("forest"));
+      if (!storyOpened && el.forestStoryPanel) {
+        el.forestStoryPanel.hidden = false;
+        el.forestStoryTitle.textContent = "숲의 기척";
+        el.forestStoryText.textContent = "숲 안쪽에서 희미한 인기척이 느껴진다. 아직 발생 조건을 만족한 사건은 없다.";
+        el.forestStoryChoices.replaceChildren();
+      }
+      if (el.forestStoryPanel) el.forestStoryPanel.hidden = false;
+      el.forestDioramaTest.classList.add("is-story-visible");
+    }, 2360));
+
+    // 5) Choices appear last so the player reads the situation before acting.
+    forestDioramaTimers.push(window.setTimeout(() => {
+      el.forestDioramaTest.classList.add("is-story-choices");
+      const firstChoice = el.forestStoryChoices?.querySelector("button:not(:disabled)");
+      firstChoice?.focus({ preventScroll: true });
+    }, 2780));
   }
 
   function closeForestDioramaTest() {
     if (!el.forestDioramaTest || el.forestDioramaTest.hidden) return;
     clearForestDioramaTimers();
-    el.forestDioramaTest.classList.remove("is-playing", "is-tilted", "is-zooming");
+    forestStoryEvents?.close();
+    el.forestDioramaTest.classList.remove("is-story-choices", "is-story-visible", "is-playing", "is-tilted", "is-zooming");
     el.board?.classList.remove("is-forest-trees", "is-forest-tilted", "is-forest-zooming");
+    if (el.forestStoryPanel) el.forestStoryPanel.hidden = true;
     el.forestDioramaTest.hidden = true;
   }
 
@@ -607,6 +640,23 @@
     rollButton: el.storyRollButton,
     rollResult: el.storyRollResult,
     image: el.eventImage,
+    getContamination: () => contamination,
+    addContamination,
+    getMonsterTags: ownedMonsterTags,
+    onStateChanged: () => {}
+  }) || null;
+
+  const forestStoryEvents = globalThis.V2MapEvents?.create({
+    panel: el.forestStoryPanel,
+    title: el.forestStoryTitle,
+    text: el.forestStoryText,
+    choices: el.forestStoryChoices,
+    outcome: el.forestStoryOutcome,
+    rollBox: el.forestStoryRoll,
+    rollLabel: el.forestStoryRollLabel,
+    rollButton: el.forestStoryRollButton,
+    rollResult: el.forestStoryRollResult,
+    image: null,
     getContamination: () => contamination,
     addContamination,
     getMonsterTags: ownedMonsterTags,
@@ -2401,6 +2451,7 @@
     el.eventContaminationChange.className = "tile-event-contamination-change";
     el.eventContaminationChange.textContent = "";
     mapStoryEvents?.close();
+    forestStoryEvents?.close();
     const storyOpened = !treasure && Boolean(mapStoryEvents?.openForTile(tile.id));
     if (storyOpened) {
       el.eventEnter.hidden = true;
