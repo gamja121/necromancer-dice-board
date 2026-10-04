@@ -349,9 +349,6 @@
   function openForestDioramaTest() {
     if (!el.forestDioramaTest) return;
     closeAudioOptions();
-    el.board?.classList.remove("is-forest-diorama-view");
-    void el.board?.offsetWidth;
-    el.board?.classList.add("is-forest-diorama-view");
     el.forestDioramaTest.hidden = false;
     el.forestDioramaTest.classList.remove("is-playing");
     void el.forestDioramaTest.offsetWidth;
@@ -362,7 +359,6 @@
     if (!el.forestDioramaTest || el.forestDioramaTest.hidden) return;
     el.forestDioramaTest.classList.remove("is-playing");
     el.forestDioramaTest.hidden = true;
-    el.board?.classList.remove("is-forest-diorama-view");
   }
 
   function wait(milliseconds) {
