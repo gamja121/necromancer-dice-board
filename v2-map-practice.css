@@ -1391,27 +1391,45 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .forest-scene-tree{
   --flip:1;
   position:absolute;
-  width:auto;
-  max-width:none;
-  object-fit:contain;
+  display:block;
+  width:18%;
+  aspect-ratio:3/4;
+  overflow:hidden;
   transform-origin:50% 100%;
   opacity:0;
   backface-visibility:hidden;
   will-change:transform,opacity;
-  filter:drop-shadow(0 18px 14px rgba(0,0,0,.86));
-  image-rendering:auto;
 }
+.forest-tree-atlas-image{
+  position:absolute;
+  display:block;
+  width:400%;
+  height:200%;
+  max-width:none;
+  object-fit:fill;
+  image-rendering:auto;
+  filter:none;
+  pointer-events:none;
+}
+.sprite-1 .forest-tree-atlas-image{left:0%;top:0%}
+.sprite-2 .forest-tree-atlas-image{left:-100%;top:0%}
+.sprite-3 .forest-tree-atlas-image{left:-200%;top:0%}
+.sprite-4 .forest-tree-atlas-image{left:-300%;top:0%}
+.sprite-5 .forest-tree-atlas-image{left:0%;top:-100%}
+.sprite-6 .forest-tree-atlas-image{left:-100%;top:-100%}
+.sprite-7 .forest-tree-atlas-image{left:-200%;top:-100%}
+.sprite-8 .forest-tree-atlas-image{left:-300%;top:-100%}
 
-.tree-back-a{left:1%;bottom:48%;max-height:68%;z-index:1}
-.tree-back-b{left:20%;bottom:52%;max-height:62%;z-index:1;--flip:-1}
-.tree-back-c{left:43%;bottom:50%;max-height:70%;z-index:1}
-.tree-back-d{right:0%;bottom:46%;max-height:66%;z-index:1;--flip:-1}
-.tree-mid-a{left:5%;bottom:19%;max-height:90%;z-index:2}
-.tree-mid-b{left:29%;bottom:23%;max-height:84%;z-index:2;--flip:-1}
-.tree-mid-c{right:4%;bottom:17%;max-height:92%;z-index:2}
-.tree-mid-d{left:50%;bottom:14%;max-height:86%;z-index:2;--flip:-1}
-.tree-deep-a{left:16%;bottom:3%;max-height:96%;z-index:3}
-.tree-deep-b{right:16%;bottom:1%;max-height:100%;z-index:3;--flip:-1}
+.tree-back-a{left:1%;bottom:48%;width:16%;z-index:1}
+.tree-back-b{left:20%;bottom:52%;width:15%;z-index:1;--flip:-1}
+.tree-back-c{left:43%;bottom:50%;width:17%;z-index:1}
+.tree-back-d{right:0%;bottom:46%;width:16%;z-index:1;--flip:-1}
+.tree-mid-a{left:5%;bottom:19%;width:23%;z-index:2}
+.tree-mid-b{left:29%;bottom:23%;width:21%;z-index:2;--flip:-1}
+.tree-mid-c{right:4%;bottom:17%;width:24%;z-index:2}
+.tree-mid-d{left:50%;bottom:14%;width:22%;z-index:2;--flip:-1}
+.tree-deep-a{left:16%;bottom:3%;width:25%;z-index:3}
+.tree-deep-b{right:16%;bottom:1%;width:26%;z-index:3;--flip:-1}
 
 .forest-diorama-test.is-playing .forest-scene-tree{
   animation:forestSceneTreeRise 720ms cubic-bezier(.16,.82,.22,1) both;
@@ -1433,7 +1451,6 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   82%{opacity:1;transform:translateY(-1%) scaleX(var(--flip)) scaleY(1.02) scale(1.01)}
   100%{opacity:1;transform:translateY(0) scaleX(var(--flip)) scaleY(1) scale(1)}
 }
-
 
 /* Shadows are children of mapBoard, so when the map tilts they stay flat on the board surface. */
 .forest-floor-shadows{
