@@ -399,7 +399,7 @@
   }
 
   function ensureVillageBuildingAssets() {
-    const version = "20261005-village-stage13-tree-flip-editor-1";
+    const version = "20261005-village-stage14-approved-tree-layout-1";
     document.querySelectorAll(".village-building-image").forEach((img, index) => {
       if (!(img instanceof HTMLImageElement)) return;
       const assetNumber = String(index + 1).padStart(2, "0");
@@ -459,11 +459,14 @@
 
   function resetVillageBuildingDebug() {
     document.querySelectorAll(".village-building-stage .village-layout-item").forEach((item) => {
-      const isTree = item.dataset.villageType === "tree";
-      item.classList.toggle("is-debug-hidden", isTree);
+      item.classList.toggle("is-debug-hidden", item.dataset.defaultHidden === "true");
     });
     el.villageLayerDebug?.querySelectorAll("[data-village-building-toggle]").forEach((button) => button.setAttribute("aria-pressed", "true"));
-    el.villageLayerDebug?.querySelectorAll("[data-village-item-toggle]").forEach((button) => button.setAttribute("aria-pressed", "false"));
+    el.villageLayerDebug?.querySelectorAll("[data-village-item-toggle]").forEach((button) => {
+      const selector = button.dataset.villageItemToggle;
+      const item = selector ? document.querySelector(selector) : null;
+      button.setAttribute("aria-pressed", String(item ? !item.classList.contains("is-debug-hidden") : false));
+    });
     selectVillageBuilding(null);
   }
 
@@ -585,11 +588,15 @@
       item.style.bottom = "";
       item.style.width = "";
       item.style.zIndex = "";
-      item.classList.remove("is-layout-flipped");
-      item.classList.toggle("is-debug-hidden", item.dataset.villageType === "tree");
+      item.classList.toggle("is-layout-flipped", item.dataset.defaultFlip === "true");
+      item.classList.toggle("is-debug-hidden", item.dataset.defaultHidden === "true");
     });
     el.villageLayerDebug?.querySelectorAll("[data-village-building-toggle]").forEach((button) => button.setAttribute("aria-pressed", "true"));
-    el.villageLayerDebug?.querySelectorAll("[data-village-item-toggle]").forEach((button) => button.setAttribute("aria-pressed", "false"));
+    el.villageLayerDebug?.querySelectorAll("[data-village-item-toggle]").forEach((button) => {
+      const selector = button.dataset.villageItemToggle;
+      const item = selector ? document.querySelector(selector) : null;
+      button.setAttribute("aria-pressed", String(item ? !item.classList.contains("is-debug-hidden") : false));
+    });
     selectVillageBuilding(null);
     if (el.villageLayoutExport) {
       el.villageLayoutExport.value = "";
