@@ -1359,55 +1359,8 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   box-shadow:0 54px 110px #000, inset 0 0 0 2px #c5a56b55;
 }
 
-/* Rear wall uses the dedicated stone tile-wall art based on the actual board tile side profile. */
-.map-board::before{
-  content:"";
-  position:absolute;
-  z-index:118;
-  left:-12%;
-  right:-12%;
-  top:-3%;
-  height:38%;
-  pointer-events:none;
-  opacity:0;
-  transform-origin:50% 100%;
-  transform:
-    translate3d(0,-34%,0)
-    rotateX(-88deg)
-    scaleY(.72);
-  background:
-    url("art/v2-style/map-test/diorama/stone-tile-wall.svg?v=20261004-forest-stone-wall-asset-1")
-    center bottom / 100% 100% no-repeat;
-  filter:brightness(.78) saturate(.72);
-  transition:
-    opacity 240ms ease 90ms,
-    transform 640ms cubic-bezier(.16,.82,.22,1) 40ms;
-}
-.map-board::after{
-  content:"";
-  position:absolute;
-  z-index:117;
-  left:-8%;
-  right:-8%;
-  top:31%;
-  height:9%;
-  pointer-events:none;
-  opacity:0;
-  transform-origin:50% 50%;
-  background:radial-gradient(ellipse at center,rgba(0,0,0,.55) 0 32%,rgba(0,0,0,.24) 58%,transparent 82%);
-  filter:blur(8px);
-  transition:opacity 260ms ease 150ms;
-}
-.map-board.is-forest-tilted::before{
-  opacity:1;
-  transform:
-    translate3d(0,0,165px)
-    rotateX(-58deg)
-    scaleY(1);
-}
-.map-board.is-forest-tilted::after{
-  opacity:1;
-}
+/* The rear wall is intentionally NOT a child of .map-board.
+   It must stay upright while the board itself tilts into the floor plane. */
 
 /* Very soft floor/wall seam so the fold reads as one 3D board, not two layered rectangles. */
 .map-board.is-forest-tilted{
@@ -1417,15 +1370,55 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .map-diorama-test-row{border-top:1px solid #70583f66;margin-top:5px;padding-top:7px}
 .map-diorama-test-row>button{background:#43301f;color:#ffe0a8}
 
-/* Only an invisible full-screen controller remains for the close button. No center panel, no vignette rectangle. */
+/* Full-screen controller. The wall lives here so it does not inherit the board's rotateX transform. */
 .forest-diorama-test{
   position:fixed;
   z-index:180;
   inset:0;
   background:transparent;
   pointer-events:none;
+  overflow:hidden;
 }
 .forest-diorama-test[hidden]{display:none}
+
+.forest-diorama-rear-wall{
+  position:absolute;
+  z-index:0;
+  left:50%;
+  top:3%;
+  width:112%;
+  height:36%;
+  transform-origin:50% 100%;
+  transform:translateX(-50%) translateY(-26%) scaleY(.28);
+  opacity:0;
+  background:
+    url("art/v2-style/map-test/diorama/stone-tile-wall.svg?v=20261004-forest-wall-upright-1")
+    center bottom / 100% 100% no-repeat;
+  filter:brightness(.80) saturate(.74);
+  transition:
+    opacity 260ms ease 80ms,
+    transform 620ms cubic-bezier(.16,.82,.22,1) 40ms;
+  will-change:transform,opacity;
+}
+
+.forest-diorama-wall-shadow{
+  position:absolute;
+  z-index:0;
+  left:5%;
+  right:5%;
+  top:33%;
+  height:10%;
+  opacity:0;
+  background:radial-gradient(ellipse at center,rgba(0,0,0,.58) 0 30%,rgba(0,0,0,.26) 58%,transparent 82%);
+  filter:blur(9px);
+  transition:opacity 280ms ease 130ms;
+}
+
+.forest-diorama-test.is-tilted .forest-diorama-rear-wall{
+  opacity:1;
+  transform:translateX(-50%) translateY(0) scaleY(1);
+}
+.forest-diorama-test.is-tilted .forest-diorama-wall-shadow{opacity:1}
 
 .forest-diorama-close{
   position:absolute;
@@ -1451,6 +1444,6 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 @media(prefers-reduced-motion:reduce){
   .map-board.is-forest-zooming,
   .map-board.is-forest-tilted,
-  .map-board::before,
-  .map-board::after{transition-duration:1ms!important}
+  .forest-diorama-rear-wall,
+  .forest-diorama-wall-shadow{transition-duration:1ms!important}
 }
