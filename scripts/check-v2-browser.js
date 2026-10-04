@@ -215,6 +215,37 @@ async function activate(page, selector) {
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     await page.screenshot({ path: path.join(os.tmpdir(), "necromancer-launch-mobile.png") });
     await page.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: 30000 });
+
+    // Reproduce the mobile-only village asset path before going offline. Each of the
+    // six buildings must resolve to its own file and finish in the ready state.
+    await page.goto(new URL("v2-map-practice.html", base).href);
+    await page.waitForSelector(".village-building-image");
+    await page.waitForFunction(() => {
+      const images = [...document.querySelectorAll(".village-building-image")];
+      return images.length === 6 && images.every((img, index) => {
+        const expected = `village-building-${String(index + 1).padStart(2, "0")}.webp`;
+        return img.complete
+          && img.naturalWidth >= 300
+          && img.naturalHeight >= 300
+          && img.dataset.assetState === "ready"
+          && img.getAttribute("src")?.includes(expected)
+          && !img.closest(".village-scene-building")?.classList.contains("is-asset-error");
+      });
+    }, null, { timeout: 30000 });
+    const villageAssets = await page.locator(".village-building-image").evaluateAll(images => images.map(img => ({
+      src: img.getAttribute("src"),
+      width: img.naturalWidth,
+      height: img.naturalHeight,
+      state: img.dataset.assetState,
+      error: img.closest(".village-scene-building")?.classList.contains("is-asset-error") || false
+    })));
+    assert.equal(villageAssets.length, 6);
+    assert.equal(new Set(villageAssets.map(asset => asset.src)).size, 6, "Village buildings must use six distinct image URLs");
+    assert(villageAssets.every(asset => asset.state === "ready" && !asset.error), "Village buildings must load without ASSET ERROR");
+    console.log("PASS: mobile village six distinct building assets " + JSON.stringify(villageAssets));
+
+    await page.goto(base);
+    await page.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: 30000 });
     await context.setOffline(true);
     await page.reload();
     await unlock(page);
