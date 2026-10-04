@@ -368,6 +368,12 @@ async function activate(page, selector) {
     await page.locator("[data-village-layout-save]").evaluate((button) => button.click());
     await page.reload();
     await page.waitForSelector(".village-tree-1", { state: "attached" });
+    await page.waitForFunction(() => {
+      const tree = document.querySelector(".village-tree-1");
+      return tree
+        && !tree.classList.contains("is-debug-hidden")
+        && tree.classList.contains("is-layout-flipped");
+    }, null, { timeout: 30000 });
     const restoredTree = await page.locator(".village-tree-1").evaluate((tree) => ({
       hidden: tree.classList.contains("is-debug-hidden"),
       flipped: tree.classList.contains("is-layout-flipped")
