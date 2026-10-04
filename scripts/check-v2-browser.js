@@ -220,6 +220,7 @@ async function activate(page, selector) {
     // six buildings must resolve to its own file and finish in the ready state.
     await page.goto(new URL("v2-map-practice.html", base).href);
     await page.waitForSelector(".village-building-image", { state: "attached" });
+    await page.locator("#villageDioramaTestButton").click();
     await page.waitForTimeout(3000);
     const villageAssets = await page.locator(".village-building-image").evaluateAll(images => images.map((img, index) => ({
       index: index + 1,
