@@ -4,6 +4,7 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
 button { font: inherit; }
 body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .map-lab { position: relative; display: grid; place-items: center; width: 100vw; height: 100dvh; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); perspective:650px; perspective-origin:50% 26%; overflow:hidden; }
+.map-lab.is-forest-diorama-open{overflow:visible;}
 .map-board { position: relative; width: min(100vw, 179.28dvh); height: min(100dvh, 55.78vw); overflow: hidden; background: #1b1712 url("art/v2-style/map-test/maps/default-map.jpg?v=20261004-board-bg-final-1") center / 100% 100% no-repeat; box-shadow: 0 0 36px #000, inset 0 0 0 2px #c5a56b55; isolation: isolate; transform:none; transform-origin:50% 86%; transform-style:preserve-3d; will-change:transform,filter; transition:transform 1050ms cubic-bezier(.14,.78,.16,1),filter 520ms ease,box-shadow 520ms ease; }
 .map-shade { position: absolute; z-index: 1; inset: 0; background: radial-gradient(ellipse at center, transparent 30%, #120b0640 76%, #05030299 100%); pointer-events: none; }
 
@@ -1370,26 +1371,30 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 
 /* Controller only; no visible rectangle/panel. */
 .forest-diorama-test{
-  position:absolute;
+  position:fixed;
   z-index:180;
   inset:0;
-  width:100%;
-  height:100%;
+  width:100vw;
+  height:100dvh;
   background:transparent;
   pointer-events:none;
   overflow:visible;
+  max-width:none;
+  max-height:none;
 }
 .forest-diorama-test[hidden]{display:none}
 
 /* Dense forest using direct IMG assets. This avoids CSS sprite/background failures on mobile. */
 .forest-tree-stage{
-  position:absolute;
+  position:fixed;
   z-index:1;
   inset:0;
-  width:100%;
-  height:100%;
+  width:100vw;
+  height:100dvh;
   pointer-events:none;
   overflow:visible;
+  max-width:none;
+  max-height:none;
 }
 .forest-scene-tree{
   --flip:1;
