@@ -1356,6 +1356,13 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   box-shadow:0 0 110px #000;
 }
 
+/* Forest diorama must never show pieces of the original board tiles at the viewport edges. */
+.map-board.is-forest-zooming .tile-ring,
+.map-board.is-forest-tilted .tile-ring,
+.map-board.is-forest-trees .tile-ring{
+  display:none!important;
+}
+
 /* Phase 2 — after arriving inside the board, the viewed map plane becomes the floor. */
 .map-board.is-forest-tilted{
   transform:
