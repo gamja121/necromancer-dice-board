@@ -394,10 +394,20 @@
   }
 
   function ensureVillageBuildingAssets() {
-    const sheetSrc = "art/v2-style/map-test/diorama/village-buildings-test.webp?v=20261004-village-stage1-spaced-buildings-1";
+    const sheetSrc = "art/v2-style/map-test/diorama/village-buildings-test.webp?v=20261004-village-stage2-validated-asset-1";
     document.querySelectorAll(".village-building-sheet").forEach((img) => {
       if (!(img instanceof HTMLImageElement)) return;
+      img.dataset.assetState = "loading";
+      img.onload = () => {
+        const valid = img.naturalWidth >= 600 && img.naturalHeight >= 400;
+        img.dataset.assetState = valid ? "ready" : "invalid";
+        if (!valid && img.dataset.retry !== "1") {
+          img.dataset.retry = "1";
+          img.src = sheetSrc + "&retry=1";
+        }
+      };
       img.onerror = () => {
+        img.dataset.assetState = "error";
         if (img.dataset.retry === "1") return;
         img.dataset.retry = "1";
         img.src = sheetSrc + "&retry=1";
