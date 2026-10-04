@@ -358,6 +358,8 @@
   }
 
   let forestDioramaTimers = [];
+  let forestDioramaFromTile = false;
+  let forestDioramaStep = null;
 
   function clearForestDioramaTimers() {
     forestDioramaTimers.forEach((timer) => window.clearTimeout(timer));
@@ -365,7 +367,7 @@
   }
 
   function ensureForestTreeAssets(){
-    const atlasSrc = "art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage7-story-sequence-1";
+    const atlasSrc = "art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage8-live-tile-1";
     document.querySelectorAll(".forest-tree-atlas-image").forEach((img)=>{
       if(!(img instanceof HTMLImageElement)) return;
       img.onerror=()=>{
@@ -377,11 +379,13 @@
     });
   }
 
-  function openForestDioramaTest(){
+  function openForestDioramaTest(options = {}){
     if (!el.forestDioramaTest || !el.board) return;
     closeAudioOptions();
     clearForestDioramaTimers();
 
+    forestDioramaFromTile = options.fromTile === true;
+    forestDioramaStep = Number.isInteger(options.step) ? options.step : null;
     forestStoryEvents?.close();
     if (el.forestStoryPanel) el.forestStoryPanel.hidden = true;
     el.board.classList.remove("is-forest-zooming", "is-forest-tilted", "is-forest-trees");
@@ -412,9 +416,36 @@
       if (!storyOpened && el.forestStoryPanel) {
         el.forestStoryPanel.hidden = false;
         el.forestStoryTitle.textContent = "숲의 기척";
-        el.forestStoryText.textContent = "숲 안쪽에서 희미한 인기척이 느껴진다. 아직 발생 조건을 만족한 사건은 없다.";
+        el.forestStoryText.textContent = forestDioramaFromTile
+          ? "숲 안쪽은 조용하다. 주변을 정찰해 남아 있는 마물의 흔적을 확인할 수 있다."
+          : "숲 안쪽에서 희미한 인기척이 느껴진다. 아직 발생 조건을 만족한 사건은 없다.";
         el.forestStoryChoices.replaceChildren();
       }
+
+      if (forestDioramaFromTile && el.forestStoryChoices) {
+        const scoutButton = document.createElement("button");
+        scoutButton.type = "button";
+        scoutButton.className = "tile-story-choice forest-story-scout-choice";
+        scoutButton.textContent = hillScout.scouted ? "정찰 정보" : "정찰";
+        scoutButton.addEventListener("click", async () => {
+          if (!eventOpen || activeEventTileId !== "forest") return;
+          scoutButton.disabled = true;
+          el.diceResult.textContent = "숲 · 전역 정찰 중…";
+          await ensureHillScoutIntel();
+          const intel = activeHillScoutIntel().sort((a, b) => a.step - b.step);
+          const summary = intel.length
+            ? intel.map((entry) => `${entry.step}번 ${scoutTileTypeLabel(entry.tileType)} · ${entry.count}마리 · ${GRADE_LABELS[entry.grade] || entry.grade} · ${LEGION_LABELS[entry.legion] || entry.legion}`).join(" / ")
+            : "현재 맵에 남아 있는 마물 타일이 없다.";
+          el.forestStoryOutcome.hidden = false;
+          el.forestStoryOutcome.textContent = `정찰 완료 · ${summary}`;
+          el.diceResult.textContent = "숲 · 전역 정찰 완료";
+          scoutButton.textContent = "정찰 정보";
+          scoutButton.disabled = false;
+          scoutButton.focus({ preventScroll: true });
+        });
+        el.forestStoryChoices.append(scoutButton);
+      }
+
       if (el.forestStoryPanel) el.forestStoryPanel.hidden = false;
       el.forestDioramaTest.classList.add("is-story-visible");
     }, 2360));
@@ -435,6 +466,32 @@
     el.board?.classList.remove("is-forest-trees", "is-forest-tilted", "is-forest-zooming");
     if (el.forestStoryPanel) el.forestStoryPanel.hidden = true;
     el.forestDioramaTest.hidden = true;
+
+    if (forestDioramaFromTile) {
+      eventOpen = false;
+      activeEventTileId = null;
+      rolling = false;
+      el.diceButton.disabled = false;
+      el.regenerate.disabled = false;
+      el.diceButton.focus();
+    }
+    forestDioramaFromTile = false;
+    forestDioramaStep = null;
+  }
+
+  function openForestTileEvent(tile, step) {
+    if (!tile || tile.id !== "forest" || enteringBattle || eventOpen) return false;
+    eventOpen = true;
+    activeEventTileId = "forest";
+    activeEventRatio = tileEventRatios.forest || WORLD_TREE_EVENT_RATIO;
+    el.diceButton.disabled = true;
+    el.regenerate.disabled = true;
+    mapStoryEvents?.close();
+    forestStoryEvents?.close();
+    el.eventOverlay.hidden = true;
+    el.board.classList.remove("is-tile-event-open");
+    openForestDioramaTest({ fromTile: true, step });
+    return true;
   }
 
   function wait(milliseconds) {
@@ -2417,6 +2474,7 @@
   }
 
   function openTileEvent(tile, step) {
+    if (tile?.id === "forest") return openForestTileEvent(tile, step);
     const scene = tileEventScenes[tile?.id];
     if (!scene || enteringBattle) return false;
     eventOpen = true;
@@ -3594,7 +3652,7 @@
     V2Sfx.setEnabled(!V2Sfx.isEnabled());
     renderAudioOptions();
   });
-  el.forestDioramaTestButton?.addEventListener("click", openForestDioramaTest);
+  el.forestDioramaTestButton?.addEventListener("click", () => openForestDioramaTest({ fromTile: false }));
   el.forestDioramaClose?.addEventListener("click", closeForestDioramaTest);
   el.forestDioramaTest?.addEventListener("click", (event) => {
     if (event.target === el.forestDioramaTest || event.target?.classList?.contains("forest-diorama-vignette")) closeForestDioramaTest();
