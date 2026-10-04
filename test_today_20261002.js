@@ -139,7 +139,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261005-village-stage9-layer-layout-1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261005-village-stage10-save-layout-1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=129"));
 for (const required of [
@@ -157,7 +157,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261005-village-stage9-layer-layout-1",
+  "./v2-map-practice.js?v=20261005-village-stage10-save-layout-1",
   "./v2-auto-battle-practice.js?v=129",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -176,22 +176,22 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!/(^|\\n)\\.map-options-button\\s*\\{\\s*visibility:\\s*hidden;\\s*\\}/.test(mapCss));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261005-village-stage9-layer-layout-1"));
-assert(worker.includes("./v2-map-practice.css?v=20261005-village-stage9-layer-layout-1"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261005-village-stage10-save-layout-1"));
+assert(worker.includes("./v2-map-practice.css?v=20261005-village-stage10-save-layout-1"));
 assert(mapHtml.includes('id="villageDioramaTestButton"'));
 assert(mapHtml.includes('id="villageDioramaTest"'));
-assert(mapHtml.includes("village-building-01.webp?v=20261005-village-stage9-layer-layout-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-01.webp?v=20261005-village-stage9-layer-layout-1"));
-assert(mapHtml.includes("village-building-02.webp?v=20261005-village-stage9-layer-layout-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-02.webp?v=20261005-village-stage9-layer-layout-1"));
-assert(mapHtml.includes("village-building-03.webp?v=20261005-village-stage9-layer-layout-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-03.webp?v=20261005-village-stage9-layer-layout-1"));
-assert(mapHtml.includes("village-building-04.webp?v=20261005-village-stage9-layer-layout-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-04.webp?v=20261005-village-stage9-layer-layout-1"));
-assert(mapHtml.includes("village-building-05.webp?v=20261005-village-stage9-layer-layout-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-05.webp?v=20261005-village-stage9-layer-layout-1"));
-assert(mapHtml.includes("village-building-06.webp?v=20261005-village-stage9-layer-layout-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-06.webp?v=20261005-village-stage9-layer-layout-1"));
+assert(mapHtml.includes("village-building-01.webp?v=20261005-village-stage10-save-layout-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-01.webp?v=20261005-village-stage10-save-layout-1"));
+assert(mapHtml.includes("village-building-02.webp?v=20261005-village-stage10-save-layout-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-02.webp?v=20261005-village-stage10-save-layout-1"));
+assert(mapHtml.includes("village-building-03.webp?v=20261005-village-stage10-save-layout-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-03.webp?v=20261005-village-stage10-save-layout-1"));
+assert(mapHtml.includes("village-building-04.webp?v=20261005-village-stage10-save-layout-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-04.webp?v=20261005-village-stage10-save-layout-1"));
+assert(mapHtml.includes("village-building-05.webp?v=20261005-village-stage10-save-layout-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-05.webp?v=20261005-village-stage10-save-layout-1"));
+assert(mapHtml.includes("village-building-06.webp?v=20261005-village-stage10-save-layout-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-06.webp?v=20261005-village-stage10-save-layout-1"));
 assert(map.includes('img.naturalWidth > 0 && img.naturalHeight > 0'));
 assert(mapHtml.includes("village-building-image"));
 assert(mapHtml.includes("village-layout-hint"));
@@ -199,6 +199,12 @@ assert(map.includes("enableVillageBuildingDragging"));
 assert(map.includes("selectVillageBuilding"));
 assert(map.includes("resizeSelectedVillageBuilding"));
 assert(map.includes("changeSelectedVillageBuildingLayer"));
+assert(map.includes("saveVillageLayout"));
+assert(map.includes("loadVillageLayout"));
+assert(map.includes("resetVillageLayout"));
+assert(map.includes("VILLAGE_LAYOUT_STORAGE_KEY"));
+assert(mapHtml.includes("data-village-layout-save"));
+assert(mapHtml.includes("data-village-layout-reset"));
 assert(mapHtml.includes("data-village-layer=\"-1\""));
 assert(mapHtml.includes("data-village-layer=\"1\""));
 assert(mapHtml.includes("data-village-size=\"-1\""));
