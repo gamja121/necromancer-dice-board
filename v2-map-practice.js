@@ -131,6 +131,7 @@
     forestDioramaTestButton: document.getElementById("forestDioramaTestButton"),
     forestDioramaTest: document.getElementById("forestDioramaTest"),
     forestDioramaClose: document.getElementById("forestDioramaClose"),
+    forestLayerDebug: document.getElementById("forestLayerDebug"),
     mapName: document.getElementById("mapName"),
     tileName: document.getElementById("tileName"),
     regenerate: document.getElementById("regenerateButton"),
@@ -356,7 +357,7 @@
   }
 
   function ensureForestTreeAssets(){
-    const atlasSrc = "art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage22-remove-red-duplicate-1";
+    const atlasSrc = "art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage23-layer-debug-1";
     document.querySelectorAll(".forest-tree-atlas-image").forEach((img)=>{
       if(!(img instanceof HTMLImageElement)) return;
       img.onerror=()=>{
@@ -368,12 +369,26 @@
     });
   }
 
+  function setForestTreeDebugVisibility(selector, visible) {
+    const tree = document.querySelector(selector);
+    if (!tree) return;
+    tree.classList.toggle("is-debug-hidden", !visible);
+    const button = el.forestLayerDebug?.querySelector(`[data-forest-tree-toggle="${selector}"]`);
+    if (button) button.setAttribute("aria-pressed", String(visible));
+  }
+
+  function resetForestTreeDebug() {
+    document.querySelectorAll(".forest-scene-tree.is-debug-hidden").forEach((tree) => tree.classList.remove("is-debug-hidden"));
+    el.forestLayerDebug?.querySelectorAll("[data-forest-tree-toggle]").forEach((button) => button.setAttribute("aria-pressed", "true"));
+  }
+
   function openForestDioramaTest(options = {}){
     if (!el.forestDioramaTest || !el.board) return;
     closeAudioOptions();
     clearForestDioramaTimers();
 
     forestDioramaFromTile = options.fromTile === true;
+    if (el.forestLayerDebug) el.forestLayerDebug.hidden = forestDioramaFromTile;
     document.querySelector(".map-lab")?.classList.add("is-forest-diorama-open");
     el.board.classList.remove("is-forest-zooming", "is-forest-tilted", "is-forest-trees");
     el.forestDioramaTest.classList.remove("is-zooming", "is-tilted", "is-playing");
@@ -404,6 +419,8 @@
     el.forestDioramaTest.classList.remove("is-playing", "is-tilted", "is-zooming");
     el.board?.classList.remove("is-forest-trees", "is-forest-tilted", "is-forest-zooming");
     el.forestDioramaTest.hidden = true;
+    if (el.forestLayerDebug) el.forestLayerDebug.hidden = true;
+    resetForestTreeDebug();
     document.querySelector(".map-lab")?.classList.remove("is-forest-diorama-open");
 
     if (forestDioramaFromTile) {
@@ -3573,6 +3590,16 @@
     renderAudioOptions();
   });
   el.forestDioramaTestButton?.addEventListener("click", () => openForestDioramaTest({ fromTile: false }));
+  el.forestLayerDebug?.addEventListener("click", (event) => {
+    const toggle = event.target.closest("[data-forest-tree-toggle]");
+    if (toggle) {
+      const selector = toggle.dataset.forestTreeToggle;
+      const visible = toggle.getAttribute("aria-pressed") !== "true";
+      setForestTreeDebugVisibility(selector, visible);
+      return;
+    }
+    if (event.target.closest("[data-forest-tree-reset]")) resetForestTreeDebug();
+  });
   el.forestDioramaClose?.addEventListener("click", closeForestDioramaTest);
   el.forestDioramaTest?.addEventListener("click", (event) => {
     if (event.target === el.forestDioramaTest || event.target?.classList?.contains("forest-diorama-vignette")) closeForestDioramaTest();
