@@ -355,12 +355,17 @@
   }
 
   function ensureForestTreeAssets(){
-    document.querySelectorAll(".forest-scene-tree").forEach((img)=>{
+    const fallbackPool = [
+      "art/v2-style/map-test/diorama/forest-tree-01.webp",
+      "art/v2-style/map-test/diorama/forest-tree-02.webp",
+      "art/v2-style/map-test/diorama/forest-tree-03.webp"
+    ];
+    document.querySelectorAll(".forest-scene-tree").forEach((img,index)=>{
       if(!(img instanceof HTMLImageElement)) return;
       img.onerror=()=>{
         if(img.dataset.fallbackTried==="1") return;
         img.dataset.fallbackTried="1";
-        img.src="art/v2-style/map-test/diorama/forest-tree-01.webp";
+        img.src=fallbackPool[index % fallbackPool.length] + "?v=20261004-forest-original-mix-2";
       };
     });
   }

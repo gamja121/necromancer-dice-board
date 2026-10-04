@@ -1380,10 +1380,10 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .forest-tree-stage{
   position:absolute;
   z-index:1;
-  left:56%;
-  top:19%;
-  width:48%;
-  height:38%;
+  left:61%;
+  top:20%;
+  width:46%;
+  height:54%;
   transform:translateX(-50%);
   pointer-events:none;
   overflow:visible;
@@ -1397,24 +1397,21 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   transform-origin:50% 100%;
   opacity:0;
   backface-visibility:hidden;
-  will-change:transform,opacity,filter;
-  filter:blur(.15px) brightness(.76) saturate(.86) contrast(1.06) drop-shadow(0 12px 9px rgba(0,0,0,.72));
+  will-change:transform,opacity;
+  filter:drop-shadow(0 18px 14px rgba(0,0,0,.86));
+  image-rendering:auto;
 }
-.tone-red{filter:blur(.1px) brightness(.80) saturate(1.02) hue-rotate(-8deg) contrast(1.08) drop-shadow(0 12px 9px rgba(0,0,0,.72))}
-.tone-amber{filter:blur(.15px) brightness(.84) saturate(.90) sepia(.20) hue-rotate(10deg) contrast(1.05) drop-shadow(0 12px 9px rgba(0,0,0,.70))}
-.tone-dark{filter:blur(.35px) brightness(.58) saturate(.60) hue-rotate(18deg) contrast(1.08) drop-shadow(0 12px 10px rgba(0,0,0,.78))}
-.tone-ashen{filter:blur(.12px) brightness(.78) saturate(.38) contrast(1.14) drop-shadow(0 12px 9px rgba(0,0,0,.74))}
 
-.tree-back-a{left:2%;bottom:44%;max-height:39%;z-index:1}
-.tree-back-b{left:21%;bottom:49%;max-height:36%;z-index:1;--flip:-1}
-.tree-back-c{left:48%;bottom:50%;max-height:37%;z-index:1}
-.tree-back-d{right:1%;bottom:43%;max-height:40%;z-index:1;--flip:-1}
-.tree-mid-a{left:7%;bottom:17%;max-height:60%;z-index:3}
-.tree-mid-b{left:28%;bottom:22%;max-height:55%;z-index:3;--flip:-1}
-.tree-mid-c{right:10%;bottom:16%;max-height:61%;z-index:3;--flip:-1}
-.tree-front-a{left:2%;bottom:-7%;max-height:78%;z-index:5}
-.tree-front-b{right:2%;bottom:-8%;max-height:80%;z-index:6;--flip:-1}
-.tree-front-c{left:45%;bottom:-3%;max-height:67%;z-index:5}
+.tree-back-a{left:1%;bottom:48%;max-height:68%;z-index:1}
+.tree-back-b{left:20%;bottom:52%;max-height:62%;z-index:1;--flip:-1}
+.tree-back-c{left:43%;bottom:50%;max-height:70%;z-index:1}
+.tree-back-d{right:0%;bottom:46%;max-height:66%;z-index:1;--flip:-1}
+.tree-mid-a{left:5%;bottom:19%;max-height:90%;z-index:2}
+.tree-mid-b{left:29%;bottom:23%;max-height:84%;z-index:2;--flip:-1}
+.tree-mid-c{right:4%;bottom:17%;max-height:92%;z-index:2}
+.tree-mid-d{left:50%;bottom:14%;max-height:86%;z-index:2;--flip:-1}
+.tree-deep-a{left:16%;bottom:3%;max-height:96%;z-index:3}
+.tree-deep-b{right:16%;bottom:1%;max-height:100%;z-index:3;--flip:-1}
 
 .forest-diorama-test.is-playing .forest-scene-tree{
   animation:forestSceneTreeRise 720ms cubic-bezier(.16,.82,.22,1) both;
@@ -1426,14 +1423,14 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .forest-diorama-test.is-playing .tree-mid-a{animation-delay:280ms}
 .forest-diorama-test.is-playing .tree-mid-b{animation-delay:350ms}
 .forest-diorama-test.is-playing .tree-mid-c{animation-delay:420ms}
-.forest-diorama-test.is-playing .tree-front-a{animation-delay:500ms}
-.forest-diorama-test.is-playing .tree-front-b{animation-delay:590ms}
-.forest-diorama-test.is-playing .tree-front-c{animation-delay:660ms}
+.forest-diorama-test.is-playing .tree-mid-d{animation-delay:500ms}
+.forest-diorama-test.is-playing .tree-deep-a{animation-delay:590ms}
+.forest-diorama-test.is-playing .tree-deep-b{animation-delay:660ms}
 
 @keyframes forestSceneTreeRise{
-  0%{opacity:0;transform:translateY(26%) scaleX(var(--flip)) scaleY(.06) scale(.90)}
-  34%{opacity:.72}
-  82%{opacity:1;transform:translateY(-1%) scaleX(var(--flip)) scaleY(1.03) scale(1.01)}
+  0%{opacity:0;transform:translateY(18%) scaleX(var(--flip)) scaleY(.08) scale(.94)}
+  36%{opacity:.86}
+  82%{opacity:1;transform:translateY(-1%) scaleX(var(--flip)) scaleY(1.02) scale(1.01)}
   100%{opacity:1;transform:translateY(0) scaleX(var(--flip)) scaleY(1) scale(1)}
 }
 
