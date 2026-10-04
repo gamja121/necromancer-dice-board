@@ -1747,15 +1747,15 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .village-building-2{left:36.7616%;top:4.68316%;bottom:auto;width:13%;z-index:1}
 .village-building-3{left:26.4165%;top:7.96152%;bottom:auto;width:18%;z-index:1}
 /* User-approved clustered village default layout. */
-.village-building-4{left:32.7904%;top:11.8012%;bottom:auto;width:23%;z-index:4}
+.village-building-4{left:32.0812%;top:15.3139%;bottom:auto;width:23%;z-index:4}
 .village-building-5{left:47.9677%;top:.462961%;bottom:auto;width:23%;z-index:2}
 .village-building-6{left:55.4649%;top:1.2037%;bottom:auto;width:27.5%;z-index:2}
 
 /* Village editor tree objects reuse the existing forest atlas. They start hidden and can
    be enabled individually from T1-T4 in the editor. */
-.village-tree-1{left:20%;top:18%;bottom:auto;width:12%;z-index:2}
-.village-tree-2{left:61%;top:14%;bottom:auto;width:11%;z-index:2}
-.village-tree-3{left:16%;top:40%;bottom:auto;width:14%;z-index:3}
+.village-tree-1{left:71.9087%;top:31.1458%;bottom:auto;width:12%;z-index:4}
+.village-tree-2{left:44.6792%;top:14.7396%;bottom:auto;width:11%;z-index:2}
+.village-tree-3{left:23.1831%;top:17.6837%;bottom:auto;width:14%;z-index:3}
 .village-tree-4{left:70%;top:38%;bottom:auto;width:13%;z-index:3}
 .village-building-stage .village-scene-tree{
   aspect-ratio:3/4;
