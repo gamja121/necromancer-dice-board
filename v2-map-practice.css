@@ -1631,6 +1631,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   overflow:hidden;
 }
 .village-scene-building{
+  --layout-flip:1;
   position:absolute;
   display:block;
   overflow:visible;
@@ -1652,6 +1653,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .village-scene-building.is-layout-selected{
   filter:drop-shadow(0 0 5px rgba(255,205,115,.95)) drop-shadow(0 16px 13px rgba(0,0,0,.5)) brightness(1.08);
 }
+.village-diorama-test:not(.is-playing) .village-layout-item{transform:scaleX(var(--layout-flip))}
 .village-scene-building.is-layout-selected::before{
   content:"";
   position:absolute;
@@ -1749,6 +1751,19 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .village-building-5{left:47.9677%;top:.462961%;bottom:auto;width:23%;z-index:2}
 .village-building-6{left:55.4649%;top:1.2037%;bottom:auto;width:27.5%;z-index:2}
 
+/* Village editor tree objects reuse the existing forest atlas. They start hidden and can
+   be enabled individually from T1-T4 in the editor. */
+.village-tree-1{left:20%;top:18%;bottom:auto;width:12%;z-index:2}
+.village-tree-2{left:61%;top:14%;bottom:auto;width:11%;z-index:2}
+.village-tree-3{left:16%;top:40%;bottom:auto;width:14%;z-index:3}
+.village-tree-4{left:70%;top:38%;bottom:auto;width:13%;z-index:3}
+.village-building-stage .village-scene-tree{
+  aspect-ratio:3/4;
+  overflow:hidden;
+}
+.village-building-stage .village-scene-tree.is-debug-hidden{display:none!important}
+.village-layout-item.is-layout-flipped{--layout-flip:-1}
+
 .village-diorama-test.is-playing .village-scene-building{
   animation:villageBuildingRise 620ms cubic-bezier(.16,.82,.22,1) both;
 }
@@ -1759,10 +1774,10 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .village-diorama-test.is-playing .village-building-5{animation-delay:320ms}
 .village-diorama-test.is-playing .village-building-6{animation-delay:400ms}
 @keyframes villageBuildingRise{
-  0%{opacity:0;transform:translateY(9%) scale(.96)}
+  0%{opacity:0;transform:translateY(9%) scaleX(var(--layout-flip)) scale(.96)}
   55%{opacity:1}
-  85%{transform:translateY(-.4%) scale(1.006)}
-  100%{opacity:1;transform:translateY(0) scale(1)}
+  85%{transform:translateY(-.4%) scaleX(var(--layout-flip)) scale(1.006)}
+  100%{opacity:1;transform:translateY(0) scaleX(var(--layout-flip)) scale(1)}
 }
 .village-diorama-test.is-tilted .village-diorama-close{opacity:1}
 .village-scene-building.is-debug-hidden{display:none!important}
