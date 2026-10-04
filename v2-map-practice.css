@@ -1380,10 +1380,10 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .forest-tree-stage{
   position:absolute;
   z-index:1;
-  left:50%;
-  top:31%;
-  width:96%;
-  height:66%;
+  left:56%;
+  top:19%;
+  width:48%;
+  height:38%;
   transform:translateX(-50%);
   pointer-events:none;
   overflow:visible;
@@ -1398,23 +1398,23 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   opacity:0;
   backface-visibility:hidden;
   will-change:transform,opacity,filter;
-  filter:blur(.8px) brightness(.64) saturate(.76) drop-shadow(0 13px 8px rgba(0,0,0,.64));
+  filter:blur(.15px) brightness(.76) saturate(.86) contrast(1.06) drop-shadow(0 12px 9px rgba(0,0,0,.72));
 }
-.tone-red{filter:blur(.8px) brightness(.66) saturate(.90) hue-rotate(-8deg) drop-shadow(0 13px 8px rgba(0,0,0,.64))}
-.tone-amber{filter:blur(.8px) brightness(.72) saturate(.82) sepia(.22) hue-rotate(10deg) drop-shadow(0 13px 8px rgba(0,0,0,.64))}
-.tone-dark{filter:blur(1px) brightness(.48) saturate(.52) hue-rotate(18deg) drop-shadow(0 13px 8px rgba(0,0,0,.72))}
-.tone-ashen{filter:blur(1px) brightness(.62) saturate(.35) contrast(1.08) drop-shadow(0 13px 8px rgba(0,0,0,.68))}
+.tone-red{filter:blur(.1px) brightness(.80) saturate(1.02) hue-rotate(-8deg) contrast(1.08) drop-shadow(0 12px 9px rgba(0,0,0,.72))}
+.tone-amber{filter:blur(.15px) brightness(.84) saturate(.90) sepia(.20) hue-rotate(10deg) contrast(1.05) drop-shadow(0 12px 9px rgba(0,0,0,.70))}
+.tone-dark{filter:blur(.35px) brightness(.58) saturate(.60) hue-rotate(18deg) contrast(1.08) drop-shadow(0 12px 10px rgba(0,0,0,.78))}
+.tone-ashen{filter:blur(.12px) brightness(.78) saturate(.38) contrast(1.14) drop-shadow(0 12px 9px rgba(0,0,0,.74))}
 
-.tree-back-a{left:1%;bottom:48%;max-height:32%;z-index:1}
-.tree-back-b{left:24%;bottom:55%;max-height:30%;z-index:1;--flip:-1}
-.tree-back-c{right:25%;bottom:53%;max-height:31%;z-index:1}
-.tree-back-d{right:2%;bottom:47%;max-height:29%;z-index:1;--flip:-1}
-.tree-mid-a{left:7%;bottom:20%;max-height:52%;z-index:3}
-.tree-mid-b{left:31%;bottom:28%;max-height:46%;z-index:3;--flip:-1}
-.tree-mid-c{right:10%;bottom:18%;max-height:56%;z-index:3;--flip:-1}
-.tree-front-a{left:-4%;bottom:-8%;max-height:78%;z-index:6}
-.tree-front-b{right:-5%;bottom:-10%;max-height:82%;z-index:7;--flip:-1}
-.tree-front-c{left:55%;bottom:-1%;max-height:61%;z-index:5}
+.tree-back-a{left:2%;bottom:44%;max-height:39%;z-index:1}
+.tree-back-b{left:21%;bottom:49%;max-height:36%;z-index:1;--flip:-1}
+.tree-back-c{left:48%;bottom:50%;max-height:37%;z-index:1}
+.tree-back-d{right:1%;bottom:43%;max-height:40%;z-index:1;--flip:-1}
+.tree-mid-a{left:7%;bottom:17%;max-height:60%;z-index:3}
+.tree-mid-b{left:28%;bottom:22%;max-height:55%;z-index:3;--flip:-1}
+.tree-mid-c{right:10%;bottom:16%;max-height:61%;z-index:3;--flip:-1}
+.tree-front-a{left:2%;bottom:-7%;max-height:78%;z-index:5}
+.tree-front-b{right:2%;bottom:-8%;max-height:80%;z-index:6;--flip:-1}
+.tree-front-c{left:45%;bottom:-3%;max-height:67%;z-index:5}
 
 .forest-diorama-test.is-playing .forest-scene-tree{
   animation:forestSceneTreeRise 720ms cubic-bezier(.16,.82,.22,1) both;
@@ -1452,34 +1452,34 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .forest-floor-shadow{
   position:absolute;
   display:block;
-  height:3.6%;
+  height:5.4%;
   border-radius:50%;
   background:radial-gradient(ellipse at center,
-    rgba(0,0,0,.62) 0 24%,
-    rgba(0,0,0,.36) 46%,
-    rgba(0,0,0,.14) 66%,
-    transparent 82%);
-  filter:blur(4px);
+    rgba(0,0,0,.76) 0 26%,
+    rgba(0,0,0,.50) 48%,
+    rgba(0,0,0,.22) 68%,
+    transparent 84%);
+  filter:blur(3px);
   transform-origin:50% 50%;
   opacity:0;
 }
 .map-board.is-forest-trees .forest-floor-shadow{
   animation:forestFloorShadowIn 620ms ease-out both;
 }
-.shadow-1{left:24%;top:43%;width:6%;transform:rotate(-12deg) scaleX(1.15);animation-delay:0ms!important;opacity:.42}
-.shadow-2{left:38%;top:42%;width:6%;transform:rotate(-5deg) scaleX(1.10);animation-delay:70ms!important;opacity:.40}
-.shadow-3{left:58%;top:42%;width:6%;transform:rotate(5deg) scaleX(1.10);animation-delay:140ms!important;opacity:.40}
-.shadow-4{left:71%;top:44%;width:6%;transform:rotate(12deg) scaleX(1.15);animation-delay:210ms!important;opacity:.42}
-.shadow-5{left:31%;top:52%;width:10%;transform:rotate(-8deg) scaleX(1.42);animation-delay:280ms!important}
-.shadow-6{left:45%;top:54%;width:9%;transform:rotate(-3deg) scaleX(1.38);animation-delay:350ms!important}
-.shadow-7{left:62%;top:53%;width:11%;transform:rotate(8deg) scaleX(1.46);animation-delay:420ms!important}
-.shadow-8{left:25%;top:63%;width:15%;transform:rotate(-8deg) scaleX(1.75);animation-delay:500ms!important}
-.shadow-9{left:64%;top:64%;width:15%;transform:rotate(8deg) scaleX(1.78);animation-delay:590ms!important}
-.shadow-10{left:53%;top:60%;width:11%;transform:rotate(3deg) scaleX(1.55);animation-delay:660ms!important}
+.shadow-1{left:43%;top:43%;width:8%;transform:rotate(-9deg) scaleX(1.55);animation-delay:0ms!important;opacity:.56}
+.shadow-2{left:47%;top:42%;width:8%;transform:rotate(-5deg) scaleX(1.48);animation-delay:70ms!important;opacity:.54}
+.shadow-3{left:52%;top:42%;width:8%;transform:rotate(4deg) scaleX(1.48);animation-delay:140ms!important;opacity:.54}
+.shadow-4{left:57%;top:43%;width:8%;transform:rotate(9deg) scaleX(1.55);animation-delay:210ms!important;opacity:.56}
+.shadow-5{left:44%;top:49%;width:11%;transform:rotate(-7deg) scaleX(1.78);animation-delay:280ms!important}
+.shadow-6{left:49%;top:49%;width:10%;transform:rotate(-2deg) scaleX(1.70);animation-delay:350ms!important}
+.shadow-7{left:55%;top:49%;width:11%;transform:rotate(7deg) scaleX(1.80);animation-delay:420ms!important}
+.shadow-8{left:43%;top:55%;width:14%;transform:rotate(-6deg) scaleX(2.00);animation-delay:500ms!important}
+.shadow-9{left:56%;top:55%;width:14%;transform:rotate(6deg) scaleX(2.00);animation-delay:590ms!important}
+.shadow-10{left:50%;top:54%;width:13%;transform:rotate(1deg) scaleX(1.92);animation-delay:660ms!important}
 
 @keyframes forestFloorShadowIn{
   0%{opacity:0;filter:blur(8px)}
-  100%{opacity:.9;filter:blur(4px)}
+  100%{opacity:.96;filter:blur(3px)}
 }
 
 .forest-diorama-close{
