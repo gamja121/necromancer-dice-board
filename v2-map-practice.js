@@ -137,6 +137,7 @@
     villageDioramaClose: document.getElementById("villageDioramaClose"),
     villageSelectedBuildingLabel: document.getElementById("villageSelectedBuildingLabel"),
     villageLayoutSaveStatus: document.getElementById("villageLayoutSaveStatus"),
+    villageLayoutExport: document.getElementById("villageLayoutExport"),
     villageLayerDebug: document.getElementById("villageLayerDebug"),
     mapName: document.getElementById("mapName"),
     tileName: document.getElementById("tileName"),
@@ -398,7 +399,7 @@
   }
 
   function ensureVillageBuildingAssets() {
-    const version = "20261005-village-stage10-save-layout-1";
+    const version = "20261005-village-stage11-export-layout-1";
     document.querySelectorAll(".village-building-image").forEach((img, index) => {
       if (!(img instanceof HTMLImageElement)) return;
       const assetNumber = String(index + 1).padStart(2, "0");
@@ -455,6 +456,34 @@
     }));
   }
 
+  function getVillageLayoutExportData() {
+    const snapshot = getVillageLayoutSnapshot();
+    return Object.fromEntries(snapshot.map((item, index) => [`B${index + 1}`, item]));
+  }
+
+  async function copyVillageLayoutExport() {
+    const text = JSON.stringify(getVillageLayoutExportData(), null, 2);
+    if (el.villageLayoutExport) {
+      el.villageLayoutExport.hidden = false;
+      el.villageLayoutExport.value = text;
+      el.villageLayoutExport.focus();
+      el.villageLayoutExport.select();
+    }
+
+    let copied = false;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        copied = true;
+      } else if (document.execCommand) {
+        copied = document.execCommand("copy");
+      }
+    } catch {}
+
+    showVillageLayoutSaveStatus(copied ? "배치값 복사됨" : "배치값 표시됨 · 길게 눌러 복사");
+    return text;
+  }
+
   function applyVillageLayoutSnapshot(layout) {
     const buildings = [...document.querySelectorAll(".village-scene-building")];
     if (!Array.isArray(layout) || layout.length !== buildings.length) return false;
@@ -506,6 +535,10 @@
       building.style.zIndex = "";
     });
     selectVillageBuilding(null);
+    if (el.villageLayoutExport) {
+      el.villageLayoutExport.value = "";
+      el.villageLayoutExport.hidden = true;
+    }
     showVillageLayoutSaveStatus("기본 배치로 복원");
   }
 
@@ -3871,6 +3904,10 @@
   el.villageLayerDebug?.addEventListener("click", (event) => {
     if (event.target.closest("[data-village-layout-save]")) {
       saveVillageLayout();
+      return;
+    }
+    if (event.target.closest("[data-village-layout-copy]")) {
+      copyVillageLayoutExport();
       return;
     }
     if (event.target.closest("[data-village-layout-reset]")) {
