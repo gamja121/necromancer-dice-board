@@ -1385,16 +1385,16 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   position:absolute;
   z-index:0;
   left:50%;
-  top:0;
-  width:152%;
-  height:40%;
+  top:-2%;
+  width:185%;
+  height:46%;
   transform-origin:50% 100%;
-  transform:translateX(-50%) translateY(7%) scaleY(.04);
+  transform:translateX(-50%) translateY(8%) scaleY(.04);
   opacity:.18;
   background:
-    url("art/v2-style/map-test/diorama/stone-tile-wall.svg?v=20261004-forest-wall-rise-wide-1")
-    center bottom / 100% 100% no-repeat;
-  filter:blur(1.6px) brightness(.70) saturate(.64);
+    url("art/v2-style/map-test/diorama/stone-tile-wall-user.webp?v=20261004-forest-user-wall-1")
+    center 56% / cover no-repeat;
+  filter:blur(10px) brightness(.52) saturate(.66);
   transition:
     opacity 920ms cubic-bezier(.14,.78,.16,1),
     transform 920ms cubic-bezier(.14,.78,.16,1),
@@ -1405,10 +1405,10 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .forest-diorama-wall-shadow{
   position:absolute;
   z-index:0;
-  left:-2%;
-  right:-2%;
-  top:35%;
-  height:11%;
+  left:-12%;
+  right:-12%;
+  top:39%;
+  height:12%;
   opacity:0;
   background:radial-gradient(ellipse at center,rgba(0,0,0,.62) 0 30%,rgba(0,0,0,.30) 58%,transparent 84%);
   filter:blur(11px);
@@ -1416,9 +1416,9 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 }
 
 .forest-diorama-test.is-tilted .forest-diorama-rear-wall{
-  opacity:.92;
+  opacity:.96;
   transform:translateX(-50%) translateY(0) scaleY(1);
-  filter:blur(.9px) brightness(.76) saturate(.68);
+  filter:blur(1.1px) brightness(.46) saturate(.62);
 }
 .forest-diorama-test.is-tilted .forest-diorama-wall-shadow{opacity:1}
 
