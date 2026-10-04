@@ -157,7 +157,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261004-forest-stage24-hide-map-tiles-1",
+  "./v2-map-practice.js?v=20261004-forest-stage26-atlas-edge-mask-1",
   "./v2-auto-battle-practice.js?v=129",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -176,8 +176,8 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!/(^|\\n)\\.map-options-button\\s*\\{\\s*visibility:\\s*hidden;\\s*\\}/.test(mapCss));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261004-forest-stage24-hide-map-tiles-1"));
-assert(worker.includes("./v2-map-practice.css?v=20261004-forest-stage24-hide-map-tiles-1"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261004-forest-stage26-atlas-edge-mask-1"));
+assert(worker.includes("./v2-map-practice.css?v=20261004-forest-stage26-atlas-edge-mask-1"));
 
 assert(battle.includes('makeState(data, "enemy", 3 - index)'));
 assert(!battle.includes('makeState(data, "enemy", index)'));
