@@ -220,25 +220,26 @@ async function activate(page, selector) {
     // six buildings must resolve to its own file and finish in the ready state.
     await page.goto(new URL("v2-map-practice.html", base).href);
     await page.waitForSelector(".village-building-image", { state: "attached" });
-    await page.waitForFunction(() => {
-      const images = [...document.querySelectorAll(".village-building-image")];
-      return images.length === 6 && images.every((img, index) => {
-        const expected = `village-building-${String(index + 1).padStart(2, "0")}.webp`;
-        return img.complete
-          && img.naturalWidth >= 300
-          && img.naturalHeight >= 300
-          && img.dataset.assetState === "ready"
-          && img.getAttribute("src")?.includes(expected)
-          && !img.closest(".village-scene-building")?.classList.contains("is-asset-error");
-      });
-    }, null, { timeout: 30000 });
-    const villageAssets = await page.locator(".village-building-image").evaluateAll(images => images.map(img => ({
+    await page.waitForTimeout(3000);
+    const villageAssets = await page.locator(".village-building-image").evaluateAll(images => images.map((img, index) => ({
+      index: index + 1,
       src: img.getAttribute("src"),
+      complete: img.complete,
       width: img.naturalWidth,
       height: img.naturalHeight,
       state: img.dataset.assetState,
       error: img.closest(".village-scene-building")?.classList.contains("is-asset-error") || false
     })));
+    console.log("VILLAGE_ASSET_METRICS " + JSON.stringify(villageAssets));
+    assert(villageAssets.every((asset, index) => {
+      const expected = `village-building-${String(index + 1).padStart(2, "0")}.webp`;
+      return asset.complete
+        && asset.width >= 300
+        && asset.height >= 300
+        && asset.state === "ready"
+        && asset.src?.includes(expected)
+        && !asset.error;
+    }), "Every village building must be a distinct ready 300x300+ asset");
     assert.equal(villageAssets.length, 6);
     assert.equal(new Set(villageAssets.map(asset => asset.src)).size, 6, "Village buildings must use six distinct image URLs");
     assert(villageAssets.every(asset => asset.state === "ready" && !asset.error), "Village buildings must load without ASSET ERROR");
