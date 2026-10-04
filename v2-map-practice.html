@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
   <title>네크로멘서 앤드 다이스 · 외곽 타일 맵 테스트</title>
-  <link rel="stylesheet" href="v2-map-practice.css?v=20261005-village-stage12-baked-layout-1">
+  <link rel="stylesheet" href="v2-map-practice.css?v=20261005-village-stage13-tree-flip-editor-1">
   <link rel="stylesheet" href="v2-home-inheritance.css?v=9">
   <link rel="stylesheet" href="v2-altar-ritual.css?v=5">
 </head>
@@ -371,26 +371,31 @@
 
     <section id="villageDioramaTest" class="village-diorama-test" hidden aria-label="마을 디오라마 테스트">
       <div class="village-building-stage" aria-hidden="true">
-        <span class="village-scene-building village-building-1"><img class="village-building-image" src="art/v2-style/map-test/diorama/village-building-01.webp?v=20261005-village-stage12-baked-layout-1" alt=""></span>
-        <span class="village-scene-building village-building-2"><img class="village-building-image" src="art/v2-style/map-test/diorama/village-building-02.webp?v=20261005-village-stage12-baked-layout-1" alt=""></span>
-        <span class="village-scene-building village-building-3"><img class="village-building-image" src="art/v2-style/map-test/diorama/village-building-03.webp?v=20261005-village-stage12-baked-layout-1" alt=""></span>
-        <span class="village-scene-building village-building-4"><img class="village-building-image" src="art/v2-style/map-test/diorama/village-building-04.webp?v=20261005-village-stage12-baked-layout-1" alt=""></span>
-        <span class="village-scene-building village-building-5"><img class="village-building-image" src="art/v2-style/map-test/diorama/village-building-05.webp?v=20261005-village-stage12-baked-layout-1" alt=""></span>
-        <span class="village-scene-building village-building-6"><img class="village-building-image" src="art/v2-style/map-test/diorama/village-building-06.webp?v=20261005-village-stage12-baked-layout-1" alt=""></span>
+        <span class="village-scene-building village-layout-item village-building-1" data-village-id="B1" data-village-type="building"><img class="village-building-image" src="art/v2-style/map-test/diorama/village-building-01.webp?v=20261005-village-stage13-tree-flip-editor-1" alt=""></span>
+        <span class="village-scene-building village-layout-item village-building-2" data-village-id="B2" data-village-type="building"><img class="village-building-image" src="art/v2-style/map-test/diorama/village-building-02.webp?v=20261005-village-stage13-tree-flip-editor-1" alt=""></span>
+        <span class="village-scene-building village-layout-item village-building-3" data-village-id="B3" data-village-type="building"><img class="village-building-image" src="art/v2-style/map-test/diorama/village-building-03.webp?v=20261005-village-stage13-tree-flip-editor-1" alt=""></span>
+        <span class="village-scene-building village-layout-item village-building-4" data-village-id="B4" data-village-type="building"><img class="village-building-image" src="art/v2-style/map-test/diorama/village-building-04.webp?v=20261005-village-stage13-tree-flip-editor-1" alt=""></span>
+        <span class="village-scene-building village-layout-item village-building-5" data-village-id="B5" data-village-type="building"><img class="village-building-image" src="art/v2-style/map-test/diorama/village-building-05.webp?v=20261005-village-stage13-tree-flip-editor-1" alt=""></span>
+        <span class="village-scene-building village-layout-item village-building-6" data-village-id="B6" data-village-type="building"><img class="village-building-image" src="art/v2-style/map-test/diorama/village-building-06.webp?v=20261005-village-stage13-tree-flip-editor-1" alt=""></span>
+        <span class="village-scene-building village-layout-item village-scene-tree village-tree-1 sprite-4 is-debug-hidden" data-village-id="T1" data-village-type="tree"><img class="forest-tree-atlas-image" src="art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage26-atlas-edge-mask-1" alt=""></span>
+        <span class="village-scene-building village-layout-item village-scene-tree village-tree-2 sprite-5 is-debug-hidden" data-village-id="T2" data-village-type="tree"><img class="forest-tree-atlas-image" src="art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage26-atlas-edge-mask-1" alt=""></span>
+        <span class="village-scene-building village-layout-item village-scene-tree village-tree-3 sprite-7 is-debug-hidden" data-village-id="T3" data-village-type="tree"><img class="forest-tree-atlas-image" src="art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage26-atlas-edge-mask-1" alt=""></span>
+        <span class="village-scene-building village-layout-item village-scene-tree village-tree-4 sprite-3 is-debug-hidden" data-village-id="T4" data-village-type="tree"><img class="forest-tree-atlas-image" src="art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage26-atlas-edge-mask-1" alt=""></span>
       </div>
       <section id="villageLayerDebug" class="forest-layer-debug village-layer-debug" aria-label="마을 건물 레이어 테스트" hidden>
         <div class="forest-layer-debug-head">
-          <strong>마을 건물 테스트</strong>
+          <strong>마을 배치 에디터</strong>
           <button type="button" data-village-building-reset>전체 표시</button>
         </div>
-        <p class="village-layout-hint">집을 직접 이동하고, 선택한 집의 크기를 조절하세요.</p>
-        <div class="village-size-controls" aria-label="선택한 집 조절">
+        <p class="village-layout-hint">집과 나무를 직접 이동·크기·앞뒤·반전으로 조절하세요.</p>
+        <div class="village-size-controls" aria-label="선택한 오브젝트 조절">
           <strong id="villageSelectedBuildingLabel">선택: 없음</strong>
           <div>
             <button type="button" data-village-size="-1" disabled>− 작게</button>
             <button type="button" data-village-size="1" disabled>+ 크게</button>
             <button type="button" data-village-layer="-1" disabled>뒤로</button>
             <button type="button" data-village-layer="1" disabled>앞으로</button>
+            <button type="button" data-village-flip disabled>좌우 반전</button>
           </div>
         </div>
         <div class="village-save-controls" aria-label="마을 배치 저장">
@@ -407,6 +412,10 @@
           <button type="button" data-village-building-toggle=".village-building-4" aria-pressed="true">앞 왼쪽 · B4</button>
           <button type="button" data-village-building-toggle=".village-building-5" aria-pressed="true">앞 중앙 · B5</button>
           <button type="button" data-village-building-toggle=".village-building-6" aria-pressed="true">앞 오른쪽 · B6</button>
+          <button type="button" data-village-item-toggle=".village-tree-1" aria-pressed="false">나무 · T1</button>
+          <button type="button" data-village-item-toggle=".village-tree-2" aria-pressed="false">나무 · T2</button>
+          <button type="button" data-village-item-toggle=".village-tree-3" aria-pressed="false">나무 · T3</button>
+          <button type="button" data-village-item-toggle=".village-tree-4" aria-pressed="false">나무 · T4</button>
         </div>
       </section>
       <button id="villageDioramaClose" class="forest-diorama-close village-diorama-close" type="button" aria-label="마을 디오라마 테스트 닫기">×</button>
@@ -428,6 +437,6 @@
   <script src="v2-world-tree-prayer-digits.js?v=2"></script>
   <script src="v2-event-data.js?v=1"></script>
   <script src="v2-map-events.js?v=1"></script>
-  <script src="v2-map-practice.js?v=20261005-village-stage12-baked-layout-1"></script>
+  <script src="v2-map-practice.js?v=20261005-village-stage13-tree-flip-editor-1"></script>
 </body>
 </html>
