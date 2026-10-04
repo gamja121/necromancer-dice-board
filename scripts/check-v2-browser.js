@@ -239,7 +239,7 @@ async function activate(page, selector) {
         && asset.state === "ready"
         && asset.src?.includes(expected)
         && !asset.error;
-    }), "Every village building must be a distinct ready 300x300+ asset");
+    }), "Every village building must be a distinct decoded ready asset");
     assert.equal(villageAssets.length, 6);
     assert.equal(new Set(villageAssets.map(asset => asset.src)).size, 6, "Village buildings must use six distinct image URLs");
     assert(villageAssets.every(asset => asset.state === "ready" && !asset.error), "Village buildings must load without ASSET ERROR");
