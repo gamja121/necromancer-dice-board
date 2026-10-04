@@ -1359,66 +1359,54 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   box-shadow:0 54px 110px #000, inset 0 0 0 2px #c5a56b55;
 }
 
-/* Rear wall is part of the board itself, not a separate center window. */
+/* Rear wall uses the dedicated stone tile-wall art based on the actual board tile side profile. */
 .map-board::before{
   content:"";
   position:absolute;
   z-index:118;
-  left:-10%;
-  right:-10%;
-  top:-2%;
-  height:41%;
+  left:-12%;
+  right:-12%;
+  top:-3%;
+  height:38%;
   pointer-events:none;
   opacity:0;
   transform-origin:50% 100%;
   transform:
     translate3d(0,-34%,0)
     rotateX(-88deg)
-    scaleY(.70);
+    scaleY(.72);
   background:
-    linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px) 0 0/12.5% 100%,
-    linear-gradient(180deg,rgba(255,255,255,.07) 1px,transparent 1px) 0 0/100% 25%,
-    linear-gradient(180deg,#797874 0%,#5f5e5a 52%,#3b3a37 100%);
-  box-shadow:
-    inset 0 -22px 32px rgba(0,0,0,.40),
-    0 16px 28px rgba(0,0,0,.42);
-  filter:brightness(.72) saturate(.35);
+    url("art/v2-style/map-test/diorama/stone-tile-wall.svg?v=20261004-forest-stone-wall-asset-1")
+    center bottom / 100% 100% no-repeat;
+  filter:brightness(.78) saturate(.72);
   transition:
     opacity 240ms ease 90ms,
     transform 640ms cubic-bezier(.16,.82,.22,1) 40ms;
 }
-
-/* Tile seams on the gray wall. */
 .map-board::after{
   content:"";
   position:absolute;
-  z-index:119;
-  left:-10%;
-  right:-10%;
-  top:-2%;
-  height:41%;
+  z-index:117;
+  left:-8%;
+  right:-8%;
+  top:31%;
+  height:9%;
   pointer-events:none;
   opacity:0;
-  transform-origin:50% 100%;
-  transform:
-    translate3d(0,-34%,1px)
-    rotateX(-88deg)
-    scaleY(.70);
-  background:
-    repeating-linear-gradient(90deg,transparent 0 12.2%,rgba(0,0,0,.18) 12.2% 12.8%),
-    repeating-linear-gradient(180deg,transparent 0 24.2%,rgba(0,0,0,.19) 24.2% 25%);
-  transition:
-    opacity 240ms ease 90ms,
-    transform 640ms cubic-bezier(.16,.82,.22,1) 40ms;
+  transform-origin:50% 50%;
+  background:radial-gradient(ellipse at center,rgba(0,0,0,.55) 0 32%,rgba(0,0,0,.24) 58%,transparent 82%);
+  filter:blur(8px);
+  transition:opacity 260ms ease 150ms;
 }
-
-.map-board.is-forest-tilted::before,
-.map-board.is-forest-tilted::after{
+.map-board.is-forest-tilted::before{
   opacity:1;
   transform:
     translate3d(0,0,165px)
     rotateX(-58deg)
     scaleY(1);
+}
+.map-board.is-forest-tilted::after{
+  opacity:1;
 }
 
 /* Very soft floor/wall seam so the fold reads as one 3D board, not two layered rectangles. */
