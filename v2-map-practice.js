@@ -356,7 +356,7 @@
   }
 
   function ensureForestTreeAssets(){
-    const atlasSrc = "art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage14-landscape-fixed-1";
+    const atlasSrc = "art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage15-full-viewport-1";
     document.querySelectorAll(".forest-tree-atlas-image").forEach((img)=>{
       if(!(img instanceof HTMLImageElement)) return;
       img.onerror=()=>{
@@ -374,6 +374,7 @@
     clearForestDioramaTimers();
 
     forestDioramaFromTile = options.fromTile === true;
+    document.querySelector(".map-lab")?.classList.add("is-forest-diorama-open");
     el.board.classList.remove("is-forest-zooming", "is-forest-tilted", "is-forest-trees");
     el.forestDioramaTest.classList.remove("is-zooming", "is-tilted", "is-playing");
     ensureForestTreeAssets();
@@ -403,6 +404,7 @@
     el.forestDioramaTest.classList.remove("is-playing", "is-tilted", "is-zooming");
     el.board?.classList.remove("is-forest-trees", "is-forest-tilted", "is-forest-zooming");
     el.forestDioramaTest.hidden = true;
+    document.querySelector(".map-lab")?.classList.remove("is-forest-diorama-open");
 
     if (forestDioramaFromTile) {
       eventOpen = false;
