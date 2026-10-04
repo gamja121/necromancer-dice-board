@@ -277,6 +277,17 @@ async function activate(page, selector) {
     assert(Math.abs(dragResult.afterY - dragResult.beforeY) > 10, "Village building must move vertically by drag");
     assert(dragResult.leftStyle && dragResult.topStyle && dragResult.bottomStyle === "auto", "Village drag must write editable inline position");
     console.log("PASS: village building pointer drag moves layout " + JSON.stringify(dragResult));
+    const sizeResult = await page.locator(".village-building-4").evaluate((building) => ({
+      before: building.getBoundingClientRect().width
+    }));
+    await page.locator("[data-village-size=\"1\"]").evaluate((button) => button.click());
+    const sizeAfter = await page.locator(".village-building-4").evaluate((building) => ({
+      width: building.getBoundingClientRect().width,
+      selected: building.classList.contains("is-layout-selected")
+    }));
+    assert(sizeAfter.width > sizeResult.before + 5, "Selected village building must grow with size control");
+    assert(sizeAfter.selected, "Resized village building must remain selected");
+    console.log("PASS: selected village building size control");
     console.log("PASS: mobile village six distinct building assets " + JSON.stringify(villageAssets));
 
     await page.goto(base);
