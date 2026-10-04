@@ -1638,7 +1638,22 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   opacity:0;
   filter:drop-shadow(0 15px 12px rgba(0,0,0,.46));
   backface-visibility:hidden;
-  will-change:transform,opacity;
+  will-change:transform,opacity,left,top;
+  pointer-events:auto;
+  touch-action:none;
+  cursor:grab;
+  user-select:none;
+  -webkit-user-select:none;
+}
+.village-scene-building.is-layout-dragging{
+  cursor:grabbing;
+  filter:drop-shadow(0 18px 15px rgba(0,0,0,.56)) brightness(1.06);
+}
+.village-layout-hint{
+  margin:8px 0 10px;
+  color:#e7d8bd;
+  font-size:12px;
+  line-height:1.35;
 }
 .village-building-image{
   position:relative;
