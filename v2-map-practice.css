@@ -1436,6 +1436,9 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   clip-path:inset(50% 23% 0 48%);
 }
 .sprite-8 .forest-tree-atlas-image{left:-300%;top:-100%}
+.tree-front-d .forest-tree-atlas-image{
+  clip-path:inset(50% 0 0 77.75%);
+}
 
 /* Final forest composition:
    - 45~60% overlap between neighbors
