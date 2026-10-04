@@ -1434,7 +1434,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .tree-back-a{left:10%;bottom:60%;width:21%;z-index:1;filter:blur(.85px)}
 .tree-back-b{left:21%;bottom:61%;width:20%;z-index:1;--flip:-1;filter:blur(.95px)}
 .tree-back-c{left:32%;bottom:60%;width:22%;z-index:1;filter:blur(.75px)}
-.tree-back-d{left:43%;bottom:61%;width:21%;z-index:1;--flip:-1;filter:blur(.9px)}
+
 .tree-back-e{left:54%;bottom:59%;width:21%;z-index:1;filter:blur(.8px)}
 
 .tree-mid-a{left:10%;bottom:43%;width:29%;z-index:2;filter:blur(.12px)}
@@ -1466,7 +1466,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .forest-diorama-test.is-playing .tree-back-a{animation-delay:0ms}
 .forest-diorama-test.is-playing .tree-back-b{animation-delay:40ms}
 .forest-diorama-test.is-playing .tree-back-c{animation-delay:80ms}
-.forest-diorama-test.is-playing .tree-back-d{animation-delay:120ms}
+
 .forest-diorama-test.is-playing .tree-back-e{animation-delay:160ms}
 .forest-diorama-test.is-playing .tree-mid-a{animation-delay:215ms}
 .forest-diorama-test.is-playing .tree-mid-b{animation-delay:270ms}
@@ -1515,7 +1515,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .shadow-1{left:23%;top:37%;width:5.2%;transform:rotate(-15deg) scaleX(1.55);animation-delay:0ms!important}
 .shadow-2{left:30%;top:37%;width:5.2%;transform:rotate(-10deg) scaleX(1.55);animation-delay:40ms!important}
 .shadow-3{left:37%;top:37%;width:5.2%;transform:rotate(-4deg) scaleX(1.55);animation-delay:80ms!important}
-.shadow-4{left:44%;top:37%;width:5.2%;transform:rotate(7deg) scaleX(1.55);animation-delay:120ms!important}
+
 .shadow-5{display:none}
 .shadow-6{left:23%;top:45%;width:7.0%;transform:rotate(-13deg) scaleX(1.70);animation-delay:215ms!important}
 .shadow-7{left:31%;top:45%;width:7.0%;transform:rotate(-7deg) scaleX(1.70);animation-delay:270ms!important}
