@@ -355,17 +355,15 @@
   }
 
   function ensureForestTreeAssets(){
-    const fallbackPool = [
-      "art/v2-style/map-test/diorama/forest-tree-04.webp",
-      "art/v2-style/map-test/diorama/forest-tree-05.webp"
-    ];
-    document.querySelectorAll(".forest-scene-tree").forEach((img,index)=>{
+    const atlasSrc = "art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage2-atlas-img-1";
+    document.querySelectorAll(".forest-tree-atlas-image").forEach((img)=>{
       if(!(img instanceof HTMLImageElement)) return;
       img.onerror=()=>{
-        if(img.dataset.fallbackTried==="1") return;
-        img.dataset.fallbackTried="1";
-        img.src=fallbackPool[index % fallbackPool.length] + "?v=20261004-forest-stage1-clean-1";
+        if(img.dataset.retry==="1") return;
+        img.dataset.retry="1";
+        img.src=atlasSrc + "&retry=1";
       };
+      if(!img.src.includes("forest-tree-atlas.webp")) img.src=atlasSrc;
     });
   }
 
