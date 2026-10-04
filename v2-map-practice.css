@@ -1348,14 +1348,14 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 /* Phase 1: rush into the board until the outer tile ring is pushed off-screen. */
 .map-board.is-forest-zooming{
   transform:translate3d(0,-3%,0) scale(2.30);
-  filter:blur(8px) brightness(.56) saturate(.70);
+  filter:blur(10px) brightness(.52) saturate(.66);
   box-shadow:0 0 90px #000;
 }
 
 /* Phase 2: the board becomes the floor plane. */
 .map-board.is-forest-tilted{
   transform:translate3d(0,29%,120px) rotateX(58deg) scale(2.46);
-  filter:blur(.55px) brightness(.48) saturate(.66);
+  filter:blur(1.1px) brightness(.46) saturate(.62);
   box-shadow:0 54px 110px #000, inset 0 0 0 2px #c5a56b55;
 }
 
@@ -1385,38 +1385,40 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   position:absolute;
   z-index:0;
   left:50%;
-  top:3%;
-  width:112%;
-  height:36%;
+  top:0;
+  width:152%;
+  height:40%;
   transform-origin:50% 100%;
-  transform:translateX(-50%) translateY(-26%) scaleY(.28);
-  opacity:0;
+  transform:translateX(-50%) translateY(7%) scaleY(.04);
+  opacity:.18;
   background:
-    url("art/v2-style/map-test/diorama/stone-tile-wall.svg?v=20261004-forest-wall-upright-1")
+    url("art/v2-style/map-test/diorama/stone-tile-wall.svg?v=20261004-forest-wall-rise-wide-1")
     center bottom / 100% 100% no-repeat;
-  filter:brightness(.80) saturate(.74);
+  filter:blur(1.6px) brightness(.70) saturate(.64);
   transition:
-    opacity 260ms ease 80ms,
-    transform 620ms cubic-bezier(.16,.82,.22,1) 40ms;
-  will-change:transform,opacity;
+    opacity 920ms cubic-bezier(.14,.78,.16,1),
+    transform 920ms cubic-bezier(.14,.78,.16,1),
+    filter 920ms cubic-bezier(.14,.78,.16,1);
+  will-change:transform,opacity,filter;
 }
 
 .forest-diorama-wall-shadow{
   position:absolute;
   z-index:0;
-  left:5%;
-  right:5%;
-  top:33%;
-  height:10%;
+  left:-2%;
+  right:-2%;
+  top:35%;
+  height:11%;
   opacity:0;
-  background:radial-gradient(ellipse at center,rgba(0,0,0,.58) 0 30%,rgba(0,0,0,.26) 58%,transparent 82%);
-  filter:blur(9px);
-  transition:opacity 280ms ease 130ms;
+  background:radial-gradient(ellipse at center,rgba(0,0,0,.62) 0 30%,rgba(0,0,0,.30) 58%,transparent 84%);
+  filter:blur(11px);
+  transition:opacity 920ms cubic-bezier(.14,.78,.16,1);
 }
 
 .forest-diorama-test.is-tilted .forest-diorama-rear-wall{
-  opacity:1;
+  opacity:.92;
   transform:translateX(-50%) translateY(0) scaleY(1);
+  filter:blur(.9px) brightness(.76) saturate(.68);
 }
 .forest-diorama-test.is-tilted .forest-diorama-wall-shadow{opacity:1}
 
