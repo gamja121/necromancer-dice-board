@@ -29,12 +29,6 @@
     const flags = safeRead(FLAG_KEY, {});
     let loop = Math.max(1, Number(safeRead(LOOP_KEY, 1)) || 1);
 
-    function refreshSharedState() {
-      const latestFlags = safeRead(FLAG_KEY, {});
-      for (const key of Object.keys(flags)) delete flags[key];
-      Object.assign(flags, latestFlags && typeof latestFlags === "object" ? latestFlags : {});
-      loop = Math.max(1, Number(safeRead(LOOP_KEY, loop)) || loop || 1);
-    }
     let currentEvent = null;
     let pendingChoice = null;
     let resolved = false;
@@ -184,7 +178,6 @@
     }
 
     function openForTile(tileId) {
-      refreshSharedState();
       const location = TILE_LOCATION[tileId];
       if (!location || !events.length) return false;
       const event = events.find((item) => item.location === location && eventAvailable(item));
