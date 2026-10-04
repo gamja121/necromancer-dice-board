@@ -399,7 +399,7 @@
   }
 
   function ensureVillageBuildingAssets() {
-    const version = "20261005-village-stage11-export-layout-1";
+    const version = "20261005-village-stage12-baked-layout-1";
     document.querySelectorAll(".village-building-image").forEach((img, index) => {
       if (!(img instanceof HTMLImageElement)) return;
       const assetNumber = String(index + 1).padStart(2, "0");
