@@ -136,6 +136,7 @@
     villageDioramaTest: document.getElementById("villageDioramaTest"),
     villageDioramaClose: document.getElementById("villageDioramaClose"),
     villageSelectedBuildingLabel: document.getElementById("villageSelectedBuildingLabel"),
+    villageLayoutSaveStatus: document.getElementById("villageLayoutSaveStatus"),
     villageLayerDebug: document.getElementById("villageLayerDebug"),
     mapName: document.getElementById("mapName"),
     tileName: document.getElementById("tileName"),
@@ -389,6 +390,7 @@
 
   let villageDioramaTimers = [];
   let selectedVillageBuilding = null;
+  const VILLAGE_LAYOUT_STORAGE_KEY = "necromancer-dice-village-layout-v1";
 
   function clearVillageDioramaTimers() {
     villageDioramaTimers.forEach((timer) => window.clearTimeout(timer));
@@ -396,7 +398,7 @@
   }
 
   function ensureVillageBuildingAssets() {
-    const version = "20261005-village-stage9-layer-layout-1";
+    const version = "20261005-village-stage10-save-layout-1";
     document.querySelectorAll(".village-building-image").forEach((img, index) => {
       if (!(img instanceof HTMLImageElement)) return;
       const assetNumber = String(index + 1).padStart(2, "0");
@@ -441,6 +443,70 @@
   function resetVillageBuildingDebug() {
     document.querySelectorAll(".village-scene-building.is-debug-hidden").forEach((building) => building.classList.remove("is-debug-hidden"));
     el.villageLayerDebug?.querySelectorAll("[data-village-building-toggle]").forEach((button) => button.setAttribute("aria-pressed", "true"));
+  }
+
+  function getVillageLayoutSnapshot() {
+    return [...document.querySelectorAll(".village-scene-building")].map((building) => ({
+      left: building.style.left || "",
+      top: building.style.top || "",
+      bottom: building.style.bottom || "",
+      width: building.style.width || "",
+      zIndex: building.style.zIndex || ""
+    }));
+  }
+
+  function applyVillageLayoutSnapshot(layout) {
+    const buildings = [...document.querySelectorAll(".village-scene-building")];
+    if (!Array.isArray(layout) || layout.length !== buildings.length) return false;
+    buildings.forEach((building, index) => {
+      const saved = layout[index] || {};
+      building.style.left = typeof saved.left === "string" ? saved.left : "";
+      building.style.top = typeof saved.top === "string" ? saved.top : "";
+      building.style.bottom = typeof saved.bottom === "string" ? saved.bottom : "";
+      building.style.width = typeof saved.width === "string" ? saved.width : "";
+      building.style.zIndex = typeof saved.zIndex === "string" ? saved.zIndex : "";
+    });
+    return true;
+  }
+
+  function showVillageLayoutSaveStatus(message) {
+    if (!el.villageLayoutSaveStatus) return;
+    el.villageLayoutSaveStatus.textContent = message;
+  }
+
+  function saveVillageLayout() {
+    try {
+      localStorage.setItem(VILLAGE_LAYOUT_STORAGE_KEY, JSON.stringify(getVillageLayoutSnapshot()));
+      showVillageLayoutSaveStatus("저장됨");
+    } catch {
+      showVillageLayoutSaveStatus("저장 실패");
+    }
+  }
+
+  function loadVillageLayout() {
+    try {
+      const raw = localStorage.getItem(VILLAGE_LAYOUT_STORAGE_KEY);
+      if (!raw) return false;
+      const applied = applyVillageLayoutSnapshot(JSON.parse(raw));
+      if (applied) showVillageLayoutSaveStatus("저장된 배치 적용");
+      return applied;
+    } catch {
+      localStorage.removeItem(VILLAGE_LAYOUT_STORAGE_KEY);
+      return false;
+    }
+  }
+
+  function resetVillageLayout() {
+    localStorage.removeItem(VILLAGE_LAYOUT_STORAGE_KEY);
+    document.querySelectorAll(".village-scene-building").forEach((building) => {
+      building.style.left = "";
+      building.style.top = "";
+      building.style.bottom = "";
+      building.style.width = "";
+      building.style.zIndex = "";
+    });
+    selectVillageBuilding(null);
+    showVillageLayoutSaveStatus("기본 배치로 복원");
   }
 
   function selectVillageBuilding(building) {
@@ -562,6 +628,7 @@
     if (el.villageLayerDebug) el.villageLayerDebug.hidden = false;
     ensureVillageBuildingAssets();
     enableVillageBuildingDragging();
+    loadVillageLayout();
     el.villageDioramaTest.hidden = false;
     void el.board.offsetWidth;
 
@@ -3802,6 +3869,14 @@
   el.forestDioramaTestButton?.addEventListener("click", () => openForestDioramaTest({ fromTile: false }));
   el.villageDioramaTestButton?.addEventListener("click", openVillageDioramaTest);
   el.villageLayerDebug?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-village-layout-save]")) {
+      saveVillageLayout();
+      return;
+    }
+    if (event.target.closest("[data-village-layout-reset]")) {
+      resetVillageLayout();
+      return;
+    }
     const layerButton = event.target.closest("[data-village-layer]");
     if (layerButton) {
       changeSelectedVillageBuildingLayer(Number(layerButton.dataset.villageLayer || 0));
@@ -3862,6 +3937,7 @@
   });
   ensureVillageBuildingAssets();
   enableVillageBuildingDragging();
+  loadVillageLayout();
   renderBookRoster();
   dealDiceControlHand();
   renderInventoryCounts();
