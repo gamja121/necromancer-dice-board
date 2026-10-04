@@ -3740,6 +3740,7 @@
     else if (event.key === "Escape" && !el.bookRoster.hidden) toggleBookRoster();
     else if (event.key === "Escape" && eventOpen) closeTileEvent();
   });
+  ensureVillageBuildingAssets();
   renderBookRoster();
   dealDiceControlHand();
   renderInventoryCounts();
