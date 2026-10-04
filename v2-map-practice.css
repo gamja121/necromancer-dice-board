@@ -1376,6 +1376,68 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 }
 .forest-diorama-test[hidden]{display:none}
 
+/* No panel/window: only free-standing tree cutouts appear in the 3D view. */
+.forest-tree-stage{
+  position:absolute;
+  z-index:1;
+  left:50%;
+  top:47%;
+  width:66%;
+  height:43%;
+  transform:translateX(-50%);
+  pointer-events:none;
+  overflow:visible;
+}
+
+.forest-scene-tree{
+  position:absolute;
+  bottom:0;
+  width:auto;
+  object-fit:contain;
+  transform-origin:50% 100%;
+  opacity:0;
+  filter:blur(1px) brightness(.62) saturate(.72) drop-shadow(0 14px 9px rgba(0,0,0,.72));
+  backface-visibility:hidden;
+  will-change:transform,opacity,filter;
+}
+.forest-scene-tree.tree-left{
+  left:5%;
+  max-height:73%;
+}
+.forest-scene-tree.tree-center{
+  left:50%;
+  max-height:96%;
+}
+.forest-scene-tree.tree-right{
+  right:4%;
+  max-height:78%;
+}
+
+.forest-diorama-test.is-playing .forest-scene-tree{
+  animation:forestSceneTreeRise 680ms cubic-bezier(.16,.82,.22,1) both;
+}
+.forest-diorama-test.is-playing .tree-left{animation-delay:0ms}
+.forest-diorama-test.is-playing .tree-right{animation-delay:150ms}
+.forest-diorama-test.is-playing .tree-center{animation-delay:300ms}
+
+@keyframes forestSceneTreeRise{
+  0%{
+    opacity:0;
+    transform:translateY(28%) scaleY(.08) scale(.9);
+    filter:blur(7px) brightness(.48) saturate(.62) drop-shadow(0 8px 8px rgba(0,0,0,.55));
+  }
+  35%{opacity:.72}
+  82%{
+    opacity:1;
+    transform:translateY(-1%) scaleY(1.03) scale(1.01);
+  }
+  100%{
+    opacity:1;
+    transform:translateY(0) scaleY(1) scale(1);
+    filter:blur(1px) brightness(.62) saturate(.72) drop-shadow(0 14px 9px rgba(0,0,0,.72));
+  }
+}
+
 .forest-diorama-close{
   position:absolute;
   z-index:2;
@@ -1399,5 +1461,6 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 
 @media(prefers-reduced-motion:reduce){
   .map-board.is-forest-zooming,
-  .map-board.is-forest-tilted{transition-duration:1ms!important}
+  .map-board.is-forest-tilted,
+  .forest-scene-tree{transition-duration:1ms!important;animation-duration:1ms!important;animation-delay:0ms!important}
 }
