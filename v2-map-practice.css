@@ -1442,7 +1442,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   filter:drop-shadow(0 17px 12px rgba(0,0,0,.50));
 }
 .tree-front-c{
-  left:58%;bottom:20%;width:39%;z-index:4;
+  left:58%;bottom:9%;width:39%;z-index:4;
   filter:drop-shadow(0 17px 12px rgba(0,0,0,.50));
 }
 .tree-front-d{
@@ -1514,7 +1514,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .shadow-10{left:69%;top:45%;width:7.0%;transform:rotate(13deg) scaleX(1.70);animation-delay:435ms!important}
 .shadow-11{left:39%;top:61%;width:9.5%;transform:rotate(-12deg) scaleX(1.90);animation-delay:500ms!important}
 .shadow-12{left:48%;top:61%;width:9.5%;transform:rotate(-5deg) scaleX(1.95);animation-delay:550ms!important}
-.shadow-13{left:58%;top:61%;width:9.5%;transform:rotate(5deg) scaleX(1.95);animation-delay:600ms!important}
+.shadow-13{left:58%;top:72%;width:9.5%;transform:rotate(5deg) scaleX(1.95);animation-delay:600ms!important}
 .shadow-14{left:67%;top:61%;width:9.5%;transform:rotate(12deg) scaleX(1.90);animation-delay:650ms!important}
 
 @keyframes forestFloorShadowIn{
