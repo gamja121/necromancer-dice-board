@@ -1682,7 +1682,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   color:#f2dfbf;
   font-size:12px;
 }
-.village-size-controls div{display:flex;gap:6px}
+.village-size-controls div{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .village-size-controls button{
   min-height:36px;
   padding:6px 10px;
