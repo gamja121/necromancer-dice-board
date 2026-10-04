@@ -355,7 +355,7 @@
   }
 
   function ensureForestTreeAssets(){
-    const atlasSrc = "art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage4a-grove-polish-1";
+    const atlasSrc = "art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage5-hq-clean-1";
     document.querySelectorAll(".forest-tree-atlas-image").forEach((img)=>{
       if(!(img instanceof HTMLImageElement)) return;
       img.onerror=()=>{
