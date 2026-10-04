@@ -121,6 +121,7 @@
   const el = {
     mapLab: document.querySelector(".map-lab"),
     board: document.getElementById("mapBoard"),
+    lab: document.querySelector(".map-lab"),
     ring: document.getElementById("tileRing"),
     optionsButton: document.getElementById("mapOptionsButton"),
     audioOptions: document.getElementById("mapAudioOptions"),
@@ -359,25 +360,29 @@
     clearForestDioramaTimers();
 
     el.board.classList.remove("is-forest-zooming", "is-forest-tilted");
+    el.lab?.classList.remove("is-forest-scene");
     el.forestDioramaTest.classList.remove("is-zooming", "is-tilted");
     el.forestDioramaTest.hidden = false;
     void el.board.offsetWidth;
 
-    // 1) The whole board rushes toward the camera; outer tiles leave the frame.
+    // 1) Camera rushes INTO the exact center of the board.
+    // The board grows because the viewer is getting closer, not because a popup is enlarging.
     el.board.classList.add("is-forest-zooming");
     el.forestDioramaTest.classList.add("is-zooming");
 
-    // 2) The same board folds into a floor plane. Its own top edge becomes a gray tiled rear wall.
+    // 2) At the destination, the map plane drops into a floor and the horizon wall is revealed.
     forestDioramaTimers.push(window.setTimeout(() => {
       el.board.classList.add("is-forest-tilted");
+      el.lab?.classList.add("is-forest-scene");
       el.forestDioramaTest.classList.add("is-tilted");
-    }, 520));
+    }, 560));
   }
 
   function closeForestDioramaTest() {
     if (!el.forestDioramaTest || el.forestDioramaTest.hidden) return;
     clearForestDioramaTimers();
     el.forestDioramaTest.classList.remove("is-tilted", "is-zooming");
+    el.lab?.classList.remove("is-forest-scene");
     el.board?.classList.remove("is-forest-tilted", "is-forest-zooming");
     el.forestDioramaTest.hidden = true;
   }
