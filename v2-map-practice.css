@@ -1369,11 +1369,6 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
     translate3d(0,31%,150px)
     rotateX(64deg)
     scale(3.42);
-  /* Forest preview uses a clean floor, not the original map artwork.
-     This prevents stray map/tree fragments from appearing at viewport edges. */
-  background:
-    radial-gradient(ellipse at 50% 36%, rgba(48,41,31,.58) 0 34%, rgba(25,22,18,.82) 67%, rgba(10,9,8,.96) 100%),
-    linear-gradient(180deg,#2a251e 0%,#171411 100%);
   filter:blur(1.3px) brightness(.43) saturate(.58);
   box-shadow:0 64px 130px rgba(0,0,0,.42);
 }
@@ -1438,6 +1433,11 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .sprite-6 .forest-tree-atlas-image{left:-100%;top:-100%}
 .sprite-7 .forest-tree-atlas-image{left:-200%;top:-100%}
 .sprite-8 .forest-tree-atlas-image{left:-300%;top:-100%}
+
+/* Atlas source has sprite-7 foliage crossing into the neighboring cells.
+   Mask only those contaminated edge strips; keep each intended tree intact. */
+.sprite-6{clip-path:inset(0 7% 0 0)}
+.sprite-8{clip-path:inset(0 0 0 7%)}
 
 /* Final forest composition:
    - 45~60% overlap between neighbors
