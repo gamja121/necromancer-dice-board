@@ -303,6 +303,33 @@ async function activate(page, selector) {
     assert(layerAfter.inline, "Layer control must write inline z-index");
     assert(layerAfter.selected, "Layered village building must remain selected");
     console.log("PASS: selected village building layer control " + JSON.stringify({ layerBefore, layerAfter }));
+    const savedBefore = await page.locator(".village-building-4").evaluate((building) => ({
+      left: building.style.left,
+      top: building.style.top,
+      width: building.style.width,
+      zIndex: building.style.zIndex
+    }));
+    await page.locator("[data-village-layout-save]").evaluate((button) => button.click());
+    await page.reload();
+    await page.waitForSelector(".village-building-image", { state: "attached" });
+    await page.waitForFunction(() => document.querySelector(".village-building-4")?.style.left, null, { timeout: 30000 });
+    const savedAfter = await page.locator(".village-building-4").evaluate((building) => ({
+      left: building.style.left,
+      top: building.style.top,
+      width: building.style.width,
+      zIndex: building.style.zIndex
+    }));
+    assert.deepEqual(savedAfter, savedBefore, "Saved village position, size and z-index must survive reload");
+    await page.locator("[data-village-layout-reset]").evaluate((button) => button.click());
+    const resetState = await page.locator(".village-building-4").evaluate((building) => ({
+      left: building.style.left,
+      top: building.style.top,
+      bottom: building.style.bottom,
+      width: building.style.width,
+      zIndex: building.style.zIndex
+    }));
+    assert.deepEqual(resetState, { left: "", top: "", bottom: "", width: "", zIndex: "" }, "Village reset must restore CSS defaults");
+    console.log("PASS: village layout save reload and reset");
     console.log("PASS: mobile village six distinct building assets " + JSON.stringify(villageAssets));
 
     await page.goto(base);
