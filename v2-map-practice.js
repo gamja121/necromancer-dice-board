@@ -354,13 +354,25 @@
     forestDioramaTimers = [];
   }
 
-  function openForestDioramaTest() {
+  function ensureForestTreeAssets(){
+    document.querySelectorAll(".forest-scene-tree").forEach((img)=>{
+      if(!(img instanceof HTMLImageElement)) return;
+      img.onerror=()=>{
+        if(img.dataset.fallbackTried==="1") return;
+        img.dataset.fallbackTried="1";
+        img.src="art/v2-style/map-test/diorama/forest-tree-01.webp";
+      };
+    });
+  }
+
+  function openForestDioramaTest(){
     if (!el.forestDioramaTest || !el.board) return;
     closeAudioOptions();
     clearForestDioramaTimers();
 
     el.board.classList.remove("is-forest-zooming", "is-forest-tilted", "is-forest-trees");
     el.forestDioramaTest.classList.remove("is-zooming", "is-tilted", "is-playing");
+    ensureForestTreeAssets();
     el.forestDioramaTest.hidden = false;
     void el.board.offsetWidth;
 
