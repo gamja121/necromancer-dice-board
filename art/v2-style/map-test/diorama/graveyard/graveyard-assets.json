@@ -1,14 +1,16 @@
 {
-  "version": "20261005-graveyard-assets-v1",
+  "version": "20261005-graveyard-assets-v2-atlas",
   "purpose": "Cemetery diorama/editor asset registry. Stage 1 freezes IDs and file naming before image extraction.",
   "source": {
-    "status": "generated-sheet-not-yet-split",
+    "status": "atlas-ready",
     "generated_sheet_size": {
       "width": 1448,
       "height": 1086
     },
     "style_reference": "existing dark-fantasy hand-drawn asset-sheet style",
-    "scene_reference": "cemetery background composition supplied by user"
+    "scene_reference": "cemetery background composition supplied by user",
+    "atlas": "graveyard-atlas.webp",
+    "atlas_metadata": "graveyard-atlas.json"
   },
   "directory": "art/v2-style/map-test/diorama/graveyard/",
   "id_rules": {
@@ -149,10 +151,25 @@
   },
   "stages": {
     "1": "freeze asset IDs and file names",
-    "2": "split/crop generated sheet into individual transparent-ready assets",
+    "2": "complete: 14 logical cemetery assets packed into transparent atlas with per-ID coordinates",
     "3": "build graveyard test/editor stage",
     "4": "add drag/size/layer/flip/show-hide/save/reset/export",
     "5": "bake approved default graveyard layout",
     "6": "connect graveyard scene to the real game flow and regression tests"
+  },
+  "storage": {
+    "mode": "atlas",
+    "image": "graveyard-atlas.webp",
+    "metadata": "graveyard-atlas.json",
+    "dimensions": {
+      "width": 1536,
+      "height": 1260
+    },
+    "grid": {
+      "columns": 4,
+      "rows": 4,
+      "cell_width": 384,
+      "cell_height": 315
+    }
   }
 }
