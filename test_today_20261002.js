@@ -139,7 +139,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261004-forest-stage24-hide-map-tiles-1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261004-forest-stage26-atlas-edge-mask-1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=129"));
 for (const required of [
