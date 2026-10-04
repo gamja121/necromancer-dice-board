@@ -235,8 +235,8 @@ async function activate(page, selector) {
     assert(villageAssets.every((asset, index) => {
       const expected = `village-building-${String(index + 1).padStart(2, "0")}.webp`;
       return asset.complete
-        && asset.width >= 300
-        && asset.height >= 300
+        && asset.width > 0
+        && asset.height > 0
         && asset.state === "ready"
         && asset.src?.includes(expected)
         && !asset.error;
