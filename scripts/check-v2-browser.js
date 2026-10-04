@@ -220,8 +220,11 @@ async function activate(page, selector) {
     // six buildings must resolve to its own file and finish in the ready state.
     await page.goto(new URL("v2-map-practice.html", base).href);
     await page.waitForSelector(".village-building-image", { state: "attached" });
+    await page.waitForFunction(() => document.querySelector(".village-scene-building")?.dataset.dragReady === "1", null, { timeout: 30000 });
     await page.evaluate(() => document.getElementById("villageDioramaTestButton")?.click());
-    await page.waitForTimeout(3000);
+    await page.waitForSelector("#villageDioramaTest:not([hidden])", { state: "visible", timeout: 30000 });
+    await page.waitForFunction(() => document.getElementById("villageDioramaTest")?.classList.contains("is-playing"), null, { timeout: 30000 });
+    await page.waitForTimeout(500);
     const villageAssets = await page.locator(".village-building-image").evaluateAll(images => images.map((img, index) => ({
       index: index + 1,
       src: img.getAttribute("src"),
