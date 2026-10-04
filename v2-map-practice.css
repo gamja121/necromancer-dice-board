@@ -3,7 +3,7 @@
 html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
 button { font: inherit; }
 body { background: radial-gradient(circle, #2d2119, #070504 72%); }
-.map-lab { position: relative; display: grid; place-items: center; width: 100vw; height: 100dvh; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); perspective:720px; perspective-origin:50% 30%; overflow:hidden; }
+.map-lab { position: relative; display: grid; place-items: center; width: 100vw; height: 100dvh; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); perspective:650px; perspective-origin:50% 26%; overflow:hidden; }
 .map-board { position: relative; width: min(100vw, 179.28dvh); height: min(100dvh, 55.78vw); overflow: hidden; background: #1b1712 url("art/v2-style/map-test/maps/default-map.jpg?v=20261004-board-bg-final-1") center / 100% 100% no-repeat; box-shadow: 0 0 36px #000, inset 0 0 0 2px #c5a56b55; isolation: isolate; transform:none; transform-origin:50% 86%; transform-style:preserve-3d; will-change:transform,filter; transition:transform 920ms cubic-bezier(.14,.78,.16,1),filter 320ms ease,box-shadow 420ms ease; }
 .map-shade { position: absolute; z-index: 1; inset: 0; background: radial-gradient(ellipse at center, transparent 30%, #120b0640 76%, #05030299 100%); pointer-events: none; }
 
@@ -1339,105 +1339,122 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .map-board.is-tile-event-open .map-options-button { visibility: hidden; }
 
 
-/* Forest diorama camera test: WHOLE BOARD zoom -> blur/darken -> hard tilt -> gray rear wall. No trees yet. */
-.map-board.is-forest-zooming{
-  transform:translate3d(0,-2%,0) scale(2.18);
-  filter:blur(8px) brightness(.58) saturate(.72);
-  box-shadow:0 0 80px #000;
+/* Forest board-fold test: no popup stage. The whole board zooms/softens, then the board itself folds into a 3D floor + gray rear wall. */
+.map-board{
+  transform-origin:50% 88%;
+  transform-style:preserve-3d;
 }
+
+/* Phase 1: rush into the board until the outer tile ring is pushed off-screen. */
+.map-board.is-forest-zooming{
+  transform:translate3d(0,-3%,0) scale(2.30);
+  filter:blur(8px) brightness(.56) saturate(.70);
+  box-shadow:0 0 90px #000;
+}
+
+/* Phase 2: the board becomes the floor plane. */
 .map-board.is-forest-tilted{
-  transform:translate3d(0,20%,110px) rotateX(52deg) scale(2.34);
-  filter:blur(.8px) brightness(.50) saturate(.68);
-  box-shadow:0 42px 90px #000, inset 0 0 0 2px #c5a56b55;
+  transform:translate3d(0,29%,120px) rotateX(58deg) scale(2.46);
+  filter:blur(.55px) brightness(.48) saturate(.66);
+  box-shadow:0 54px 110px #000, inset 0 0 0 2px #c5a56b55;
+}
+
+/* Rear wall is part of the board itself, not a separate center window. */
+.map-board::before{
+  content:"";
+  position:absolute;
+  z-index:118;
+  left:-10%;
+  right:-10%;
+  top:-2%;
+  height:41%;
+  pointer-events:none;
+  opacity:0;
+  transform-origin:50% 100%;
+  transform:
+    translate3d(0,-34%,0)
+    rotateX(-88deg)
+    scaleY(.70);
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px) 0 0/12.5% 100%,
+    linear-gradient(180deg,rgba(255,255,255,.07) 1px,transparent 1px) 0 0/100% 25%,
+    linear-gradient(180deg,#797874 0%,#5f5e5a 52%,#3b3a37 100%);
+  box-shadow:
+    inset 0 -22px 32px rgba(0,0,0,.40),
+    0 16px 28px rgba(0,0,0,.42);
+  filter:brightness(.72) saturate(.35);
+  transition:
+    opacity 240ms ease 90ms,
+    transform 640ms cubic-bezier(.16,.82,.22,1) 40ms;
+}
+
+/* Tile seams on the gray wall. */
+.map-board::after{
+  content:"";
+  position:absolute;
+  z-index:119;
+  left:-10%;
+  right:-10%;
+  top:-2%;
+  height:41%;
+  pointer-events:none;
+  opacity:0;
+  transform-origin:50% 100%;
+  transform:
+    translate3d(0,-34%,1px)
+    rotateX(-88deg)
+    scaleY(.70);
+  background:
+    repeating-linear-gradient(90deg,transparent 0 12.2%,rgba(0,0,0,.18) 12.2% 12.8%),
+    repeating-linear-gradient(180deg,transparent 0 24.2%,rgba(0,0,0,.19) 24.2% 25%);
+  transition:
+    opacity 240ms ease 90ms,
+    transform 640ms cubic-bezier(.16,.82,.22,1) 40ms;
+}
+
+.map-board.is-forest-tilted::before,
+.map-board.is-forest-tilted::after{
+  opacity:1;
+  transform:
+    translate3d(0,0,165px)
+    rotateX(-58deg)
+    scaleY(1);
+}
+
+/* Very soft floor/wall seam so the fold reads as one 3D board, not two layered rectangles. */
+.map-board.is-forest-tilted{
+  --forest-fold-shadow: rgba(0,0,0,.46);
 }
 
 .map-diorama-test-row{border-top:1px solid #70583f66;margin-top:5px;padding-top:7px}
 .map-diorama-test-row>button{background:#43301f;color:#ffe0a8}
 
+/* Only an invisible full-screen controller remains for the close button. No center panel, no vignette rectangle. */
 .forest-diorama-test{
-  position:absolute;
-  z-index:125;
-  left:50%;
-  top:50%;
-  width:min(100vw,179.28dvh);
-  height:min(100dvh,55.78vw);
-  transform:translate(-50%,-50%);
-  overflow:hidden;
-  pointer-events:auto;
-  isolation:isolate;
-  perspective:760px;
-  perspective-origin:50% 30%;
+  position:fixed;
+  z-index:180;
+  inset:0;
+  background:transparent;
+  pointer-events:none;
 }
 .forest-diorama-test[hidden]{display:none}
 
-.forest-diorama-vignette{
-  position:absolute;
-  inset:-4%;
-  z-index:0;
-  opacity:0;
-  pointer-events:none;
-  background:rgba(2,2,2,.26);
-  backdrop-filter:blur(10px) brightness(.62);
-  -webkit-backdrop-filter:blur(10px) brightness(.62);
-  -webkit-mask-image:radial-gradient(ellipse at 50% 52%,transparent 0 16%,rgba(0,0,0,.35) 38%,#000 72%);
-  mask-image:radial-gradient(ellipse at 50% 52%,transparent 0 16%,rgba(0,0,0,.35) 38%,#000 72%);
-  transition:opacity 360ms ease;
-}
-.forest-diorama-test.is-zooming .forest-diorama-vignette{opacity:1}
-.forest-diorama-test.is-tilted .forest-diorama-vignette{opacity:.34}
-
-/* This becomes the far gray tile wall only after the board has tilted. */
-.forest-diorama-rear-wall{
-  position:absolute;
-  z-index:1;
-  left:-10%;
-  right:-10%;
-  top:-10%;
-  height:49%;
-  opacity:0;
-  transform-origin:50% 100%;
-  transform:translateY(-26%) perspective(700px) rotateX(-78deg) scaleY(.64);
-  background:
-    linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px) 0 0/12.5% 100%,
-    linear-gradient(180deg,rgba(255,255,255,.07) 1px,transparent 1px) 0 0/100% 25%,
-    linear-gradient(180deg,#7a7976 0%,#62615e 50%,#43423f 100%);
-  box-shadow:
-    inset 0 -24px 34px rgba(0,0,0,.40),
-    0 18px 34px rgba(0,0,0,.48);
-  filter:brightness(.66) saturate(.40);
-  transition:
-    opacity 260ms ease 80ms,
-    transform 620ms cubic-bezier(.16,.82,.22,1) 40ms;
-}
-.forest-diorama-rear-wall::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:
-    repeating-linear-gradient(90deg,transparent 0 12.3%,rgba(0,0,0,.16) 12.3% 12.8%),
-    repeating-linear-gradient(180deg,transparent 0 24.4%,rgba(0,0,0,.17) 24.4% 25%);
-  mix-blend-mode:multiply;
-}
-.forest-diorama-test.is-tilted .forest-diorama-rear-wall{
-  opacity:1;
-  transform:translateY(0) perspective(700px) rotateX(-7deg) scaleY(1);
-}
-
 .forest-diorama-close{
   position:absolute;
-  z-index:10;
-  right:3%;
-  top:4%;
-  width:34px;
-  height:34px;
+  z-index:2;
+  right:4%;
+  top:5%;
+  width:38px;
+  height:38px;
   padding:0;
   border:1px solid #806445;
   border-radius:50%;
-  background:#160f0bcc;
+  background:#160f0bd9;
   color:#ead3ac;
-  font-size:22px;
+  font-size:24px;
   line-height:1;
   cursor:pointer;
+  pointer-events:auto;
   opacity:0;
   transition:opacity 220ms ease .9s;
 }
@@ -1445,7 +1462,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 
 @media(prefers-reduced-motion:reduce){
   .map-board.is-forest-zooming,
-  .map-board.is-forest-tilted{transition-duration:1ms!important}
-  .forest-diorama-rear-wall,
-  .forest-diorama-vignette{transition-duration:1ms}
+  .map-board.is-forest-tilted,
+  .map-board::before,
+  .map-board::after{transition-duration:1ms!important}
 }

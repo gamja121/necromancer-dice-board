@@ -363,15 +363,15 @@
     el.forestDioramaTest.hidden = false;
     void el.board.offsetWidth;
 
-    // 1) Whole board rushes into the center. Blur peaks during the camera push.
+    // 1) The whole board rushes toward the camera; outer tiles leave the frame.
     el.board.classList.add("is-forest-zooming");
     el.forestDioramaTest.classList.add("is-zooming");
 
-    // 2) Once the zoom lands, the whole board tilts into a strong 3D floor.
+    // 2) The same board folds into a floor plane. Its own top edge becomes a gray tiled rear wall.
     forestDioramaTimers.push(window.setTimeout(() => {
       el.board.classList.add("is-forest-tilted");
       el.forestDioramaTest.classList.add("is-tilted");
-    }, 470));
+    }, 520));
   }
 
   function closeForestDioramaTest() {
