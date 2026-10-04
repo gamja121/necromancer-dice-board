@@ -1716,6 +1716,19 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   color:#d9c59e;
   font-size:11px;
 }
+.village-layout-export{
+  flex:1 1 100%;
+  width:100%;
+  min-height:92px;
+  resize:vertical;
+  box-sizing:border-box;
+  padding:8px;
+  border:1px solid rgba(205,166,111,.35);
+  border-radius:6px;
+  background:rgba(12,8,6,.92);
+  color:#ead9bb;
+  font:10px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;
+}
 .village-building-image{
   position:relative;
   display:block;
