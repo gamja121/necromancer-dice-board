@@ -132,6 +132,10 @@
     forestDioramaTest: document.getElementById("forestDioramaTest"),
     forestDioramaClose: document.getElementById("forestDioramaClose"),
     forestLayerDebug: document.getElementById("forestLayerDebug"),
+    villageDioramaTestButton: document.getElementById("villageDioramaTestButton"),
+    villageDioramaTest: document.getElementById("villageDioramaTest"),
+    villageDioramaClose: document.getElementById("villageDioramaClose"),
+    villageLayerDebug: document.getElementById("villageLayerDebug"),
     mapName: document.getElementById("mapName"),
     tileName: document.getElementById("tileName"),
     regenerate: document.getElementById("regenerateButton"),
@@ -382,9 +386,83 @@
     el.forestLayerDebug?.querySelectorAll("[data-forest-tree-toggle]").forEach((button) => button.setAttribute("aria-pressed", "true"));
   }
 
+  let villageDioramaTimers = [];
+
+  function clearVillageDioramaTimers() {
+    villageDioramaTimers.forEach((timer) => window.clearTimeout(timer));
+    villageDioramaTimers = [];
+  }
+
+  function ensureVillageBuildingAssets() {
+    const sheetSrc = "art/v2-style/map-test/diorama/village-buildings-test.webp?v=20261004-village-stage1-spaced-buildings-1";
+    document.querySelectorAll(".village-building-sheet").forEach((img) => {
+      if (!(img instanceof HTMLImageElement)) return;
+      img.onerror = () => {
+        if (img.dataset.retry === "1") return;
+        img.dataset.retry = "1";
+        img.src = sheetSrc + "&retry=1";
+      };
+      if (!img.src.includes("village-buildings-test.webp")) img.src = sheetSrc;
+    });
+  }
+
+  function setVillageBuildingDebugVisibility(selector, visible) {
+    const building = document.querySelector(selector);
+    if (!building) return;
+    building.classList.toggle("is-debug-hidden", !visible);
+    const button = el.villageLayerDebug?.querySelector(`[data-village-building-toggle="${selector}"]`);
+    if (button) button.setAttribute("aria-pressed", String(visible));
+  }
+
+  function resetVillageBuildingDebug() {
+    document.querySelectorAll(".village-scene-building.is-debug-hidden").forEach((building) => building.classList.remove("is-debug-hidden"));
+    el.villageLayerDebug?.querySelectorAll("[data-village-building-toggle]").forEach((button) => button.setAttribute("aria-pressed", "true"));
+  }
+
+  function openVillageDioramaTest() {
+    if (!el.villageDioramaTest || !el.board) return;
+    closeAudioOptions();
+    if (el.forestDioramaTest && !el.forestDioramaTest.hidden) closeForestDioramaTest();
+    clearVillageDioramaTimers();
+    resetVillageBuildingDebug();
+
+    document.querySelector(".map-lab")?.classList.add("is-village-diorama-open");
+    el.board.classList.remove("is-village-zooming", "is-village-tilted", "is-village-buildings");
+    el.villageDioramaTest.classList.remove("is-zooming", "is-tilted", "is-playing");
+    if (el.villageLayerDebug) el.villageLayerDebug.hidden = false;
+    ensureVillageBuildingAssets();
+    el.villageDioramaTest.hidden = false;
+    void el.board.offsetWidth;
+
+    el.board.classList.add("is-village-zooming");
+    el.villageDioramaTest.classList.add("is-zooming");
+
+    villageDioramaTimers.push(window.setTimeout(() => {
+      el.board.classList.add("is-village-tilted");
+      el.villageDioramaTest.classList.add("is-tilted");
+    }, 560));
+
+    villageDioramaTimers.push(window.setTimeout(() => {
+      el.board.classList.add("is-village-buildings");
+      el.villageDioramaTest.classList.add("is-playing");
+    }, 1560));
+  }
+
+  function closeVillageDioramaTest() {
+    if (!el.villageDioramaTest || el.villageDioramaTest.hidden) return;
+    clearVillageDioramaTimers();
+    el.villageDioramaTest.classList.remove("is-playing", "is-tilted", "is-zooming");
+    el.board?.classList.remove("is-village-buildings", "is-village-tilted", "is-village-zooming");
+    el.villageDioramaTest.hidden = true;
+    if (el.villageLayerDebug) el.villageLayerDebug.hidden = true;
+    resetVillageBuildingDebug();
+    document.querySelector(".map-lab")?.classList.remove("is-village-diorama-open");
+  }
+
   function openForestDioramaTest(options = {}){
     if (!el.forestDioramaTest || !el.board) return;
     closeAudioOptions();
+    if (el.villageDioramaTest && !el.villageDioramaTest.hidden) closeVillageDioramaTest();
     clearForestDioramaTimers();
 
     forestDioramaFromTile = options.fromTile === true;
@@ -3590,6 +3668,21 @@
     renderAudioOptions();
   });
   el.forestDioramaTestButton?.addEventListener("click", () => openForestDioramaTest({ fromTile: false }));
+  el.villageDioramaTestButton?.addEventListener("click", openVillageDioramaTest);
+  el.villageLayerDebug?.addEventListener("click", (event) => {
+    const toggle = event.target.closest("[data-village-building-toggle]");
+    if (toggle) {
+      const selector = toggle.dataset.villageBuildingToggle;
+      const visible = toggle.getAttribute("aria-pressed") !== "true";
+      setVillageBuildingDebugVisibility(selector, visible);
+      return;
+    }
+    if (event.target.closest("[data-village-building-reset]")) resetVillageBuildingDebug();
+  });
+  el.villageDioramaClose?.addEventListener("click", closeVillageDioramaTest);
+  el.villageDioramaTest?.addEventListener("click", (event) => {
+    if (event.target === el.villageDioramaTest) closeVillageDioramaTest();
+  });
   el.forestLayerDebug?.addEventListener("click", (event) => {
     const toggle = event.target.closest("[data-forest-tree-toggle]");
     if (toggle) {
@@ -3616,6 +3709,7 @@
   });
   el.deckConfirm.addEventListener("click", confirmMonsterBattle);
   document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && el.villageDioramaTest && !el.villageDioramaTest.hidden) { closeVillageDioramaTest(); return; }
     if (event.key === "Escape" && el.forestDioramaTest && !el.forestDioramaTest.hidden) { closeForestDioramaTest(); return; }
     if (event.key === "Escape" && !el.audioOptions.hidden) { closeAudioOptions(); return; }
     if (event.key === "Escape" && !el.rewardOverflowOverlay.hidden) return;
