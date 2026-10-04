@@ -330,6 +330,29 @@ async function activate(page, selector) {
     }));
     assert.deepEqual(resetState, { left: "", top: "", bottom: "", width: "", zIndex: "" }, "Village reset must restore CSS defaults");
     console.log("PASS: village layout save reload and reset");
+    await page.evaluate(() => {
+      const target = document.querySelector(".village-building-4");
+      if (target) {
+        target.style.left = "31.25%";
+        target.style.top = "24.5%";
+        target.style.bottom = "auto";
+        target.style.width = "26.5%";
+        target.style.zIndex = "7";
+      }
+    });
+    await page.locator("[data-village-layout-copy]").evaluate((button) => button.click());
+    const exportState = await page.locator("#villageLayoutExport").evaluate((field) => ({
+      hidden: field.hidden,
+      value: field.value
+    }));
+    assert.equal(exportState.hidden, false, "Village layout export must be shown after copy");
+    const exportedLayout = JSON.parse(exportState.value);
+    assert(exportedLayout.B4, "Village layout export must contain labeled B4 data");
+    assert.equal(exportedLayout.B4.left, "31.25%");
+    assert.equal(exportedLayout.B4.top, "24.5%");
+    assert.equal(exportedLayout.B4.width, "26.5%");
+    assert.equal(exportedLayout.B4.zIndex, "7");
+    console.log("PASS: village layout JSON export");
     console.log("PASS: mobile village six distinct building assets " + JSON.stringify(villageAssets));
 
     await page.goto(base);
