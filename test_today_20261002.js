@@ -139,7 +139,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261005-village-stage11-export-layout-1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261005-village-stage12-baked-layout-1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=129"));
 for (const required of [
@@ -157,7 +157,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261005-village-stage11-export-layout-1",
+  "./v2-map-practice.js?v=20261005-village-stage12-baked-layout-1",
   "./v2-auto-battle-practice.js?v=129",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -176,22 +176,22 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!/(^|\\n)\\.map-options-button\\s*\\{\\s*visibility:\\s*hidden;\\s*\\}/.test(mapCss));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261005-village-stage11-export-layout-1"));
-assert(worker.includes("./v2-map-practice.css?v=20261005-village-stage11-export-layout-1"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261005-village-stage12-baked-layout-1"));
+assert(worker.includes("./v2-map-practice.css?v=20261005-village-stage12-baked-layout-1"));
 assert(mapHtml.includes('id="villageDioramaTestButton"'));
 assert(mapHtml.includes('id="villageDioramaTest"'));
-assert(mapHtml.includes("village-building-01.webp?v=20261005-village-stage11-export-layout-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-01.webp?v=20261005-village-stage11-export-layout-1"));
-assert(mapHtml.includes("village-building-02.webp?v=20261005-village-stage11-export-layout-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-02.webp?v=20261005-village-stage11-export-layout-1"));
-assert(mapHtml.includes("village-building-03.webp?v=20261005-village-stage11-export-layout-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-03.webp?v=20261005-village-stage11-export-layout-1"));
-assert(mapHtml.includes("village-building-04.webp?v=20261005-village-stage11-export-layout-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-04.webp?v=20261005-village-stage11-export-layout-1"));
-assert(mapHtml.includes("village-building-05.webp?v=20261005-village-stage11-export-layout-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-05.webp?v=20261005-village-stage11-export-layout-1"));
-assert(mapHtml.includes("village-building-06.webp?v=20261005-village-stage11-export-layout-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-06.webp?v=20261005-village-stage11-export-layout-1"));
+assert(mapHtml.includes("village-building-01.webp?v=20261005-village-stage12-baked-layout-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-01.webp?v=20261005-village-stage12-baked-layout-1"));
+assert(mapHtml.includes("village-building-02.webp?v=20261005-village-stage12-baked-layout-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-02.webp?v=20261005-village-stage12-baked-layout-1"));
+assert(mapHtml.includes("village-building-03.webp?v=20261005-village-stage12-baked-layout-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-03.webp?v=20261005-village-stage12-baked-layout-1"));
+assert(mapHtml.includes("village-building-04.webp?v=20261005-village-stage12-baked-layout-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-04.webp?v=20261005-village-stage12-baked-layout-1"));
+assert(mapHtml.includes("village-building-05.webp?v=20261005-village-stage12-baked-layout-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-05.webp?v=20261005-village-stage12-baked-layout-1"));
+assert(mapHtml.includes("village-building-06.webp?v=20261005-village-stage12-baked-layout-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-06.webp?v=20261005-village-stage12-baked-layout-1"));
 assert(map.includes('img.naturalWidth > 0 && img.naturalHeight > 0'));
 assert(mapHtml.includes("village-building-image"));
 assert(mapHtml.includes("village-layout-hint"));
@@ -268,3 +268,9 @@ assert(read("launch.css").includes(".game-frame"), "Fullscreen game shell iframe
 
 assert(!mapHtml.includes("village-building-sheet"));
 assert(!worker.includes("village-buildings-test.webp"));
+
+assert(mapCss.includes(".village-building-2{left:36.7616%;top:4.68316%;bottom:auto;width:13%;z-index:1}"));
+assert(mapCss.includes(".village-building-3{left:26.4165%;top:7.96152%;bottom:auto;width:18%;z-index:1}"));
+assert(mapCss.includes(".village-building-4{left:32.7904%;top:11.8012%;bottom:auto;width:23%;z-index:4}"));
+assert(mapCss.includes(".village-building-5{left:47.9677%;top:.462961%;bottom:auto;width:23%;z-index:2}"));
+assert(mapCss.includes(".village-building-6{left:55.4649%;top:1.2037%;bottom:auto;width:27.5%;z-index:2}"));
