@@ -244,6 +244,17 @@ async function activate(page, selector) {
     assert.equal(villageAssets.length, 6);
     assert.equal(new Set(villageAssets.map(asset => asset.src)).size, 6, "Village buildings must use six distinct image URLs");
     assert(villageAssets.every(asset => asset.state === "ready" && !asset.error), "Village buildings must load without ASSET ERROR");
+    const dragTarget = page.locator(".village-building-4");
+    const beforeDrag = await dragTarget.boundingBox();
+    assert(beforeDrag, "Village drag target must have a bounding box");
+    await page.mouse.move(beforeDrag.x + beforeDrag.width / 2, beforeDrag.y + beforeDrag.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(beforeDrag.x + beforeDrag.width / 2 + 45, beforeDrag.y + beforeDrag.height / 2 - 25, { steps: 5 });
+    await page.mouse.up();
+    const afterDrag = await dragTarget.boundingBox();
+    assert(afterDrag && Math.abs(afterDrag.x - beforeDrag.x) > 10, "Village building must move horizontally by drag");
+    assert(afterDrag && Math.abs(afterDrag.y - beforeDrag.y) > 10, "Village building must move vertically by drag");
+    console.log("PASS: village building pointer drag moves layout");
     console.log("PASS: mobile village six distinct building assets " + JSON.stringify(villageAssets));
 
     await page.goto(base);
