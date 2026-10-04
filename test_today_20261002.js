@@ -271,7 +271,7 @@ assert(!worker.includes("village-buildings-test.webp"));
 
 assert(mapCss.includes(".village-building-2{left:36.7616%;top:4.68316%;bottom:auto;width:13%;z-index:1}"));
 assert(mapCss.includes(".village-building-3{left:26.4165%;top:7.96152%;bottom:auto;width:18%;z-index:1}"));
-assert(mapCss.includes(".village-building-4{left:32.7904%;top:11.8012%;bottom:auto;width:23%;z-index:4}"));
+assert(mapCss.includes(".village-building-4{left:32.0812%;top:15.3139%;bottom:auto;width:23%;z-index:4}"));
 assert(mapCss.includes(".village-building-5{left:47.9677%;top:.462961%;bottom:auto;width:23%;z-index:2}"));
 assert(mapCss.includes(".village-building-6{left:55.4649%;top:1.2037%;bottom:auto;width:27.5%;z-index:2}"));
 
