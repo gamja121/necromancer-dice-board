@@ -1516,7 +1516,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .shadow-2{left:30%;top:37%;width:5.2%;transform:rotate(-10deg) scaleX(1.55);animation-delay:40ms!important}
 .shadow-3{left:37%;top:37%;width:5.2%;transform:rotate(-4deg) scaleX(1.55);animation-delay:80ms!important}
 .shadow-4{left:44%;top:37%;width:5.2%;transform:rotate(7deg) scaleX(1.55);animation-delay:120ms!important}
-.shadow-5{left:51%;top:37%;width:5.2%;transform:rotate(14deg) scaleX(1.55);animation-delay:160ms!important}
+.shadow-5{display:none}
 .shadow-6{left:23%;top:45%;width:7.0%;transform:rotate(-13deg) scaleX(1.70);animation-delay:215ms!important}
 .shadow-7{left:31%;top:45%;width:7.0%;transform:rotate(-7deg) scaleX(1.70);animation-delay:270ms!important}
 .shadow-8{left:39%;top:45%;width:7.0%;transform:rotate(0deg) scaleX(1.70);animation-delay:325ms!important}
