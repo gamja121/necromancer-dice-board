@@ -1,5 +1,5 @@
 {
-  "version": "20261004-forest-stage6-final-tune-1",
+  "version": "20261004-forest-stage17-green-cropfix-1",
   "atlas": "forest-tree-atlas.webp",
   "dimensions": {
     "width": 1536,
@@ -44,5 +44,12 @@
       "id": 8,
       "name": "red_leaf_alt"
     }
-  ]
+  ],
+  "overscan": {
+    "7": {
+      "left_cell_fraction": 0.08,
+      "right_cell_fraction": 0.08,
+      "reason": "ancient_autumn_giant crown exceeds nominal cell"
+    }
+  }
 }
