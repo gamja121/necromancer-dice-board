@@ -396,7 +396,7 @@
   }
 
   function ensureVillageBuildingAssets() {
-    const version = "20261005-village-stage8-size-layout-2";
+    const version = "20261005-village-stage9-layer-layout-1";
     document.querySelectorAll(".village-building-image").forEach((img, index) => {
       if (!(img instanceof HTMLImageElement)) return;
       const assetNumber = String(index + 1).padStart(2, "0");
@@ -456,7 +456,7 @@
     if (el.villageSelectedBuildingLabel) {
       el.villageSelectedBuildingLabel.textContent = index ? `선택: B${index}` : "선택: 없음";
     }
-    el.villageLayerDebug?.querySelectorAll("[data-village-size]").forEach((button) => {
+    el.villageLayerDebug?.querySelectorAll("[data-village-size], [data-village-layer]").forEach((button) => {
       button.disabled = !selectedVillageBuilding;
     });
   }
@@ -477,6 +477,14 @@
       : (layoutWidth / stageWidth) * 100;
     const nextPercent = Math.min(40, Math.max(8, currentPercent + direction * 1.5));
     selectedVillageBuilding.style.width = `${nextPercent.toFixed(2)}%`;
+  }
+
+  function changeSelectedVillageBuildingLayer(direction) {
+    if (!selectedVillageBuilding) return;
+    const current = Number.parseInt(getComputedStyle(selectedVillageBuilding).zIndex, 10);
+    const safeCurrent = Number.isFinite(current) ? current : 1;
+    const next = Math.min(20, Math.max(0, safeCurrent + direction));
+    selectedVillageBuilding.style.zIndex = String(next);
   }
 
   function moveVillageBuilding(building, clientX, clientY, grabOffsetX, grabOffsetY) {
@@ -3794,6 +3802,11 @@
   el.forestDioramaTestButton?.addEventListener("click", () => openForestDioramaTest({ fromTile: false }));
   el.villageDioramaTestButton?.addEventListener("click", openVillageDioramaTest);
   el.villageLayerDebug?.addEventListener("click", (event) => {
+    const layerButton = event.target.closest("[data-village-layer]");
+    if (layerButton) {
+      changeSelectedVillageBuildingLayer(Number(layerButton.dataset.villageLayer || 0));
+      return;
+    }
     const sizeButton = event.target.closest("[data-village-size]");
     if (sizeButton) {
       resizeSelectedVillageBuilding(Number(sizeButton.dataset.villageSize || 0));
