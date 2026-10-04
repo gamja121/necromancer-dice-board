@@ -1,11 +1,15 @@
 {
-  "version": "20261004-forest-atlas-grove-1",
+  "version": "20261004-forest-stage5-hq-clean-1",
   "atlas": "forest-tree-atlas.webp",
+  "dimensions": {
+    "width": 1536,
+    "height": 1024
+  },
   "grid": {
     "columns": 4,
     "rows": 2,
-    "cell_width": 240,
-    "cell_height": 320
+    "cell_width": 384,
+    "cell_height": 512
   },
   "variants": [
     {
@@ -30,7 +34,7 @@
     },
     {
       "id": 6,
-      "name": "twisted_moss_dead"
+      "name": "pale_twisted_dead"
     },
     {
       "id": 7,
@@ -38,7 +42,7 @@
     },
     {
       "id": 8,
-      "name": "slender_dead_tree"
+      "name": "red_leaf_alt"
     }
   ]
 }
