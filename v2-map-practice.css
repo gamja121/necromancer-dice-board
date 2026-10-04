@@ -1437,7 +1437,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 /* Atlas source has sprite-7 foliage crossing into the neighboring cells.
    Mask only those contaminated edge strips; keep each intended tree intact. */
 .sprite-6{clip-path:inset(0 7% 0 0)}
-.sprite-8{clip-path:inset(0 0 0 11%)}
+.sprite-8{clip-path:inset(0 0 0 15%)}
 
 /* Final forest composition:
    - 45~60% overlap between neighbors
