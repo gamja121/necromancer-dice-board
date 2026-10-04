@@ -292,6 +292,17 @@ async function activate(page, selector) {
     assert(sizeAfter.widthPercent > sizeResult.beforePercent + 1, "Selected village building must grow with size control");
     assert(sizeAfter.selected, "Resized village building must remain selected");
     console.log("PASS: selected village building size control " + JSON.stringify({ sizeResult, sizeAfter }));
+    const layerBefore = await page.locator(".village-building-4").evaluate((building) => Number.parseInt(getComputedStyle(building).zIndex, 10) || 0);
+    await page.locator("[data-village-layer=\"1\"]").evaluate((button) => button.click());
+    const layerAfter = await page.locator(".village-building-4").evaluate((building) => ({
+      z: Number.parseInt(getComputedStyle(building).zIndex, 10) || 0,
+      inline: building.style.zIndex,
+      selected: building.classList.contains("is-layout-selected")
+    }));
+    assert(layerAfter.z === layerBefore + 1, "Selected village building must move one layer forward");
+    assert(layerAfter.inline, "Layer control must write inline z-index");
+    assert(layerAfter.selected, "Layered village building must remain selected");
+    console.log("PASS: selected village building layer control " + JSON.stringify({ layerBefore, layerAfter }));
     console.log("PASS: mobile village six distinct building assets " + JSON.stringify(villageAssets));
 
     await page.goto(base);
