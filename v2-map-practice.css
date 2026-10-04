@@ -1339,9 +1339,8 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .map-board.is-tile-event-open .map-options-button { visibility: hidden; }
 
 
-/* Forest event camera: the viewer "enters" the center of the board.
-   mapBoard is the floor/camera target. Wall is a sibling in map-lab:
-   it shares the game's portrait 90deg orientation, but never inherits board rotateX. */
+/* Forest event camera: the viewer enters the center of the board.
+   No rear-wall layer is used; the effect is purely a viewpoint change. */
 .map-board{
   transform-origin:50% 58%;
   transform-style:preserve-3d;
@@ -1357,68 +1356,15 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 /* Phase 2 — after arriving inside the board, the viewed map plane becomes the floor. */
 .map-board.is-forest-tilted{
   transform:
-    translate3d(0,36%,150px)
+    translate3d(0,31%,150px)
     rotateX(64deg)
-    scale(3.02);
+    scale(3.42);
   filter:blur(1.3px) brightness(.43) saturate(.58);
-  box-shadow:0 64px 130px #000;
+  box-shadow:0 64px 130px rgba(0,0,0,.42);
 }
 
 .map-diorama-test-row{border-top:1px solid #70583f66;margin-top:5px;padding-top:7px}
 .map-diorama-test-row>button{background:#43301f;color:#ffe0a8}
-
-/* The real backdrop. It is in the same landscape coordinate space as the board,
-   so on portrait phones the whole game + wall rotate together correctly. */
-.forest-scene-wall{
-  position:absolute;
-  z-index:16;
-  left:50%;
-  top:-1%;
-  width:124%;
-  height:46%;
-  pointer-events:none;
-  opacity:0;
-  transform-origin:50% 100%;
-  transform:translateX(-50%) translateY(16%) scaleY(.08);
-  background:
-    url("art/v2-style/map-test/diorama/stone-tile-wall-user.webp?v=20261004-forest-camera-enter-center-1")
-    center center / contain no-repeat;
-  filter:blur(11px) brightness(.48) saturate(.60);
-  transition:
-    opacity 920ms cubic-bezier(.14,.78,.16,1),
-    transform 920ms cubic-bezier(.14,.78,.16,1),
-    filter 920ms cubic-bezier(.14,.78,.16,1);
-  will-change:transform,opacity,filter;
-}
-
-/* Ground contact at the horizon; also lives in map-lab, not in board transform space. */
-.forest-scene-wall-shadow{
-  position:absolute;
-  z-index:15;
-  left:-8%;
-  right:-8%;
-  top:39%;
-  height:13%;
-  pointer-events:none;
-  opacity:0;
-  background:
-    radial-gradient(
-      ellipse at center,
-      rgba(0,0,0,.68) 0 28%,
-      rgba(0,0,0,.34) 56%,
-      transparent 84%
-    );
-  filter:blur(12px);
-  transition:opacity 920ms cubic-bezier(.14,.78,.16,1);
-}
-
-/* Scene state is applied on map-lab so wall and board are one camera composition. */
-.map-lab.is-forest-scene .forest-scene-wall{
-  opacity:.94;
-  transform:translateX(-50%) translateY(0) scaleY(1);
-  filter:blur(1.3px) brightness(.43) saturate(.58);
-}
-.map-lab.is-forest-scene .forest-scene-wall-shadow{opacity:1}
 
 /* Controller only; no visible rectangle/panel. */
 .forest-diorama-test{
@@ -1453,7 +1399,5 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 
 @media(prefers-reduced-motion:reduce){
   .map-board.is-forest-zooming,
-  .map-board.is-forest-tilted,
-  .forest-scene-wall,
-  .forest-scene-wall-shadow{transition-duration:1ms!important}
+  .map-board.is-forest-tilted{transition-duration:1ms!important}
 }

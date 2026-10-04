@@ -360,7 +360,6 @@
     clearForestDioramaTimers();
 
     el.board.classList.remove("is-forest-zooming", "is-forest-tilted");
-    el.lab?.classList.remove("is-forest-scene");
     el.forestDioramaTest.classList.remove("is-zooming", "is-tilted");
     el.forestDioramaTest.hidden = false;
     void el.board.offsetWidth;
@@ -370,10 +369,9 @@
     el.board.classList.add("is-forest-zooming");
     el.forestDioramaTest.classList.add("is-zooming");
 
-    // 2) At the destination, the map plane drops into a floor and the horizon wall is revealed.
+    // 2) At the destination, the map plane drops into a floor. No rear wall is used.
     forestDioramaTimers.push(window.setTimeout(() => {
       el.board.classList.add("is-forest-tilted");
-      el.lab?.classList.add("is-forest-scene");
       el.forestDioramaTest.classList.add("is-tilted");
     }, 560));
   }
@@ -382,7 +380,6 @@
     if (!el.forestDioramaTest || el.forestDioramaTest.hidden) return;
     clearForestDioramaTimers();
     el.forestDioramaTest.classList.remove("is-tilted", "is-zooming");
-    el.lab?.classList.remove("is-forest-scene");
     el.board?.classList.remove("is-forest-tilted", "is-forest-zooming");
     el.forestDioramaTest.hidden = true;
   }
