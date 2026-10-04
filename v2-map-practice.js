@@ -399,7 +399,7 @@
   }
 
   function ensureVillageBuildingAssets() {
-    const version = "20261005-village-stage12-baked-layout-1";
+    const version = "20261005-village-stage13-tree-flip-editor-1";
     document.querySelectorAll(".village-building-image").forEach((img, index) => {
       if (!(img instanceof HTMLImageElement)) return;
       const assetNumber = String(index + 1).padStart(2, "0");
@@ -433,32 +433,59 @@
     });
   }
 
+  function ensureVillageTreeAssets() {
+    const atlasSrc = "art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage26-atlas-edge-mask-1";
+    document.querySelectorAll(".village-building-stage .forest-tree-atlas-image").forEach((img) => {
+      if (!(img instanceof HTMLImageElement)) return;
+      img.onerror = () => {
+        if (img.dataset.retry === "1") return;
+        img.dataset.retry = "1";
+        img.src = atlasSrc + "&retry=1";
+      };
+      if (!img.src.includes("forest-tree-atlas.webp")) img.src = atlasSrc;
+    });
+  }
+
   function setVillageBuildingDebugVisibility(selector, visible) {
-    const building = document.querySelector(selector);
-    if (!building) return;
-    building.classList.toggle("is-debug-hidden", !visible);
-    const button = el.villageLayerDebug?.querySelector(`[data-village-building-toggle="${selector}"]`);
+    const item = document.querySelector(selector);
+    if (!item) return;
+    item.classList.toggle("is-debug-hidden", !visible);
+    const button = el.villageLayerDebug?.querySelector(
+      `[data-village-building-toggle="${selector}"], [data-village-item-toggle="${selector}"]`
+    );
     if (button) button.setAttribute("aria-pressed", String(visible));
+    if (!visible && selectedVillageBuilding === item) selectVillageBuilding(null);
   }
 
   function resetVillageBuildingDebug() {
-    document.querySelectorAll(".village-scene-building.is-debug-hidden").forEach((building) => building.classList.remove("is-debug-hidden"));
+    document.querySelectorAll(".village-building-stage .village-layout-item").forEach((item) => {
+      const isTree = item.dataset.villageType === "tree";
+      item.classList.toggle("is-debug-hidden", isTree);
+    });
     el.villageLayerDebug?.querySelectorAll("[data-village-building-toggle]").forEach((button) => button.setAttribute("aria-pressed", "true"));
+    el.villageLayerDebug?.querySelectorAll("[data-village-item-toggle]").forEach((button) => button.setAttribute("aria-pressed", "false"));
+    selectVillageBuilding(null);
   }
 
   function getVillageLayoutSnapshot() {
-    return [...document.querySelectorAll(".village-scene-building")].map((building) => ({
-      left: building.style.left || "",
-      top: building.style.top || "",
-      bottom: building.style.bottom || "",
-      width: building.style.width || "",
-      zIndex: building.style.zIndex || ""
-    }));
+    return Object.fromEntries(
+      [...document.querySelectorAll(".village-building-stage .village-layout-item")].map((item) => [
+        item.dataset.villageId,
+        {
+          left: item.style.left || "",
+          top: item.style.top || "",
+          bottom: item.style.bottom || "",
+          width: item.style.width || "",
+          zIndex: item.style.zIndex || "",
+          flipX: item.classList.contains("is-layout-flipped"),
+          hidden: item.classList.contains("is-debug-hidden")
+        }
+      ])
+    );
   }
 
   function getVillageLayoutExportData() {
-    const snapshot = getVillageLayoutSnapshot();
-    return Object.fromEntries(snapshot.map((item, index) => [`B${index + 1}`, item]));
+    return getVillageLayoutSnapshot();
   }
 
   async function copyVillageLayoutExport() {
@@ -485,17 +512,42 @@
   }
 
   function applyVillageLayoutSnapshot(layout) {
-    const buildings = [...document.querySelectorAll(".village-scene-building")];
-    if (!Array.isArray(layout) || layout.length !== buildings.length) return false;
-    buildings.forEach((building, index) => {
-      const saved = layout[index] || {};
-      building.style.left = typeof saved.left === "string" ? saved.left : "";
-      building.style.top = typeof saved.top === "string" ? saved.top : "";
-      building.style.bottom = typeof saved.bottom === "string" ? saved.bottom : "";
-      building.style.width = typeof saved.width === "string" ? saved.width : "";
-      building.style.zIndex = typeof saved.zIndex === "string" ? saved.zIndex : "";
+    const items = [...document.querySelectorAll(".village-building-stage .village-layout-item")];
+    if (!layout) return false;
+
+    // Backward compatibility with the old six-building array save format.
+    if (Array.isArray(layout)) {
+      if (layout.length !== 6) return false;
+      items.filter((item) => item.dataset.villageType === "building").forEach((item, index) => {
+        const saved = layout[index] || {};
+        item.style.left = typeof saved.left === "string" ? saved.left : "";
+        item.style.top = typeof saved.top === "string" ? saved.top : "";
+        item.style.bottom = typeof saved.bottom === "string" ? saved.bottom : "";
+        item.style.width = typeof saved.width === "string" ? saved.width : "";
+        item.style.zIndex = typeof saved.zIndex === "string" ? saved.zIndex : "";
+      });
+      return true;
+    }
+
+    if (typeof layout !== "object") return false;
+    let applied = false;
+    items.forEach((item) => {
+      const saved = layout[item.dataset.villageId];
+      if (!saved || typeof saved !== "object") return;
+      item.style.left = typeof saved.left === "string" ? saved.left : "";
+      item.style.top = typeof saved.top === "string" ? saved.top : "";
+      item.style.bottom = typeof saved.bottom === "string" ? saved.bottom : "";
+      item.style.width = typeof saved.width === "string" ? saved.width : "";
+      item.style.zIndex = typeof saved.zIndex === "string" ? saved.zIndex : "";
+      item.classList.toggle("is-layout-flipped", saved.flipX === true);
+      item.classList.toggle("is-debug-hidden", saved.hidden === true);
+      const selector = item.dataset.villageType === "tree"
+        ? `[data-village-item-toggle=".${[...item.classList].find((name) => name.startsWith("village-tree-"))}"]`
+        : `[data-village-building-toggle=".${[...item.classList].find((name) => name.startsWith("village-building-"))}"]`;
+      el.villageLayerDebug?.querySelector(selector)?.setAttribute("aria-pressed", String(saved.hidden !== true));
+      applied = true;
     });
-    return true;
+    return applied;
   }
 
   function showVillageLayoutSaveStatus(message) {
@@ -527,13 +579,17 @@
 
   function resetVillageLayout() {
     localStorage.removeItem(VILLAGE_LAYOUT_STORAGE_KEY);
-    document.querySelectorAll(".village-scene-building").forEach((building) => {
-      building.style.left = "";
-      building.style.top = "";
-      building.style.bottom = "";
-      building.style.width = "";
-      building.style.zIndex = "";
+    document.querySelectorAll(".village-building-stage .village-layout-item").forEach((item) => {
+      item.style.left = "";
+      item.style.top = "";
+      item.style.bottom = "";
+      item.style.width = "";
+      item.style.zIndex = "";
+      item.classList.remove("is-layout-flipped");
+      item.classList.toggle("is-debug-hidden", item.dataset.villageType === "tree");
     });
+    el.villageLayerDebug?.querySelectorAll("[data-village-building-toggle]").forEach((button) => button.setAttribute("aria-pressed", "true"));
+    el.villageLayerDebug?.querySelectorAll("[data-village-item-toggle]").forEach((button) => button.setAttribute("aria-pressed", "false"));
     selectVillageBuilding(null);
     if (el.villageLayoutExport) {
       el.villageLayoutExport.value = "";
@@ -543,19 +599,17 @@
   }
 
   function selectVillageBuilding(building) {
-    document.querySelectorAll(".village-scene-building.is-layout-selected").forEach((item) => {
+    document.querySelectorAll(".village-building-stage .village-layout-item.is-layout-selected").forEach((item) => {
       if (item !== building) item.classList.remove("is-layout-selected");
     });
     selectedVillageBuilding = building instanceof HTMLElement ? building : null;
     selectedVillageBuilding?.classList.add("is-layout-selected");
 
-    const index = selectedVillageBuilding
-      ? [...document.querySelectorAll(".village-scene-building")].indexOf(selectedVillageBuilding) + 1
-      : 0;
+    const selectedId = selectedVillageBuilding?.dataset.villageId || "";
     if (el.villageSelectedBuildingLabel) {
-      el.villageSelectedBuildingLabel.textContent = index ? `선택: B${index}` : "선택: 없음";
+      el.villageSelectedBuildingLabel.textContent = selectedId ? `선택: ${selectedId}` : "선택: 없음";
     }
-    el.villageLayerDebug?.querySelectorAll("[data-village-size], [data-village-layer]").forEach((button) => {
+    el.villageLayerDebug?.querySelectorAll("[data-village-size], [data-village-layer], [data-village-flip]").forEach((button) => {
       button.disabled = !selectedVillageBuilding;
     });
   }
@@ -586,6 +640,11 @@
     selectedVillageBuilding.style.zIndex = String(next);
   }
 
+  function flipSelectedVillageItem() {
+    if (!selectedVillageBuilding) return;
+    selectedVillageBuilding.classList.toggle("is-layout-flipped");
+  }
+
   function moveVillageBuilding(building, clientX, clientY, grabOffsetX, grabOffsetY) {
     const stage = building.closest(".village-building-stage");
     if (!stage) return;
@@ -602,7 +661,7 @@
   }
 
   function enableVillageBuildingDragging() {
-    document.querySelectorAll(".village-scene-building").forEach((building) => {
+    document.querySelectorAll(".village-building-stage .village-layout-item").forEach((building) => {
       if (building.dataset.dragReady === "1") return;
       building.dataset.dragReady = "1";
 
@@ -660,6 +719,7 @@
     el.villageDioramaTest.classList.remove("is-zooming", "is-tilted", "is-playing");
     if (el.villageLayerDebug) el.villageLayerDebug.hidden = false;
     ensureVillageBuildingAssets();
+    ensureVillageTreeAssets();
     enableVillageBuildingDragging();
     loadVillageLayout();
     el.villageDioramaTest.hidden = false;
@@ -3902,6 +3962,18 @@
   el.forestDioramaTestButton?.addEventListener("click", () => openForestDioramaTest({ fromTile: false }));
   el.villageDioramaTestButton?.addEventListener("click", openVillageDioramaTest);
   el.villageLayerDebug?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-village-flip]")) {
+      flipSelectedVillageItem();
+      return;
+    }
+    const itemToggle = event.target.closest("[data-village-item-toggle]");
+    if (itemToggle) {
+      const selector = itemToggle.dataset.villageItemToggle;
+      const visible = itemToggle.getAttribute("aria-pressed") !== "true";
+      setVillageBuildingDebugVisibility(selector, visible);
+      if (visible) selectVillageBuilding(document.querySelector(selector));
+      return;
+    }
     if (event.target.closest("[data-village-layout-save]")) {
       saveVillageLayout();
       return;
@@ -3973,6 +4045,7 @@
     else if (event.key === "Escape" && eventOpen) closeTileEvent();
   });
   ensureVillageBuildingAssets();
+  ensureVillageTreeAssets();
   enableVillageBuildingDragging();
   loadVillageLayout();
   renderBookRoster();
