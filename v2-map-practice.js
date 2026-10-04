@@ -346,18 +346,44 @@
     if (willOpen) renderAudioOptions();
   }
 
+  let forestDioramaTimers = [];
+
+  function clearForestDioramaTimers() {
+    forestDioramaTimers.forEach((timer) => window.clearTimeout(timer));
+    forestDioramaTimers = [];
+  }
+
   function openForestDioramaTest() {
-    if (!el.forestDioramaTest) return;
+    if (!el.forestDioramaTest || !el.board) return;
     closeAudioOptions();
+    clearForestDioramaTimers();
+
+    el.board.classList.remove("is-forest-zooming", "is-forest-tilted");
+    el.forestDioramaTest.classList.remove("is-zooming", "is-tilted", "is-playing");
     el.forestDioramaTest.hidden = false;
-    el.forestDioramaTest.classList.remove("is-playing");
-    void el.forestDioramaTest.offsetWidth;
-    el.forestDioramaTest.classList.add("is-playing");
+    void el.board.offsetWidth;
+
+    // 1) Whole board rushes into the center. Blur peaks during the camera push.
+    el.board.classList.add("is-forest-zooming");
+    el.forestDioramaTest.classList.add("is-zooming");
+
+    // 2) Once the zoom lands, the whole board tilts into a strong 3D floor.
+    forestDioramaTimers.push(window.setTimeout(() => {
+      el.board.classList.add("is-forest-tilted");
+      el.forestDioramaTest.classList.add("is-tilted");
+    }, 470));
+
+    // 3) Only after the 3D board/wall is established do the paper trees stand up.
+    forestDioramaTimers.push(window.setTimeout(() => {
+      el.forestDioramaTest.classList.add("is-playing");
+    }, 1180));
   }
 
   function closeForestDioramaTest() {
     if (!el.forestDioramaTest || el.forestDioramaTest.hidden) return;
-    el.forestDioramaTest.classList.remove("is-playing");
+    clearForestDioramaTimers();
+    el.forestDioramaTest.classList.remove("is-playing", "is-tilted", "is-zooming");
+    el.board?.classList.remove("is-forest-tilted", "is-forest-zooming");
     el.forestDioramaTest.hidden = true;
   }
 
