@@ -396,7 +396,7 @@
   }
 
   function ensureVillageBuildingAssets() {
-    const version = "20261005-village-stage8-size-layout-1";
+    const version = "20261005-village-stage8-size-layout-2";
     document.querySelectorAll(".village-building-image").forEach((img, index) => {
       if (!(img instanceof HTMLImageElement)) return;
       const assetNumber = String(index + 1).padStart(2, "0");
@@ -465,11 +465,16 @@
     if (!selectedVillageBuilding) return;
     const stage = selectedVillageBuilding.closest(".village-building-stage");
     if (!stage) return;
-    const stageWidth = stage.getBoundingClientRect().width;
+    const stageWidth = stage.clientWidth;
     if (!stageWidth) return;
 
-    const currentWidth = selectedVillageBuilding.getBoundingClientRect().width;
-    const currentPercent = (currentWidth / stageWidth) * 100;
+    const inlinePercent = selectedVillageBuilding.style.width.endsWith("%")
+      ? Number.parseFloat(selectedVillageBuilding.style.width)
+      : NaN;
+    const layoutWidth = Number.parseFloat(getComputedStyle(selectedVillageBuilding).width);
+    const currentPercent = Number.isFinite(inlinePercent)
+      ? inlinePercent
+      : (layoutWidth / stageWidth) * 100;
     const nextPercent = Math.min(40, Math.max(8, currentPercent + direction * 1.5));
     selectedVillageBuilding.style.width = `${nextPercent.toFixed(2)}%`;
   }
