@@ -1614,6 +1614,13 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 }
 .forest-story-event-choices .tile-story-choice:nth-child(3n+2){background-image:url("art/v2-style/ui/parchment-button-variant-02.png")}
 .forest-story-event-choices .tile-story-choice:nth-child(3n){background-image:url("art/v2-style/ui/parchment-button-variant-03.png")}
+.forest-story-event-choices .forest-story-scout-choice{
+  background-image:url("art/v2-style/ui/parchment-button-variant-04.png");
+}
+.forest-story-event-choices .forest-story-scout-choice::before{
+  content:"◉ ";
+  font-size:.9em;
+}
 .forest-story-event-roll{
   display:flex;
   align-items:center;
