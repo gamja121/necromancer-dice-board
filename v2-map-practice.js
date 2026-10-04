@@ -394,7 +394,7 @@
   }
 
   function ensureVillageBuildingAssets() {
-    const version = "20261005-village-stage7-drag-layout-1";
+    const version = "20261005-village-stage7-drag-layout-2";
     document.querySelectorAll(".village-building-image").forEach((img, index) => {
       if (!(img instanceof HTMLImageElement)) return;
       const assetNumber = String(index + 1).padStart(2, "0");
@@ -468,7 +468,7 @@
         building.dataset.dragOffsetX = String(event.clientX - rect.left);
         building.dataset.dragOffsetY = String(event.clientY - rect.top);
         building.classList.add("is-layout-dragging");
-        building.setPointerCapture?.(event.pointerId);
+        try { building.setPointerCapture?.(event.pointerId); } catch {}
         event.preventDefault();
       });
 
@@ -486,7 +486,11 @@
 
       const finishDrag = (event) => {
         if (building.dataset.dragPointerId !== String(event.pointerId)) return;
-        building.releasePointerCapture?.(event.pointerId);
+        try {
+          if (!building.hasPointerCapture || building.hasPointerCapture(event.pointerId)) {
+            building.releasePointerCapture?.(event.pointerId);
+          }
+        } catch {}
         delete building.dataset.dragPointerId;
         delete building.dataset.dragOffsetX;
         delete building.dataset.dragOffsetY;
