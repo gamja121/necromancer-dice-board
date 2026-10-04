@@ -1381,9 +1381,9 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   position:absolute;
   z-index:1;
   left:50%;
-  top:45%;
-  width:78%;
-  height:47%;
+  top:34%;
+  width:92%;
+  height:61%;
   transform:translateX(-50%);
   pointer-events:none;
   overflow:visible;
@@ -1391,57 +1391,92 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 
 .forest-scene-tree{
   position:absolute;
-  bottom:0;
   width:auto;
   object-fit:contain;
   transform-origin:50% 100%;
   opacity:0;
-  filter:blur(1px) brightness(.62) saturate(.72) drop-shadow(0 14px 9px rgba(0,0,0,.72));
+  filter:blur(.8px) brightness(.64) saturate(.75) drop-shadow(0 13px 8px rgba(0,0,0,.64));
   backface-visibility:hidden;
   will-change:transform,opacity,filter;
 }
-.forest-scene-tree.tree-far-left{
-  left:0%;
-  bottom:4%;
-  max-height:58%;
+
+/* Back row: small, higher, slightly softer. */
+.tree-back-left{
+  left:4%;
+  bottom:46%;
+  max-height:34%;
+  z-index:1;
+  filter:blur(1.8px) brightness(.55) saturate(.64);
+}
+.tree-back-center{
+  left:42%;
+  bottom:50%;
+  max-height:31%;
+  z-index:1;
+  transform:scaleX(-1);
+  filter:blur(2px) brightness(.53) saturate(.62);
+}
+.tree-back-right{
+  right:5%;
+  bottom:44%;
+  max-height:36%;
+  z-index:1;
+  transform:scaleX(-1);
+  filter:blur(1.7px) brightness(.56) saturate(.66);
+}
+
+/* Mid row. */
+.tree-mid-left{
+  left:13%;
+  bottom:19%;
+  max-height:55%;
+  z-index:3;
+}
+.tree-mid-right{
+  right:14%;
+  bottom:17%;
+  max-height:59%;
+  z-index:3;
   transform:scaleX(-1);
 }
-.forest-scene-tree.tree-left{
-  left:17%;
-  bottom:0;
-  max-height:76%;
+
+/* Front row: deliberately large and low to create foreground depth. */
+.tree-front-left{
+  left:25%;
+  bottom:-3%;
+  max-height:83%;
+  z-index:5;
 }
-.forest-scene-tree.tree-center{
-  left:46%;
-  bottom:2%;
-  max-height:98%;
-}
-.forest-scene-tree.tree-right{
-  right:17%;
-  bottom:0;
-  max-height:80%;
+.tree-front-right{
+  right:24%;
+  bottom:-5%;
+  max-height:88%;
+  z-index:6;
   transform:scaleX(-1);
-}
-.forest-scene-tree.tree-far-right{
-  right:0%;
-  bottom:5%;
-  max-height:61%;
 }
 
 .forest-diorama-test.is-playing .forest-scene-tree{
-  animation:forestSceneTreeRise 680ms cubic-bezier(.16,.82,.22,1) both;
+  animation:forestSceneTreeRise 700ms cubic-bezier(.16,.82,.22,1) both;
 }
-.forest-diorama-test.is-playing .tree-far-left{
+.forest-diorama-test.is-playing .tree-back-left{animation-delay:0ms}
+.forest-diorama-test.is-playing .tree-back-center{
   animation-name:forestSceneTreeRiseMirrored;
-  animation-delay:0ms;
+  animation-delay:70ms;
 }
-.forest-diorama-test.is-playing .tree-left{animation-delay:100ms}
-.forest-diorama-test.is-playing .tree-far-right{animation-delay:180ms}
-.forest-diorama-test.is-playing .tree-right{
+.forest-diorama-test.is-playing .tree-back-right{
   animation-name:forestSceneTreeRiseMirrored;
-  animation-delay:260ms;
+  animation-delay:140ms;
 }
-.forest-diorama-test.is-playing .tree-center{animation-delay:360ms}
+.forest-diorama-test.is-playing .tree-mid-left{animation-delay:220ms}
+.forest-diorama-test.is-playing .tree-mid-right{
+  animation-name:forestSceneTreeRiseMirrored;
+  animation-delay:300ms;
+}
+.forest-diorama-test.is-playing .tree-front-left{animation-delay:390ms}
+.forest-diorama-test.is-playing .tree-front-right{
+  animation-name:forestSceneTreeRiseMirrored;
+  animation-delay:480ms;
+}
 
 @keyframes forestSceneTreeRise{
   0%{
@@ -1494,7 +1529,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .forest-floor-shadow{
   position:absolute;
   display:block;
-  height:3.2%;
+  height:3.6%;
   border-radius:50%;
   background:radial-gradient(ellipse at center,
     rgba(0,0,0,.62) 0 24%,
@@ -1508,11 +1543,13 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .map-board.is-forest-trees .forest-floor-shadow{
   animation:forestFloorShadowIn 620ms ease-out both;
 }
-.shadow-1{left:37%;top:48%;width:11%;transform:rotate(-10deg) scaleX(1.45);animation-delay:0ms!important}
-.shadow-2{left:43%;top:53%;width:13%;transform:rotate(-6deg) scaleX(1.55);animation-delay:100ms!important}
-.shadow-3{left:49%;top:57%;width:15%;transform:rotate(-2deg) scaleX(1.72);animation-delay:360ms!important}
-.shadow-4{left:56%;top:53%;width:13%;transform:rotate(6deg) scaleX(1.55);animation-delay:260ms!important}
-.shadow-5{left:63%;top:48%;width:11%;transform:rotate(10deg) scaleX(1.45);animation-delay:180ms!important}
+.shadow-1{left:31%;top:44%;width:7%;transform:rotate(-12deg) scaleX(1.20);animation-delay:0ms!important;opacity:.55}
+.shadow-2{left:47%;top:42%;width:6%;transform:rotate(-2deg) scaleX(1.15);animation-delay:70ms!important;opacity:.50}
+.shadow-3{left:63%;top:45%;width:7%;transform:rotate(11deg) scaleX(1.20);animation-delay:140ms!important;opacity:.55}
+.shadow-4{left:35%;top:52%;width:10%;transform:rotate(-8deg) scaleX(1.42);animation-delay:220ms!important}
+.shadow-5{left:57%;top:53%;width:11%;transform:rotate(8deg) scaleX(1.46);animation-delay:300ms!important}
+.shadow-6{left:40%;top:61%;width:14%;transform:rotate(-5deg) scaleX(1.68);animation-delay:390ms!important}
+.shadow-7{left:53%;top:62%;width:15%;transform:rotate(5deg) scaleX(1.72);animation-delay:480ms!important}
 
 @keyframes forestFloorShadowIn{
   0%{opacity:0;filter:blur(8px)}
