@@ -135,6 +135,7 @@
     villageDioramaTestButton: document.getElementById("villageDioramaTestButton"),
     villageDioramaTest: document.getElementById("villageDioramaTest"),
     villageDioramaClose: document.getElementById("villageDioramaClose"),
+    villageSelectedBuildingLabel: document.getElementById("villageSelectedBuildingLabel"),
     villageLayerDebug: document.getElementById("villageLayerDebug"),
     mapName: document.getElementById("mapName"),
     tileName: document.getElementById("tileName"),
@@ -387,6 +388,7 @@
   }
 
   let villageDioramaTimers = [];
+  let selectedVillageBuilding = null;
 
   function clearVillageDioramaTimers() {
     villageDioramaTimers.forEach((timer) => window.clearTimeout(timer));
@@ -394,7 +396,7 @@
   }
 
   function ensureVillageBuildingAssets() {
-    const version = "20261005-village-stage7-drag-layout-2";
+    const version = "20261005-village-stage8-size-layout-1";
     document.querySelectorAll(".village-building-image").forEach((img, index) => {
       if (!(img instanceof HTMLImageElement)) return;
       const assetNumber = String(index + 1).padStart(2, "0");
@@ -441,6 +443,37 @@
     el.villageLayerDebug?.querySelectorAll("[data-village-building-toggle]").forEach((button) => button.setAttribute("aria-pressed", "true"));
   }
 
+  function selectVillageBuilding(building) {
+    document.querySelectorAll(".village-scene-building.is-layout-selected").forEach((item) => {
+      if (item !== building) item.classList.remove("is-layout-selected");
+    });
+    selectedVillageBuilding = building instanceof HTMLElement ? building : null;
+    selectedVillageBuilding?.classList.add("is-layout-selected");
+
+    const index = selectedVillageBuilding
+      ? [...document.querySelectorAll(".village-scene-building")].indexOf(selectedVillageBuilding) + 1
+      : 0;
+    if (el.villageSelectedBuildingLabel) {
+      el.villageSelectedBuildingLabel.textContent = index ? `선택: B${index}` : "선택: 없음";
+    }
+    el.villageLayerDebug?.querySelectorAll("[data-village-size]").forEach((button) => {
+      button.disabled = !selectedVillageBuilding;
+    });
+  }
+
+  function resizeSelectedVillageBuilding(direction) {
+    if (!selectedVillageBuilding) return;
+    const stage = selectedVillageBuilding.closest(".village-building-stage");
+    if (!stage) return;
+    const stageWidth = stage.getBoundingClientRect().width;
+    if (!stageWidth) return;
+
+    const currentWidth = selectedVillageBuilding.getBoundingClientRect().width;
+    const currentPercent = (currentWidth / stageWidth) * 100;
+    const nextPercent = Math.min(40, Math.max(8, currentPercent + direction * 1.5));
+    selectedVillageBuilding.style.width = `${nextPercent.toFixed(2)}%`;
+  }
+
   function moveVillageBuilding(building, clientX, clientY, grabOffsetX, grabOffsetY) {
     const stage = building.closest(".village-building-stage");
     if (!stage) return;
@@ -463,6 +496,7 @@
 
       building.addEventListener("pointerdown", (event) => {
         if (event.button !== undefined && event.button !== 0) return;
+        selectVillageBuilding(building);
         const rect = building.getBoundingClientRect();
         building.dataset.dragPointerId = String(event.pointerId);
         building.dataset.dragOffsetX = String(event.clientX - rect.left);
@@ -507,6 +541,7 @@
     if (el.forestDioramaTest && !el.forestDioramaTest.hidden) closeForestDioramaTest();
     clearVillageDioramaTimers();
     resetVillageBuildingDebug();
+    selectVillageBuilding(null);
 
     document.querySelector(".map-lab")?.classList.add("is-village-diorama-open");
     el.board.classList.remove("is-village-zooming", "is-village-tilted", "is-village-buildings");
@@ -539,6 +574,7 @@
     el.villageDioramaTest.hidden = true;
     if (el.villageLayerDebug) el.villageLayerDebug.hidden = true;
     resetVillageBuildingDebug();
+    selectVillageBuilding(null);
     document.querySelector(".map-lab")?.classList.remove("is-village-diorama-open");
   }
 
@@ -3753,6 +3789,11 @@
   el.forestDioramaTestButton?.addEventListener("click", () => openForestDioramaTest({ fromTile: false }));
   el.villageDioramaTestButton?.addEventListener("click", openVillageDioramaTest);
   el.villageLayerDebug?.addEventListener("click", (event) => {
+    const sizeButton = event.target.closest("[data-village-size]");
+    if (sizeButton) {
+      resizeSelectedVillageBuilding(Number(sizeButton.dataset.villageSize || 0));
+      return;
+    }
     const toggle = event.target.closest("[data-village-building-toggle]");
     if (toggle) {
       const selector = toggle.dataset.villageBuildingToggle;
