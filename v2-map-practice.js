@@ -394,23 +394,31 @@
   }
 
   function ensureVillageBuildingAssets() {
-    const directSrc = "art/v2-style/map-test/diorama/village-building-01.webp?v=20261005-village-stage3-direct-img-sanity-1";
-    document.querySelectorAll(".village-building-image").forEach((img) => {
+    const version = "20261005-village-stage4-six-direct-img-1";
+    document.querySelectorAll(".village-building-image").forEach((img, index) => {
       if (!(img instanceof HTMLImageElement)) return;
+      const assetNumber = String(index + 1).padStart(2, "0");
+      const directSrc = `art/v2-style/map-test/diorama/village-building-${assetNumber}.webp?v=${version}`;
+      const host = img.closest(".village-scene-building");
+
       img.dataset.assetState = "loading";
       img.onload = () => {
         const valid = img.naturalWidth >= 300 && img.naturalHeight >= 300;
         img.dataset.assetState = valid ? "ready" : "invalid";
-        img.closest(".village-scene-building")?.classList.toggle("is-asset-error", !valid);
+        host?.classList.toggle("is-asset-error", !valid);
       };
       img.onerror = () => {
         img.dataset.assetState = "error";
-        img.closest(".village-scene-building")?.classList.add("is-asset-error");
+        host?.classList.add("is-asset-error");
         if (img.dataset.retry === "1") return;
         img.dataset.retry = "1";
         img.src = directSrc + "&retry=1";
       };
-      if (!img.src.includes("village-building-01.webp")) img.src = directSrc;
+
+      if (!img.src.includes(`village-building-${assetNumber}.webp`) || !img.src.includes(version)) {
+        img.dataset.retry = "0";
+        img.src = directSrc;
+      }
     });
   }
 
