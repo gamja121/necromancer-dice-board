@@ -192,7 +192,7 @@ assert(mapHtml.includes("village-building-05.webp?v=20261005-village-stage4-six-
 assert(worker.includes("./art/v2-style/map-test/diorama/village-building-05.webp?v=20261005-village-stage4-six-direct-img-1"));
 assert(mapHtml.includes("village-building-06.webp?v=20261005-village-stage4-six-direct-img-1"));
 assert(worker.includes("./art/v2-style/map-test/diorama/village-building-06.webp?v=20261005-village-stage4-six-direct-img-1"));
-assert(map.includes('img.naturalWidth >= 600 && img.naturalHeight >= 400'));
+assert(map.includes('img.naturalWidth >= 300 && img.naturalHeight >= 300'));
 assert(mapHtml.includes("village-building-image"));
 
 assert(battle.includes('makeState(data, "enemy", 3 - index)'));
