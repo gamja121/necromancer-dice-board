@@ -176,8 +176,8 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!/(^|\\n)\\.map-options-button\\s*\\{\\s*visibility:\\s*hidden;\\s*\\}/.test(mapCss));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261004-forest-tiltzoom-stage-1"));
-assert(worker.includes("./v2-map-practice.css?v=20261004-forest-tiltzoom-stage-1"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261004-options-wall-slot-1"));
+assert(worker.includes("./v2-map-practice.css?v=20261004-options-wall-slot-1"));
 
 assert(battle.includes('makeState(data, "enemy", 3 - index)'));
 assert(!battle.includes('makeState(data, "enemy", index)'));
