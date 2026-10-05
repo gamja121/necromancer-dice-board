@@ -312,7 +312,7 @@
   const requestedAllyInstanceIds = (battleQuery.get("allyIds") || "").split(",").filter(Boolean);
   let mapVictoryContaminationApplied = false;
 
-  if (fromMap && globalThis.V2RunStateRuntime?.available) {
+  if ((fromMap || fromEvent) && globalThis.V2RunStateRuntime?.available) {
     await V2RunStateRuntime.bootstrap();
     await V2RunStateRuntime.flush();
   }
@@ -332,7 +332,7 @@
   }
 
   const mapOwnedRoster = (() => {
-    if (!fromMap) return new Map();
+    if (!(fromMap || fromEvent)) return new Map();
     try {
       const runRoster = globalThis.V2RunStateRuntime?.snapshot?.()?.ownedMonsters;
       const saved = Array.isArray(runRoster)
@@ -689,10 +689,10 @@
   let selectedAllySlugs = undeadHealTest
     ? [...UNDEAD_HEAL_TEST_SLUGS]
     : (requestedAllySlugs.length >= 1 && requestedAllySlugs.length <= 4 ? requestedAllySlugs : []);
-  let selectedAllyInstanceIds = fromMap && requestedAllyInstanceIds.length === selectedAllySlugs.length &&
+  let selectedAllyInstanceIds = (fromMap || fromEvent) && requestedAllyInstanceIds.length === selectedAllySlugs.length &&
     requestedAllyInstanceIds.every((instanceId, index) => mapOwnedRoster.get(instanceId)?.slug === selectedAllySlugs[index])
       ? requestedAllyInstanceIds : [];
-  if (fromMap && selectedAllyInstanceIds.length !== selectedAllySlugs.length) selectedAllySlugs = [];
+  if ((fromMap || fromEvent) && selectedAllyInstanceIds.length !== selectedAllySlugs.length) selectedAllySlugs = [];
   let selectedEnemySlugs = fromEvent && requestedEventEnemySlugs.length
     ? [...requestedEventEnemySlugs]
     : (fromMap ? createMapEnemySlugs() : TEAM_DATA.enemy.map(entry => entry.slug));
@@ -864,7 +864,7 @@
         unitState.hp = Math.max(1, unitState.maxHp - 3);
       }
     }
-    if (fromMap) {
+    if (fromMap || fromEvent) {
       for (const unitState of units.filter((unit) => unit.team === "ally" && !unit.isSummon)) {
         const owned = unitState.instanceId ? mapOwnedRoster.get(unitState.instanceId) : null;
         if (!owned || !Number.isFinite(owned.currentHp)) continue;
@@ -1202,7 +1202,7 @@
     startButton.textContent = "준비 중…";
     lineupStatus.textContent = "선택한 마물을 전장에 준비하고 있습니다.";
     try {
-      const preparedAllyTeam = fromMap && selectedAllyInstanceIds.length === selectedAllySlugs.length
+      const preparedAllyTeam = (fromMap || fromEvent) && selectedAllyInstanceIds.length === selectedAllySlugs.length
         ? selectedAllyInstanceIds.map((instanceId, index) => ({ ...ROSTER_BY_SLUG.get(selectedAllySlugs[index]), instanceId }))
         : selectedAllySlugs.map((slug) => ({ ...ROSTER_BY_SLUG.get(slug) }));
       const preparedEnemyTeam = selectedEnemySlugs.map(slug => ({ ...ROSTER_BY_SLUG.get(slug) }));
@@ -1836,7 +1836,7 @@
   }
 
   function persistMapAllyOutcome() {
-    if (!fromMap) return { roster: [], deadMonsters: [] };
+    if (!(fromMap || fromEvent)) return { roster: [], deadMonsters: [] };
     try {
       const runRoster = globalThis.V2RunStateRuntime?.snapshot?.()?.ownedMonsters;
       const saved = Array.isArray(runRoster)
@@ -1906,6 +1906,30 @@
     speedButton.disabled = true;
     const won = aliveUnits("ally").length > 0;
     if (fromEvent) {
+      const battleOutcome = persistMapAllyOutcome();
+      if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
+        const stored = await V2RunStateRuntime.commitExact("event-battle-outcome:" + (eventSourceId || "event"), (draft) => {
+          draft.ownedMonsters = JSON.parse(JSON.stringify(battleOutcome.roster));
+          if (!Array.isArray(draft.graveyardCorpses)) draft.graveyardCorpses = [];
+          const existingIds = new Set(draft.graveyardCorpses.map((corpse) => corpse.instanceId));
+          for (const corpse of battleOutcome.deadMonsters) {
+            if (!corpse?.instanceId || existingIds.has(corpse.instanceId)) continue;
+            draft.graveyardCorpses.push(JSON.parse(JSON.stringify(corpse)));
+            existingIds.add(corpse.instanceId);
+          }
+          const livingIds = new Set(battleOutcome.roster.map((unit) => unit.instanceId));
+          draft.party = (draft.party || []).filter((instanceId) => livingIds.has(instanceId));
+          draft.battle = null;
+          draft.phase = "returning";
+        });
+        if (!stored?.ok) {
+          resultTitle.textContent = "저장 오류";
+          resultBody.textContent = "사건 전투 결과를 원정 세이브에 반영하지 못했습니다.";
+          resultOverlay.hidden = false;
+          message.textContent = "사건 전투 결과 저장 실패";
+          return;
+        }
+      }
       const result = {
         eventId: eventSourceId,
         won,
@@ -2152,6 +2176,18 @@
   }
 
   function returnToEvent() {
+    if (eventReturnTarget === "event-lab-map") {
+      const params = new URLSearchParams({
+        fromMapEvent: "1",
+        resumeEventBattle: "1",
+        map: battleQuery.get("map") || "default",
+        tile: String(Math.max(1, Math.min(24, Number(battleQuery.get("tile")) || 1))),
+        allies: battleQuery.get("allies") || "",
+        allyIds: battleQuery.get("allyIds") || ""
+      });
+      window.location.assign(`v2-event-lab.html?${params.toString()}`);
+      return;
+    }
     if (eventReturnTarget === "map-graveyard") {
       const params = new URLSearchParams({ resumeGraveyardEvent: "1" });
       window.location.assign(`v2-map-practice.html?${params.toString()}`);
@@ -2330,7 +2366,7 @@
     speedButton.textContent = `속도 ×${speedLevel}`;
   });
 
-  const mapLineupReady = fromMap && selectedAllySlugs.length >= 1 && selectedAllySlugs.length <= 4;
+  const mapLineupReady = (fromMap || fromEvent) && selectedAllySlugs.length >= 1 && selectedAllySlugs.length <= 4;
   const testLineupReady = undeadHealTest && selectedAllySlugs.length === 4;
   const matchingCheckpoint = loadBattleCheckpoint();
   if (mapLineupReady && matchingCheckpoint) {
