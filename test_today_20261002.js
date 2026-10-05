@@ -353,7 +353,7 @@ assert((eventHtml.match(/class="event-graveyard-prop event-graveyard-/g)||[]).le
 assert(eventHtml.includes('class="event-child-idle"'));
 assert(eventCss.includes(".event-scene-preview"));
 assert(eventCss.includes(".event-child-idle"));
-assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-ambush-stage4-ghoul-1'));
+assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-ambush-stage5-dialogue-1'));
 assert(eventJs.includes('event.scene === "graveyard_child_ambush_intro"'));
 assert(!eventHtml.includes('id="eventScene"'));
 assert(!eventData.includes("graveyard_child_ambush_test_01"));
@@ -381,3 +381,12 @@ assert(eventCss.includes('processed/192/ghoul.png'));
 assert(eventCss.includes('@keyframes event-ghoul-approach'));
 assert(eventCss.includes('@keyframes event-child-startle'));
 assert(eventData.includes('구울이 묘비를 넘어 튀어나온다'));
+
+assert(eventHtml.includes('class="event-dialogue-layer"'));
+assert(eventHtml.includes('class="event-dialogue-portrait"'));
+assert(eventHtml.includes('class="event-dialogue-box"'));
+assert(eventHtml.includes('class="event-dialogue-name">아이</span>'));
+assert(eventCss.includes("@keyframes event-dialogue-box-rise"));
+assert(eventCss.includes("@keyframes event-dialogue-portrait-in"));
+assert(eventCss.includes("event-dialogue-portrait-in .66s"));
+assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-ambush-stage5-dialogue-1'));
