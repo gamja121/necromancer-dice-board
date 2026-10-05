@@ -39,27 +39,32 @@
           </section>
         </div>
 
-        <div class="event-copy">
-          <p id="eventLocation" class="event-location">공동묘지</p>
-          <h1 id="eventTitle">습격받는 아이</h1>
-          <p id="eventDescription">묘비 사이에서 아이가 뒷걸음친다. 바로 뒤, 구울이 몸을 일으킨다.</p>
-        </div>
+        <section class="event-info-shell" aria-label="사건 정보">
+          <img class="event-info-frame" src="art/v2-style/ui/intro-dialogue-box.webp?v=6" alt="" aria-hidden="true">
+          <div class="event-info-content">
+            <div class="event-copy">
+              <p id="eventLocation" class="event-location">공동묘지</p>
+              <h1 id="eventTitle">습격받는 아이</h1>
+              <p id="eventDescription">묘비 사이에서 아이가 뒷걸음친다. 바로 뒤, 구울이 몸을 일으킨다.</p>
+            </div>
 
-        <div class="event-actions">
-          <button id="eventAdvance" class="event-advance" type="button">계속</button>
-        </div>
+            <div class="event-actions">
+              <button id="eventAdvance" class="event-advance" type="button">계속</button>
+            </div>
 
-        <div id="eventChoices" class="event-choices" hidden aria-label="사건 선택">
-          <button type="button" data-event-choice="protect">아이를 구한다</button>
-          <button type="button" data-event-choice="leave">지나친다</button>
-        </div>
+            <div id="eventChoices" class="event-choices" hidden aria-label="사건 선택">
+              <button type="button" data-event-choice="protect">아이를 구한다</button>
+              <button type="button" data-event-choice="leave">지나친다</button>
+            </div>
 
-        <div id="eventOutcome" class="event-outcome" hidden aria-live="polite"></div>
+            <div id="eventOutcome" class="event-outcome" hidden aria-live="polite"></div>
 
-        <footer class="event-footer">
-          <span>테스트 이벤트 <b id="eventCount">1</b></span>
-          <button id="eventReset" type="button">처음부터</button>
-        </footer>
+            <footer class="event-footer">
+              <span>테스트 이벤트 <b id="eventCount">1</b></span>
+              <button id="eventReset" type="button">처음부터</button>
+            </footer>
+          </div>
+        </section>
       </article>
     </section>
   </main>
