@@ -85,129 +85,18 @@ async function activate(page, selector) {
       console.log("PASS: " + screen);
     }
     await page.goto(new URL("v2-event-lab.html", base).href);
-    await page.waitForSelector("#eventScenePreview:not([hidden])", { state: "visible", timeout: 15000 });
-    const graveyardStage1 = await page.evaluate(() => ({
-      selected: document.querySelector(".event-list button.is-selected strong")?.textContent || "",
-      previewVisible: !document.getElementById("eventScenePreview")?.hidden,
-      propCount: document.querySelectorAll("#eventScenePreview .event-graveyard-prop").length,
-      childBg: getComputedStyle(document.querySelector("#eventScenePreview .event-child-idle")).backgroundImage,
-      childAnimation: getComputedStyle(document.querySelector("#eventScenePreview .event-child-idle")).animationName,
-      duplicateTitleCount: [...document.querySelectorAll(".event-list button strong")].filter((el)=>el.textContent?.includes("습격받는 아이")).length,
-      hasGhoul: !!document.querySelector("[data-event-ghoul], .event-ghoul"),
-      hasDialogue: !!document.querySelector(".event-dialogue-box")
+    await page.waitForSelector("#eventCount", { state: "visible", timeout: 15000 });
+    const emptyEventLab = await page.evaluate(() => ({
+      count: document.getElementById("eventCount")?.textContent?.trim() || "",
+      heading: document.getElementById("emptyLabTitle")?.textContent?.trim() || "",
+      oldScene: !!document.getElementById("eventScenePreview"),
+      oldList: !!document.getElementById("eventList")
     }));
-    assert(graveyardStage1.selected.includes("습격받는 아이"));
-    assert.equal(graveyardStage1.previewVisible,true);
-    assert.equal(graveyardStage1.propCount,14);
-    assert(graveyardStage1.childBg.includes("event-child-idle-01.png"));
-    assert(graveyardStage1.childAnimation.includes("event-child-idle-breathe"));
-    assert.equal(graveyardStage1.duplicateTitleCount,1);
-    assert.equal(graveyardStage1.hasGhoul,true);
-    assert.equal(graveyardStage1.hasDialogue,true);
-    console.log("PASS: event lab graveyard child stage 2 idle motion");
-    assert.equal(await page.locator("#choiceList").isVisible(), false, "Cinematic choices must stay hidden before dialogue advance");
-    await page.waitForFunction(() => {
-      const box = document.querySelector("#eventDialogueAdvance");
-      return box && Number.parseFloat(getComputedStyle(box).opacity) >= .98;
-    }, null, { timeout: 10000 });
-    await page.locator("#eventDialogueAdvance").click();
-    await page.waitForSelector("#choiceList", { state: "visible", timeout: 5000 });
-    const graveyardStage6Choices = await page.evaluate(() => [...document.querySelectorAll("#choiceList button")].map((button) => button.firstChild?.textContent?.trim() || button.textContent.trim()));
-    assert.deepEqual(graveyardStage6Choices, ["아이를 구한다", "지나친다"]);
-    assert.equal(await page.locator(".event-card").evaluate((el)=>el.classList.contains("is-cinematic-choice-ready")), true);
-    assert.equal(await page.locator("#rollPanel").evaluate((el) => el.hidden), true);
-    assert.equal(await page.locator("#flagList").textContent().then((text)=>text.includes("child_saved")||text.includes("child_abandoned")), false);
-    console.log("PASS: cemetery ambush stage 6 dialogue to choices");
-    await page.waitForFunction(() => {
-      const ghoul=document.querySelector("#eventScenePreview .event-ghoul");
-      if(!ghoul) return false;
-      const style=getComputedStyle(ghoul);
-      return Number.parseFloat(style.opacity) > .95 && style.backgroundImage.includes("ghoul.png");
-    }, null, { timeout: 10000 });
-    const stage4Ambush=await page.evaluate(()=>({
-      ghoulCount:document.querySelectorAll("#eventScenePreview [data-event-ghoul]").length,
-      ghoulBg:getComputedStyle(document.querySelector("#eventScenePreview .event-ghoul")).backgroundImage,
-      ghoulOpacity:getComputedStyle(document.querySelector("#eventScenePreview .event-ghoul")).opacity,
-      text:document.getElementById("eventText")?.textContent||""
-    }));
-    assert.equal(stage4Ambush.ghoulCount,1);
-    assert(stage4Ambush.ghoulBg.includes("processed/192/ghoul.png"));
-    assert(Number.parseFloat(stage4Ambush.ghoulOpacity)>.95);
-    assert(stage4Ambush.text.includes("구울"));
-    console.log("PASS: event lab graveyard child stage 4 ghoul ambush");
-    await page.waitForFunction(() => {
-      const box = document.querySelector("#eventScenePreview .event-dialogue-box");
-      const portrait = document.querySelector("#eventScenePreview .event-dialogue-portrait");
-      return box && portrait
-        && Number.parseFloat(getComputedStyle(box).opacity) >= .98
-        && Number.parseFloat(getComputedStyle(portrait).opacity) >= .98;
-    }, null, { timeout: 10000 });
-    const dialogueState = await page.evaluate(() => ({
-      name: document.querySelector("#eventScenePreview .event-dialogue-name")?.textContent?.trim() || "",
-      text: document.querySelector("#eventScenePreview .event-dialogue-text")?.textContent?.trim() || "",
-      boxOpacity: getComputedStyle(document.querySelector("#eventScenePreview .event-dialogue-box")).opacity,
-      portraitOpacity: getComputedStyle(document.querySelector("#eventScenePreview .event-dialogue-portrait")).opacity,
-      portraitBg: getComputedStyle(document.querySelector("#eventScenePreview .event-dialogue-portrait"), "::before").backgroundImage
-    }));
-    assert.equal(dialogueState.name, "아이");
-    assert.equal(dialogueState.text, "…!");
-    assert(Number.parseFloat(dialogueState.boxOpacity) >= .98);
-    assert(Number.parseFloat(dialogueState.portraitOpacity) >= .98);
-    assert(dialogueState.portraitBg.includes("event-child-idle-01.png"));
-    console.log("PASS: cemetery ambush stage 5 dialogue and child bust");
-
-    await Promise.all([
-      page.waitForURL("**/v2-auto-battle-practice.html?*", { timeout: 10000 }),
-      page.locator("#choiceList button").filter({ hasText: "아이를 구한다" }).click()
-    ]);
-    const eventBattleUrl = new URL(page.url());
-    assert.equal(eventBattleUrl.searchParams.get("from"), "event");
-    assert.equal(eventBattleUrl.searchParams.get("event"), "graveyard_child_ambush_01");
-    assert.equal(eventBattleUrl.searchParams.get("enemies"), "ghoul");
-    await page.waitForSelector("#startOverlay", { state: "visible", timeout: 15000 });
-    await page.waitForFunction(() => document.getElementById("enemyLineupTab")?.disabled === true, null, { timeout: 15000 });
-    const eventBattleState = await page.evaluate(() => ({
-      enemyTabDisabled: document.getElementById("enemyLineupTab")?.disabled === true,
-      enemySlots: [...document.querySelectorAll("#selectedEnemyLineup [data-slug]")].map((el)=>el.dataset.slug).filter(Boolean),
-      lineupText: document.getElementById("lineupStatus")?.textContent || ""
-    }));
-    assert.equal(eventBattleState.enemyTabDisabled, true);
-    console.log("PASS: cemetery ambush stage 7 fixed ghoul battle handoff");
-
-    await page.goto(new URL("v2-event-lab.html", base).href);
-    await page.evaluate(() => {
-      sessionStorage.setItem("necromancer-event-battle-result-v1", JSON.stringify({
-        eventId: "graveyard_child_ambush_01",
-        won: true,
-        enemies: ["ghoul"],
-        encounterType: "event-graveyard-child",
-        finishedAt: Date.now()
-      }));
-    });
-    await page.reload();
-    await page.waitForSelector("#eventList");
-    await page.waitForFunction(() => document.querySelector(".event-card")?.classList.contains("is-cinematic-rescued"), null, { timeout: 10000 });
-    const eventReturnState = await page.evaluate(() => ({
-      selectedId: document.getElementById("eventId")?.textContent || "",
-      flags: [...document.querySelectorAll("#flagList code")].map((node)=>node.textContent),
-      outcome: document.getElementById("outcomeBox")?.textContent || "",
-      choices: [...document.querySelectorAll("#choiceList button")].map((button)=>({ text:button.textContent, disabled:button.disabled })),
-      rescued: document.querySelector(".event-card")?.classList.contains("is-cinematic-rescued") || false,
-      ghoulDisplay: getComputedStyle(document.querySelector(".event-ghoul")).display,
-      dialogue: document.querySelector(".event-dialogue-text")?.textContent?.trim() || "",
-      childAnimation: getComputedStyle(document.querySelector(".event-child-idle")).animationName
-    }));
-    assert.equal(eventReturnState.selectedId, "graveyard_child_ambush_01");
-    assert(eventReturnState.flags.includes("graveyard_child_ambush_resolved"));
-    assert(eventReturnState.flags.includes("graveyard_child_saved"));
-    assert(eventReturnState.outcome.includes("성공"));
-    assert(eventReturnState.choices.every((choice)=>choice.disabled));
-    assert.equal(eventReturnState.rescued, true);
-    assert.equal(eventReturnState.ghoulDisplay, "none");
-    assert.equal(eventReturnState.dialogue, "…고마워요.");
-    assert(eventReturnState.childAnimation.includes("event-child-idle-breathe"));
-    console.log("PASS: cemetery ambush stage 8 event battle return");
-    console.log("PASS: cemetery ambush stage 9 rescued child return scene");
+    assert.equal(emptyEventLab.count, "0");
+    assert(emptyEventLab.heading.includes("등록된 테스트 이벤트가 없습니다."));
+    assert.equal(emptyEventLab.oldScene, false);
+    assert.equal(emptyEventLab.oldList, false);
+    console.log("PASS: Event Lab reset to empty workspace");
 
     await page.setViewportSize({ width: 844, height: 390 });
     await page.goto(new URL("v2-intro.html", base).href);
