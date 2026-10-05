@@ -357,6 +357,10 @@ assert(eventHtml.includes('id="eventGhoulLayer"'));
 assert(eventHtml.includes('id="eventDialogue"'));
 assert(eventHtml.includes('id="eventChoices"'));
 assert(eventHtml.includes("intro-dialogue-box.webp?v=6"));
+assert(eventHtml.includes('class="event-info-shell"'));
+assert(eventHtml.includes('class="event-info-frame" src="art/v2-style/ui/intro-dialogue-box.webp?v=6"'));
+assert(eventCss.includes(".event-info-shell"));
+assert(eventCss.includes(".event-info-frame"));
 assert(eventJs.includes("BASE_IMAGE_CHUNKS"));
 assert(eventJs.includes("GHOUL_IMAGE_CHUNKS"));
 assert(eventJs.includes("loadChunkImage"));
@@ -408,9 +412,9 @@ assert(battle.includes('resumeGraveyardEvent: "1"'));
 
 // Empty Event Lab files must be available offline.
 assert(worker.includes("./v2-event-lab.html"));
-assert(worker.includes("./v2-event-lab.css?v=20261005-event-lab-gaze-stage4"));
-assert(worker.includes("./v2-event-lab.js?v=20261005-event-lab-gaze-stage4"));
-assert(worker.includes("./v2-event-lab-data.js?v=20261005-event-lab-gaze-stage4"));
+assert(worker.includes("./v2-event-lab.css?v=20261005-event-lab-unified-box-stage6"));
+assert(worker.includes("./v2-event-lab.js?v=20261005-event-lab-unified-box-stage6"));
+assert(worker.includes("./v2-event-lab-data.js?v=20261005-event-lab-unified-box-stage6"));
 
 assert(worker.includes("./assets/event-lab/graveyard-child/base/part-000.txt"));
 assert(worker.includes("./assets/event-lab/graveyard-child/ghoul/part-000.txt"));
