@@ -2501,24 +2501,42 @@ body.is-graveyard-event-transition .map-board .swamp-damage-overlay{
   width:25%;
   min-height:30%;
   box-sizing:border-box;
-  padding:3.5% 3.2%;
+  padding:3.2% 3.3%;
   border:2px solid #4a3421;
   border-radius:4px;
-  background:rgba(225,199,151,.96);
+  background:
+    linear-gradient(rgba(225,199,151,.96),rgba(225,199,151,.96)),
+    url("art/v2-style/ui/parchment-button-variant-04.png") center / cover no-repeat;
   color:#3b291d;
-  box-shadow:0 8px 16px #0009,inset 0 0 0 1px #f4deb6;
+  box-shadow:0 7px 14px #0008,inset 0 0 0 1px #f4deb6;
   text-shadow:0 1px #fff2d2;
+  font-family:Georgia,"Malgun Gothic",serif;
+}
+.graveyard-story-effect-box::before{
+  content:"";
+  position:absolute;
+  inset:3%;
+  border:1px solid rgba(104,74,43,.34);
+  border-radius:2px;
+  pointer-events:none;
 }
 .graveyard-story-effect-box strong{
+  position:relative;
+  z-index:1;
   display:block;
   margin-bottom:8%;
-  font:1000 clamp(12px,1.25vw,17px)/1 Georgia,"Malgun Gothic",serif;
   color:#62472e;
+  font:1000 clamp(12px,1.25vw,17px)/1 Georgia,"Malgun Gothic",serif;
   letter-spacing:.05em;
+  text-align:center;
 }
 .graveyard-story-effect-box p{
+  position:relative;
+  z-index:1;
   margin:0;
-  font:900 clamp(13px,1.35vw,19px)/1.5 Georgia,"Malgun Gothic",serif;
+  color:#3b291d;
+  font:1000 clamp(12px,1.28vw,18px)/1.45 Georgia,"Malgun Gothic",serif;
+  text-align:center;
 }
 
 .graveyard-story-dialogue{
