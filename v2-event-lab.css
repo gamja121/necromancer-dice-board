@@ -461,3 +461,20 @@ button{touch-action:manipulation}
 @media (prefers-reduced-motion:reduce){
   .event-base-image,.event-scene,.event-scene::after,.event-ghoul-layer{animation:none!important}
 }
+
+
+/* Narrative pacing · stage 5 */
+.event-card.is-unease .event-base-image{
+  transform-origin:68% 54%;
+  animation:event-camera-unease-focus 1.7s ease-in-out both;
+  filter:sepia(.12) contrast(1.05) brightness(.82);
+}
+.event-card.is-unease .event-scene-vignette{
+  background:
+    radial-gradient(ellipse at 68% 55%,transparent 28%,rgba(0,0,0,.25) 58%,rgba(0,0,0,.72) 100%),
+    linear-gradient(to top,rgba(8,5,4,.45),transparent 38%);
+}
+@keyframes event-camera-unease-focus{
+  0%{transform:scale(1.065) translate3d(-1.2%,.5%,0)}
+  100%{transform:scale(1.082) translate3d(-.4%,-.3%,0)}
+}
