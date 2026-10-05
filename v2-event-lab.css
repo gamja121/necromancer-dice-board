@@ -121,6 +121,7 @@ dialog form > div { display: flex; justify-content: flex-end; gap: 8px; }
 }
 .event-scene-preview[hidden]{display:none}
 .event-graveyard-panorama{
+  pointer-events:none;
   position:absolute;
   inset:0;
   overflow:hidden;
@@ -343,6 +344,7 @@ dialog form > div { display: flex; justify-content: flex-end; gap: 8px; }
 
 /* Cemetery ambush event scene · stage 5: visual-novel dialogue layer + child bust. */
 .event-dialogue-layer{
+  pointer-events:auto;
   position:absolute;
   z-index:30;
   left:0;
