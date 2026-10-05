@@ -155,6 +155,10 @@
     graveyardStoryChoices: document.getElementById("graveyardStoryChoices"),
     graveyardStoryPortraitImg: document.querySelector(".graveyard-story-portrait img"),
     graveyardStoryFrameImg: document.querySelector(".graveyard-story-frame"),
+    graveyardPosterEvent: document.getElementById("graveyardPosterEvent"),
+    graveyardPosterText: document.getElementById("graveyardPosterText"),
+    graveyardPosterChoices: document.getElementById("graveyardPosterChoices"),
+    graveyardPosterContinue: document.getElementById("graveyardPosterContinue"),
     mapName: document.getElementById("mapName"),
     tileName: document.getElementById("tileName"),
     regenerate: document.getElementById("regenerateButton"),
@@ -4508,6 +4512,30 @@
     window.location.assign("v2-auto-battle-practice.html?" + params.toString());
   }
 
+  function closeGraveyardPosterEvent() {
+    if (el.graveyardPosterEvent) el.graveyardPosterEvent.hidden = true;
+    document.body.classList.remove("is-graveyard-poster-event");
+  }
+
+  function openGraveyardPosterEvent({ rescued = false } = {}) {
+    if (!el.graveyardPosterEvent) return;
+    document.body.classList.add("is-graveyard-poster-event");
+    el.graveyardPosterEvent.hidden = false;
+    el.graveyardPosterEvent.classList.toggle("is-result", rescued === true);
+    if (el.graveyardPosterText) {
+      el.graveyardPosterText.textContent = rescued
+        ? "구울은 쓰러졌다. 아이는 한참 동안 당신을 바라보다가 작게 고개를 숙였다."
+        : "묘비 사이에서 아이가 구울에게 쫓기고 있다. 아직 당신을 보지 못했다.";
+    }
+    if (el.graveyardPosterChoices) el.graveyardPosterChoices.hidden = rescued === true;
+    if (el.graveyardPosterContinue) el.graveyardPosterContinue.hidden = rescued !== true;
+  }
+
+  function startGraveyardPosterEvent() {
+    closeAudioOptions();
+    openGraveyardPosterEvent();
+  }
+
   function startGraveyardEventCinematic() {
     if (!el.board || !el.graveyardDioramaTest) return;
 
@@ -4535,15 +4563,7 @@
     } catch (_) {}
     if (!result || result.eventId !== "graveyard_child_ambush_01") return false;
 
-    openGraveyardDioramaTest();
-    document.body.classList.add("is-graveyard-event-transition");
-    if (el.graveyardLayerDebug) el.graveyardLayerDebug.hidden = true;
-    if (el.graveyardDioramaClose) el.graveyardDioramaClose.hidden = true;
-    if (el.graveyardEditorReopen) el.graveyardEditorReopen.hidden = true;
-    if (el.graveyardAssetStatus) el.graveyardAssetStatus.hidden = true;
-    graveyardDioramaTimers.push(window.setTimeout(() => {
-      openGraveyardStoryEvent({ rescued: result.won === true });
-    }, 1650));
+    openGraveyardPosterEvent({ rescued: result.won === true });
     return true;
   }
 
@@ -4561,13 +4581,24 @@
     button.textContent = "공동묘지";
     button.setAttribute("aria-label", "공동묘지 습격받는 아이 사건을 인게임 연출로 열기");
     button.addEventListener("click", () => {
-      startGraveyardEventCinematic();
+      startGraveyardPosterEvent();
     });
     row.append(label, button);
     panel.append(row);
   }
 
   installEventOptionShortcut();
+
+  el.graveyardPosterChoices?.querySelector('[data-graveyard-poster-choice="protect"]')?.addEventListener("click", () => {
+    closeGraveyardPosterEvent();
+    startGraveyardEventBattle();
+  });
+  el.graveyardPosterChoices?.querySelector('[data-graveyard-poster-choice="leave"]')?.addEventListener("click", () => {
+    if (el.graveyardPosterText) el.graveyardPosterText.textContent = "당신은 발걸음을 돌린다. 뒤에서 낮은 신음과 아이의 숨소리가 멀어진다.";
+    if (el.graveyardPosterChoices) el.graveyardPosterChoices.hidden = true;
+    if (el.graveyardPosterContinue) el.graveyardPosterContinue.hidden = false;
+  });
+  el.graveyardPosterContinue?.addEventListener("click", closeGraveyardPosterEvent);
 
   el.graveyardStoryChoices?.querySelector('[data-graveyard-story-choice="protect"]')?.addEventListener("click", startGraveyardEventBattle);
   el.graveyardStoryChoices?.querySelector('[data-graveyard-story-choice="leave"]')?.addEventListener("click", () => {
