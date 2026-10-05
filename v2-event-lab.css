@@ -193,12 +193,43 @@ dialog form > div { display: flex; justify-content: flex-end; gap: 8px; }
   bottom:-2%;
   width:11.2%;
   aspect-ratio:263/643;
-  background-image:url("art/v2-style/map-test/events/event-child-idle-01.png?v=20261005-graveyard-ambush-stage1-child-static-1");
+  background-image:url("art/v2-style/map-test/events/event-child-idle-01.png?v=20261005-graveyard-ambush-stage2-child-idle-1");
   background-repeat:no-repeat;
   background-size:contain;
   background-position:center bottom;
   filter:drop-shadow(0 11px 8px rgba(0,0,0,.62));
   transform-origin:50% 100%;
+}
+.event-scene-preview:not([hidden]) .event-child-idle{
+  animation:event-child-idle-breathe 3.4s ease-in-out infinite;
+}
+.event-child-idle::after{
+  content:"";
+  position:absolute;
+  left:22%;
+  right:18%;
+  bottom:1.5%;
+  height:4%;
+  border-radius:50%;
+  background:rgba(0,0,0,.36);
+  filter:blur(4px);
+  transform-origin:50% 50%;
+  animation:event-child-idle-shadow 3.4s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes event-child-idle-breathe{
+  0%,100%{transform:translate3d(0,0,0) rotate(-.18deg) scaleY(1)}
+  22%{transform:translate3d(-.18%,.12%,0) rotate(.12deg) scaleY(.998)}
+  50%{transform:translate3d(.12%,-.45%,0) rotate(.28deg) scaleY(1.006)}
+  76%{transform:translate3d(.2%,-.08%,0) rotate(-.06deg) scaleY(1.002)}
+}
+@keyframes event-child-idle-shadow{
+  0%,100%{opacity:.46;transform:scaleX(1)}
+  50%{opacity:.38;transform:scaleX(.96)}
+}
+@media (prefers-reduced-motion:reduce){
+  .event-scene-preview:not([hidden]) .event-child-idle,
+  .event-child-idle::after{animation:none}
 }
 @media (max-width:980px){
   .event-scene-preview{aspect-ratio:16/9}
