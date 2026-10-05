@@ -196,7 +196,7 @@ dialog form > div { display: flex; justify-content: flex-end; gap: 8px; }
   bottom:-2%;
   width:11.2%;
   aspect-ratio:263/643;
-  background-image:url("art/v2-style/map-test/events/event-child-idle-01.png?v=20261005-graveyard-ambush-stage6-dialogue-choice-1");
+  background-image:url("art/v2-style/map-test/events/event-child-idle-01.png?v=20261005-graveyard-ambush-stage8-battle-return-1");
   background-repeat:no-repeat;
   background-size:contain;
   background-position:center bottom;
@@ -250,7 +250,7 @@ dialog form > div { display: flex; justify-content: flex-end; gap: 8px; }
   bottom:-1.5%;
   width:14.5%;
   aspect-ratio:1/1;
-  background:url("art/v2-style/processed/192/ghoul.png?v=20261005-graveyard-ambush-stage6-dialogue-choice-1") center bottom/contain no-repeat;
+  background:url("art/v2-style/processed/192/ghoul.png?v=20261005-graveyard-ambush-stage8-battle-return-1") center bottom/contain no-repeat;
   filter:drop-shadow(0 12px 9px rgba(0,0,0,.72));
   transform-origin:50% 100%;
   opacity:0;
@@ -429,7 +429,7 @@ dialog form > div { display: flex; justify-content: flex-end; gap: 8px; }
   content:"";
   position:absolute;
   inset:-3% -22% -42% -22%;
-  background:url("art/v2-style/map-test/events/event-child-idle-01.png?v=20261005-graveyard-ambush-stage6-dialogue-choice-1") center top/72% auto no-repeat;
+  background:url("art/v2-style/map-test/events/event-child-idle-01.png?v=20261005-graveyard-ambush-stage8-battle-return-1") center top/72% auto no-repeat;
   transform:scale(1.23);
   transform-origin:50% 10%;
 }
