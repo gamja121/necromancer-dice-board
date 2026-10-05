@@ -143,7 +143,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261005-event-option-stage10-1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261005-graveyard-event-reuse-stage11-1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=131"));
 for (const required of [
@@ -161,7 +161,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261005-event-option-stage10-1",
+  "./v2-map-practice.js?v=20261005-graveyard-event-reuse-stage11-1",
   "./v2-auto-battle-practice.js?v=131",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -353,7 +353,7 @@ assert((eventHtml.match(/class="event-graveyard-prop event-graveyard-/g)||[]).le
 assert(eventHtml.includes('class="event-child-idle"'));
 assert(eventCss.includes(".event-scene-preview"));
 assert(eventCss.includes(".event-child-idle"));
-assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-ambush-stage10-ingame-event-1'));
+assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-event-reuse-stage11-1'));
 assert(eventJs.includes('event.scene === "graveyard_child_ambush_intro"'));
 assert(!eventHtml.includes('id="eventScene"'));
 assert(!eventData.includes("graveyard_child_ambush_test_01"));
@@ -389,7 +389,7 @@ assert(eventHtml.includes('class="event-dialogue-name">아이</span>'));
 assert(eventCss.includes("@keyframes event-dialogue-box-rise"));
 assert(eventCss.includes("@keyframes event-dialogue-portrait-in"));
 assert(eventCss.includes("event-dialogue-portrait-in .66s"));
-assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-ambush-stage10-ingame-event-1'));
+assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-event-reuse-stage11-1'));
 
 assert(eventHtml.includes('data-cinematic-choices'));
 assert(eventJs.includes('function setCinematicChoiceReady'));
@@ -421,3 +421,9 @@ assert(eventCss.includes("body.is-ingame-event .event-stage"));
 assert(map.includes("function installEventOptionShortcut"));
 assert(map.includes('button.textContent = "공동묘지"'));
 assert(map.includes('mode: "ingame"'));
+assert(map.includes("function startGraveyardEventCinematic"));
+assert(map.includes("openGraveyardDioramaTest();"));
+assert(map.includes("}, 2150));");
+assert(eventHtml.includes("art/v2-style/event-portraits/dark-eyed-boy.png?v=1"));
+assert(eventHtml.includes("art/v2-style/ui/intro-dialogue-box.webp?v=6"));
+assert(worker.includes("./art/v2-style/event-portraits/dark-eyed-boy.png?v=1"));
