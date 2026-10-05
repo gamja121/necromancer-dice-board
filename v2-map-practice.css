@@ -1835,7 +1835,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .graveyard-layout-item.is-debug-hidden{display:none!important}
 .graveyard-item-visual{
   display:block;width:100%;height:100%;
-  background-image:url("art/v2-style/map-test/diorama/graveyard/graveyard-atlas.webp?v=20261005-graveyard-stage4-editor-1");
+  background-image:url("art/v2-style/map-test/diorama/graveyard/graveyard-atlas.webp?v=20261005-graveyard-stage5-composition-1");
   background-repeat:no-repeat;background-size:400% 400%;background-color:transparent;
   transform:scaleX(var(--grave-flip));transform-origin:50% 50%;
 }
