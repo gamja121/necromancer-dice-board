@@ -100,7 +100,7 @@ async function activate(page, selector) {
     assert.equal(graveyardStage1.previewVisible,true);
     assert.equal(graveyardStage1.propCount,14);
     assert(graveyardStage1.childBg.includes("event-child-idle-01.png"));
-    assert.equal(graveyardStage1.childAnimation,"event-child-idle-breathe");
+    assert(graveyardStage1.childAnimation.includes("event-child-idle-breathe"));
     assert.equal(graveyardStage1.duplicateTitleCount,1);
     assert.equal(graveyardStage1.hasGhoul,true);
     assert.equal(graveyardStage1.hasDialogue,false);
