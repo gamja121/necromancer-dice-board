@@ -248,3 +248,119 @@ button{touch-action:manipulation}
   .event-actions,.event-choices,.event-outcome{padding-left:14px;padding-right:14px}
   .event-footer{padding-left:14px;padding-right:14px}
 }
+
+
+/* Landscape-only Event Lab · stage 3
+   All event composition is authored in a fixed horizontal frame. */
+.event-lab{
+  --event-stage-w:100vw;
+  --event-stage-h:100dvh;
+}
+.event-ghoul-layer{
+  mix-blend-mode:normal!important;
+  left:-4%!important;
+  bottom:7%!important;
+  width:58%!important;
+  height:84%!important;
+  opacity:0;
+  filter:sepia(.15) saturate(.88) brightness(.84) contrast(1.14) drop-shadow(0 16px 13px #000b)!important;
+}
+.event-card.is-ghoul-revealed .event-ghoul-layer{
+  animation:ghoul-layer-lunge-landscape .62s cubic-bezier(.16,.8,.2,1) both!important;
+}
+@keyframes ghoul-layer-lunge-landscape{
+  0%{opacity:0;transform:translate3d(-11%,5%,0) scale(.92) rotate(-2deg)}
+  72%{opacity:1;transform:translate3d(3%,-3%,0) scale(1.025) rotate(.35deg)}
+  100%{opacity:1;transform:translate3d(0,-2%,0) scale(1) rotate(0)}
+}
+
+/* Portrait phones are physically shown the same landscape-authored scene by rotating the app shell. */
+@media (orientation:portrait){
+  html,body{
+    width:100vw!important;
+    height:100dvh!important;
+    min-height:0!important;
+    overflow:hidden!important;
+    background:#050403!important
+  }
+  body{position:fixed!important;inset:0!important}
+  .event-lab{
+    position:absolute!important;
+    left:0!important;
+    top:0!important;
+    width:100dvh!important;
+    height:100vw!important;
+    min-height:0!important;
+    transform-origin:top left!important;
+    transform:rotate(90deg) translateY(-100%)!important;
+    display:grid!important;
+    grid-template-rows:auto 1fr!important;
+    overflow:hidden!important
+  }
+  .lab-header{
+    position:relative!important;
+    top:auto!important;
+    min-height:48px!important;
+    padding:6px 12px!important;
+    flex-direction:row!important;
+    align-items:center!important;
+  }
+  .lab-header span{display:block!important}
+  .event-workspace{
+    min-height:0!important;
+    display:grid!important;
+    place-items:center!important;
+    padding:1.5vh 2vw!important;
+    overflow:hidden!important
+  }
+  .event-card{
+    width:min(1100px,96dvh)!important;
+    height:calc(100vw - 62px)!important;
+    max-height:none!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1.42fr) minmax(260px,.58fr)!important;
+    grid-template-rows:auto 1fr auto auto!important;
+    flex-direction:initial!important;
+  }
+  .event-scene{
+    grid-row:1 / span 4!important;
+    grid-column:1!important;
+    width:auto!important;
+    height:auto!important;
+    aspect-ratio:auto!important;
+  }
+  .event-base-image{
+    object-fit:cover!important;
+    object-position:center!important;
+  }
+  .event-copy{
+    grid-column:2!important;
+    grid-row:1 / span 2!important;
+    align-self:end!important;
+    width:auto!important;
+    padding:42px 16px 12px!important;
+    border-left:1px solid #6b492d!important;
+    border-top:0!important;
+  }
+  .event-copy h1{font-size:clamp(24px,4dvh,36px)!important}
+  .event-copy p:last-child{font-size:12px!important;line-height:1.45!important}
+  .event-actions,.event-choices,.event-outcome{
+    grid-column:2!important;
+    width:auto!important;
+    padding:0 16px 9px!important;
+    border-left:1px solid #6b492d!important;
+  }
+  .event-footer{
+    grid-column:2!important;
+    width:auto!important;
+    padding:7px 16px!important;
+    border-left:1px solid #6b492d!important;
+  }
+  .event-dialogue{
+    padding:0 5% 2.5%!important
+  }
+  .event-dialogue-box{
+    height:30%!important;
+    min-height:105px!important
+  }
+}
