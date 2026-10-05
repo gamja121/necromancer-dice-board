@@ -2700,9 +2700,17 @@ body.is-graveyard-event-transition .map-board .swamp-damage-overlay{
   width:27%!important;
 }
 .graveyard-story-choices{
-  left:67%!important;
+  left:55%!important;
   right:auto!important;
+  top:47%!important;
   width:27%!important;
+  gap:8px!important;
+  z-index:12!important;
+}
+.graveyard-story-event.is-choice-phase .graveyard-story-choices{
+  display:grid!important;
+  visibility:visible!important;
+  opacity:1!important;
 }
 
 /* Stage 20.7 — lock event copy to normal horizontal Korean text.
