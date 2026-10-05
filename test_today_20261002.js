@@ -365,7 +365,7 @@ assert(eventCss.includes("@keyframes event-child-idle-breathe"));
 assert(eventCss.includes("animation:event-child-idle-breathe 3.4s ease-in-out infinite"));
 assert(eventCss.includes("@keyframes event-child-idle-shadow"));
 assert(eventCss.includes("@media (prefers-reduced-motion:reduce)"));
-assert(eventData.includes("아이의 등장과 불안한 대기 모션까지만 테스트한다."));
+assert(eventData.includes("당신은 이 아이를 두고 선택해야 한다."));
 
 {
   const start = eventData.indexOf('id: "graveyard_child_ambush_01"');
