@@ -4586,8 +4586,19 @@
     setGraveyardStoryChoicePhase(beat.choice === true);
   }
 
+  function closeGraveyardStoryEvent() {
+    if (!el.graveyardStoryEvent) return;
+    el.graveyardStoryEvent.hidden = true;
+    el.graveyardStoryEvent.classList.remove("is-rescued", "is-child-fleeing", "has-dialogue", "is-choice-phase");
+    el.board?.classList.remove("is-story-event-open");
+  }
+
   function advanceGraveyardStoryBeat() {
-    if (!el.graveyardStoryEvent || el.graveyardStoryEvent.classList.contains("is-rescued")) return;
+    if (!el.graveyardStoryEvent) return;
+    if (el.graveyardStoryEvent.classList.contains("is-rescued")) {
+      closeGraveyardStoryEvent();
+      return;
+    }
     if (graveyardStoryBeatIndex >= GRAVEYARD_EVENT_BEATS.length - 1) {
       setGraveyardStoryChoicePhase(true);
       return;
@@ -4617,8 +4628,8 @@
       el.graveyardStoryEvent.classList.add("has-dialogue", "is-child-fleeing");
       if (el.graveyardStoryGhoulLayer) el.graveyardStoryGhoulLayer.hidden = true;
       if (el.graveyardStoryAdvance) {
-        el.graveyardStoryAdvance.disabled = true;
-        el.graveyardStoryAdvance.onclick = null;
+        el.graveyardStoryAdvance.disabled = false;
+        el.graveyardStoryAdvance.onclick = closeGraveyardStoryEvent;
       }
       return;
     }
@@ -4749,10 +4760,13 @@
   el.graveyardPosterContinue?.addEventListener("click", closeGraveyardPosterEvent);
 
   el.graveyardStoryChoices?.querySelector('[data-graveyard-story-choice="protect"]')?.addEventListener("click", startGraveyardEventBattle);
-  el.graveyardStoryChoices?.querySelector('[data-graveyard-story-choice="leave"]')?.addEventListener("click", () => {
+  el.graveyardStoryChoices?.querySelector('[data-graveyard-story-choice="leave"]')?.addEventListener("click", async () => {
+    await markGraveyardChildEventComplete();
     setGraveyardStoryChoicePhase(false);
-    if (el.graveyardStoryText) el.graveyardStoryText.textContent = "……";
-    el.graveyardStoryEvent?.classList.add("is-rescued");
+    if (el.graveyardStoryEffectText) el.graveyardStoryEffectText.textContent = "당신은 아이를 외면하고 공동묘지를 지나친다.";
+    if (el.graveyardStoryText) el.graveyardStoryText.textContent = "";
+    el.graveyardStoryEvent?.classList.remove("has-dialogue");
+    window.setTimeout(closeGraveyardStoryEvent, 900);
   });
 
   const mapLaunchParams = new URLSearchParams(location.search);
