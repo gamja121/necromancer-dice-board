@@ -340,3 +340,16 @@ assert(mapHtml.includes('data-graveyard-id="M2"') && mapHtml.includes('data-defa
 assert(mapHtml.includes('data-graveyard-id="T1"') && mapHtml.includes('data-default-bottom=""'));
 assert(mapHtml.includes('data-graveyard-id="H2"') && mapHtml.includes('data-default-width="12%"'));
 assert(map.includes('item.dataset.defaultBottom||""'));
+
+assert((eventData.match(/title: "습격받는 아이"/g)||[]).length===1);
+assert(eventData.includes('id: "graveyard_child_ambush_01"'));
+assert(eventData.includes('scene: "graveyard_child_ambush_intro"'));
+assert(eventHtml.includes('id="eventScenePreview"'));
+assert((eventHtml.match(/class="event-graveyard-prop/g)||[]).length===14);
+assert(eventHtml.includes('class="event-child-idle"'));
+assert(eventCss.includes(".event-scene-preview"));
+assert(eventCss.includes(".event-child-idle"));
+assert(eventCss.includes('graveyard-child-idle.png?v=20261005-graveyard-ambush-stage1'));
+assert(eventJs.includes('event.scene === "graveyard_child_ambush_intro"'));
+assert(!eventHtml.includes('id="eventScene"'));
+assert(!eventData.includes("graveyard_child_ambush_test_01"));
