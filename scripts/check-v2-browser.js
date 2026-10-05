@@ -129,6 +129,26 @@ async function activate(page, selector) {
     assert(Number.parseFloat(stage4Ambush.ghoulOpacity)>.95);
     assert(stage4Ambush.text.includes("구울"));
     console.log("PASS: event lab graveyard child stage 4 ghoul ambush");
+    await page.waitForFunction(() => {
+      const box = document.querySelector("#eventScenePreview .event-dialogue-box");
+      const portrait = document.querySelector("#eventScenePreview .event-dialogue-portrait");
+      return box && portrait
+        && Number.parseFloat(getComputedStyle(box).opacity) >= .98
+        && Number.parseFloat(getComputedStyle(portrait).opacity) >= .98;
+    }, null, { timeout: 10000 });
+    const dialogueState = await page.evaluate(() => ({
+      name: document.querySelector("#eventScenePreview .event-dialogue-name")?.textContent?.trim() || "",
+      text: document.querySelector("#eventScenePreview .event-dialogue-text")?.textContent?.trim() || "",
+      boxOpacity: getComputedStyle(document.querySelector("#eventScenePreview .event-dialogue-box")).opacity,
+      portraitOpacity: getComputedStyle(document.querySelector("#eventScenePreview .event-dialogue-portrait")).opacity,
+      portraitBg: getComputedStyle(document.querySelector("#eventScenePreview .event-dialogue-portrait"), "::before").backgroundImage
+    }));
+    assert.equal(dialogueState.name, "아이");
+    assert.equal(dialogueState.text, "…!");
+    assert(Number.parseFloat(dialogueState.boxOpacity) >= .98);
+    assert(Number.parseFloat(dialogueState.portraitOpacity) >= .98);
+    assert(dialogueState.portraitBg.includes("event-child-idle-01.png"));
+    console.log("PASS: cemetery ambush stage 5 dialogue and child bust");
 
     await page.setViewportSize({ width: 844, height: 390 });
     await page.goto(new URL("v2-intro.html", base).href);
