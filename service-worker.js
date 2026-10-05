@@ -82,7 +82,6 @@ const CORE_ASSETS = [
   "./v2-event-data.js?v=20261005-graveyard-ambush-stage1",
   "./art/v2-style/map-test/events/graveyard-child-idle.png?v=20261005-graveyard-ambush-stage1",
   "./art/v2-style/map-test/diorama/graveyard/graveyard-atlas.webp?v=20261005-graveyard-stage5-approved-layout-1",
-  "./art/v2-style/map-test/maps/default-map.jpg?v=20261004-board-bg-final-1",
   "./v2-map-events.js?v=1",
   "./v2-auto-battle-practice.js?v=129",
   "./v2-heal-effect.js?v=1",
