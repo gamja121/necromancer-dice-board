@@ -362,7 +362,7 @@ assert(eventJs.includes("GHOUL_IMAGE_CHUNKS"));
 assert(eventJs.includes("loadChunkImage"));
 assert(eventJs.includes("removeBlackBackground"));
 assert(eventJs.includes("loadGhoulLayer"));
-assert(eventJs.includes('screen.orientation?.lock("landscape")'));
+assert(eventJs.includes('screen.orientation.lock("landscape")'));
 assert(eventJs.includes("revealGhoul"));
 assert(eventJs.includes("showDialogue"));
 assert(eventJs.includes("showChoices"));
