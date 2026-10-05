@@ -349,7 +349,7 @@ assert((eventData.match(/title: "습격받는 아이"/g)||[]).length===1);
 assert(eventData.includes('id: "graveyard_child_ambush_01"'));
 assert(eventData.includes('scene: "graveyard_child_ambush_intro"'));
 assert(eventHtml.includes('id="eventScenePreview"'));
-assert((eventHtml.match(/class="event-graveyard-prop/g)||[]).length===14);
+assert((eventHtml.match(/class="event-graveyard-prop event-graveyard-/g)||[]).length===14);
 assert(eventHtml.includes('class="event-child-idle"'));
 assert(eventCss.includes(".event-scene-preview"));
 assert(eventCss.includes(".event-child-idle"));
