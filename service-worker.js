@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261005-event-lab-poster-shell-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261005-event-lab-layered-graveyard-1";
 
 const CORE_ASSETS = [
   "./",
@@ -56,9 +56,13 @@ const CORE_ASSETS = [
   "./v2-animation-practice.css?v=7",
   "./v2-animation-practice.js?v=82",
   "./v2-event-lab.html",
-  "./v2-event-lab.css?v=20261005-event-lab-poster-shell-1",
-  "./v2-event-lab.js?v=20261005-event-lab-poster-shell-1",
-  "./v2-event-lab-data.js?v=20261005-event-lab-poster-shell-1",
+  "./v2-event-lab.css?v=20261005-event-lab-layered-graveyard-1",
+  "./v2-event-lab.js?v=20261005-event-lab-layered-graveyard-1",
+  "./v2-event-lab-data.js?v=20261005-event-lab-layered-graveyard-1",
+  "./assets/event-lab/graveyard-child/base/part-000.txt",
+  "./assets/event-lab/graveyard-child/base/part-001.txt",
+  "./assets/event-lab/graveyard-child/ghoul/part-000.txt",
+  "./assets/event-lab/graveyard-child/ghoul/part-001.txt",
   "./v2-tile-practice.html",
   "./v2-tile-practice.css?v=1",
   "./v2-tile-practice.js?v=2",
