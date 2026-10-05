@@ -153,6 +153,8 @@
     graveyardStoryAdvance: document.getElementById("graveyardStoryAdvance"),
     graveyardStoryText: document.getElementById("graveyardStoryText"),
     graveyardStoryChoices: document.getElementById("graveyardStoryChoices"),
+    graveyardStoryPortraitImg: document.querySelector(".graveyard-story-portrait img"),
+    graveyardStoryFrameImg: document.querySelector(".graveyard-story-frame"),
     mapName: document.getElementById("mapName"),
     tileName: document.getElementById("tileName"),
     regenerate: document.getElementById("regenerateButton"),
@@ -4335,6 +4337,65 @@
       }
     });
   }
+  const GRAVEYARD_DIALOGUE_FRAME_CHUNKS = Array.from({ length: 8 }, (_, i) =>
+    `assets/intro-data/frame-v2/part-${String(i).padStart(3, "0")}.txt`
+  );
+  let graveyardDialogueAssetsReady = null;
+
+  async function loadGraveyardDialogueFrame() {
+    const img = el.graveyardStoryFrameImg;
+    if (!img) return false;
+    try {
+      const parts = await Promise.all(GRAVEYARD_DIALOGUE_FRAME_CHUNKS.map(async (path) => {
+        const response = await fetch(path, { cache: "force-cache" });
+        if (!response.ok) throw new Error(`dialogue frame chunk failed: ${path}`);
+        return (await response.text()).trim();
+      }));
+      img.src = `data:image/webp;base64,${parts.join("")}`;
+      await img.decode();
+      img.hidden = false;
+      img.dataset.assetReady = "frame-visible";
+      return true;
+    } catch (error) {
+      console.error("[graveyard-event] dialogue frame restore failed", error);
+      img.hidden = false;
+      img.src = "art/v2-style/ui/intro-dialogue-box.webp?v=6";
+      return false;
+    }
+  }
+
+  async function loadGraveyardChildPortrait() {
+    const img = el.graveyardStoryPortraitImg;
+    if (!img) return false;
+    const src = "art/v2-style/event-portraits/dark-eyed-boy.png?v=1";
+    try {
+      const response = await fetch(src, { cache: "force-cache" });
+      if (!response.ok) throw new Error(`child portrait fetch failed: ${response.status}`);
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      img.src = objectUrl;
+      await img.decode();
+      img.hidden = false;
+      img.dataset.assetReady = "child-portrait";
+      return true;
+    } catch (error) {
+      console.error("[graveyard-event] child portrait restore failed", error);
+      img.hidden = false;
+      img.src = src;
+      return false;
+    }
+  }
+
+  function ensureGraveyardDialogueAssets() {
+    if (!graveyardDialogueAssetsReady) {
+      graveyardDialogueAssetsReady = Promise.all([
+        loadGraveyardDialogueFrame(),
+        loadGraveyardChildPortrait()
+      ]);
+    }
+    return graveyardDialogueAssetsReady;
+  }
+
   const GRAVEYARD_EVENT_BATTLE_RESULT_KEY = "necromancer-event-battle-result-v1";
 
   function setGraveyardStoryChoicePhase(enabled) {
@@ -4345,6 +4406,7 @@
 
   function openGraveyardStoryEvent({ rescued = false } = {}) {
     if (!el.graveyardStoryEvent) return;
+    ensureGraveyardDialogueAssets();
     el.graveyardStoryEvent.hidden = false;
     el.graveyardStoryEvent.classList.toggle("is-rescued", rescued === true);
     setGraveyardStoryChoicePhase(false);
