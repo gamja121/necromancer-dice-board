@@ -143,7 +143,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261005-graveyard-dialogue-stage13-1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261005-graveyard-dialogue-stage14-1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=132"));
 for (const required of [
@@ -161,7 +161,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261005-graveyard-dialogue-stage13-1",
+  "./v2-map-practice.js?v=20261005-graveyard-dialogue-stage14-1",
   "./v2-auto-battle-practice.js?v=132",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -180,22 +180,22 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!/(^|\\n)\\.map-options-button\\s*\\{\\s*visibility:\\s*hidden;\\s*\\}/.test(mapCss));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261005-graveyard-dialogue-stage13-1"));
-assert(worker.includes("./v2-map-practice.css?v=20261005-graveyard-dialogue-stage13-1"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261005-graveyard-dialogue-stage14-1"));
+assert(worker.includes("./v2-map-practice.css?v=20261005-graveyard-dialogue-stage14-1"));
 assert(mapHtml.includes('id="villageDioramaTestButton"'));
 assert(mapHtml.includes('id="villageDioramaTest"'));
-assert(mapHtml.includes("village-building-01.webp?v=20261005-graveyard-dialogue-stage13-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-01.webp?v=20261005-graveyard-dialogue-stage13-1"));
-assert(mapHtml.includes("village-building-02.webp?v=20261005-graveyard-dialogue-stage13-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-02.webp?v=20261005-graveyard-dialogue-stage13-1"));
-assert(mapHtml.includes("village-building-03.webp?v=20261005-graveyard-dialogue-stage13-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-03.webp?v=20261005-graveyard-dialogue-stage13-1"));
-assert(mapHtml.includes("village-building-04.webp?v=20261005-graveyard-dialogue-stage13-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-04.webp?v=20261005-graveyard-dialogue-stage13-1"));
-assert(mapHtml.includes("village-building-05.webp?v=20261005-graveyard-dialogue-stage13-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-05.webp?v=20261005-graveyard-dialogue-stage13-1"));
-assert(mapHtml.includes("village-building-06.webp?v=20261005-graveyard-dialogue-stage13-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-06.webp?v=20261005-graveyard-dialogue-stage13-1"));
+assert(mapHtml.includes("village-building-01.webp?v=20261005-graveyard-dialogue-stage14-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-01.webp?v=20261005-graveyard-dialogue-stage14-1"));
+assert(mapHtml.includes("village-building-02.webp?v=20261005-graveyard-dialogue-stage14-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-02.webp?v=20261005-graveyard-dialogue-stage14-1"));
+assert(mapHtml.includes("village-building-03.webp?v=20261005-graveyard-dialogue-stage14-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-03.webp?v=20261005-graveyard-dialogue-stage14-1"));
+assert(mapHtml.includes("village-building-04.webp?v=20261005-graveyard-dialogue-stage14-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-04.webp?v=20261005-graveyard-dialogue-stage14-1"));
+assert(mapHtml.includes("village-building-05.webp?v=20261005-graveyard-dialogue-stage14-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-05.webp?v=20261005-graveyard-dialogue-stage14-1"));
+assert(mapHtml.includes("village-building-06.webp?v=20261005-graveyard-dialogue-stage14-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-06.webp?v=20261005-graveyard-dialogue-stage14-1"));
 assert(map.includes('img.naturalWidth > 0 && img.naturalHeight > 0'));
 assert(mapHtml.includes("village-building-image"));
 assert(mapHtml.includes("village-layout-hint"));
@@ -353,7 +353,7 @@ assert((eventHtml.match(/class="event-graveyard-prop event-graveyard-/g)||[]).le
 assert(eventHtml.includes('class="event-child-idle"'));
 assert(eventCss.includes(".event-scene-preview"));
 assert(eventCss.includes(".event-child-idle"));
-assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-dialogue-stage13-1'));
+assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-dialogue-stage14-1'));
 assert(eventJs.includes('event.scene === "graveyard_child_ambush_intro"'));
 assert(!eventHtml.includes('id="eventScene"'));
 assert(!eventData.includes("graveyard_child_ambush_test_01"));
@@ -389,7 +389,7 @@ assert(eventHtml.includes('class="event-dialogue-name">아이</span>'));
 assert(eventCss.includes("@keyframes event-dialogue-box-rise"));
 assert(eventCss.includes("@keyframes event-dialogue-portrait-in"));
 assert(eventCss.includes("event-dialogue-portrait-in .66s"));
-assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-dialogue-stage13-1'));
+assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-dialogue-stage14-1'));
 
 assert(eventHtml.includes('data-cinematic-choices'));
 assert(eventJs.includes('function setCinematicChoiceReady'));
@@ -426,6 +426,10 @@ assert(mapCss.includes(".graveyard-story-child"));
 assert(mapCss.includes("width:7.2%"));
 assert(mapCss.includes(".graveyard-story-ghoul"));
 assert(mapCss.includes("Cemetery story dialogue hotfix · stage 13"));
+assert(map.includes("GRAVEYARD_DIALOGUE_FRAME_CHUNKS"));
+assert(map.includes("loadGraveyardDialogueFrame"));
+assert(map.includes("loadGraveyardChildPortrait"));
+assert(mapCss.includes("body.is-graveyard-event-transition .map-board .contamination-hud"));
 assert(mapCss.includes("z-index:306!important"));
 assert(mapCss.includes("animation:none!important"));
 assert(mapCss.includes("width:12.5%"));
