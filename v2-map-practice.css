@@ -2697,3 +2697,20 @@ body.is-graveyard-event-transition .map-board .swamp-damage-overlay{
   right:auto!important;
   width:27%!important;
 }
+
+/* Stage 20.7 — lock event copy to normal horizontal Korean text.
+   Only text flow is changed; panel geometry stays untouched. */
+.graveyard-story-effect-box,
+.graveyard-story-effect-box strong,
+.graveyard-story-effect-box p{
+  writing-mode:horizontal-tb!important;
+  text-orientation:mixed!important;
+  direction:ltr!important;
+}
+.graveyard-story-effect-box strong,
+.graveyard-story-effect-box p{
+  transform:none!important;
+  white-space:normal!important;
+  word-break:keep-all!important;
+  overflow-wrap:break-word!important;
+}
