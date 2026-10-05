@@ -376,6 +376,12 @@ assert(eventCss.includes("@media (orientation:portrait)"));
 assert(eventCss.includes("transform:rotate(90deg) translateY(-100%)"));
 assert(eventCss.includes("bottom:7%!important"));
 assert(eventCss.includes("width:58%!important"));
+assert(eventCss.includes("Event Lab cinematic gaze direction · stage 4"));
+assert(eventCss.includes("@keyframes event-camera-child-focus"));
+assert(eventCss.includes("@keyframes event-camera-threat-focus"));
+assert(eventCss.includes("@keyframes event-camera-dialogue-focus"));
+assert(eventCss.includes("@keyframes event-camera-impact"));
+assert(eventCss.includes("@keyframes event-threat-flash"));
 
 // Production map/battle event flow remains available outside Event Lab.
 assert(battle.includes('const fromEvent = battleQuery.get("from") === "event"'));
@@ -402,9 +408,9 @@ assert(battle.includes('resumeGraveyardEvent: "1"'));
 
 // Empty Event Lab files must be available offline.
 assert(worker.includes("./v2-event-lab.html"));
-assert(worker.includes("./v2-event-lab.css?v=20261005-event-lab-landscape-alpha-3"));
-assert(worker.includes("./v2-event-lab.js?v=20261005-event-lab-landscape-alpha-3"));
-assert(worker.includes("./v2-event-lab-data.js?v=20261005-event-lab-landscape-alpha-3"));
+assert(worker.includes("./v2-event-lab.css?v=20261005-event-lab-gaze-stage4"));
+assert(worker.includes("./v2-event-lab.js?v=20261005-event-lab-gaze-stage4"));
+assert(worker.includes("./v2-event-lab-data.js?v=20261005-event-lab-gaze-stage4"));
 
 assert(worker.includes("./assets/event-lab/graveyard-child/base/part-000.txt"));
 assert(worker.includes("./assets/event-lab/graveyard-child/ghoul/part-000.txt"));
