@@ -105,13 +105,21 @@ async function activate(page, selector) {
     assert.equal(graveyardStage1.hasGhoul,true);
     assert.equal(graveyardStage1.hasDialogue,false);
     console.log("PASS: event lab graveyard child stage 2 idle motion");
-    const graveyardStage3Choices = await page.evaluate(() => [...document.querySelectorAll("#choiceList button")].map((button) => button.firstChild?.textContent?.trim() || button.textContent.trim()));
-    assert.deepEqual(graveyardStage3Choices, ["아이를 구한다", "지나친다"]);
+    assert.equal(await page.locator("#choiceList").isVisible(), false, "Cinematic choices must stay hidden before dialogue advance");
+    await page.waitForFunction(() => {
+      const box = document.querySelector("#eventDialogueAdvance");
+      return box && Number.parseFloat(getComputedStyle(box).opacity) >= .98;
+    }, null, { timeout: 10000 });
+    await page.locator("#eventDialogueAdvance").click();
+    await page.waitForSelector("#choiceList", { state: "visible", timeout: 5000 });
+    const graveyardStage6Choices = await page.evaluate(() => [...document.querySelectorAll("#choiceList button")].map((button) => button.firstChild?.textContent?.trim() || button.textContent.trim()));
+    assert.deepEqual(graveyardStage6Choices, ["아이를 구한다", "지나친다"]);
+    assert.equal(await page.locator(".event-card").evaluate((el)=>el.classList.contains("is-cinematic-choice-ready")), true);
     await page.locator("#choiceList button").filter({ hasText: "아이를 구한다" }).click();
-    assert((await page.locator("#outcomeBox").textContent()).includes("구한다 선택 입력 확인"));
+    assert((await page.locator("#outcomeBox").textContent()).includes("구울 앞을 막아선다"));
     assert.equal(await page.locator("#rollPanel").evaluate((el) => el.hidden), true);
     assert.equal(await page.locator("#flagList").textContent().then((text)=>text.includes("child_saved")||text.includes("child_abandoned")), false);
-    console.log("PASS: event lab graveyard child stage 3 choices");
+    console.log("PASS: cemetery ambush stage 6 dialogue to choices");
     await page.waitForFunction(() => {
       const ghoul=document.querySelector("#eventScenePreview .event-ghoul");
       if(!ghoul) return false;
