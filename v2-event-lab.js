@@ -18,6 +18,7 @@
     eventList: document.getElementById("eventList"),
     eventArt: document.getElementById("eventArt"),
     eventScenePreview: document.getElementById("eventScenePreview"),
+    eventDialogueAdvance: document.getElementById("eventDialogueAdvance"),
     eventLocation: document.getElementById("eventLocation"),
     eventId: document.getElementById("eventId"),
     eventTitle: document.getElementById("eventTitle"),
@@ -181,6 +182,11 @@
         state.currentEventId = event.id;
         state.pendingRoll = null;
         el.outcomeBox.hidden = true;
+        const card = el.eventArt?.closest(".event-card");
+        if (card) {
+          delete card.dataset.cinematicInitialized;
+          card.classList.remove("is-cinematic-choice-ready");
+        }
         renderAll();
       });
       el.eventList.append(button);
@@ -273,13 +279,29 @@
     renderCurrentEvent();
   }
 
+  function setCinematicChoiceReady(ready) {
+    const card = el.eventArt?.closest(".event-card");
+    card?.classList.toggle("is-cinematic-choice-ready", ready === true);
+    if (el.eventDialogueAdvance) {
+      el.eventDialogueAdvance.disabled = ready === true;
+      el.eventDialogueAdvance.setAttribute("aria-expanded", String(ready === true));
+    }
+  }
+
   function renderCurrentEvent() {
     const event = eventById.get(state.currentEventId);
     if (!event) return;
     const useScenePreview = event.scene === "graveyard_child_ambush_intro";
     if (el.eventScenePreview) el.eventScenePreview.hidden = !useScenePreview;
     el.eventArt.hidden = useScenePreview;
-    el.eventArt.closest(".event-card")?.classList.toggle("is-cinematic-scene", useScenePreview);
+    const eventCard = el.eventArt.closest(".event-card");
+    eventCard?.classList.toggle("is-cinematic-scene", useScenePreview);
+    if (!useScenePreview) {
+      eventCard?.classList.remove("is-cinematic-choice-ready");
+    } else if (!eventCard?.dataset.cinematicInitialized) {
+      eventCard.dataset.cinematicInitialized = "1";
+      setCinematicChoiceReady(false);
+    }
     if (!useScenePreview) {
       el.eventArt.src = event.art;
       el.eventArt.alt = `${event.locationLabel} · ${event.title}`;
@@ -357,6 +379,12 @@
     button.addEventListener("click", () => resolveRoll(button.dataset.roll));
   });
 
+  el.eventDialogueAdvance?.addEventListener("click", () => {
+    const event = eventById.get(state.currentEventId);
+    if (event?.scene !== "graveyard_child_ambush_intro") return;
+    setCinematicChoiceReady(true);
+  });
+
   document.getElementById("clearHistory").addEventListener("click", () => {
     state.history = [];
     renderHistory();
@@ -370,6 +398,11 @@
     state.pendingRoll = null;
     state.history = [];
     state.currentEventId = events[0]?.id || null;
+    const card = el.eventArt?.closest(".event-card");
+    if (card) {
+      delete card.dataset.cinematicInitialized;
+      card.classList.remove("is-cinematic-choice-ready");
+    }
     document.querySelectorAll("[data-monster-tag]").forEach((input) => { input.checked = false; });
     el.outcomeBox.hidden = true;
     renderAll();
