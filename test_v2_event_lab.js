@@ -28,6 +28,7 @@ assert(js.includes('screen.orientation.lock("landscape")'));
 assert(js.includes('phase = "threat"'));
 assert(js.includes('phase = "dialogue"'));
 assert(js.includes('phase = "choice"'));
+assert(js.includes("showUnease"));
 assert(js.includes("revealGhoul"));
 assert(js.includes("showDialogue"));
 assert(js.includes("showChoices"));
@@ -47,12 +48,14 @@ assert(css.includes("@keyframes event-camera-threat-focus"));
 assert(css.includes("@keyframes event-camera-dialogue-focus"));
 assert(css.includes("@keyframes event-camera-impact"));
 assert(css.includes("@keyframes event-threat-flash"));
+assert(css.includes("Narrative pacing · stage 5"));
+assert(css.includes("@keyframes event-camera-unease-focus"));
 
 for (const file of [
   "v2-event-lab.html",
-  "v2-event-lab.css?v=20261005-event-lab-gaze-stage4",
-  "v2-event-lab.js?v=20261005-event-lab-gaze-stage4",
-  "v2-event-lab-data.js?v=20261005-event-lab-gaze-stage4",
+  "v2-event-lab.css?v=20261005-event-lab-narrative-stage5",
+  "v2-event-lab.js?v=20261005-event-lab-narrative-stage5",
+  "v2-event-lab-data.js?v=20261005-event-lab-narrative-stage5",
   "assets/event-lab/graveyard-child/base/part-000.txt",
   "assets/event-lab/graveyard-child/base/part-001.txt",
   "assets/event-lab/graveyard-child/ghoul/part-000.txt",
