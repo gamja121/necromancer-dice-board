@@ -352,7 +352,10 @@ assert(eventLabData.includes("window.V2EventLabData"));
 assert(eventLabData.includes("events: Object.freeze([])"));
 assert(!eventLabData.includes("graveyard_child_ambush_01"));
 assert(!eventLabData.includes("forest_child_01"));
-assert(eventHtml.includes("등록된 테스트 이벤트가 없습니다."));
+assert(eventHtml.includes('class="event-poster is-empty"'));
+assert(eventHtml.includes('id="posterTitle"'));
+assert(eventHtml.includes("새 사건"));
+assert(eventHtml.includes("사건 내용이 여기에 표시됩니다."));
 assert(eventHtml.includes('id="eventCount"'));
 assert(!eventHtml.includes('id="eventScenePreview"'));
 assert(!eventHtml.includes('id="eventList"'));
@@ -363,7 +366,9 @@ assert(!eventHtml.includes('id="choiceList"'));
 assert(eventJs.includes("window.V2EventLabData?.events"));
 assert(!eventJs.includes("conditionChecks"));
 assert(!eventJs.includes("startEventBattle"));
-assert(eventCss.includes(".empty-lab"));
+assert(eventCss.includes(".event-poster"));
+assert(eventCss.includes("@keyframes poster-enter"));
+assert(eventCss.includes("@keyframes poster-drift"));
 
 // Production map/battle event flow remains available outside Event Lab.
 assert(battle.includes('const fromEvent = battleQuery.get("from") === "event"'));
@@ -390,6 +395,6 @@ assert(battle.includes('resumeGraveyardEvent: "1"'));
 
 // Empty Event Lab files must be available offline.
 assert(worker.includes("./v2-event-lab.html"));
-assert(worker.includes("./v2-event-lab.css?v=20261005-event-lab-reset-1"));
-assert(worker.includes("./v2-event-lab.js?v=20261005-event-lab-reset-1"));
-assert(worker.includes("./v2-event-lab-data.js?v=20261005-event-lab-reset-1"));
+assert(worker.includes("./v2-event-lab.css?v=20261005-event-lab-poster-shell-1"));
+assert(worker.includes("./v2-event-lab.js?v=20261005-event-lab-poster-shell-1"));
+assert(worker.includes("./v2-event-lab-data.js?v=20261005-event-lab-poster-shell-1"));
