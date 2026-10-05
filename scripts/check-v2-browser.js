@@ -85,20 +85,44 @@ async function activate(page, selector) {
       console.log("PASS: " + screen);
     }
     await page.goto(new URL("v2-event-lab.html", base).href);
-    await page.waitForSelector(".event-poster", { state: "visible", timeout: 15000 });
-    const posterEventLab = await page.evaluate(() => ({
-      count: document.getElementById("eventCount")?.textContent?.trim() || "",
-      title: document.getElementById("posterTitle")?.textContent?.trim() || "",
-      text: document.getElementById("posterText")?.textContent?.trim() || "",
-      oldScene: !!document.getElementById("eventScenePreview"),
-      oldList: !!document.getElementById("eventList")
+    await page.waitForSelector("#eventCard", { state: "visible", timeout: 15000 });
+    await page.waitForFunction(() => {
+      const baseImg=document.getElementById("eventBaseImage");
+      const ghoul=document.getElementById("eventGhoulLayer");
+      return baseImg?.dataset.assetReady === "base-ready"
+        && ghoul?.dataset.assetReady === "ghoul-ready";
+    }, null, { timeout: 15000 });
+
+    const eventInitial = await page.evaluate(() => ({
+      phase: document.getElementById("eventCard")?.dataset.phase,
+      description: document.getElementById("eventDescription")?.textContent?.trim(),
+      ghoulHidden: document.getElementById("eventGhoulLayer")?.hidden,
+      baseWidth: document.getElementById("eventBaseImage")?.naturalWidth || 0,
+      tags: [...document.querySelectorAll("#eventTags span")].map(el=>el.textContent)
     }));
-    assert.equal(posterEventLab.count, "0");
-    assert.equal(posterEventLab.title, "새 사건");
-    assert(posterEventLab.text.includes("사건 내용이 여기에 표시됩니다."));
-    assert.equal(posterEventLab.oldScene, false);
-    assert.equal(posterEventLab.oldList, false);
-    console.log("PASS: Event Lab opens with empty poster shell");
+    assert.equal(eventInitial.phase, "description");
+    assert(eventInitial.description.includes("묘비 사이에서 아이가 뒷걸음친다."));
+    assert.equal(eventInitial.ghoulHidden, true);
+    assert(eventInitial.baseWidth > 0);
+    assert.deepEqual(eventInitial.tags, ["#사건","#공동묘지","#습격받는아이"]);
+
+    await page.locator("#eventAdvance").click();
+    await page.waitForFunction(() => {
+      const card=document.getElementById("eventCard");
+      const ghoul=document.getElementById("eventGhoulLayer");
+      return card?.dataset.phase === "threat" && ghoul && !ghoul.hidden;
+    });
+    assert.equal(await page.locator("#eventGhoulLayer").isVisible(), true);
+
+    await page.locator("#eventAdvance").click();
+    await page.waitForSelector("#eventDialogue", { state: "visible", timeout: 5000 });
+    assert.equal((await page.locator("#eventDialogueName").textContent()).trim(), "아이");
+    assert.equal((await page.locator("#eventDialogueText").textContent()).trim(), "…도와주세요!");
+    await page.locator("#eventDialogueAdvance").click();
+    await page.waitForSelector("#eventChoices", { state: "visible", timeout: 5000 });
+    const eventChoices=await page.locator("#eventChoices button").allTextContents();
+    assert.deepEqual(eventChoices.map(x=>x.trim()), ["아이를 구한다","지나친다"]);
+    console.log("PASS: Event Lab layered cemetery -> ghoul -> dialogue -> choice");
 
     await page.setViewportSize({ width: 844, height: 390 });
     await page.goto(new URL("v2-intro.html", base).href);
