@@ -353,7 +353,7 @@ assert((eventHtml.match(/class="event-graveyard-prop event-graveyard-/g)||[]).le
 assert(eventHtml.includes('class="event-child-idle"'));
 assert(eventCss.includes(".event-scene-preview"));
 assert(eventCss.includes(".event-child-idle"));
-assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-ambush-stage3-choices-1'));
+assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-ambush-stage4-ghoul-1'));
 assert(eventJs.includes('event.scene === "graveyard_child_ambush_intro"'));
 assert(!eventHtml.includes('id="eventScene"'));
 assert(!eventData.includes("graveyard_child_ambush_test_01"));
@@ -374,3 +374,10 @@ assert(eventData.includes("당신은 이 아이를 두고 선택해야 한다.")
   assert(ambush.includes('text: "아이를 구한다"'));
   assert(ambush.includes('text: "지나친다"'));
 }
+
+assert(eventHtml.includes('data-event-ghoul'));
+assert(eventCss.includes('.event-ghoul{'));
+assert(eventCss.includes('processed/192/ghoul.png'));
+assert(eventCss.includes('@keyframes event-ghoul-approach'));
+assert(eventCss.includes('@keyframes event-child-startle'));
+assert(eventData.includes('구울이 묘비를 넘어 튀어나온다'));
