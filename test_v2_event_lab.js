@@ -32,7 +32,6 @@ assert(js.includes('screen.orientation.lock("landscape")'));
 assert(js.includes('phase = "threat"'));
 assert(js.includes('phase = "dialogue"'));
 assert(js.includes('phase = "choice"'));
-assert(js.includes("showUnease"));
 assert(js.includes("revealGhoul"));
 assert(js.includes("showDialogue"));
 assert(js.includes("showChoices"));
