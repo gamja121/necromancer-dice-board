@@ -36,6 +36,15 @@
 
   let phase = "description";
 
+  async function requestLandscapeOrientation() {
+    try {
+      if (screen.orientation?.lock) await screen.orientation.lock("landscape");
+    } catch (_) {
+      // CSS rotation below is the guaranteed fallback for normal mobile browsers.
+    }
+  }
+  requestLandscapeOrientation();
+
   async function loadChunkImage(img, chunks, readyName) {
     if (!img) return false;
     const texts = await Promise.all(chunks.map(async (path) => {
@@ -49,9 +58,50 @@
     return img.complete && img.naturalWidth > 0;
   }
 
+  function removeBlackBackground(img) {
+    if (!img || !img.naturalWidth || !img.naturalHeight) return false;
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return false;
+    ctx.drawImage(img, 0, 0);
+    const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const pixels = frame.data;
+
+    // The supplied ghoul uses a near-black background. Make only that black field
+    // transparent while keeping the brown/gray painted body opaque.
+    for (let i = 0; i < pixels.length; i += 4) {
+      const r = pixels[i];
+      const g = pixels[i + 1];
+      const b = pixels[i + 2];
+      const peak = Math.max(r, g, b);
+      if (peak <= 10) {
+        pixels[i + 3] = 0;
+      } else if (peak < 30) {
+        pixels[i + 3] = Math.round(((peak - 10) / 20) * 255);
+      } else {
+        pixels[i + 3] = 255;
+      }
+    }
+    ctx.putImageData(frame, 0, 0);
+    img.src = canvas.toDataURL("image/png");
+    img.dataset.alphaReady = "true";
+    return true;
+  }
+
+  async function loadGhoulLayer() {
+    const ready = await loadChunkImage(el.ghoulLayer, GHOUL_IMAGE_CHUNKS, "ghoul-source-ready");
+    if (!ready) return false;
+    removeBlackBackground(el.ghoulLayer);
+    try { await el.ghoulLayer.decode(); } catch (_) {}
+    el.ghoulLayer.dataset.assetReady = "ghoul-ready";
+    return el.ghoulLayer.complete && el.ghoulLayer.naturalWidth > 0;
+  }
+
   const assetsReady = Promise.all([
     loadChunkImage(el.baseImage, BASE_IMAGE_CHUNKS, "base-ready"),
-    loadChunkImage(el.ghoulLayer, GHOUL_IMAGE_CHUNKS, "ghoul-ready")
+    loadGhoulLayer()
   ]).catch((error) => {
     console.error("Event Lab artwork failed to load", error);
     return [false, false];
