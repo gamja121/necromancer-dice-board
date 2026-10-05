@@ -13,6 +13,7 @@
   const fromMap = battleQuery.get("from") === "map";
   const fromEvent = battleQuery.get("from") === "event";
   const eventSourceId = fromEvent ? (battleQuery.get("event") || "") : "";
+  const eventReturnTarget = fromEvent ? (battleQuery.get("eventReturn") || "") : "";
   const requestedEventEnemyRaw = fromEvent ? (battleQuery.get("enemies") || "") : "";
   const EVENT_BATTLE_RESULT_KEY = "necromancer-event-battle-result-v1";
   const undeadHealTest = battleQuery.get("test") === "undead-heal";
@@ -2151,6 +2152,11 @@
   }
 
   function returnToEvent() {
+    if (eventReturnTarget === "map-graveyard") {
+      const params = new URLSearchParams({ resumeGraveyardEvent: "1" });
+      window.location.assign(`v2-map-practice.html?${params.toString()}`);
+      return;
+    }
     const params = new URLSearchParams();
     if (eventSourceId) params.set("resumeEvent", eventSourceId);
     window.location.assign(`v2-event-lab.html?${params.toString()}`);
