@@ -4398,10 +4398,62 @@
 
   const GRAVEYARD_EVENT_BATTLE_RESULT_KEY = "necromancer-event-battle-result-v1";
 
+  // Moving-diorama event data: each beat is only a change of stage state.
+  const GRAVEYARD_EVENT_BEATS = Object.freeze([
+    Object.freeze({
+      id: "child-alone",
+      text: "묘비 사이에 아이가 서 있다.",
+      stageClass: "beat-child-alone"
+    }),
+    Object.freeze({
+      id: "ghoul-appears",
+      text: "…!",
+      stageClass: "beat-ghoul-appears"
+    }),
+    Object.freeze({
+      id: "child-frightened",
+      text: "도와주세요…!",
+      stageClass: "beat-child-frightened"
+    }),
+    Object.freeze({
+      id: "choice",
+      text: "아이를 구하시겠습니까?",
+      stageClass: "beat-choice",
+      choice: true
+    })
+  ]);
+  let graveyardStoryBeatIndex = 0;
+
   function setGraveyardStoryChoicePhase(enabled) {
     if (!el.graveyardStoryEvent || !el.graveyardStoryChoices) return;
     el.graveyardStoryEvent.classList.toggle("is-choice-phase", enabled === true);
     el.graveyardStoryChoices.hidden = enabled !== true;
+    if (el.graveyardStoryAdvance) el.graveyardStoryAdvance.disabled = enabled === true;
+  }
+
+  function renderGraveyardStoryBeat(index) {
+    if (!el.graveyardStoryEvent) return;
+    const beat = GRAVEYARD_EVENT_BEATS[Math.max(0, Math.min(index, GRAVEYARD_EVENT_BEATS.length - 1))];
+    graveyardStoryBeatIndex = GRAVEYARD_EVENT_BEATS.indexOf(beat);
+    el.graveyardStoryEvent.dataset.beat = beat.id;
+    el.graveyardStoryEvent.classList.remove(
+      "beat-child-alone",
+      "beat-ghoul-appears",
+      "beat-child-frightened",
+      "beat-choice"
+    );
+    el.graveyardStoryEvent.classList.add(beat.stageClass);
+    if (el.graveyardStoryText) el.graveyardStoryText.textContent = beat.text;
+    setGraveyardStoryChoicePhase(beat.choice === true);
+  }
+
+  function advanceGraveyardStoryBeat() {
+    if (!el.graveyardStoryEvent || el.graveyardStoryEvent.classList.contains("is-rescued")) return;
+    if (graveyardStoryBeatIndex >= GRAVEYARD_EVENT_BEATS.length - 1) {
+      setGraveyardStoryChoicePhase(true);
+      return;
+    }
+    renderGraveyardStoryBeat(graveyardStoryBeatIndex + 1);
   }
 
   function openGraveyardStoryEvent({ rescued = false } = {}) {
@@ -4409,11 +4461,29 @@
     ensureGraveyardDialogueAssets();
     el.graveyardStoryEvent.hidden = false;
     el.graveyardStoryEvent.classList.toggle("is-rescued", rescued === true);
-    setGraveyardStoryChoicePhase(false);
-    if (el.graveyardStoryText) el.graveyardStoryText.textContent = rescued ? "…고마워요." : "…!";
+
+    if (rescued) {
+      el.graveyardStoryEvent.dataset.beat = "rescued";
+      el.graveyardStoryEvent.classList.remove(
+        "beat-child-alone",
+        "beat-ghoul-appears",
+        "beat-child-frightened",
+        "beat-choice"
+      );
+      setGraveyardStoryChoicePhase(false);
+      if (el.graveyardStoryText) el.graveyardStoryText.textContent = "…고마워요.";
+      if (el.graveyardStoryAdvance) {
+        el.graveyardStoryAdvance.disabled = true;
+        el.graveyardStoryAdvance.onclick = null;
+      }
+      return;
+    }
+
+    graveyardStoryBeatIndex = 0;
+    renderGraveyardStoryBeat(0);
     if (el.graveyardStoryAdvance) {
-      el.graveyardStoryAdvance.disabled = rescued === true;
-      el.graveyardStoryAdvance.onclick = rescued ? null : () => setGraveyardStoryChoicePhase(true);
+      el.graveyardStoryAdvance.disabled = false;
+      el.graveyardStoryAdvance.onclick = advanceGraveyardStoryBeat;
     }
   }
 
