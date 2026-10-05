@@ -21,6 +21,8 @@
     eventArt: document.getElementById("eventArt"),
     eventScenePreview: document.getElementById("eventScenePreview"),
     eventDialogueAdvance: document.getElementById("eventDialogueAdvance"),
+    eventDialogueName: document.querySelector(".event-dialogue-name"),
+    eventDialogueText: document.querySelector(".event-dialogue-text"),
     eventLocation: document.getElementById("eventLocation"),
     eventId: document.getElementById("eventId"),
     eventTitle: document.getElementById("eventTitle"),
@@ -350,12 +352,26 @@
     const event = eventById.get(state.currentEventId);
     if (!event) return;
     const useScenePreview = event.scene === "graveyard_child_ambush_intro";
+    const isRescuedScene = useScenePreview
+      && event.id === "graveyard_child_ambush_01"
+      && flag("graveyard_child_ambush_resolved")
+      && flag("graveyard_child_saved");
     if (el.eventScenePreview) el.eventScenePreview.hidden = !useScenePreview;
     el.eventArt.hidden = useScenePreview;
     const eventCard = el.eventArt.closest(".event-card");
     eventCard?.classList.toggle("is-cinematic-scene", useScenePreview);
+    eventCard?.classList.toggle("is-cinematic-rescued", isRescuedScene);
+    if (el.eventDialogueName) el.eventDialogueName.textContent = "아이";
+    if (el.eventDialogueText) el.eventDialogueText.textContent = isRescuedScene ? "…고마워요." : "…!";
     if (!useScenePreview) {
-      eventCard?.classList.remove("is-cinematic-choice-ready");
+      eventCard?.classList.remove("is-cinematic-choice-ready","is-cinematic-rescued");
+    } else if (isRescuedScene) {
+      eventCard.dataset.cinematicInitialized = "1";
+      setCinematicChoiceReady(false);
+      if (el.eventDialogueAdvance) {
+        el.eventDialogueAdvance.disabled = true;
+        el.eventDialogueAdvance.setAttribute("aria-expanded","true");
+      }
     } else if (!eventCard?.dataset.cinematicInitialized) {
       eventCard.dataset.cinematicInitialized = "1";
       setCinematicChoiceReady(false);
@@ -441,6 +457,7 @@
   el.eventDialogueAdvance?.addEventListener("click", () => {
     const event = eventById.get(state.currentEventId);
     if (event?.scene !== "graveyard_child_ambush_intro") return;
+    if (flag("graveyard_child_ambush_resolved") && flag("graveyard_child_saved")) return;
     setCinematicChoiceReady(true);
   });
 
