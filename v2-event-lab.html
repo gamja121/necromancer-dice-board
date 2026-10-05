@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
   <title>네크로멘서 앤드 다이스 · Event Lab · 사건 테스트</title>
-  <link rel="stylesheet" href="v2-event-lab.css?v=20261005-graveyard-ambush-stage5-dialogue-1">
+  <link rel="stylesheet" href="v2-event-lab.css?v=20261005-graveyard-ambush-stage6-dialogue-choice-1">
 </head>
 <body>
   <main class="event-lab">
@@ -54,11 +54,11 @@
               <div class="event-ambush-alert" aria-hidden="true"><span>!</span></div>
               <div class="event-dialogue-layer" aria-label="사건 대화">
                 <div class="event-dialogue-portrait" aria-label="아이 상반신"></div>
-                <div class="event-dialogue-box">
+                <button class="event-dialogue-box" id="eventDialogueAdvance" type="button" aria-label="아이의 대화를 넘기기">
                   <span class="event-dialogue-name">아이</span>
-                  <p class="event-dialogue-text">…!</p>
+                  <span class="event-dialogue-text">…!</span>
                   <span class="event-dialogue-next" aria-hidden="true">◆</span>
-                </div>
+                </button>
               </div>
             </div>
           </div>
@@ -71,7 +71,7 @@
             <h1 id="eventTitle">이벤트를 선택하세요</h1>
             <p id="eventText">왼쪽 목록에서 테스트할 이벤트를 직접 선택할 수 있습니다.</p>
             <div id="conditionSummary" class="condition-summary"></div>
-            <div id="choiceList" class="choice-list"></div>
+            <div id="choiceList" class="choice-list" data-cinematic-choices></div>
             <div id="outcomeBox" class="outcome-box" hidden></div>
           </div>
         </div>
@@ -145,7 +145,7 @@
     </form>
   </dialog>
 
-  <script src="v2-event-data.js?v=20261005-graveyard-ambush-stage5-dialogue-1"></script>
-  <script src="v2-event-lab.js?v=20261005-graveyard-ambush-stage5-dialogue-1"></script>
+  <script src="v2-event-data.js?v=20261005-graveyard-ambush-stage6-dialogue-choice-1"></script>
+  <script src="v2-event-lab.js?v=20261005-graveyard-ambush-stage6-dialogue-choice-1"></script>
 </body>
 </html>
