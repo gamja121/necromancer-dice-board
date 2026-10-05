@@ -174,6 +174,31 @@ async function activate(page, selector) {
     assert(eventBattleState.lineupText.includes("사건 전투"));
     console.log("PASS: cemetery ambush stage 7 fixed ghoul battle handoff");
 
+    await page.goto(new URL("v2-event-lab.html", base).href);
+    await page.evaluate(() => {
+      sessionStorage.setItem("necromancer-event-battle-result-v1", JSON.stringify({
+        eventId: "graveyard_child_ambush_01",
+        won: true,
+        enemies: ["ghoul"],
+        encounterType: "event-graveyard-child",
+        finishedAt: Date.now()
+      }));
+    });
+    await page.reload();
+    await page.waitForSelector("#eventList");
+    const eventReturnState = await page.evaluate(() => ({
+      selectedId: document.getElementById("eventId")?.textContent || "",
+      flags: [...document.querySelectorAll("#flagList code")].map((node)=>node.textContent),
+      outcome: document.getElementById("outcomeBox")?.textContent || "",
+      choices: [...document.querySelectorAll("#choiceList button")].map((button)=>({ text:button.textContent, disabled:button.disabled }))
+    }));
+    assert.equal(eventReturnState.selectedId, "graveyard_child_ambush_01");
+    assert(eventReturnState.flags.includes("graveyard_child_ambush_resolved"));
+    assert(eventReturnState.flags.includes("graveyard_child_saved"));
+    assert(eventReturnState.outcome.includes("성공"));
+    assert(eventReturnState.choices.every((choice)=>choice.disabled));
+    console.log("PASS: cemetery ambush stage 8 event battle return");
+
     await page.setViewportSize({ width: 844, height: 390 });
     await page.goto(new URL("v2-intro.html", base).href);
     await page.waitForSelector("#introAdvance");
