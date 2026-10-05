@@ -245,8 +245,41 @@
     el.diceBox.textContent = "?";
   }
 
+  function startEventBattle(event, choice) {
+    const enemies = Array.isArray(choice.battle?.enemies)
+      ? choice.battle.enemies.filter(Boolean)
+      : [];
+    if (!enemies.length) {
+      showOutcome("전투 상대 정보가 없습니다.");
+      return;
+    }
+
+    const context = {
+      eventId: event.id,
+      choiceId: choice.id,
+      enemies,
+      encounterType: choice.battle?.encounterType || "event",
+      startedAt: Date.now()
+    };
+    try {
+      sessionStorage.setItem("necromancer-event-battle-context-v1", JSON.stringify(context));
+    } catch (_) {}
+
+    const params = new URLSearchParams({
+      from: "event",
+      event: event.id,
+      encounterType: context.encounterType,
+      enemies: enemies.join(",")
+    });
+    window.location.assign(`v2-auto-battle-practice.html?${params}`);
+  }
+
   function executeChoice(event, choice) {
     if (!choiceAvailable(choice)) return;
+    if (choice.action === "eventBattle") {
+      startEventBattle(event, choice);
+      return;
+    }
     if (choice.roll) queueRoll(event, choice);
     else applyDirectChoice(event, choice);
   }
