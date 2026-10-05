@@ -364,3 +364,100 @@ button{touch-action:manipulation}
     min-height:105px!important
   }
 }
+
+
+/* Event Lab cinematic gaze direction · stage 4
+   One illustration, three focus beats: child -> threat -> child/dialogue -> choice. */
+.event-base-image{
+  transform-origin:70% 56%;
+  will-change:transform,filter;
+  animation:event-camera-child-focus 5.5s ease-out both;
+}
+.event-scene-vignette{
+  transition:background .45s ease, opacity .35s ease;
+}
+.event-scene::after{
+  content:"";
+  position:absolute;
+  z-index:7;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+  background:
+    radial-gradient(circle at 22% 54%,rgba(126,54,26,.28),transparent 30%),
+    rgba(27,11,7,.32);
+}
+.event-card.is-ghoul-revealed .event-scene{
+  animation:event-camera-impact .34s cubic-bezier(.3,.8,.4,1);
+}
+.event-card.is-ghoul-revealed .event-scene::after{
+  animation:event-threat-flash .44s ease-out;
+}
+.event-card.is-ghoul-revealed .event-base-image{
+  transform-origin:37% 54%;
+  animation:event-camera-threat-focus 1.15s cubic-bezier(.16,.76,.18,1) both;
+  filter:sepia(.12) contrast(1.08) brightness(.78);
+}
+.event-card.is-ghoul-revealed .event-scene-vignette{
+  background:
+    radial-gradient(ellipse at 34% 52%,transparent 24%,rgba(0,0,0,.33) 58%,rgba(0,0,0,.78) 100%),
+    linear-gradient(to top,rgba(8,5,4,.52),transparent 36%);
+}
+.event-card.is-dialogue .event-base-image{
+  transform-origin:76% 55%;
+  animation:event-camera-dialogue-focus 1.1s cubic-bezier(.18,.72,.2,1) both;
+  filter:sepia(.08) contrast(1.03) brightness(.86);
+}
+.event-card.is-dialogue .event-ghoul-layer{
+  filter:sepia(.35) saturate(.65) brightness(.48) contrast(1.05) drop-shadow(0 16px 13px #000b)!important;
+  opacity:.46!important;
+  transition:filter .5s ease,opacity .5s ease;
+}
+.event-card.is-dialogue .event-scene-vignette{
+  background:
+    radial-gradient(ellipse at 76% 58%,transparent 22%,rgba(0,0,0,.27) 52%,rgba(0,0,0,.74) 100%),
+    linear-gradient(to top,rgba(8,5,4,.6),transparent 42%);
+}
+.event-card.is-choice .event-base-image,
+.event-card.is-choice .event-ghoul-layer{
+  animation:none!important;
+  transition:transform .45s ease,filter .45s ease,opacity .45s ease;
+}
+.event-card.is-choice .event-base-image{
+  transform:scale(1.025);
+  filter:sepia(.18) contrast(1.02) brightness(.58);
+}
+.event-card.is-choice .event-ghoul-layer{
+  opacity:.55!important;
+  filter:sepia(.25) saturate(.7) brightness(.52) contrast(1.05)!important;
+}
+.event-card.is-choice .event-scene-vignette{
+  background:rgba(4,3,2,.38);
+}
+@keyframes event-camera-child-focus{
+  0%{transform:scale(1.015) translate3d(0,0,0)}
+  100%{transform:scale(1.065) translate3d(-1.2%,.5%,0)}
+}
+@keyframes event-camera-threat-focus{
+  0%{transform:scale(1.065) translate3d(-1.2%,.5%,0)}
+  38%{transform:scale(1.095) translate3d(2.2%,-.8%,0)}
+  100%{transform:scale(1.085) translate3d(1.2%,-.3%,0)}
+}
+@keyframes event-camera-dialogue-focus{
+  0%{transform:scale(1.085) translate3d(1.2%,-.3%,0)}
+  100%{transform:scale(1.12) translate3d(-2.8%,-.5%,0)}
+}
+@keyframes event-camera-impact{
+  0%,100%{transform:translate3d(0,0,0)}
+  22%{transform:translate3d(-5px,1px,0)}
+  45%{transform:translate3d(4px,-2px,0)}
+  68%{transform:translate3d(-2px,1px,0)}
+}
+@keyframes event-threat-flash{
+  0%{opacity:0}
+  18%{opacity:.9}
+  100%{opacity:0}
+}
+@media (prefers-reduced-motion:reduce){
+  .event-base-image,.event-scene,.event-scene::after,.event-ghoul-layer{animation:none!important}
+}
