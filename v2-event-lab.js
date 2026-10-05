@@ -2,10 +2,9 @@
   "use strict";
 
   const events = Array.isArray(window.V2EventLabData?.events)
-    ? window.V2EventData.events
+    ? window.V2EventLabData.events
     : [];
 
-  // Remove state created by the retired Event Lab prototype.
   const retiredSessionKeys = [
     "necromancer-event-battle-context-v1",
     "necromancer-event-battle-result-v1"
