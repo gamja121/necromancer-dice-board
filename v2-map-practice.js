@@ -60,6 +60,9 @@
   const STARTING_UNIT_SLUGS = Object.freeze(["skeleton-spear", "skeleton-archer"]);
   const DICE_CONTROL_INVENTORY_KEY = "necromancer-map-dice-control-v1";
   const GRAVEYARD_CORPSES_KEY = "necromancer-map-graveyard-corpses-v1";
+  const GRAVEYARD_CHILD_EVENT_ID = "graveyard_child_ambush_01";
+  const GRAVEYARD_CHILD_EVENT_FLAG = "event:graveyard_child_ambush_01:complete";
+  const GRAVEYARD_CHILD_EVENT_FALLBACK_KEY = "necromancer-event-graveyard-child-complete-v1";
   const MONSTER_CAPACITY = 10;
   const DICE_CONTROL_CAPACITY = 5;
   const STARTING_DICE_EXCLUDED_IDS = Object.freeze(new Set(["repeat", "echo"]));
@@ -323,6 +326,68 @@
   let hillScout = loadHillScoutState();
   let contamination = loadContamination();
   const ownedUnits = loadOwnedRoster();
+
+  function graveyardChildEventCompleted() {
+    const runFlag = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags?.[GRAVEYARD_CHILD_EVENT_FLAG];
+    if (runFlag === true) return true;
+    try { return sessionStorage.getItem(GRAVEYARD_CHILD_EVENT_FALLBACK_KEY) === "1"; }
+    catch (_) { return false; }
+  }
+
+  async function markGraveyardChildEventComplete() {
+    try { sessionStorage.setItem(GRAVEYARD_CHILD_EVENT_FALLBACK_KEY, "1"); } catch (_) {}
+    if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
+      const result = await V2RunStateRuntime.commitExact("event-complete:graveyard-child", (draft) => {
+        if (!draft.eventFlags || typeof draft.eventFlags !== "object") draft.eventFlags = {};
+        draft.eventFlags[GRAVEYARD_CHILD_EVENT_FLAG] = true;
+      });
+      return Boolean(result?.ok);
+    }
+    return true;
+  }
+
+  function currentPartyUnits() {
+    const runParty = globalThis.V2RunStateRuntime?.snapshot?.()?.party;
+    const candidateIds = Array.isArray(runParty) && runParty.length
+      ? runParty
+      : (selectedDeck.length ? selectedDeck : [...ownedUnits.keys()].slice(0, 4));
+    return candidateIds.map((instanceId) => ownedUnits.get(instanceId)).filter(Boolean).slice(0, 4);
+  }
+
+  async function launchGraveyardChildEventFromMap(step) {
+    if (graveyardChildEventCompleted()) return false;
+    const partyUnits = currentPartyUnits();
+    if (!partyUnits.length) return false;
+    if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
+      await V2RunStateRuntime.commitExact("party:event-graveyard-child", (draft) => {
+        draft.party = partyUnits.map((unit) => unit.instanceId);
+      });
+      await V2RunStateRuntime.flush();
+    }
+    await saveMapLayout(currentTiles, "event-entry-map");
+    if (globalThis.V2RunStateRuntime?.available) {
+      await V2RunStateRuntime.setMapProgress({
+        heroIndex,
+        lapReadyForRefresh,
+        worldTreePrayed,
+        previousRoll: previousDiceRoll,
+        previousEffectiveCardId: previousDiceControlId,
+        pendingCardInstanceId: null,
+        prefix: "event-entry-progress"
+      });
+      await V2RunStateRuntime.flush();
+    }
+    const params = new URLSearchParams({
+      fromMapEvent: "1",
+      map: activeMapId,
+      tile: String(step),
+      allies: partyUnits.map((unit) => unit.slug).join(","),
+      allyIds: partyUnits.map((unit) => unit.instanceId).join(",")
+    });
+    if (typeof V2Music !== "undefined") V2Music.handoff("map");
+    window.location.assign("v2-event-lab.html?" + params.toString());
+    return true;
+  }
 
   const tilePreloadIds = [
     ...tileTypes.map((tile) => tile.id),
@@ -2705,6 +2770,12 @@
       await V2RunStateRuntime.flush();
     }
     const selectedUnits = selectedDeck.map((instanceId) => ownedUnits.get(instanceId)).filter(Boolean);
+    if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
+      await V2RunStateRuntime.commitExact("party:battle-entry", (draft) => {
+        draft.party = selectedUnits.map((unit) => unit.instanceId);
+      });
+      await V2RunStateRuntime.flush();
+    }
     const params = new URLSearchParams({
       from: "map",
       map: activeMapId,
@@ -4114,6 +4185,13 @@
       el.regenerate.disabled = false;
       return;
     }
+    if (["event", "graveyard"].includes(currentTiles[heroIndex]?.id)) {
+      const launchedStory = await launchGraveyardChildEventFromMap(heroIndex + 1);
+      if (launchedStory) {
+        rolling = false;
+        return;
+      }
+    }
     if (openTileEvent(currentTiles[heroIndex], heroIndex + 1)) {
       rolling = false;
       return;
@@ -4608,6 +4686,9 @@
   });
 
   const mapLaunchParams = new URLSearchParams(location.search);
+  if (mapLaunchParams.get("completeGraveyardChildEvent") === "1") {
+    void markGraveyardChildEventComplete();
+  }
   if (mapLaunchParams.get("resumeGraveyardEvent") === "1") {
     resumeGraveyardEventAfterBattle();
   }
