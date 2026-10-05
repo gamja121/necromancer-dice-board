@@ -5,13 +5,17 @@
   const eventById = new Map(events.map((event) => [event.id, event]));
 
   const EVENT_BATTLE_RESULT_KEY = "necromancer-event-battle-result-v1";
+  const launchParams = new URLSearchParams(location.search);
+  const requestedEventId = launchParams.get("event");
+  const inGameEventMode = launchParams.get("mode") === "ingame" || launchParams.get("from") === "map";
+  if (inGameEventMode) document.body.classList.add("is-ingame-event");
 
   const state = {
     contamination: 20,
     loop: 1,
     flags: {},
     monsterTags: new Set(),
-    currentEventId: events[0]?.id || null,
+    currentEventId: eventById.has(requestedEventId) ? requestedEventId : (events[0]?.id || null),
     pendingRoll: null,
     history: []
   };
@@ -23,6 +27,7 @@
     eventDialogueAdvance: document.getElementById("eventDialogueAdvance"),
     eventDialogueName: document.querySelector(".event-dialogue-name"),
     eventDialogueText: document.querySelector(".event-dialogue-text"),
+    eventSceneNarration: document.getElementById("eventSceneNarration"),
     eventLocation: document.getElementById("eventLocation"),
     eventId: document.getElementById("eventId"),
     eventTitle: document.getElementById("eventTitle"),
@@ -363,6 +368,9 @@
     eventCard?.classList.toggle("is-cinematic-rescued", isRescuedScene);
     if (el.eventDialogueName) el.eventDialogueName.textContent = "아이";
     if (el.eventDialogueText) el.eventDialogueText.textContent = isRescuedScene ? "…고마워요." : "…!";
+    if (el.eventSceneNarration) el.eventSceneNarration.textContent = isRescuedScene
+      ? "구울은 쓰러졌다. 공동묘지에는 아이와 당신만 남았다."
+      : "묘비 사이에서 아이가 뒷걸음친다. 바로 뒤, 구울이 몸을 일으킨다.";
     if (!useScenePreview) {
       eventCard?.classList.remove("is-cinematic-choice-ready","is-cinematic-rescued");
     } else if (isRescuedScene) {
