@@ -2664,7 +2664,8 @@ body.is-graveyard-event-transition .map-board .swamp-damage-overlay{
 .graveyard-story-art-wrap{
   left:6%!important;
   top:7%!important;
-  width:58%!important;
+  width:50%!important;
+  height:58%!important;
 }
 .graveyard-story-effect-box{
   left:67%!important;
