@@ -1356,6 +1356,11 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   filter:blur(11px) brightness(.48) saturate(.60);
   box-shadow:0 0 110px #000;
 }
+.map-board.is-graveyard-zooming{
+  transform:translate3d(0,-2%,28px) scale(3.02);
+  filter:blur(10px) brightness(.42) saturate(.46);
+  box-shadow:0 0 125px #000;
+}
 
 /* Forest diorama must never show pieces of the original board tiles at the viewport edges. */
 .map-board.is-forest-zooming .tile-ring,
@@ -1363,7 +1368,10 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .map-board.is-forest-trees .tile-ring,
 .map-board.is-village-zooming .tile-ring,
 .map-board.is-village-tilted .tile-ring,
-.map-board.is-village-buildings .tile-ring{
+.map-board.is-village-buildings .tile-ring,
+.map-board.is-graveyard-zooming .tile-ring,
+.map-board.is-graveyard-tilted .tile-ring,
+.map-board.is-graveyard-props .tile-ring{
   display:none!important;
 }
 
@@ -1376,6 +1384,14 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
     scale(3.42);
   filter:blur(1.3px) brightness(.43) saturate(.58);
   box-shadow:0 64px 130px rgba(0,0,0,.42);
+}
+.map-board.is-graveyard-tilted{
+  transform:
+    translate3d(0,34%,165px)
+    rotateX(67deg)
+    scale(3.58);
+  filter:blur(1.5px) brightness(.36) saturate(.42);
+  box-shadow:0 72px 145px rgba(0,0,0,.52);
 }
 
 .map-diorama-test-row{border-top:1px solid #70583f66;margin-top:5px;padding-top:7px}
@@ -1821,6 +1837,13 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .graveyard-diorama-test[hidden]{display:none}
 .graveyard-layout-stage{
   position:fixed;z-index:1;inset:0;width:100vw;height:100dvh;overflow:hidden;pointer-events:none;
+  opacity:0;
+  transform:translateY(3%) scale(.96);
+  transition:opacity 420ms ease,transform 620ms cubic-bezier(.18,.82,.2,1);
+}
+.graveyard-diorama-test.is-playing .graveyard-layout-stage{
+  opacity:1;
+  transform:translateY(0) scale(1);
 }
 .graveyard-layout-item{
   --grave-flip:1;
@@ -1835,7 +1858,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .graveyard-layout-item.is-debug-hidden{display:none!important}
 .graveyard-item-visual{
   display:block;width:100%;height:100%;
-  background-image:url("art/v2-style/map-test/diorama/graveyard/graveyard-atlas.webp?v=20261005-graveyard-stage5-composition-1");
+  background-image:url("art/v2-style/map-test/diorama/graveyard/graveyard-atlas.webp?v=20261005-graveyard-stage5-camera-2");
   background-repeat:no-repeat;background-size:400% 400%;background-color:transparent;
   transform:scaleX(var(--grave-flip));transform-origin:50% 50%;
 }
@@ -1864,3 +1887,8 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .graveyard-atlas-probe{position:absolute;width:1px;height:1px;opacity:.001;pointer-events:none}
 .graveyard-diorama-close{z-index:283;opacity:1;pointer-events:auto}
 #graveyardLayoutSaveStatus{flex:1 1 100%;min-height:16px;color:#d9c59e;font-size:11px}
+
+.graveyard-diorama-test.is-zooming .graveyard-layer-debug{opacity:.15;pointer-events:none}
+.graveyard-diorama-test.is-tilted .graveyard-layer-debug{opacity:.45}
+.graveyard-diorama-test.is-playing .graveyard-layer-debug{opacity:1;pointer-events:auto}
+.graveyard-layer-debug{transition:opacity 260ms ease}
