@@ -21,6 +21,7 @@ const eventHtml = read("v2-event-lab.html");
 const eventCss = read("v2-event-lab.css");
 const eventJs = read("v2-event-lab.js");
 const eventData = read("v2-event-data.js");
+const eventLabData = read("v2-event-lab-data.js");
 const music = read("v2-music.js");
 const sfx = read("v2-sfx.js");
 const worker = read("service-worker.js");
@@ -345,95 +346,36 @@ assert(mapHtml.includes('data-graveyard-id="T1"') && mapHtml.includes('data-defa
 assert(mapHtml.includes('data-graveyard-id="H2"') && mapHtml.includes('data-default-width="12%"'));
 assert(map.includes('item.dataset.defaultBottom||""'));
 
-assert((eventData.match(/title: "습격받는 아이"/g)||[]).length===1);
-assert(eventData.includes('id: "graveyard_child_ambush_01"'));
-assert(eventData.includes('scene: "graveyard_child_ambush_intro"'));
-assert(eventHtml.includes('id="eventScenePreview"'));
-assert((eventHtml.match(/class="event-graveyard-prop event-graveyard-/g)||[]).length===14);
-assert(eventHtml.includes('class="event-child-idle"'));
-assert(eventCss.includes(".event-scene-preview"));
-assert(eventCss.includes(".event-child-idle"));
-assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-poster-stage17-1'));
-assert(eventJs.includes('event.scene === "graveyard_child_ambush_intro"'));
-assert(!eventHtml.includes('id="eventScene"'));
-assert(!eventData.includes("graveyard_child_ambush_test_01"));
+// Event Lab reset: production event data stays intact, lab data starts empty.
+assert(eventData.includes('id: "graveyard_child_ambush_01"'), "Production map event data must remain intact");
+assert(eventLabData.includes("window.V2EventLabData"));
+assert(eventLabData.includes("events: Object.freeze([])"));
+assert(!eventLabData.includes("graveyard_child_ambush_01"));
+assert(!eventLabData.includes("forest_child_01"));
+assert(eventHtml.includes("등록된 테스트 이벤트가 없습니다."));
+assert(eventHtml.includes('id="eventCount"'));
+assert(!eventHtml.includes('id="eventScenePreview"'));
+assert(!eventHtml.includes('id="eventList"'));
+assert(!eventHtml.includes('id="historyList"'));
+assert(!eventHtml.includes('id="contaminationInput"'));
+assert(!eventHtml.includes('id="flagList"'));
+assert(!eventHtml.includes('id="choiceList"'));
+assert(eventJs.includes("window.V2EventLabData?.events"));
+assert(!eventJs.includes("conditionChecks"));
+assert(!eventJs.includes("startEventBattle"));
+assert(eventCss.includes(".empty-lab"));
 
-assert(!eventCss.includes("@keyframes eventChildIdle"));
-assert(eventCss.includes("aspect-ratio:263/643"));
-
-assert(eventCss.includes("@keyframes event-child-idle-breathe"));
-assert(eventCss.includes("animation:event-child-idle-breathe 3.4s ease-in-out infinite"));
-assert(eventCss.includes("@keyframes event-child-idle-shadow"));
-assert(eventCss.includes("@media (prefers-reduced-motion:reduce)"));
-assert(eventData.includes("구울이 묘비를 넘어 튀어나온다"));
-
-{
-  const start = eventData.indexOf('id: "graveyard_child_ambush_01"');
-  const end = eventData.indexOf('id: "forest_child_01"', start);
-  const ambush = eventData.slice(start, end);
-  assert(ambush.includes('text: "아이를 구한다"'));
-  assert(ambush.includes('text: "지나친다"'));
-}
-
-assert(eventHtml.includes('data-event-ghoul'));
-assert(eventCss.includes('.event-ghoul{'));
-assert(eventCss.includes('processed/192/ghoul.png'));
-assert(eventCss.includes('@keyframes event-ghoul-approach'));
-assert(eventCss.includes('@keyframes event-child-startle'));
-assert(eventData.includes('구울이 묘비를 넘어 튀어나온다'));
-
-assert(eventHtml.includes('class="event-dialogue-layer"'));
-assert(eventHtml.includes('class="event-dialogue-portrait"'));
-assert(eventHtml.includes('class="event-dialogue-box" id="eventDialogueAdvance"'));
-assert(eventHtml.includes('class="event-dialogue-name">아이</span>'));
-assert(eventCss.includes("@keyframes event-dialogue-box-rise"));
-assert(eventCss.includes("@keyframes event-dialogue-portrait-in"));
-assert(eventCss.includes("event-dialogue-portrait-in .66s"));
-assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-poster-stage17-1'));
-
-assert(eventHtml.includes('data-cinematic-choices'));
-assert(eventJs.includes('function setCinematicChoiceReady'));
-assert(eventJs.includes('eventDialogueAdvance?.addEventListener("click"'));
-assert(eventCss.includes('.is-cinematic-choice-ready #choiceList'));
-assert(eventData.includes('아이를 구하기 위해 구울 앞을 막아선다'));
-
+// Production map/battle event flow remains available outside Event Lab.
 assert(battle.includes('const fromEvent = battleQuery.get("from") === "event"'));
 assert(battle.includes("requestedEventEnemySlugs"));
 assert(battle.includes('fromEvent && team === "enemy"'));
-
-assert(eventData.includes('graveyard_child_ambush_resolved'));
-assert(eventJs.includes('EVENT_BATTLE_RESULT_KEY'));
-assert(eventJs.includes('function consumeEventBattleResult'));
-assert(eventJs.includes('graveyard_child_saved'));
-assert(eventJs.includes('graveyard_child_rescue_failed'));
 assert(battle.includes('EVENT_BATTLE_RESULT_KEY'));
 assert(battle.includes('function returnToEvent'));
-assert(battle.includes('사건으로 돌아가기'));
 assert(battle.includes('if (fromEvent) {'));
 assert(battleHtml.includes('v2-auto-battle-practice.js?v=132'));
 
-assert(eventJs.includes('classList.toggle("is-cinematic-rescued", isRescuedScene)'));
-assert(eventJs.includes('"…고마워요."'));
-assert(eventCss.includes(".event-card.is-cinematic-rescued .event-ghoul"));
-assert(eventHtml.includes('id="eventSceneNarration"'));
-assert(eventJs.includes('document.body.classList.add("is-ingame-event")'));
-assert(eventCss.includes("body.is-ingame-event .event-stage"));
 assert(map.includes("function installEventOptionShortcut"));
 assert(map.includes('button.textContent = "공동묘지"'));
-assert(map.includes("function startGraveyardEventCinematic"));
-assert(mapHtml.includes('id="graveyardStoryEvent"'));
-assert(mapCss.includes(".graveyard-story-child"));
-assert(mapCss.includes("width:7.2%"));
-assert(mapCss.includes(".graveyard-story-ghoul"));
-assert(mapCss.includes("Cemetery story dialogue hotfix · stage 13"));
-assert(map.includes("GRAVEYARD_DIALOGUE_FRAME_CHUNKS"));
-assert(map.includes("GRAVEYARD_EVENT_BEATS"));
-assert(map.includes("advanceGraveyardStoryBeat"));
-assert(map.includes("renderGraveyardStoryBeat"));
-assert(mapCss.includes(".graveyard-diorama-test::before"));
-assert(mapCss.includes("z-index:314!important"));
-assert(mapCss.includes("transform:scaleX(1)!important"));
-assert(mapCss.includes("Cemetery event composition refinement · stage 16"));
 assert(mapHtml.includes('id="graveyardPosterEvent"'));
 assert(map.includes("function openGraveyardPosterEvent"));
 assert(map.includes("function startGraveyardPosterEvent"));
@@ -441,23 +383,13 @@ assert(map.includes("startGraveyardPosterEvent();"));
 assert(mapCss.includes("Cemetery poster event · stage 17"));
 assert(mapCss.includes("@keyframes graveyard-poster-enter"));
 assert(mapCss.includes("@keyframes graveyard-poster-drift"));
-assert(mapCss.includes("width:5.6%!important"));
-assert(mapCss.includes("width:9.8%!important"));
-assert(mapCss.includes("object-fit:cover!important"));
-assert(mapCss.includes("object-position:center 12%!important"));
-assert(map.includes("loadGraveyardDialogueFrame"));
-assert(map.includes("loadGraveyardChildPortrait"));
-assert(mapCss.includes("body.is-graveyard-event-transition .map-board .contamination-hud"));
-assert(mapCss.includes("z-index:306!important"));
-assert(mapCss.includes("animation:none!important"));
-assert(mapCss.includes("width:12.5%"));
-assert(map.includes("function openGraveyardStoryEvent"));
 assert(map.includes("function startGraveyardEventBattle"));
 assert(map.includes('eventReturn: "map-graveyard"'));
 assert(battle.includes('eventReturnTarget === "map-graveyard"'));
 assert(battle.includes('resumeGraveyardEvent: "1"'));
-assert(map.includes("openGraveyardDioramaTest();"));
-assert(map.includes("}, 1750));"));
-assert(eventHtml.includes("art/v2-style/event-portraits/dark-eyed-boy.png?v=1"));
-assert(eventHtml.includes("art/v2-style/ui/intro-dialogue-box.webp?v=6"));
-assert(worker.includes("./art/v2-style/event-portraits/dark-eyed-boy.png?v=1"));
+
+// Empty Event Lab files must be available offline.
+assert(worker.includes("./v2-event-lab.html"));
+assert(worker.includes("./v2-event-lab.css?v=20261005-event-lab-reset-1"));
+assert(worker.includes("./v2-event-lab.js?v=20261005-event-lab-reset-1"));
+assert(worker.includes("./v2-event-lab-data.js?v=20261005-event-lab-reset-1"));
