@@ -4,15 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
-  <title>네크로멘서 앤드 다이스 · Event Lab · 사건 테스트</title>
-  <link rel="stylesheet" href="v2-event-lab.css?v=20261005-graveyard-poster-stage17-1">
+  <title>네크로멘서 앤드 다이스 · Event Lab</title>
+  <link rel="stylesheet" href="v2-event-lab.css?v=20261005-event-lab-reset-1">
 </head>
 <body>
   <main class="event-lab">
     <header class="lab-header">
       <div>
         <strong>EVENT LAB</strong>
-        <span>사건 · 조건 · 후속 이벤트 테스트</span>
+        <span>새 사건 제작용 빈 테스트 공간</span>
       </div>
       <nav>
         <a href="index.html">시작 화면</a>
@@ -20,139 +20,19 @@
       </nav>
     </header>
 
-    <section class="lab-grid">
-      <aside class="panel event-browser">
-        <div class="panel-title">
-          <strong>이벤트 목록</strong>
-          <button id="resetSession" type="button">전체 초기화</button>
-        </div>
-        <div id="eventList" class="event-list"></div>
-      </aside>
-
-      <section class="event-stage">
-        <div class="event-card">
-          <div id="eventScenePreview" class="event-scene-preview" hidden aria-label="공동묘지 사건 장면">
-            <div class="event-graveyard-panorama">
-              <div class="event-scene-narration" aria-live="polite">
-                <strong>공동묘지 · 습격</strong>
-                <span id="eventSceneNarration">묘비 사이에서 아이가 뒷걸음친다. 바로 뒤, 구울이 몸을 일으킨다.</span>
-              </div>
-              <div class="event-graveyard-props">
-            <span class="event-graveyard-prop event-graveyard-m1"><span aria-hidden="true"></span></span>
-            <span class="event-graveyard-prop event-graveyard-m2"><span aria-hidden="true"></span></span>
-            <span class="event-graveyard-prop event-graveyard-m3"><span aria-hidden="true"></span></span>
-            <span class="event-graveyard-prop event-graveyard-t1"><span aria-hidden="true"></span></span>
-            <span class="event-graveyard-prop event-graveyard-t2 is-flipped"><span aria-hidden="true"></span></span>
-            <span class="event-graveyard-prop event-graveyard-g1"><span aria-hidden="true"></span></span>
-            <span class="event-graveyard-prop event-graveyard-l1"><span aria-hidden="true"></span></span>
-            <span class="event-graveyard-prop event-graveyard-f1"><span aria-hidden="true"></span></span>
-            <span class="event-graveyard-prop event-graveyard-f2 is-flipped"><span aria-hidden="true"></span></span>
-            <span class="event-graveyard-prop event-graveyard-h1"><span aria-hidden="true"></span></span>
-            <span class="event-graveyard-prop event-graveyard-h2 is-flipped"><span aria-hidden="true"></span></span>
-            <span class="event-graveyard-prop event-graveyard-h3"><span aria-hidden="true"></span></span>
-            <span class="event-graveyard-prop event-graveyard-h4 is-flipped"><span aria-hidden="true"></span></span>
-            <span class="event-graveyard-prop event-graveyard-c1"><span aria-hidden="true"></span></span>
-              </div>
-              <div class="event-child-idle" aria-label="공동묘지의 아이"></div>
-              <div class="event-ghoul" data-event-ghoul aria-label="아이를 습격하는 구울"></div>
-              <div class="event-ambush-alert" aria-hidden="true"><span>!</span></div>
-              <div class="event-dialogue-layer" aria-label="사건 대화">
-                <div class="event-dialogue-portrait" aria-label="아이 상반신">
-                  <img src="art/v2-style/event-portraits/dark-eyed-boy.png?v=1" alt="아이">
-                </div>
-                <button class="event-dialogue-box" id="eventDialogueAdvance" type="button" aria-label="아이의 대화를 넘기기">
-                  <img class="event-dialogue-frame" src="art/v2-style/ui/intro-dialogue-box.webp?v=6" alt="" aria-hidden="true">
-                  <span class="event-dialogue-name">아이</span>
-                  <span class="event-dialogue-text">…!</span>
-                  <span class="event-dialogue-next" aria-hidden="true">▼</span>
-                </button>
-              </div>
-            </div>
-          </div>
-          <img id="eventArt" alt="">
-          <div class="event-copy">
-            <div class="event-meta">
-              <span id="eventLocation">-</span>
-              <code id="eventId">-</code>
-            </div>
-            <h1 id="eventTitle">이벤트를 선택하세요</h1>
-            <p id="eventText">왼쪽 목록에서 테스트할 이벤트를 직접 선택할 수 있습니다.</p>
-            <div id="conditionSummary" class="condition-summary"></div>
-            <div id="choiceList" class="choice-list" data-cinematic-choices></div>
-            <div id="outcomeBox" class="outcome-box" hidden></div>
-          </div>
-        </div>
-
-        <section class="roll-panel" id="rollPanel" hidden>
-          <div>
-            <strong id="rollTitle">판정</strong>
-            <span id="rollHint"></span>
-          </div>
-          <div class="dice-box" id="diceBox">-</div>
-          <div class="roll-actions">
-            <button type="button" data-roll="normal">정상 굴림</button>
-            <button type="button" data-roll="success">강제 성공</button>
-            <button type="button" data-roll="fail">강제 실패</button>
-          </div>
-        </section>
-
-        <section class="history-panel">
-          <div class="panel-title">
-            <strong>이벤트 히스토리</strong>
-            <button id="clearHistory" type="button">로그 지우기</button>
-          </div>
-          <div id="historyList" class="history-list"></div>
-        </section>
-      </section>
-
-      <aside class="panel state-panel">
-        <div class="panel-title"><strong>테스트 상태</strong></div>
-
-        <label class="field">
-          <span>오염도 <b id="contaminationValue">20</b></span>
-          <input id="contaminationInput" type="range" min="0" max="100" value="20">
-        </label>
-
-        <label class="field">
-          <span>현재 루프</span>
-          <input id="loopInput" type="number" min="1" max="99" value="1">
-        </label>
-
-        <fieldset>
-          <legend>보유 마물 태그</legend>
-          <label><input type="checkbox" data-monster-tag="skeleton"> 해골 계열</label>
-          <label><input type="checkbox" data-monster-tag="plant"> 식물 계열</label>
-          <label><input type="checkbox" data-monster-tag="plague"> 역병 계열</label>
-        </fieldset>
-
-        <section class="flag-editor">
-          <div class="panel-title">
-            <strong>WORLD FLAGS</strong>
-            <button id="addFlag" type="button">+ 플래그</button>
-          </div>
-          <div id="flagList"></div>
-        </section>
-
-        <section class="next-events">
-          <strong>현재 조건에서 등장 가능</strong>
-          <div id="availableEvents"></div>
-        </section>
-      </aside>
+    <section class="empty-lab" aria-labelledby="emptyLabTitle">
+      <div class="empty-lab-mark" aria-hidden="true">＋</div>
+      <p class="empty-lab-kicker">RESET COMPLETE</p>
+      <h1 id="emptyLabTitle">등록된 테스트 이벤트가 없습니다.</h1>
+      <p>기존 Event Lab의 사건·분기·상태·히스토리를 모두 비웠습니다.<br>새 이벤트는 여기서 처음부터 다시 구성합니다.</p>
+      <div class="empty-lab-status">
+        <span>이벤트 데이터 <b id="eventCount">0</b></span>
+        <span>테스트 상태 초기화 완료</span>
+      </div>
     </section>
   </main>
 
-  <dialog id="flagDialog">
-    <form method="dialog">
-      <h2>플래그 추가</h2>
-      <input id="newFlagName" placeholder="예: priest_saved">
-      <div>
-        <button value="cancel">취소</button>
-        <button id="confirmFlag" value="default">추가</button>
-      </div>
-    </form>
-  </dialog>
-
-  <script src="v2-event-data.js?v=20261005-graveyard-poster-stage17-1"></script>
-  <script src="v2-event-lab.js?v=20261005-graveyard-poster-stage17-1"></script>
+  <script src="v2-event-data.js?v=20261005-event-lab-reset-1"></script>
+  <script src="v2-event-lab.js?v=20261005-event-lab-reset-1"></script>
 </body>
 </html>
