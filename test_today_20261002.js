@@ -412,6 +412,6 @@ assert(battle.includes('사건으로 돌아가기'));
 assert(battle.includes('if (fromEvent) {'));
 assert(battleHtml.includes('v2-auto-battle-practice.js?v=131'));
 
-assert(eventLabJs.includes('classList.toggle("is-cinematic-rescued", isRescuedScene)'));
-assert(eventLabJs.includes('"…고마워요."'));
-assert(eventLabCss.includes(".event-card.is-cinematic-rescued .event-ghoul"));
+assert(eventJs.includes('classList.toggle("is-cinematic-rescued", isRescuedScene)'));
+assert(eventJs.includes('"…고마워요."'));
+assert(eventCss.includes(".event-card.is-cinematic-rescued .event-ghoul"));
