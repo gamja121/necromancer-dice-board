@@ -34,7 +34,7 @@
     reset: document.getElementById("eventReset")
   };
 
-  let phase = "discovery";
+  let phase = "description";
 
   async function requestLandscapeOrientation() {
     try {
@@ -127,27 +127,19 @@
   }
 
   function resetEvent() {
-    phase = "discovery";
+    phase = "description";
     if (el.card) {
       el.card.dataset.phase = phase;
-      el.card.classList.remove("is-unease", "is-ghoul-revealed", "is-dialogue", "is-choice", "is-resolved");
+      el.card.classList.remove("is-ghoul-revealed", "is-dialogue", "is-choice", "is-resolved");
     }
     if (el.ghoulLayer) el.ghoulLayer.hidden = true;
     hideDecisionLayers();
     if (el.advance) {
       el.advance.hidden = false;
       el.advance.disabled = false;
-      el.advance.textContent = "주변을 살핀다";
+      el.advance.textContent = "계속";
     }
-    if (el.description && event) el.description.textContent = "공동묘지 안쪽에서 길을 잃은 듯한 작은 인영을 발견했다.";
-  }
-
-  function showUnease() {
-    phase = "unease";
-    el.card.dataset.phase = phase;
-    el.card.classList.add("is-unease");
-    if (el.description) el.description.textContent = "그 인영은 자꾸 뒤를 돌아본다. 묘비 사이에서 마른 돌 긁는 소리가 들린다.";
-    if (el.advance) el.advance.textContent = "소리가 난 쪽을 본다";
+    if (el.description && event) el.description.textContent = "공동묘지 안쪽에서 길을 잃은 아이를 발견했다. 아이는 묘비 사이를 서성이며 자꾸 뒤를 돌아본다. " + event.description;
   }
 
   async function revealGhoul() {
@@ -157,7 +149,7 @@
     el.card.classList.add("is-ghoul-revealed");
     el.ghoulLayer.hidden = false;
     if (el.description) el.description.textContent = event.description;
-    el.advance.textContent = "목소리를 듣는다";
+    el.advance.textContent = "아이의 목소리를 듣는다";
   }
 
   function showDialogue() {
@@ -199,8 +191,7 @@
     resetEvent();
 
     el.advance?.addEventListener("click", () => {
-      if (phase === "discovery") showUnease();
-      else if (phase === "unease") revealGhoul();
+      if (phase === "description") revealGhoul();
       else if (phase === "threat") showDialogue();
     });
     el.dialogueAdvance?.addEventListener("click", showChoices);
