@@ -56,6 +56,8 @@ async function activate(page, selector) {
         && commander?.complete && commander.naturalWidth >= 500
         && frame?.complete && frame.naturalWidth > 0;
     }, null, { timeout: 15000 });
+    await page.waitForSelector("#dialogueStage", { state: "visible", timeout: 15000 });
+    await page.waitForSelector(".dialogue-frame", { state: "visible", timeout: 15000 });
     assert.equal(await page.locator("#dialogueStage").isVisible(), true);
     assert((await page.locator(".portrait-left img").evaluate(img => img.naturalWidth)) > 0);
     assert((await page.locator(".portrait-right img").evaluate(img => img.naturalWidth)) >= 500);
