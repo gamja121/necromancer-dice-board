@@ -2729,3 +2729,28 @@ body.is-graveyard-event-transition .map-board .swamp-damage-overlay{
   word-break:keep-all!important;
   overflow-wrap:break-word!important;
 }
+
+/* Stage 20.11 — final composition balance.
+   Left column = artwork + dialogue, right column = effect + choices. */
+.graveyard-story-art-wrap{
+  left:8%!important;
+  top:10%!important;
+  width:46%!important;
+  height:52%!important;
+}
+.graveyard-story-dialogue{
+  left:8%!important;
+  top:64%!important;
+  width:46%!important;
+  height:21%!important;
+}
+.graveyard-story-effect-box{
+  left:56%!important;
+  top:10%!important;
+  width:28%!important;
+}
+.graveyard-story-choices{
+  left:56%!important;
+  top:47%!important;
+  width:28%!important;
+}
