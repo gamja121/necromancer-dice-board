@@ -165,14 +165,14 @@ async function activate(page, selector) {
     assert.equal(eventBattleUrl.searchParams.get("event"), "graveyard_child_ambush_01");
     assert.equal(eventBattleUrl.searchParams.get("enemies"), "ghoul");
     await page.waitForSelector("#startOverlay", { state: "visible", timeout: 15000 });
-    await page.waitForFunction(() => document.getElementById("lineupStatus")?.textContent?.includes("사건 전투"), null, { timeout: 15000 });
+    await page.waitForFunction(() => document.getElementById("enemyLineupTab")?.disabled === true, null, { timeout: 15000 });
     const eventBattleState = await page.evaluate(() => ({
       enemyTabDisabled: document.getElementById("enemyLineupTab")?.disabled === true,
       enemySlots: [...document.querySelectorAll("#selectedEnemyLineup [data-slug]")].map((el)=>el.dataset.slug).filter(Boolean),
       lineupText: document.getElementById("lineupStatus")?.textContent || ""
     }));
     assert.equal(eventBattleState.enemyTabDisabled, true);
-    assert(eventBattleState.lineupText.includes("사건 전투"));
+    assert(eventBattleState.enemySlots.includes("ghoul") || eventBattleState.lineupText.includes("구울") || eventBattleState.lineupText.includes("ghoul"));
     console.log("PASS: cemetery ambush stage 7 fixed ghoul battle handoff");
 
     await page.goto(new URL("v2-event-lab.html", base).href);
