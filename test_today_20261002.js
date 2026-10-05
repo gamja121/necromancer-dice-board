@@ -353,7 +353,7 @@ assert((eventHtml.match(/class="event-graveyard-prop event-graveyard-/g)||[]).le
 assert(eventHtml.includes('class="event-child-idle"'));
 assert(eventCss.includes(".event-scene-preview"));
 assert(eventCss.includes(".event-child-idle"));
-assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-ambush-stage2-child-idle-1'));
+assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-ambush-stage3-choices-1'));
 assert(eventJs.includes('event.scene === "graveyard_child_ambush_intro"'));
 assert(!eventHtml.includes('id="eventScene"'));
 assert(!eventData.includes("graveyard_child_ambush_test_01"));
@@ -366,3 +366,11 @@ assert(eventCss.includes("animation:event-child-idle-breathe 3.4s ease-in-out in
 assert(eventCss.includes("@keyframes event-child-idle-shadow"));
 assert(eventCss.includes("@media (prefers-reduced-motion:reduce)"));
 assert(eventData.includes("아이의 등장과 불안한 대기 모션까지만 테스트한다."));
+
+{
+  const start = eventData.indexOf('id: "graveyard_child_ambush_01"');
+  const end = eventData.indexOf('id: "forest_child_01"', start);
+  const ambush = eventData.slice(start, end);
+  assert(ambush.includes('text: "아이를 구한다"'));
+  assert(ambush.includes('text: "지나친다"'));
+}
