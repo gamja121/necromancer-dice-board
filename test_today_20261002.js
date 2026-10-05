@@ -162,7 +162,7 @@ for (const required of [
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
   "./v2-map-practice.js?v=20261005-graveyard-stage5-approved-layout-1",
-  "./v2-auto-battle-practice.js?v=129",
+  "./v2-auto-battle-practice.js?v=130",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
   "./v2-sfx.js?v=4",
@@ -223,8 +223,8 @@ assert(map.includes('building.style.bottom = "auto"'));
 
 assert(battle.includes('makeState(data, "enemy", 3 - index)'));
 assert(!battle.includes('makeState(data, "enemy", index)'));
-assert(battleHtml.includes("v2-auto-battle-practice.js?v=129"));
-assert(worker.includes("./v2-auto-battle-practice.js?v=129"));
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=130"));
+assert(worker.includes("./v2-auto-battle-practice.js?v=130"));
 
 const rulesSource = read("v2-rules.js");
 const brandCardsSource = read("v2-brand-cards.js");
