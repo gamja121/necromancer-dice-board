@@ -408,7 +408,7 @@ async function activate(page, selector) {
     assert.equal(graveyardState.width, 1536);
     assert.equal(graveyardState.height, 1260);
     assert(graveyardState.status.includes("아틀라스 정상"), "Graveyard atlas status must report ready");
-    await page.locator("#graveyardDioramaClose").click();
+    await page.locator("#graveyardDioramaClose").evaluate((button) => button.click());
     assert.equal(await page.locator("#graveyardDioramaTest").evaluate((el) => el.hidden), true);
     console.log("PASS: graveyard stage 3 atlas inspector");
     console.log("PASS: mobile village six distinct building assets " + JSON.stringify(villageAssets));
