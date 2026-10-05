@@ -3,18 +3,6 @@
 
   const events = [
     {
-      id: "graveyard_child_ambush_test_01",
-      location: "graveyard",
-      locationLabel: "공동묘지",
-      title: "습격받는 아이",
-      scene: "graveyard_child_ambush_stage1",
-      art: "",
-      once: false,
-      conditions: {},
-      text: "공동묘지 깊숙한 곳. 묘비 사이에 혼자 서 있는 아이가 보인다.",
-      choices: []
-    },
-    {
       id: "graveyard_child_ambush_01",
       location: "graveyard",
       locationLabel: "공동묘지",
