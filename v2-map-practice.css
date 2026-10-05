@@ -2207,3 +2207,98 @@ body.is-graveyard-event-transition .map-board .swamp-damage-overlay{
     height:74%!important;
   }
 }
+
+
+/* Cemetery event composition refinement · stage 16
+   Keep the moving-diorama engine; only actor composition and dialogue portrait crop change. */
+.graveyard-story-child{
+  left:49.5%!important;
+  bottom:8.8%!important;
+  width:5.6%!important;
+  transform:translateX(-50%)!important;
+  z-index:12!important;
+}
+.graveyard-story-ghoul{
+  left:57.2%!important;
+  bottom:8.4%!important;
+  width:9.8%!important;
+  transform:translateX(-50%)!important;
+  z-index:13!important;
+}
+.graveyard-story-event.beat-child-alone .graveyard-story-child{
+  left:49.5%!important;
+  bottom:8.8%!important;
+  width:5.6%!important;
+}
+.graveyard-story-event.beat-child-alone .graveyard-story-ghoul{
+  opacity:0!important;
+  transform:translateX(-50%) translateX(18%) scale(.94)!important;
+  animation:none!important;
+}
+.graveyard-story-event.beat-ghoul-appears .graveyard-story-child{
+  left:49.5%!important;
+  bottom:8.8%!important;
+  width:5.6%!important;
+}
+.graveyard-story-event.beat-ghoul-appears .graveyard-story-ghoul{
+  left:55.8%!important;
+  bottom:8.4%!important;
+  width:9.8%!important;
+  opacity:1!important;
+}
+.graveyard-story-event.beat-child-frightened .graveyard-story-child{
+  left:48.7%!important;
+  bottom:8.8%!important;
+  width:5.6%!important;
+}
+.graveyard-story-event.beat-choice .graveyard-story-child{
+  left:48.7%!important;
+  bottom:8.8%!important;
+  width:5.6%!important;
+}
+.graveyard-story-event.beat-choice .graveyard-story-ghoul{
+  left:56.2%!important;
+  bottom:8.4%!important;
+  width:9.8%!important;
+}
+.graveyard-story-event.is-rescued .graveyard-story-child{
+  left:49.5%!important;
+  bottom:8.8%!important;
+  width:5.6%!important;
+}
+
+/* Dialogue portrait: show the child as a bust/upper-body illustration, not full-body. */
+.graveyard-story-portrait{
+  right:4%!important;
+  bottom:24%!important;
+  width:24%!important;
+  height:38%!important;
+  z-index:310!important;
+  overflow:hidden!important;
+}
+.graveyard-story-portrait img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  object-position:center 12%!important;
+  transform:scaleX(1)!important;
+}
+.graveyard-story-event.is-rescued .graveyard-story-portrait{
+  right:4%!important;
+  bottom:24%!important;
+  width:24%!important;
+  height:38%!important;
+}
+.graveyard-story-event.is-choice-phase .graveyard-story-field{
+  opacity:.78;
+}
+@media (max-height:430px) and (orientation:landscape){
+  .graveyard-story-child{width:5.2%!important;bottom:8.5%!important}
+  .graveyard-story-ghoul{width:9.2%!important;bottom:8.1%!important}
+  .graveyard-story-portrait{
+    right:3%!important;
+    bottom:23%!important;
+    width:22%!important;
+    height:40%!important;
+  }
+}
