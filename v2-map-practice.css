@@ -2543,18 +2543,25 @@ body.is-graveyard-event-transition .map-board .swamp-damage-overlay{
   position:absolute!important;
   z-index:8!important;
   left:9%!important;
-  top:auto!important;
+  top:65%!important;
   right:auto!important;
-  bottom:2.5%!important;
-  width:54%!important;
-  height:23%!important;
+  bottom:auto!important;
+  width:44%!important;
+  height:22%!important;
   inset:auto!important;
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:none!important;
+}
+.graveyard-story-dialogue .graveyard-story-name,
+.graveyard-story-dialogue .graveyard-story-text,
+.graveyard-story-dialogue .graveyard-story-next{
   opacity:0!important;
   visibility:hidden!important;
-  pointer-events:none!important;
-  transition:opacity .2s ease;
 }
-.graveyard-story-event.has-dialogue .graveyard-story-dialogue{
+.graveyard-story-event.has-dialogue .graveyard-story-name,
+.graveyard-story-event.has-dialogue .graveyard-story-text,
+.graveyard-story-event.has-dialogue .graveyard-story-next{
   opacity:1!important;
   visibility:visible!important;
 }
@@ -2674,7 +2681,7 @@ body.is-graveyard-event-transition .map-board .swamp-damage-overlay{
 @media(max-height:430px) and (orientation:landscape){
   .graveyard-story-art-wrap{left:6%;top:6%;width:59%;height:69%}
   .graveyard-story-effect-box{left:68%;right:auto;top:6%;width:27%;padding:2.8%}
-  .graveyard-story-dialogue{left:8%!important;width:56%!important;height:24%!important;bottom:1.5%!important}
+  .graveyard-story-dialogue{left:9%!important;top:65%!important;width:44%!important;height:22%!important;bottom:auto!important}
   .graveyard-story-choices{left:68%!important;right:auto!important;width:27%!important;top:48%!important}
 }
 
