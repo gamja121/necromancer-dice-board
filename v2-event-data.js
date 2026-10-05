@@ -11,8 +11,19 @@
       scene: "graveyard_child_ambush_intro",
       once: true,
       conditions: {},
-      text: "공동묘지 안쪽. 한 아이가 묘비 사이에 홀로 서서 주변을 경계하고 있다. 현재 단계에서는 아이의 등장과 불안한 대기 모션까지만 테스트한다.",
-      choices: []
+      text: "공동묘지 안쪽. 한 아이가 묘비 사이에 홀로 서서 주변을 경계하고 있다. 당신은 이 아이를 두고 선택해야 한다.",
+      choices: [
+        {
+          id: "protect_child",
+          text: "아이를 구한다",
+          outcome: "3단계 테스트: 구한다 선택 입력 확인. 전투 연결은 다음 단계에서 처리한다."
+        },
+        {
+          id: "leave_child",
+          text: "지나친다",
+          outcome: "3단계 테스트: 지나친다 선택 입력 확인. 후속 연출과 플래그는 다음 단계에서 처리한다."
+        }
+      ]
     },
     {
       id: "forest_child_01",
