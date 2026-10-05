@@ -144,6 +144,10 @@
     graveyardDioramaClose: document.getElementById("graveyardDioramaClose"),
     graveyardAtlasProbe: document.getElementById("graveyardAtlasProbe"),
     graveyardAssetStatus: document.getElementById("graveyardAssetStatus"),
+    graveyardLayerDebug: document.getElementById("graveyardLayerDebug"),
+    graveyardSelectedLabel: document.getElementById("graveyardSelectedLabel"),
+    graveyardLayoutSaveStatus: document.getElementById("graveyardLayoutSaveStatus"),
+    graveyardLayoutExport: document.getElementById("graveyardLayoutExport"),
     mapName: document.getElementById("mapName"),
     tileName: document.getElementById("tileName"),
     regenerate: document.getElementById("regenerateButton"),
@@ -404,7 +408,7 @@
   }
 
   function ensureVillageBuildingAssets() {
-    const version = "20261005-graveyard-stage3-inspector-1";
+    const version = "20261005-graveyard-stage4-editor-1";
     document.querySelectorAll(".village-building-image").forEach((img, index) => {
       if (!(img instanceof HTMLImageElement)) return;
       const assetNumber = String(index + 1).padStart(2, "0");
@@ -718,6 +722,128 @@
     });
   }
 
+  let selectedGraveyardItem = null;
+  const GRAVEYARD_LAYOUT_STORAGE_KEY = "necromancer-dice-graveyard-layout-v1";
+
+  function getGraveyardItems() {
+    return [...document.querySelectorAll(".graveyard-layout-stage .graveyard-layout-item")];
+  }
+
+  function selectGraveyardItem(item) {
+    getGraveyardItems().forEach((other) => other.classList.toggle("is-layout-selected", other === item));
+    selectedGraveyardItem = item instanceof HTMLElement ? item : null;
+    if (el.graveyardSelectedLabel) el.graveyardSelectedLabel.textContent = selectedGraveyardItem ? `선택: ${selectedGraveyardItem.dataset.graveyardId}` : "선택: 없음";
+    el.graveyardLayerDebug?.querySelectorAll("[data-graveyard-size],[data-graveyard-layer],[data-graveyard-flip]").forEach((button)=>button.disabled=!selectedGraveyardItem);
+  }
+
+  function moveGraveyardItem(item, clientX, clientY, offsetX, offsetY) {
+    const stage = item.closest(".graveyard-layout-stage");
+    if (!stage) return;
+    const stageRect = stage.getBoundingClientRect();
+    const itemRect = item.getBoundingClientRect();
+    const left = Math.min(Math.max(0, clientX-stageRect.left-offsetX), Math.max(0, stageRect.width-itemRect.width));
+    const top = Math.min(Math.max(0, clientY-stageRect.top-offsetY), Math.max(0, stageRect.height-itemRect.height));
+    item.style.left = `${(left/stageRect.width)*100}%`;
+    item.style.top = `${(top/stageRect.height)*100}%`;
+    item.style.bottom = "auto";
+  }
+
+  function enableGraveyardDragging() {
+    getGraveyardItems().forEach((item)=>{
+      if(item.dataset.dragReady==="1") return;
+      item.dataset.dragReady="1";
+      item.addEventListener("pointerdown",(event)=>{
+        if(event.button!==undefined && event.button!==0) return;
+        selectGraveyardItem(item);
+        const rect=item.getBoundingClientRect();
+        item.dataset.dragPointerId=String(event.pointerId);
+        item.dataset.dragOffsetX=String(event.clientX-rect.left);
+        item.dataset.dragOffsetY=String(event.clientY-rect.top);
+        item.classList.add("is-layout-dragging");
+        try{item.setPointerCapture?.(event.pointerId)}catch{}
+        event.preventDefault();
+      });
+      item.addEventListener("pointermove",(event)=>{
+        if(item.dataset.dragPointerId!==String(event.pointerId)) return;
+        moveGraveyardItem(item,event.clientX,event.clientY,Number(item.dataset.dragOffsetX||0),Number(item.dataset.dragOffsetY||0));
+        event.preventDefault();
+      });
+      const finish=(event)=>{
+        if(item.dataset.dragPointerId!==String(event.pointerId)) return;
+        try{item.releasePointerCapture?.(event.pointerId)}catch{}
+        delete item.dataset.dragPointerId;delete item.dataset.dragOffsetX;delete item.dataset.dragOffsetY;
+        item.classList.remove("is-layout-dragging");
+      };
+      item.addEventListener("pointerup",finish);item.addEventListener("pointercancel",finish);
+    });
+  }
+
+  function resizeSelectedGraveyardItem(direction) {
+    if(!selectedGraveyardItem) return;
+    const stage=selectedGraveyardItem.closest(".graveyard-layout-stage");
+    if(!stage?.clientWidth) return;
+    const inline=selectedGraveyardItem.style.width.endsWith("%")?Number.parseFloat(selectedGraveyardItem.style.width):NaN;
+    const layoutWidth=Number.parseFloat(getComputedStyle(selectedGraveyardItem).width);
+    const current=Number.isFinite(inline)?inline:(layoutWidth/stage.clientWidth)*100;
+    selectedGraveyardItem.style.width=`${Math.min(45,Math.max(4,current+direction*1.5)).toFixed(2)}%`;
+  }
+
+  function changeSelectedGraveyardLayer(direction) {
+    if(!selectedGraveyardItem) return;
+    const current=Number.parseInt(getComputedStyle(selectedGraveyardItem).zIndex,10);
+    const next=Math.min(30,Math.max(0,(Number.isFinite(current)?current:1)+direction));
+    selectedGraveyardItem.style.zIndex=String(next);
+  }
+
+  function flipSelectedGraveyardItem() {
+    if(selectedGraveyardItem) selectedGraveyardItem.classList.toggle("is-layout-flipped");
+  }
+
+  function getGraveyardLayoutSnapshot() {
+    return Object.fromEntries(getGraveyardItems().map((item)=>[item.dataset.graveyardId,{
+      left:item.style.left||"",top:item.style.top||"",bottom:item.style.bottom||"",width:item.style.width||"",zIndex:item.style.zIndex||"",
+      flipX:item.classList.contains("is-layout-flipped"),hidden:item.classList.contains("is-debug-hidden")
+    }]));
+  }
+
+  function applyGraveyardLayoutSnapshot(layout) {
+    if(!layout || typeof layout!=="object") return false;
+    let applied=false;
+    getGraveyardItems().forEach((item)=>{
+      const saved=layout[item.dataset.graveyardId]; if(!saved) return;
+      item.style.left=typeof saved.left==="string"?saved.left:"";
+      item.style.top=typeof saved.top==="string"?saved.top:"";
+      item.style.bottom=typeof saved.bottom==="string"?saved.bottom:"";
+      item.style.width=typeof saved.width==="string"?saved.width:"";
+      item.style.zIndex=typeof saved.zIndex==="string"?saved.zIndex:"";
+      item.classList.toggle("is-layout-flipped",saved.flipX===true);
+      item.classList.toggle("is-debug-hidden",saved.hidden===true);
+      const selector=`.graveyard-item-${item.dataset.graveyardId.toLowerCase()}`;
+      el.graveyardLayerDebug?.querySelector(`[data-graveyard-toggle="${selector}"]`)?.setAttribute("aria-pressed",String(saved.hidden!==true));
+      applied=true;
+    });
+    return applied;
+  }
+
+  function saveGraveyardLayout() {
+    try{localStorage.setItem(GRAVEYARD_LAYOUT_STORAGE_KEY,JSON.stringify(getGraveyardLayoutSnapshot()));if(el.graveyardLayoutSaveStatus)el.graveyardLayoutSaveStatus.textContent="저장됨";}catch{if(el.graveyardLayoutSaveStatus)el.graveyardLayoutSaveStatus.textContent="저장 실패";}
+  }
+  function loadGraveyardLayout() {
+    try{const raw=localStorage.getItem(GRAVEYARD_LAYOUT_STORAGE_KEY);return raw?applyGraveyardLayoutSnapshot(JSON.parse(raw)):false;}catch{return false;}
+  }
+  function resetGraveyardLayout() {
+    localStorage.removeItem(GRAVEYARD_LAYOUT_STORAGE_KEY);
+    getGraveyardItems().forEach((item)=>{item.style.left=item.dataset.defaultLeft||item.style.left;item.style.top=item.dataset.defaultTop||item.style.top;item.style.bottom="auto";item.style.width="";item.style.zIndex=item.dataset.defaultZ||item.style.zIndex;item.classList.remove("is-layout-flipped","is-debug-hidden");});
+    el.graveyardLayerDebug?.querySelectorAll("[data-graveyard-toggle]").forEach((b)=>b.setAttribute("aria-pressed","true"));
+    selectGraveyardItem(null);
+    if(el.graveyardLayoutSaveStatus)el.graveyardLayoutSaveStatus.textContent="기본 배치로 복원";
+  }
+  async function copyGraveyardLayoutExport() {
+    const text=JSON.stringify(getGraveyardLayoutSnapshot(),null,2);
+    if(el.graveyardLayoutExport){el.graveyardLayoutExport.hidden=false;el.graveyardLayoutExport.value=text;el.graveyardLayoutExport.focus();el.graveyardLayoutExport.select();}
+    try{await navigator.clipboard?.writeText?.(text);if(el.graveyardLayoutSaveStatus)el.graveyardLayoutSaveStatus.textContent="배치값 복사됨";}catch{if(el.graveyardLayoutSaveStatus)el.graveyardLayoutSaveStatus.textContent="배치값 표시됨";}
+  }
+
   function updateGraveyardAssetStatus() {
     if (!el.graveyardAtlasProbe || !el.graveyardAssetStatus) return false;
     const width = el.graveyardAtlasProbe.naturalWidth;
@@ -733,7 +859,7 @@
 
   function ensureGraveyardAtlas() {
     if (!(el.graveyardAtlasProbe instanceof HTMLImageElement)) return;
-    const src = "art/v2-style/map-test/diorama/graveyard/graveyard-atlas.webp?v=20261005-graveyard-stage3-inspector-1";
+    const src = "art/v2-style/map-test/diorama/graveyard/graveyard-atlas.webp?v=20261005-graveyard-stage4-editor-1";
     el.graveyardAtlasProbe.onload = updateGraveyardAssetStatus;
     el.graveyardAtlasProbe.onerror = () => {
       if (el.graveyardAssetStatus) {
@@ -753,6 +879,9 @@
     if (el.villageDioramaTest && !el.villageDioramaTest.hidden) closeVillageDioramaTest();
     if (el.forestDioramaTest && !el.forestDioramaTest.hidden) closeForestDioramaTest();
     ensureGraveyardAtlas();
+    enableGraveyardDragging();
+    loadGraveyardLayout();
+    if (el.graveyardLayerDebug) el.graveyardLayerDebug.hidden = false;
     el.graveyardDioramaTest.hidden = false;
     document.querySelector(".map-lab")?.classList.add("is-graveyard-inspector-open");
   }
@@ -760,6 +889,8 @@
   function closeGraveyardDioramaTest() {
     if (!el.graveyardDioramaTest || el.graveyardDioramaTest.hidden) return;
     el.graveyardDioramaTest.hidden = true;
+    if (el.graveyardLayerDebug) el.graveyardLayerDebug.hidden = true;
+    selectGraveyardItem(null);
     document.querySelector(".map-lab")?.classList.remove("is-graveyard-inspector-open");
   }
 
@@ -4020,6 +4151,16 @@
   el.forestDioramaTestButton?.addEventListener("click", () => openForestDioramaTest({ fromTile: false }));
   el.villageDioramaTestButton?.addEventListener("click", openVillageDioramaTest);
   el.graveyardDioramaTestButton?.addEventListener("click", openGraveyardDioramaTest);
+  el.graveyardLayerDebug?.addEventListener("click",(event)=>{
+    if(event.target.closest("[data-graveyard-flip]")){flipSelectedGraveyardItem();return;}
+    if(event.target.closest("[data-graveyard-layout-save]")){saveGraveyardLayout();return;}
+    if(event.target.closest("[data-graveyard-layout-copy]")){copyGraveyardLayoutExport();return;}
+    if(event.target.closest("[data-graveyard-layout-reset]")){resetGraveyardLayout();return;}
+    const size=event.target.closest("[data-graveyard-size]"); if(size){resizeSelectedGraveyardItem(Number(size.dataset.graveyardSize||0));return;}
+    const layer=event.target.closest("[data-graveyard-layer]"); if(layer){changeSelectedGraveyardLayer(Number(layer.dataset.graveyardLayer||0));return;}
+    const toggle=event.target.closest("[data-graveyard-toggle]"); if(toggle){const selector=toggle.dataset.graveyardToggle;const item=document.querySelector(selector);const visible=toggle.getAttribute("aria-pressed")!=="true";item?.classList.toggle("is-debug-hidden",!visible);toggle.setAttribute("aria-pressed",String(visible));if(visible&&item)selectGraveyardItem(item);return;}
+    if(event.target.closest("[data-graveyard-reset-visibility]")){getGraveyardItems().forEach((i)=>i.classList.remove("is-debug-hidden"));el.graveyardLayerDebug.querySelectorAll("[data-graveyard-toggle]").forEach((b)=>b.setAttribute("aria-pressed","true"));return;}
+  });
   el.graveyardDioramaClose?.addEventListener("click", closeGraveyardDioramaTest);
   el.graveyardDioramaTest?.addEventListener("click", (event) => {
     if (event.target === el.graveyardDioramaTest) closeGraveyardDioramaTest();
