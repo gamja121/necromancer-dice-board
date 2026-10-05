@@ -11,6 +11,9 @@
   });
   const battleQuery = typeof location === "undefined" ? new URLSearchParams() : new URLSearchParams(location.search);
   const fromMap = battleQuery.get("from") === "map";
+  const fromEvent = battleQuery.get("from") === "event";
+  const eventSourceId = fromEvent ? (battleQuery.get("event") || "") : "";
+  const requestedEventEnemyRaw = fromEvent ? (battleQuery.get("enemies") || "") : "";
   const undeadHealTest = battleQuery.get("test") === "undead-heal";
   const UNDEAD_HEAL_TEST_SLUGS = Object.freeze(["skeleton-spear", "skeleton-archer", "skeleton-cavalry", "grave-priest"]);
   const mapEncounterId = battleQuery.get("encounter") || "";
@@ -220,6 +223,11 @@
       .filter((unit) => unit && unit.grade !== "special" && ROSTER_BY_SLUG.has(unit.slug))
       .map((unit) => unit.slug)
   );
+  const requestedEventEnemySlugs = requestedEventEnemyRaw
+    .split(",")
+    .filter((slug) => PLAYABLE_MONSTER_SLUGS.includes(slug))
+    .slice(0, 4);
+
   const TEST_DECK_SLUGS = Object.freeze([
     "death-knight", "skeleton-spear", "skeleton-archer", "ghoul", "ancient-treant", "goblin-rider",
     "minotaur", "plague-doctor", "spider-knight", "hydra", "siren"
@@ -342,7 +350,9 @@
   const battlefield = document.getElementById("battlefield");
   const initialBattlefield = fromMap
     ? (mapBattlefield || MAP_BATTLEFIELDS.default)
-    : BATTLEFIELDS[Math.floor(Math.random() * BATTLEFIELDS.length)];
+    : fromEvent
+      ? MAP_BATTLEFIELDS.default
+      : BATTLEFIELDS[Math.floor(Math.random() * BATTLEFIELDS.length)];
 
   function prepareBattlefieldBackground(src) {
     battlefield.classList.add("is-background-loading");
@@ -415,6 +425,16 @@
   const captureOverflowStatus = document.getElementById("captureOverflowStatus");
   const captureOverflowCards = document.getElementById("captureOverflowCards");
   const captureOverflowConfirm = document.getElementById("captureOverflowConfirm");
+
+  if (fromEvent) {
+    enemyLineupTab.disabled = true;
+    enemyLineupTab.setAttribute("aria-disabled", "true");
+    enemyLineupSummary.setAttribute("aria-disabled", "true");
+    const enemyNames = requestedEventEnemySlugs.map((slug) => ROSTER_BY_SLUG.get(slug)?.name || slug);
+    lineupStatus.textContent = enemyNames.length
+      ? `사건 전투 · 적 고정: ${enemyNames.join(", ")}`
+      : `사건 전투 · ${eventSourceId || "이벤트"}`;
+  }
 
   let units = [];
   let running = false;
@@ -671,7 +691,9 @@
     requestedAllyInstanceIds.every((instanceId, index) => mapOwnedRoster.get(instanceId)?.slug === selectedAllySlugs[index])
       ? requestedAllyInstanceIds : [];
   if (fromMap && selectedAllyInstanceIds.length !== selectedAllySlugs.length) selectedAllySlugs = [];
-  let selectedEnemySlugs = fromMap ? createMapEnemySlugs() : TEAM_DATA.enemy.map(entry => entry.slug);
+  let selectedEnemySlugs = fromEvent && requestedEventEnemySlugs.length
+    ? [...requestedEventEnemySlugs]
+    : (fromMap ? createMapEnemySlugs() : TEAM_DATA.enemy.map(entry => entry.slug));
   if (undeadHealTest) selectedEnemySlugs = TEAM_DATA.enemy.slice(0, 4).map(entry => entry.slug);
   let rosterTouchScroll = null;
   let selectedAllyTeam = TEAM_DATA.ally.map(entry => ({ ...entry }));
@@ -1062,7 +1084,7 @@
   }
 
   function isLineupReady() {
-    if (fromMap) return selectedAllySlugs.length >= 1 && selectedAllySlugs.length <= 4 &&
+    if (fromMap || fromEvent) return selectedAllySlugs.length >= 1 && selectedAllySlugs.length <= 4 &&
       selectedEnemySlugs.length >= 1 && selectedEnemySlugs.length <= 4;
     return selectedAllySlugs.length === 4 && selectedEnemySlugs.length === 4;
   }
@@ -1160,6 +1182,11 @@
 
   function selectLineupSide(team) {
     if (loadingLineup || !["ally", "enemy"].includes(team)) return;
+    if (fromEvent && team === "enemy") {
+      lineupSide = "ally";
+      renderRosterSelection("사건 전투의 적 편성은 고정되어 있습니다.");
+      return;
+    }
     lineupSide = team;
     renderRosterSelection();
   }
@@ -1193,8 +1220,8 @@
       if (request !== lineupRequest) return;
       loadingLineup = false;
       console.error(error);
-      if (fromMap) {
-        // The deck was already selected on the map. Never reopen the battle
+      if (fromMap || fromEvent) {
+        // Map/event encounters keep their fixed encounter context. Never reopen the battle
         // deck-selection overlay as an error screen.
         startOverlay.hidden = true;
         message.textContent = "전투 준비 중 일부 자산을 불러오지 못했습니다.";
