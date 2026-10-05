@@ -145,8 +145,13 @@ async function activate(page, selector) {
 
     await page.locator("#eventDialogueAdvance").click();
     await page.waitForSelector("#eventChoices", { state:"visible" });
-    const choiceBrightness = await page.evaluate(() => getComputedStyle(document.getElementById("eventBaseImage")).filter);
-    assert(choiceBrightness.includes("brightness(0.58)"));
+    await page.waitForTimeout(520);
+    const choiceVisual = await page.evaluate(() => ({
+      isChoice: document.getElementById("eventCard")?.classList.contains("is-choice"),
+      filter: getComputedStyle(document.getElementById("eventBaseImage")).filter
+    }));
+    assert.equal(choiceVisual.isChoice, true);
+    assert(choiceVisual.filter.includes("brightness(0.58)"));
     console.log("PASS: Event Lab gaze-directed beats");
 
     const unifiedInfo = await page.evaluate(() => {
