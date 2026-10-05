@@ -103,7 +103,7 @@ async function activate(page, selector) {
     assert(graveyardStage1.childAnimation.includes("event-child-idle-breathe"));
     assert.equal(graveyardStage1.duplicateTitleCount,1);
     assert.equal(graveyardStage1.hasGhoul,true);
-    assert.equal(graveyardStage1.hasDialogue,false);
+    assert.equal(graveyardStage1.hasDialogue,true);
     console.log("PASS: event lab graveyard child stage 2 idle motion");
     assert.equal(await page.locator("#choiceList").isVisible(), false, "Cinematic choices must stay hidden before dialogue advance");
     await page.waitForFunction(() => {
