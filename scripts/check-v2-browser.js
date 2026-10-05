@@ -481,6 +481,23 @@ async function activate(page, selector) {
     assert.equal(cameraState.playing,true);
     assert(Number.parseFloat(cameraState.opacity) >= .99,"Graveyard props must finish visible after camera settle");
     console.log("PASS: graveyard zoom tilt camera sequence");
+    await page.locator("[data-graveyard-editor-collapse]").evaluate((b)=>b.click());
+    const collapsedState=await page.evaluate(()=>({
+      collapsed:document.getElementById("graveyardLayerDebug")?.classList.contains("is-collapsed"),
+      reopenHidden:document.getElementById("graveyardEditorReopen")?.hidden,
+      panelPointer:getComputedStyle(document.getElementById("graveyardLayerDebug")).pointerEvents
+    }));
+    assert.equal(collapsedState.collapsed,true);
+    assert.equal(collapsedState.reopenHidden,false);
+    assert.equal(collapsedState.panelPointer,"none");
+    await page.locator("#graveyardEditorReopen").evaluate((b)=>b.click());
+    const reopenedState=await page.evaluate(()=>({
+      collapsed:document.getElementById("graveyardLayerDebug")?.classList.contains("is-collapsed"),
+      reopenHidden:document.getElementById("graveyardEditorReopen")?.hidden
+    }));
+    assert.equal(reopenedState.collapsed,false);
+    assert.equal(reopenedState.reopenHidden,true);
+    console.log("PASS: graveyard editor collapse and reopen");
     console.log("PASS: mobile village six distinct building assets " + JSON.stringify(villageAssets));
 
     await page.goto(base);
