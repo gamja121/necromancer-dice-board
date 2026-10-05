@@ -5,6 +5,14 @@
     ? window.V2EventLabData.events
     : [];
   const event = events[0] || null;
+  const launchQuery = new URLSearchParams(location.search);
+  const fromMapEvent = launchQuery.get("fromMapEvent") === "1";
+  const resumeEventBattle = launchQuery.get("resumeEventBattle") === "1";
+  const returnMapId = launchQuery.get("map") || "default";
+  const returnTile = Math.max(1, Math.min(24, Number(launchQuery.get("tile")) || 1));
+  const returnAllies = launchQuery.get("allies") || "";
+  const returnAllyIds = launchQuery.get("allyIds") || "";
+  const EVENT_BATTLE_RESULT_KEY = "necromancer-event-battle-result-v1";
 
   const BASE_IMAGE_CHUNKS = [
     "assets/event-lab/graveyard-child/base/part-000.txt",
@@ -171,15 +179,66 @@
     el.choices.hidden = false;
   }
 
+  function returnToMapAndComplete() {
+    const params = new URLSearchParams({
+      map: returnMapId,
+      resume: String(returnTile),
+      completeGraveyardChildEvent: "1"
+    });
+    location.assign("v2-map-practice.html?" + params.toString());
+  }
+
+  function startMapEventBattle() {
+    const params = new URLSearchParams({
+      from: "event",
+      event: "graveyard_child_ambush_01",
+      encounterType: "event-graveyard-child",
+      enemies: "ghoul",
+      eventReturn: "event-lab-map",
+      map: returnMapId,
+      tile: String(returnTile),
+      allies: returnAllies,
+      allyIds: returnAllyIds
+    });
+    location.assign("v2-auto-battle-practice.html?" + params.toString());
+  }
+
+  function showPostBattleEscape() {
+    phase = "resolved";
+    el.card.dataset.phase = "escape";
+    el.card.classList.remove("is-dialogue", "is-choice");
+    el.card.classList.add("is-resolved", "is-child-escaping");
+    if (el.ghoulLayer) el.ghoulLayer.hidden = true;
+    if (el.dialogue) el.dialogue.hidden = true;
+    if (el.choices) el.choices.hidden = true;
+    if (el.advance) el.advance.hidden = true;
+    if (el.outcome) {
+      el.outcome.hidden = false;
+      el.outcome.textContent = "구울이 쓰러지자 아이는 당신을 바라본다. 그러나 안도하기보다 겁에 질린 표정으로 뒷걸음치더니, 묘비 사이로 달아나 버린다.";
+    }
+    if (el.reset) {
+      el.reset.textContent = "맵으로 돌아가기";
+      el.reset.onclick = returnToMapAndComplete;
+    }
+  }
+
   function resolveChoice(choiceId) {
     const choice = event.choices.find((item) => item.id === choiceId);
     if (!choice) return;
+    if (fromMapEvent && choiceId === "protect") {
+      startMapEventBattle();
+      return;
+    }
     phase = "resolved";
     el.card.dataset.phase = phase;
     el.card.classList.add("is-resolved");
     el.choices.hidden = true;
     el.outcome.hidden = false;
     el.outcome.textContent = choice.outcome;
+    if (fromMapEvent && el.reset) {
+      el.reset.textContent = "맵으로 돌아가기";
+      el.reset.onclick = returnToMapAndComplete;
+    }
   }
 
   if (event) {
@@ -198,6 +257,22 @@
     el.choices?.querySelectorAll("[data-event-choice]").forEach((button) => {
       button.addEventListener("click", () => resolveChoice(button.dataset.eventChoice));
     });
-    el.reset?.addEventListener("click", resetEvent);
+    if (!fromMapEvent) el.reset?.addEventListener("click", resetEvent);
+    else if (el.reset) {
+      el.reset.textContent = "처음부터";
+      el.reset.onclick = resetEvent;
+    }
+
+    if (fromMapEvent && resumeEventBattle) {
+      let result = null;
+      try {
+        const raw = sessionStorage.getItem(EVENT_BATTLE_RESULT_KEY);
+        if (raw) result = JSON.parse(raw);
+        sessionStorage.removeItem(EVENT_BATTLE_RESULT_KEY);
+      } catch (_) {}
+      if (result?.eventId === "graveyard_child_ambush_01" && result.won === true) {
+        showPostBattleEscape();
+      }
+    }
   }
 })();
