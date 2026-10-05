@@ -16,12 +16,21 @@
         {
           id: "protect_child",
           text: "아이를 구한다",
-          outcome: "아이를 구하기 위해 구울 앞을 막아선다. 전투 연결은 다음 단계에서 처리한다."
+          action: "eventBattle",
+          battle: {
+            enemies: ["ghoul"],
+            encounterType: "event-graveyard-child"
+          },
+          outcome: "아이를 구하기 위해 구울 앞을 막아선다."
         },
         {
           id: "leave_child",
           text: "지나친다",
-          outcome: "아이를 뒤로한 채 공동묘지를 빠져나간다. 후속 결과 처리는 다음 단계에서 처리한다."
+          outcome: "아이의 비명이 뒤에서 끊긴다. 당신은 뒤돌아보지 않고 공동묘지를 빠져나간다.",
+          setFlags: {
+            graveyard_child_ambush_seen: true,
+            graveyard_child_abandoned: true
+          }
         }
       ]
     },
