@@ -2450,7 +2450,7 @@ body.is-graveyard-event-transition .map-board .swamp-damage-overlay{
   z-index:120!important;
   inset:0!important;
   display:block;
-  background:rgba(5,4,3,.20)!important;
+  background:rgba(5,4,3,.07)!important;
   pointer-events:auto!important;
   overflow:hidden!important;
 }
