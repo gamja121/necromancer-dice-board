@@ -408,7 +408,7 @@
   }
 
   function ensureVillageBuildingAssets() {
-    const version = "20261005-graveyard-stage5-composition-1";
+    const version = "20261005-graveyard-stage5-camera-2";
     document.querySelectorAll(".village-building-image").forEach((img, index) => {
       if (!(img instanceof HTMLImageElement)) return;
       const assetNumber = String(index + 1).padStart(2, "0");
@@ -722,8 +722,14 @@
     });
   }
 
+  let graveyardDioramaTimers = [];
   let selectedGraveyardItem = null;
   const GRAVEYARD_LAYOUT_STORAGE_KEY = "necromancer-dice-graveyard-layout-v2";
+
+  function clearGraveyardDioramaTimers() {
+    graveyardDioramaTimers.forEach((timer)=>window.clearTimeout(timer));
+    graveyardDioramaTimers=[];
+  }
 
   function getGraveyardItems() {
     return [...document.querySelectorAll(".graveyard-layout-stage .graveyard-layout-item")];
@@ -871,7 +877,7 @@
 
   function ensureGraveyardAtlas() {
     if (!(el.graveyardAtlasProbe instanceof HTMLImageElement)) return;
-    const src = "art/v2-style/map-test/diorama/graveyard/graveyard-atlas.webp?v=20261005-graveyard-stage5-composition-1";
+    const src = "art/v2-style/map-test/diorama/graveyard/graveyard-atlas.webp?v=20261005-graveyard-stage5-camera-2";
     el.graveyardAtlasProbe.onload = updateGraveyardAssetStatus;
     el.graveyardAtlasProbe.onerror = () => {
       if (el.graveyardAssetStatus) {
@@ -885,23 +891,48 @@
   }
 
   function openGraveyardDioramaTest() {
-    if (!el.graveyardDioramaTest) return;
+    if (!el.graveyardDioramaTest || !el.board) return;
     closeAudioOptions();
     if (el.graveyardDioramaTest && !el.graveyardDioramaTest.hidden) closeGraveyardDioramaTest();
     if (el.villageDioramaTest && !el.villageDioramaTest.hidden) closeVillageDioramaTest();
     if (el.forestDioramaTest && !el.forestDioramaTest.hidden) closeForestDioramaTest();
+    clearGraveyardDioramaTimers();
+
+    document.querySelector(".map-lab")?.classList.add("is-graveyard-inspector-open");
+    el.board.classList.remove("is-graveyard-zooming","is-graveyard-tilted","is-graveyard-props");
+    el.graveyardDioramaTest.classList.remove("is-zooming","is-tilted","is-playing");
+
     ensureGraveyardAtlas();
     enableGraveyardDragging();
     loadGraveyardLayout();
-    if (el.graveyardLayerDebug) el.graveyardLayerDebug.hidden = false;
-    el.graveyardDioramaTest.hidden = false;
-    document.querySelector(".map-lab")?.classList.add("is-graveyard-inspector-open");
+    if (el.graveyardLayerDebug) el.graveyardLayerDebug.hidden=false;
+    el.graveyardDioramaTest.hidden=false;
+    void el.board.offsetWidth;
+
+    // 1) Camera rushes into the board.
+    el.board.classList.add("is-graveyard-zooming");
+    el.graveyardDioramaTest.classList.add("is-zooming");
+
+    // 2) Board plane tilts into the cemetery ground.
+    graveyardDioramaTimers.push(window.setTimeout(()=>{
+      el.board.classList.add("is-graveyard-tilted");
+      el.graveyardDioramaTest.classList.add("is-tilted");
+    },560));
+
+    // 3) Cemetery props settle into view.
+    graveyardDioramaTimers.push(window.setTimeout(()=>{
+      el.board.classList.add("is-graveyard-props");
+      el.graveyardDioramaTest.classList.add("is-playing");
+    },1560));
   }
 
   function closeGraveyardDioramaTest() {
     if (!el.graveyardDioramaTest || el.graveyardDioramaTest.hidden) return;
-    el.graveyardDioramaTest.hidden = true;
-    if (el.graveyardLayerDebug) el.graveyardLayerDebug.hidden = true;
+    clearGraveyardDioramaTimers();
+    el.graveyardDioramaTest.classList.remove("is-playing","is-tilted","is-zooming");
+    el.board?.classList.remove("is-graveyard-props","is-graveyard-tilted","is-graveyard-zooming");
+    el.graveyardDioramaTest.hidden=true;
+    if (el.graveyardLayerDebug) el.graveyardLayerDebug.hidden=true;
     selectGraveyardItem(null);
     document.querySelector(".map-lab")?.classList.remove("is-graveyard-inspector-open");
   }
