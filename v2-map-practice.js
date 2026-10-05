@@ -139,6 +139,11 @@
     villageLayoutSaveStatus: document.getElementById("villageLayoutSaveStatus"),
     villageLayoutExport: document.getElementById("villageLayoutExport"),
     villageLayerDebug: document.getElementById("villageLayerDebug"),
+    graveyardDioramaTestButton: document.getElementById("graveyardDioramaTestButton"),
+    graveyardDioramaTest: document.getElementById("graveyardDioramaTest"),
+    graveyardDioramaClose: document.getElementById("graveyardDioramaClose"),
+    graveyardAtlasProbe: document.getElementById("graveyardAtlasProbe"),
+    graveyardAssetStatus: document.getElementById("graveyardAssetStatus"),
     mapName: document.getElementById("mapName"),
     tileName: document.getElementById("tileName"),
     regenerate: document.getElementById("regenerateButton"),
@@ -399,7 +404,7 @@
   }
 
   function ensureVillageBuildingAssets() {
-    const version = "20261005-village-stage14-approved-tree-layout-1";
+    const version = "20261005-graveyard-stage3-inspector-1";
     document.querySelectorAll(".village-building-image").forEach((img, index) => {
       if (!(img instanceof HTMLImageElement)) return;
       const assetNumber = String(index + 1).padStart(2, "0");
@@ -713,9 +718,55 @@
     });
   }
 
+  function updateGraveyardAssetStatus() {
+    if (!el.graveyardAtlasProbe || !el.graveyardAssetStatus) return false;
+    const width = el.graveyardAtlasProbe.naturalWidth;
+    const height = el.graveyardAtlasProbe.naturalHeight;
+    const ready = width === 1536 && height === 1260;
+    el.graveyardAssetStatus.classList.toggle("is-ready", ready);
+    el.graveyardAssetStatus.classList.toggle("is-error", !ready);
+    el.graveyardAssetStatus.textContent = ready
+      ? "아틀라스 정상 · 1536×1260 · 14개 셀 표시"
+      : (el.graveyardAtlasProbe.complete ? `아틀라스 오류 · ${width}×${height}` : "아틀라스 불러오는 중…");
+    return ready;
+  }
+
+  function ensureGraveyardAtlas() {
+    if (!(el.graveyardAtlasProbe instanceof HTMLImageElement)) return;
+    const src = "art/v2-style/map-test/diorama/graveyard/graveyard-atlas.webp?v=20261005-graveyard-stage3-inspector-1";
+    el.graveyardAtlasProbe.onload = updateGraveyardAssetStatus;
+    el.graveyardAtlasProbe.onerror = () => {
+      if (el.graveyardAssetStatus) {
+        el.graveyardAssetStatus.classList.remove("is-ready");
+        el.graveyardAssetStatus.classList.add("is-error");
+        el.graveyardAssetStatus.textContent = "아틀라스 로드 실패";
+      }
+    };
+    if (!el.graveyardAtlasProbe.src.includes("graveyard-atlas.webp")) el.graveyardAtlasProbe.src = src;
+    if (el.graveyardAtlasProbe.complete) updateGraveyardAssetStatus();
+  }
+
+  function openGraveyardDioramaTest() {
+    if (!el.graveyardDioramaTest) return;
+    closeAudioOptions();
+    if (el.graveyardDioramaTest && !el.graveyardDioramaTest.hidden) closeGraveyardDioramaTest();
+    if (el.villageDioramaTest && !el.villageDioramaTest.hidden) closeVillageDioramaTest();
+    if (el.forestDioramaTest && !el.forestDioramaTest.hidden) closeForestDioramaTest();
+    ensureGraveyardAtlas();
+    el.graveyardDioramaTest.hidden = false;
+    document.querySelector(".map-lab")?.classList.add("is-graveyard-inspector-open");
+  }
+
+  function closeGraveyardDioramaTest() {
+    if (!el.graveyardDioramaTest || el.graveyardDioramaTest.hidden) return;
+    el.graveyardDioramaTest.hidden = true;
+    document.querySelector(".map-lab")?.classList.remove("is-graveyard-inspector-open");
+  }
+
   function openVillageDioramaTest() {
     if (!el.villageDioramaTest || !el.board) return;
     closeAudioOptions();
+    if (el.graveyardDioramaTest && !el.graveyardDioramaTest.hidden) closeGraveyardDioramaTest();
     if (el.forestDioramaTest && !el.forestDioramaTest.hidden) closeForestDioramaTest();
     clearVillageDioramaTimers();
     resetVillageBuildingDebug();
@@ -3968,6 +4019,11 @@
   });
   el.forestDioramaTestButton?.addEventListener("click", () => openForestDioramaTest({ fromTile: false }));
   el.villageDioramaTestButton?.addEventListener("click", openVillageDioramaTest);
+  el.graveyardDioramaTestButton?.addEventListener("click", openGraveyardDioramaTest);
+  el.graveyardDioramaClose?.addEventListener("click", closeGraveyardDioramaTest);
+  el.graveyardDioramaTest?.addEventListener("click", (event) => {
+    if (event.target === el.graveyardDioramaTest) closeGraveyardDioramaTest();
+  });
   el.villageLayerDebug?.addEventListener("click", (event) => {
     if (event.target.closest("[data-village-flip]")) {
       flipSelectedVillageItem();
@@ -4042,6 +4098,7 @@
   });
   el.deckConfirm.addEventListener("click", confirmMonsterBattle);
   document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && el.graveyardDioramaTest && !el.graveyardDioramaTest.hidden) { closeGraveyardDioramaTest(); return; }
     if (event.key === "Escape" && el.villageDioramaTest && !el.villageDioramaTest.hidden) { closeVillageDioramaTest(); return; }
     if (event.key === "Escape" && el.forestDioramaTest && !el.forestDioramaTest.hidden) { closeForestDioramaTest(); return; }
     if (event.key === "Escape" && !el.audioOptions.hidden) { closeAudioOptions(); return; }
@@ -4053,6 +4110,7 @@
   });
   ensureVillageBuildingAssets();
   ensureVillageTreeAssets();
+  ensureGraveyardAtlas();
   enableVillageBuildingDragging();
   loadVillageLayout();
   renderBookRoster();
