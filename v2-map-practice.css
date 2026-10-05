@@ -2124,3 +2124,86 @@ body.is-graveyard-event-transition .map-board .swamp-damage-overlay{
   visibility:visible!important;
   opacity:1!important;
 }
+
+
+/* Cemetery moving-diorama standard · stage 15
+   Existing stage stays; only beat state, portrait, dialogue and top map leak are controlled. */
+
+/* The transformed base map is intentionally used as the floor, but its top edge must never leak
+   into the cemetery sky. This mask sits above the base map and below cemetery props. */
+.graveyard-diorama-test::before{
+  content:"";
+  position:fixed;
+  z-index:0;
+  left:0;right:0;top:0;
+  height:14dvh;
+  pointer-events:none;
+  background:linear-gradient(
+    to bottom,
+    rgba(5,4,3,1) 0%,
+    rgba(7,5,4,.98) 58%,
+    rgba(7,5,4,.72) 82%,
+    rgba(7,5,4,0) 100%
+  );
+}
+
+/* Full-body dialogue portrait: above the dialogue frame, not behind it. */
+.graveyard-story-portrait{
+  z-index:310!important;
+  right:4%!important;
+  bottom:18%!important;
+  width:30%!important;
+  height:72%!important;
+}
+.graveyard-story-portrait img{
+  transform:scaleX(1)!important;
+  object-fit:contain!important;
+  object-position:center bottom!important;
+}
+
+/* Choices must sit above the dialogue layer so they are visible and clickable. */
+.graveyard-story-choices{
+  z-index:314!important;
+  bottom:6%!important;
+}
+.graveyard-story-event.is-choice-phase .graveyard-story-dialogue{
+  opacity:.28!important;
+  pointer-events:none!important;
+}
+.graveyard-story-event.is-choice-phase .graveyard-story-box{
+  pointer-events:none!important;
+}
+
+/* Beat-driven state changes. One cut = one stage-state change. */
+.graveyard-story-event.beat-child-alone .graveyard-story-ghoul{
+  opacity:0!important;
+  transform:translate3d(45%,0,0) scale(.92)!important;
+  animation:none!important;
+}
+.graveyard-story-event.beat-child-alone .graveyard-story-alert{
+  display:none!important;
+}
+.graveyard-story-event.beat-ghoul-appears .graveyard-story-ghoul{
+  opacity:1!important;
+  animation:graveyard-story-ghoul-in .72s cubic-bezier(.2,.76,.18,1) both!important;
+}
+.graveyard-story-event.beat-child-frightened .graveyard-story-child{
+  transform:translateX(-6%) scale(.98)!important;
+}
+.graveyard-story-event.beat-choice .graveyard-story-ghoul{
+  opacity:1!important;
+}
+.graveyard-story-event.is-rescued .graveyard-story-portrait{
+  right:4%!important;
+  bottom:18%!important;
+  width:30%!important;
+  height:72%!important;
+}
+@media (max-height:430px) and (orientation:landscape){
+  .graveyard-story-portrait{
+    right:3%!important;
+    bottom:17%!important;
+    width:28%!important;
+    height:74%!important;
+  }
+}
