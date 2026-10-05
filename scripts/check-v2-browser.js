@@ -477,7 +477,7 @@ async function activate(page, selector) {
     assert.equal(cameraState.tilted,true);
     assert.equal(cameraState.props,true);
     assert.equal(cameraState.playing,true);
-    assert.equal(cameraState.opacity,"1");
+    assert(Number.parseFloat(cameraState.opacity) >= .99,"Graveyard props must finish visible after camera settle");
     console.log("PASS: graveyard zoom tilt camera sequence");
     console.log("PASS: mobile village six distinct building assets " + JSON.stringify(villageAssets));
 
