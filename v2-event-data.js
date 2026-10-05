@@ -10,7 +10,7 @@
       art: "art/v2-style/map-test/events/graveyard.jpg?v=20260927-2",
       scene: "graveyard_child_ambush_intro",
       once: true,
-      conditions: {},
+      conditions: { flagsFalse: ["graveyard_child_ambush_resolved"] },
       text: "공동묘지 안쪽. 홀로 서 있던 아이의 뒤편에서 구울이 묘비를 넘어 튀어나온다. 아이는 뒤늦게 인기척을 느끼고 몸을 움츠린다.",
       choices: [
         {
@@ -29,6 +29,7 @@
           outcome: "아이의 비명이 뒤에서 끊긴다. 당신은 뒤돌아보지 않고 공동묘지를 빠져나간다.",
           setFlags: {
             graveyard_child_ambush_seen: true,
+            graveyard_child_ambush_resolved: true,
             graveyard_child_abandoned: true
           }
         }
