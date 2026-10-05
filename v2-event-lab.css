@@ -344,14 +344,13 @@ dialog form > div { display: flex; justify-content: flex-end; gap: 8px; }
 
 /* Cemetery ambush event scene · stage 5: visual-novel dialogue layer + child bust. */
 .event-dialogue-layer{
-  pointer-events:auto;
   position:absolute;
   z-index:30;
   left:0;
   right:0;
   bottom:0;
   height:43%;
-  pointer-events:none;
+  pointer-events:auto;
 }
 .event-dialogue-box{
   position:absolute;
@@ -414,6 +413,7 @@ dialog form > div { display: flex; justify-content: flex-end; gap: 8px; }
 }
 .event-dialogue-portrait{
   position:absolute;
+  pointer-events:none;
   z-index:4;
   left:5.5%;
   bottom:1%;
