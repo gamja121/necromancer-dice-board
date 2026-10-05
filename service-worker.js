@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261005-event-ingame-stage10-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261005-graveyard-event-reuse-stage11-1";
 
 const CORE_ASSETS = [
   "./",
@@ -22,6 +22,7 @@ const CORE_ASSETS = [
   "./assets/intro-data/frame-v2/part-006.txt",
   "./assets/intro-data/frame-v2/part-007.txt",
   "./art/v2-style/event-portraits/knight-commander.png?v=2",
+  "./art/v2-style/event-portraits/dark-eyed-boy.png?v=1",
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-001.txt",
   "./assets/intro-data/commander/part-002.txt",
@@ -55,8 +56,8 @@ const CORE_ASSETS = [
   "./v2-animation-practice.css?v=7",
   "./v2-animation-practice.js?v=82",
   "./v2-event-lab.html",
-  "./v2-event-lab.css?v=20261005-graveyard-ambush-stage10-ingame-event-1",
-  "./v2-event-lab.js?v=20261005-graveyard-ambush-stage10-ingame-event-1",
+  "./v2-event-lab.css?v=20261005-graveyard-event-reuse-stage11-1",
+  "./v2-event-lab.js?v=20261005-graveyard-event-reuse-stage11-1",
   "./v2-tile-practice.html",
   "./v2-tile-practice.css?v=1",
   "./v2-tile-practice.js?v=2",
@@ -69,7 +70,7 @@ const CORE_ASSETS = [
   "./v2-altar-ritual.css?v=5",
   "./v2-auto-battle-practice.css?v=78",
   "./v2-asset-loader.js?v=1",
-  "./v2-map-practice.js?v=20261005-event-option-stage10-1",
+  "./v2-map-practice.js?v=20261005-graveyard-event-reuse-stage11-1",
   "./art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage26-atlas-edge-mask-1",
   "./art/v2-style/map-test/diorama/village-building-01.webp?v=20261005-event-option-stage10-1",
   "./art/v2-style/map-test/diorama/village-building-02.webp?v=20261005-event-option-stage10-1",
@@ -79,9 +80,9 @@ const CORE_ASSETS = [
   "./art/v2-style/map-test/diorama/village-building-06.webp?v=20261005-event-option-stage10-1",
   "./art/v2-style/map-test/diorama/stone-tile-wall.svg?v=20261004-forest-user-wall-1",
   "./art/v2-style/map-test/events/fortune-prophecy-ui.png?v=1",
-  "./v2-event-data.js?v=20261005-graveyard-ambush-stage10-ingame-event-1",
+  "./v2-event-data.js?v=20261005-graveyard-event-reuse-stage11-1",
   "./v2-event-data.js?v=1",
-  "./art/v2-style/map-test/events/event-child-idle-01.png?v=20261005-graveyard-ambush-stage10-ingame-event-1",
+  "./art/v2-style/map-test/events/event-child-idle-01.png?v=20261005-graveyard-event-reuse-stage11-1",
   "./art/v2-style/map-test/diorama/graveyard/graveyard-atlas.webp?v=20261005-event-option-stage10-1",
   "./v2-map-events.js?v=1",
   "./v2-auto-battle-practice.js?v=131",
