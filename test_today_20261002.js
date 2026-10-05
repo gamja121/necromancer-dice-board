@@ -353,10 +353,16 @@ assert((eventHtml.match(/class="event-graveyard-prop event-graveyard-/g)||[]).le
 assert(eventHtml.includes('class="event-child-idle"'));
 assert(eventCss.includes(".event-scene-preview"));
 assert(eventCss.includes(".event-child-idle"));
-assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-ambush-stage1-child-static-1'));
+assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-ambush-stage2-child-idle-1'));
 assert(eventJs.includes('event.scene === "graveyard_child_ambush_intro"'));
 assert(!eventHtml.includes('id="eventScene"'));
 assert(!eventData.includes("graveyard_child_ambush_test_01"));
 
 assert(!eventCss.includes("@keyframes eventChildIdle"));
 assert(eventCss.includes("aspect-ratio:263/643"));
+
+assert(eventCss.includes("@keyframes event-child-idle-breathe"));
+assert(eventCss.includes("animation:event-child-idle-breathe 3.4s ease-in-out infinite"));
+assert(eventCss.includes("@keyframes event-child-idle-shadow"));
+assert(eventCss.includes("@media (prefers-reduced-motion:reduce)"));
+assert(eventData.includes("아이의 등장과 불안한 대기 모션까지만 테스트한다."));
