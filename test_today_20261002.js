@@ -144,7 +144,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261005-map-event-graveyard-child-stage18-1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261006-map-event-graveyard-child-stage19-1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=133"));
 for (const required of [
@@ -162,7 +162,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261005-map-event-graveyard-child-stage18-1",
+  "./v2-map-practice.js?v=20261006-map-event-graveyard-child-stage19-1",
   "./v2-auto-battle-practice.js?v=133",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -433,3 +433,8 @@ assert(eventJs.includes("showPostBattleEscape"));
 assert(battle.includes('eventReturnTarget === "event-lab-map"'));
 assert(battle.includes('event-battle-outcome:'));
 assert(battle.includes('(fromMap || fromEvent) && selectedAllySlugs.length'));
+
+assert(map.includes("function syncLegacyGraveyardChildStoryResolved"));
+assert(map.includes("graveyard_child_ambush_resolved = true"));
+assert(map.includes("graveyard_child_ambush_seen = true"));
+assert(map.includes("if (graveyardChildEventCompleted()) syncLegacyGraveyardChildStoryResolved()"));
