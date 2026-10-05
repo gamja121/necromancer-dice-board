@@ -122,6 +122,33 @@ async function activate(page, selector) {
     await page.waitForSelector("#eventChoices", { state: "visible", timeout: 5000 });
     const eventChoices=await page.locator("#eventChoices button").allTextContents();
     assert.deepEqual(eventChoices.map(x=>x.trim()), ["아이를 구한다","지나친다"]);
+    const initialFocus = await page.evaluate(() => ({
+      animation:getComputedStyle(document.getElementById("eventBaseImage")).animationName,
+      origin:getComputedStyle(document.getElementById("eventBaseImage")).transformOrigin
+    }));
+    assert(initialFocus.animation.includes("event-camera-child-focus"));
+
+    await page.locator("#eventReset").click();
+    await page.locator("#eventAdvance").click();
+    await page.waitForFunction(() => document.getElementById("eventCard")?.classList.contains("is-ghoul-revealed"));
+    const threatFocus = await page.evaluate(() => ({
+      animation:getComputedStyle(document.getElementById("eventBaseImage")).animationName,
+      sceneAnimation:getComputedStyle(document.querySelector(".event-scene")).animationName
+    }));
+    assert(threatFocus.animation.includes("event-camera-threat-focus"));
+    assert(threatFocus.sceneAnimation.includes("event-camera-impact"));
+
+    await page.locator("#eventAdvance").click();
+    await page.waitForSelector("#eventDialogue", { state:"visible" });
+    const dialogueFocus = await page.evaluate(() => getComputedStyle(document.getElementById("eventBaseImage")).animationName);
+    assert(dialogueFocus.includes("event-camera-dialogue-focus"));
+
+    await page.locator("#eventDialogueAdvance").click();
+    await page.waitForSelector("#eventChoices", { state:"visible" });
+    const choiceBrightness = await page.evaluate(() => getComputedStyle(document.getElementById("eventBaseImage")).filter);
+    assert(choiceBrightness.includes("brightness(0.58)"));
+    console.log("PASS: Event Lab gaze-directed beats");
+
     console.log("PASS: Event Lab layered cemetery -> ghoul -> dialogue -> choice");
 
     await page.setViewportSize({ width: 689, height: 1536 });
