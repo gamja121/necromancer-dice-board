@@ -24,7 +24,7 @@ assert(js.includes("GHOUL_IMAGE_CHUNKS"));
 assert(js.includes("loadChunkImage"));
 assert(js.includes("removeBlackBackground"));
 assert(js.includes("loadGhoulLayer"));
-assert(js.includes('screen.orientation?.lock("landscape")'));
+assert(js.includes('screen.orientation.lock("landscape")'));
 assert(js.includes('phase = "threat"'));
 assert(js.includes('phase = "dialogue"'));
 assert(js.includes('phase = "choice"'));
