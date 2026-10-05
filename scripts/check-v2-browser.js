@@ -115,8 +115,6 @@ async function activate(page, selector) {
     const graveyardStage6Choices = await page.evaluate(() => [...document.querySelectorAll("#choiceList button")].map((button) => button.firstChild?.textContent?.trim() || button.textContent.trim()));
     assert.deepEqual(graveyardStage6Choices, ["아이를 구한다", "지나친다"]);
     assert.equal(await page.locator(".event-card").evaluate((el)=>el.classList.contains("is-cinematic-choice-ready")), true);
-    await page.locator("#choiceList button").filter({ hasText: "아이를 구한다" }).click();
-    assert((await page.locator("#outcomeBox").textContent()).includes("구울 앞을 막아선다"));
     assert.equal(await page.locator("#rollPanel").evaluate((el) => el.hidden), true);
     assert.equal(await page.locator("#flagList").textContent().then((text)=>text.includes("child_saved")||text.includes("child_abandoned")), false);
     console.log("PASS: cemetery ambush stage 6 dialogue to choices");
@@ -157,6 +155,24 @@ async function activate(page, selector) {
     assert(Number.parseFloat(dialogueState.portraitOpacity) >= .98);
     assert(dialogueState.portraitBg.includes("event-child-idle-01.png"));
     console.log("PASS: cemetery ambush stage 5 dialogue and child bust");
+
+    await Promise.all([
+      page.waitForURL("**/v2-auto-battle-practice.html?*", { timeout: 10000 }),
+      page.locator("#choiceList button").filter({ hasText: "아이를 구한다" }).click()
+    ]);
+    const eventBattleUrl = new URL(page.url());
+    assert.equal(eventBattleUrl.searchParams.get("from"), "event");
+    assert.equal(eventBattleUrl.searchParams.get("event"), "graveyard_child_ambush_01");
+    assert.equal(eventBattleUrl.searchParams.get("enemies"), "ghoul");
+    await page.waitForSelector("#startOverlay", { state: "visible", timeout: 15000 });
+    const eventBattleState = await page.evaluate(() => ({
+      enemyTabDisabled: document.getElementById("enemyLineupTab")?.disabled === true,
+      enemySlots: [...document.querySelectorAll("#selectedEnemyLineup [data-slug]")].map((el)=>el.dataset.slug).filter(Boolean),
+      lineupText: document.getElementById("lineupStatus")?.textContent || ""
+    }));
+    assert.equal(eventBattleState.enemyTabDisabled, true);
+    assert(eventBattleState.lineupText.includes("사건 전투"));
+    console.log("PASS: cemetery ambush stage 7 fixed ghoul battle handoff");
 
     await page.setViewportSize({ width: 844, height: 390 });
     await page.goto(new URL("v2-intro.html", base).href);
