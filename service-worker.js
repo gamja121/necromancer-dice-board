@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261006-board-event-ui-stage20-5";
+const CACHE_NAME = "necromancer-and-dice-v2-20261006-board-event-ui-stage20-6";
 
 const CORE_ASSETS = [
   "./",
@@ -66,7 +66,7 @@ const CORE_ASSETS = [
   "./v2-tile-practice.html",
   "./v2-tile-practice.css?v=1",
   "./v2-tile-practice.js?v=2",
-  "./v2-map-practice.css?v=20261006-board-event-ui-stage20-5",
+  "./v2-map-practice.css?v=20261006-board-event-ui-stage20-6",
   "./art/v2-style/ui/parchment-button-variant-01.png",
   "./art/v2-style/ui/parchment-button-variant-02.png",
   "./art/v2-style/ui/parchment-button-variant-03.png",
