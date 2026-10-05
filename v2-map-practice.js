@@ -409,7 +409,7 @@
   }
 
   function ensureVillageBuildingAssets() {
-    const version = "20261005-graveyard-stage5-editor-collapse-1";
+    const version = "20261005-graveyard-stage5-approved-layout-1";
     document.querySelectorAll(".village-building-image").forEach((img, index) => {
       if (!(img instanceof HTMLImageElement)) return;
       const assetNumber = String(index + 1).padStart(2, "0");
@@ -725,7 +725,7 @@
 
   let graveyardDioramaTimers = [];
   let selectedGraveyardItem = null;
-  const GRAVEYARD_LAYOUT_STORAGE_KEY = "necromancer-dice-graveyard-layout-v2";
+  const GRAVEYARD_LAYOUT_STORAGE_KEY = "necromancer-dice-graveyard-layout-v3";
 
   function clearGraveyardDioramaTimers() {
     graveyardDioramaTimers.forEach((timer)=>window.clearTimeout(timer));
@@ -843,7 +843,7 @@
     getGraveyardItems().forEach((item)=>{
       item.style.left=item.dataset.defaultLeft||"";
       item.style.top=item.dataset.defaultTop||"";
-      item.style.bottom="auto";
+      item.style.bottom=item.dataset.defaultBottom||"";
       item.style.width=item.dataset.defaultWidth||"";
       item.style.zIndex=item.dataset.defaultZ||"";
       item.classList.toggle("is-layout-flipped",item.dataset.defaultFlip==="true");
@@ -889,7 +889,7 @@
 
   function ensureGraveyardAtlas() {
     if (!(el.graveyardAtlasProbe instanceof HTMLImageElement)) return;
-    const src = "art/v2-style/map-test/diorama/graveyard/graveyard-atlas.webp?v=20261005-graveyard-stage5-editor-collapse-1";
+    const src = "art/v2-style/map-test/diorama/graveyard/graveyard-atlas.webp?v=20261005-graveyard-stage5-approved-layout-1";
     el.graveyardAtlasProbe.onload = updateGraveyardAssetStatus;
     el.graveyardAtlasProbe.onerror = () => {
       if (el.graveyardAssetStatus) {
