@@ -543,7 +543,7 @@ async function activate(page, selector) {
     await page.reload();
     await page.waitForSelector("#mapOptionsButton", { state: "visible", timeout: 30000 });
     await page.evaluate(() => document.getElementById("mapOptionsButton")?.click());
-    await page.waitForSelector("[data-map-event-shortcut] .map-event-shortcut-button", { state: "visible", timeout: 30000 });
+    await page.waitForSelector("[data-map-event-shortcut] .map-event-shortcut-button", { state: "attached", timeout: 30000 });
     await page.evaluate(() => document.querySelector("[data-map-event-shortcut] .map-event-shortcut-button")?.click());
     await page.waitForFunction(() => !document.getElementById("graveyardStoryEvent")?.hidden, null, { timeout: 30000 });
     await page.waitForTimeout(400);
