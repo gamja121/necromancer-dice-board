@@ -350,7 +350,7 @@ assert(map.includes('item.dataset.defaultBottom||""'));
 assert(eventData.includes('id: "graveyard_child_ambush_01"'), "Production map event data must remain intact");
 assert(eventLabData.includes('id: "graveyard_child_ambush_lab_01"'));
 assert(eventLabData.includes('tags: Object.freeze(["사건", "공동묘지", "습격받는아이"])'));
-assert(eventLabData.includes('description: "묘비 사이에서 아이가 뒷걸음친다. 바로 뒤, 구울이 몸을 일으킨다."'));
+assert(eventLabData.includes('description: "공동묘지 안쪽에서 길을 잃은 듯한 아이를 발견했다."'));
 assert(eventLabData.includes('text: "…도와주세요!"'));
 assert(eventHtml.includes('id="eventBaseImage"'));
 assert(eventHtml.includes('id="eventGhoulLayer"'));
