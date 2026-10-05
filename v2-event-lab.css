@@ -187,6 +187,7 @@ dialog form > div { display: flex; justify-content: flex-end; gap: 8px; }
 .event-graveyard-c1>span{background-position:33.333333% 100%}
 
 .event-child-idle{
+  pointer-events:none;
   position:absolute;
   pointer-events:none;
   z-index:14;
@@ -240,6 +241,7 @@ dialog form > div { display: flex; justify-content: flex-end; gap: 8px; }
 
 /* Cemetery ambush event scene · stage 4: ghoul enters and closes on the child. */
 .event-ghoul{
+  pointer-events:none;
   position:absolute;
   pointer-events:none;
   z-index:15;
