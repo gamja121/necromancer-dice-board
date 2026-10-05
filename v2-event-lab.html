@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
   <title>네크로멘서 앤드 다이스 · Event Lab</title>
-  <link rel="stylesheet" href="v2-event-lab.css?v=20261005-event-lab-poster-shell-1">
+  <link rel="stylesheet" href="v2-event-lab.css?v=20261005-event-lab-layered-graveyard-1">
 </head>
 <body>
   <main class="event-lab">
@@ -20,42 +20,51 @@
       </nav>
     </header>
 
-    <section class="poster-workspace" aria-label="벽보형 사건 테스트 무대">
-      <div class="poster-backdrop" aria-hidden="true"></div>
+    <section class="event-workspace" aria-label="공동묘지 사건 테스트">
+      <article id="eventCard" class="event-card" data-phase="description">
+        <div class="event-tags" id="eventTags" aria-label="사건 태그"></div>
 
-      <article class="event-poster is-empty" aria-labelledby="posterTitle">
-        <span class="poster-pin poster-pin-left" aria-hidden="true"></span>
-        <span class="poster-pin poster-pin-right" aria-hidden="true"></span>
-        <span class="poster-stamp" aria-hidden="true">사건</span>
+        <div class="event-scene" aria-label="사건 장면">
+          <img id="eventBaseImage" class="event-base-image" alt="공동묘지에서 길을 헤매는 아이">
+          <img id="eventGhoulLayer" class="event-ghoul-layer" alt="" aria-hidden="true" hidden>
+          <div class="event-scene-vignette" aria-hidden="true"></div>
 
-        <div class="poster-art" aria-hidden="true">
-          <div class="poster-art-vignette"></div>
-          <div class="poster-art-placeholder">
-            <span>ILLUSTRATION</span>
-            <small>새 사건 이미지 영역</small>
-          </div>
+          <section id="eventDialogue" class="event-dialogue" hidden aria-label="아이 대화">
+            <button id="eventDialogueAdvance" class="event-dialogue-box" type="button" aria-label="대화 계속">
+              <img class="event-dialogue-frame" src="art/v2-style/ui/intro-dialogue-box.webp?v=6" alt="" aria-hidden="true">
+              <span id="eventDialogueName" class="event-dialogue-name">아이</span>
+              <span id="eventDialogueText" class="event-dialogue-text">…도와주세요!</span>
+              <span class="event-dialogue-next" aria-hidden="true">▼</span>
+            </button>
+          </section>
         </div>
 
-        <div class="poster-copy">
-          <p class="poster-location">장소 미정</p>
-          <h1 id="posterTitle">새 사건</h1>
-          <p id="posterText">사건 내용이 여기에 표시됩니다.</p>
+        <div class="event-copy">
+          <p id="eventLocation" class="event-location">공동묘지</p>
+          <h1 id="eventTitle">습격받는 아이</h1>
+          <p id="eventDescription">묘비 사이에서 아이가 뒷걸음친다. 바로 뒤, 구울이 몸을 일으킨다.</p>
         </div>
 
-        <div class="poster-choices" aria-label="선택지 미리보기">
-          <button type="button" disabled>선택지 1</button>
-          <button type="button" disabled>선택지 2</button>
+        <div class="event-actions">
+          <button id="eventAdvance" class="event-advance" type="button">계속</button>
         </div>
 
-        <footer class="poster-footer">
-          <span>등록된 테스트 이벤트 <b id="eventCount">0</b></span>
-          <span>새 사건 제작 준비 완료</span>
+        <div id="eventChoices" class="event-choices" hidden aria-label="사건 선택">
+          <button type="button" data-event-choice="protect">아이를 구한다</button>
+          <button type="button" data-event-choice="leave">지나친다</button>
+        </div>
+
+        <div id="eventOutcome" class="event-outcome" hidden aria-live="polite"></div>
+
+        <footer class="event-footer">
+          <span>테스트 이벤트 <b id="eventCount">1</b></span>
+          <button id="eventReset" type="button">처음부터</button>
         </footer>
       </article>
     </section>
   </main>
 
-  <script src="v2-event-lab-data.js?v=20261005-event-lab-poster-shell-1"></script>
-  <script src="v2-event-lab.js?v=20261005-event-lab-poster-shell-1"></script>
+  <script src="v2-event-lab-data.js?v=20261005-event-lab-layered-graveyard-1"></script>
+  <script src="v2-event-lab.js?v=20261005-event-lab-layered-graveyard-1"></script>
 </body>
 </html>
