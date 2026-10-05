@@ -22,6 +22,9 @@ assert(html.includes("intro-dialogue-box.webp?v=6"));
 assert(js.includes("BASE_IMAGE_CHUNKS"));
 assert(js.includes("GHOUL_IMAGE_CHUNKS"));
 assert(js.includes("loadChunkImage"));
+assert(js.includes("removeBlackBackground"));
+assert(js.includes("loadGhoulLayer"));
+assert(js.includes('screen.orientation?.lock("landscape")'));
 assert(js.includes('phase = "threat"'));
 assert(js.includes('phase = "dialogue"'));
 assert(js.includes('phase = "choice"'));
@@ -29,21 +32,21 @@ assert(js.includes("revealGhoul"));
 assert(js.includes("showDialogue"));
 assert(js.includes("showChoices"));
 assert(css.includes(".event-ghoul-layer"));
-assert(css.includes("mix-blend-mode:screen"));
-assert(css.includes("@keyframes ghoul-layer-lunge"));
+assert(css.includes("mix-blend-mode:normal!important"));
+assert(css.includes("@keyframes ghoul-layer-lunge-landscape"));
 assert(css.includes(".event-dialogue-box"));
 assert(css.includes(".event-tags"));
-assert(css.includes("Viewer-first portrait/mobile layout · stage 2"));
-assert(css.includes("@media (max-width:760px) and (orientation:portrait)"));
-assert(css.includes("flex-direction:column"));
-assert(css.includes("aspect-ratio:1229/1536"));
-assert(css.includes("object-fit:contain"));
+assert(css.includes("Landscape-only Event Lab · stage 3"));
+assert(css.includes("@media (orientation:portrait)"));
+assert(css.includes("transform:rotate(90deg) translateY(-100%)"));
+assert(css.includes("bottom:7%!important"));
+assert(css.includes("width:58%!important"));
 
 for (const file of [
   "v2-event-lab.html",
-  "v2-event-lab.css?v=20261005-event-lab-mobile-viewer-2",
-  "v2-event-lab.js?v=20261005-event-lab-mobile-viewer-2",
-  "v2-event-lab-data.js?v=20261005-event-lab-mobile-viewer-2",
+  "v2-event-lab.css?v=20261005-event-lab-landscape-alpha-3",
+  "v2-event-lab.js?v=20261005-event-lab-landscape-alpha-3",
+  "v2-event-lab-data.js?v=20261005-event-lab-landscape-alpha-3",
   "assets/event-lab/graveyard-child/base/part-000.txt",
   "assets/event-lab/graveyard-child/base/part-001.txt",
   "assets/event-lab/graveyard-child/ghoul/part-000.txt",
