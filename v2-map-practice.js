@@ -399,6 +399,10 @@
     return true;
   }
 
+  if (el.board && el.graveyardStoryEvent && el.graveyardStoryEvent.parentElement !== el.board) {
+    el.board.appendChild(el.graveyardStoryEvent);
+  }
+
   const tilePreloadIds = [
     ...tileTypes.map((tile) => tile.id),
     ...Object.values(fixedTiles).map((tile) => tile.id),
