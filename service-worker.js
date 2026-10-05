@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261005-event-lab-unified-box-stage6";
+const CACHE_NAME = "necromancer-and-dice-v2-20261005-map-event-graveyard-child-stage18-1";
 
 const CORE_ASSETS = [
   "./",
@@ -56,9 +56,9 @@ const CORE_ASSETS = [
   "./v2-animation-practice.css?v=7",
   "./v2-animation-practice.js?v=82",
   "./v2-event-lab.html",
-  "./v2-event-lab.css?v=20261005-event-lab-unified-box-stage6",
-  "./v2-event-lab.js?v=20261005-event-lab-unified-box-stage6",
-  "./v2-event-lab-data.js?v=20261005-event-lab-unified-box-stage6",
+  "./v2-event-lab.css?v=20261005-event-lab-map-link-stage7",
+  "./v2-event-lab.js?v=20261005-event-lab-map-link-stage7",
+  "./v2-event-lab-data.js?v=20261005-event-lab-map-link-stage7",
   "./assets/event-lab/graveyard-child/base/part-000.txt",
   "./assets/event-lab/graveyard-child/base/part-001.txt",
   "./assets/event-lab/graveyard-child/ghoul/part-000.txt",
@@ -75,7 +75,7 @@ const CORE_ASSETS = [
   "./v2-altar-ritual.css?v=5",
   "./v2-auto-battle-practice.css?v=78",
   "./v2-asset-loader.js?v=1",
-  "./v2-map-practice.js?v=20261005-graveyard-poster-stage17-1",
+  "./v2-map-practice.js?v=20261005-map-event-graveyard-child-stage18-1",
   "./art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage26-atlas-edge-mask-1",
   "./art/v2-style/map-test/diorama/village-building-01.webp?v=20261005-graveyard-poster-stage17-1",
   "./art/v2-style/map-test/diorama/village-building-02.webp?v=20261005-graveyard-poster-stage17-1",
@@ -89,7 +89,7 @@ const CORE_ASSETS = [
   "./art/v2-style/map-test/events/event-child-idle-01.png?v=20261005-graveyard-poster-stage17-1",
   "./art/v2-style/map-test/diorama/graveyard/graveyard-atlas.webp?v=20261005-graveyard-poster-stage17-1",
   "./v2-map-events.js?v=1",
-  "./v2-auto-battle-practice.js?v=132",
+  "./v2-auto-battle-practice.js?v=133",
   "./v2-heal-effect.js?v=1",
   "./v2-landscape.js?v=3",
   "./v2-music.js?v=3",
