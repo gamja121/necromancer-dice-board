@@ -463,25 +463,25 @@
         </article>
       </section>
       <section id="graveyardStoryEvent" class="graveyard-story-event" hidden aria-label="공동묘지 사건 · 습격받는 아이">
-        <div class="graveyard-story-field" aria-hidden="true">
-          <div class="graveyard-story-child"></div>
-          <div class="graveyard-story-ghoul"></div>
-          <div class="graveyard-story-alert">!</div>
+        <div class="graveyard-story-art-wrap" aria-hidden="true">
+          <img id="graveyardStoryArtwork" class="graveyard-story-artwork" alt="">
+          <img id="graveyardStoryGhoulLayer" class="graveyard-story-ghoul-layer" alt="" hidden>
         </div>
+        <aside class="graveyard-story-effect-box" aria-live="polite">
+          <strong>사건 · 공동묘지</strong>
+          <p id="graveyardStoryEffectText">공동묘지 안쪽에서 길을 잃은 듯한 아이를 발견했다.</p>
+        </aside>
         <div class="graveyard-story-dialogue" id="graveyardStoryDialogue">
-          <div class="graveyard-story-portrait" aria-hidden="true">
-            <img src="art/v2-style/event-portraits/dark-eyed-boy.png?v=1" alt="">
-          </div>
           <button id="graveyardStoryAdvance" class="graveyard-story-box" type="button" aria-label="대화 계속">
             <img class="graveyard-story-frame" src="art/v2-style/ui/intro-dialogue-box.webp?v=6" alt="" aria-hidden="true">
             <span class="graveyard-story-name">아이</span>
-            <span id="graveyardStoryText" class="graveyard-story-text">…!</span>
+            <span id="graveyardStoryText" class="graveyard-story-text">…도와주세요!</span>
             <span class="graveyard-story-next" aria-hidden="true">▼</span>
           </button>
         </div>
         <div id="graveyardStoryChoices" class="graveyard-story-choices" hidden>
-          <button type="button" data-graveyard-story-choice="protect">아이를 구한다</button>
-          <button type="button" data-graveyard-story-choice="leave">지나친다</button>
+          <button class="tile-event-enter graveyard-story-choice-button" type="button" data-graveyard-story-choice="protect">아이를 구한다</button>
+          <button class="tile-event-enter graveyard-story-choice-button graveyard-story-choice-leave" type="button" data-graveyard-story-choice="leave">지나친다</button>
         </div>
       </section>
       <section id="graveyardLayerDebug" class="forest-layer-debug graveyard-layer-debug" aria-label="공동묘지 배치 에디터" hidden>
