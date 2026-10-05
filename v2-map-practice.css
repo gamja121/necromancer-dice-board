@@ -2302,3 +2302,135 @@ body.is-graveyard-event-transition .map-board .swamp-damage-overlay{
     height:40%!important;
   }
 }
+
+
+/* Cemetery poster event · stage 17
+   Diorama remains preserved for later; default event presentation is a single illustrated notice. */
+.graveyard-poster-event{
+  position:fixed;z-index:420;inset:0;display:grid;place-items:center;
+  padding:5dvh 5vw;pointer-events:auto;overflow:hidden;
+}
+.graveyard-poster-event[hidden]{display:none}
+.graveyard-poster-backdrop{
+  position:absolute;inset:0;background:rgba(5,4,3,.78);
+  backdrop-filter:blur(2px) saturate(.7);
+  animation:graveyard-poster-backdrop-in .28s ease-out both;
+}
+.graveyard-poster-card{
+  position:relative;z-index:2;width:min(78vw,760px);max-height:88dvh;
+  display:grid;grid-template-rows:minmax(0,1fr) auto auto;
+  gap:0;overflow:hidden;
+  border:1px solid rgba(76,49,29,.86);
+  border-radius:3px;
+  background:
+    linear-gradient(rgba(55,31,17,.08),rgba(55,31,17,.08)),
+    radial-gradient(circle at 22% 17%,rgba(255,240,205,.94),rgba(214,190,147,.95) 48%,rgba(173,143,99,.96) 100%);
+  box-shadow:0 30px 80px rgba(0,0,0,.62),0 0 0 7px rgba(19,12,8,.32);
+  transform-origin:50% 8%;
+  animation:graveyard-poster-enter .52s cubic-bezier(.16,.82,.22,1) both,
+            graveyard-poster-drift 5.8s ease-in-out .55s infinite alternate;
+}
+.graveyard-poster-card::before{
+  content:"";position:absolute;inset:0;z-index:6;pointer-events:none;
+  background:
+    linear-gradient(90deg,rgba(83,47,23,.14) 1px,transparent 1px),
+    linear-gradient(rgba(83,47,23,.07) 1px,transparent 1px);
+  background-size:37px 100%,100% 29px;
+  mix-blend-mode:multiply;opacity:.23;
+}
+.graveyard-poster-card::after{
+  content:"";position:absolute;inset:0;z-index:7;pointer-events:none;
+  box-shadow:inset 0 0 44px rgba(46,25,12,.38),inset 0 0 4px rgba(38,20,10,.65);
+}
+.graveyard-poster-pin{
+  position:absolute;z-index:9;top:10px;width:13px;height:13px;border-radius:50%;
+  background:radial-gradient(circle at 35% 32%,#bba78a 0 18%,#665540 42%,#241b13 76%);
+  box-shadow:0 2px 4px rgba(0,0,0,.45);
+}
+.graveyard-poster-pin-left{left:16px}.graveyard-poster-pin-right{right:16px}
+.graveyard-poster-stamp{
+  position:absolute;z-index:8;right:18px;top:18px;padding:4px 9px;
+  border:2px solid rgba(109,32,22,.55);color:rgba(109,32,22,.62);
+  font-weight:1000;letter-spacing:.2em;transform:rotate(7deg);
+}
+.graveyard-poster-art{
+  position:relative;min-height:320px;overflow:hidden;
+  background:
+    linear-gradient(to top,rgba(25,19,16,.7),rgba(49,42,35,.22) 55%,rgba(232,213,176,.18)),
+    radial-gradient(circle at 52% 72%,rgba(209,190,154,.34),transparent 42%),
+    linear-gradient(135deg,#332d28,#171513 58%,#2b251f);
+  filter:sepia(.3) contrast(1.05);
+}
+.graveyard-poster-art::before{
+  content:"";position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse at 50% 92%,rgba(0,0,0,.68),transparent 52%),
+    repeating-linear-gradient(174deg,rgba(255,255,255,.018) 0 2px,rgba(0,0,0,.02) 2px 4px);
+}
+.graveyard-poster-mist{
+  position:absolute;left:-10%;right:-10%;bottom:0;height:34%;
+  background:radial-gradient(ellipse at center,rgba(198,187,165,.22),rgba(43,38,32,.02) 68%);
+  filter:blur(8px);animation:graveyard-poster-mist 7s ease-in-out infinite alternate;
+}
+.graveyard-poster-ghoul{
+  position:absolute;left:10%;bottom:0;width:34%;height:70%;object-fit:contain;object-position:center bottom;
+  filter:grayscale(.32) sepia(.22) brightness(.72) contrast(1.15) drop-shadow(0 12px 9px rgba(0,0,0,.55));
+  transform:rotate(-2deg) translateX(-3%);
+}
+.graveyard-poster-child{
+  position:absolute;right:7%;bottom:-7%;width:42%;height:96%;object-fit:contain;object-position:center bottom;
+  filter:grayscale(.18) sepia(.18) brightness(.82) contrast(1.1) drop-shadow(0 12px 10px rgba(0,0,0,.58));
+  transform:scaleX(1);
+  animation:graveyard-poster-subtle-zoom 6.4s ease-in-out infinite alternate;
+}
+.graveyard-poster-copy{
+  position:relative;z-index:4;padding:18px 24px 14px;border-top:1px solid rgba(86,55,33,.42);
+  color:#26170e;
+}
+.graveyard-poster-kicker{margin:0 0 4px;font-size:12px;font-weight:1000;letter-spacing:.18em;color:#7a4a2f}
+.graveyard-poster-copy h2{margin:0 0 8px;font-family:Georgia,"Malgun Gothic",serif;font-size:clamp(22px,3vw,36px);letter-spacing:.02em}
+.graveyard-poster-copy p{margin:0;font-size:clamp(14px,1.5vw,18px);font-weight:800;line-height:1.55}
+.graveyard-poster-choices{
+  position:relative;z-index:8;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 24px 22px;
+}
+.graveyard-poster-choices[hidden]{display:none}
+.graveyard-poster-choices button,.graveyard-poster-continue{
+  min-height:46px;border:1px solid rgba(72,42,24,.72);border-radius:2px;
+  background:rgba(54,31,18,.92);color:#f4e1b7;font-weight:1000;letter-spacing:.02em;
+  box-shadow:0 4px 12px rgba(0,0,0,.24);cursor:pointer;
+}
+.graveyard-poster-choices button:active,.graveyard-poster-continue:active{transform:translateY(1px) scale(.995)}
+.graveyard-poster-continue{
+  position:relative;z-index:8;margin:0 24px 22px;width:calc(100% - 48px);
+}
+.graveyard-poster-continue[hidden]{display:none}
+.graveyard-poster-event.is-result .graveyard-poster-ghoul{display:none}
+.graveyard-poster-event.is-result .graveyard-poster-child{right:25%;width:50%;filter:sepia(.18) brightness(.9) contrast(1.05)}
+@keyframes graveyard-poster-backdrop-in{from{opacity:0}to{opacity:1}}
+@keyframes graveyard-poster-enter{
+  0%{opacity:0;transform:translateY(-18px) scale(.94) rotate(-1.8deg)}
+  72%{opacity:1;transform:translateY(2px) scale(1.012) rotate(.45deg)}
+  100%{opacity:1;transform:translateY(0) scale(1) rotate(-.18deg)}
+}
+@keyframes graveyard-poster-drift{
+  from{transform:rotate(-.18deg) translateY(0)}
+  to{transform:rotate(.16deg) translateY(2px)}
+}
+@keyframes graveyard-poster-mist{from{transform:translateX(-2%)}to{transform:translateX(3%)}}
+@keyframes graveyard-poster-subtle-zoom{from{transform:scaleX(1) scale(1)}to{transform:scaleX(1) scale(1.025)}}
+@media (max-width:700px){
+  .graveyard-poster-event{padding:3dvh 4vw}
+  .graveyard-poster-card{width:min(92vw,700px)}
+  .graveyard-poster-art{min-height:260px}
+  .graveyard-poster-copy{padding:14px 18px 12px}
+  .graveyard-poster-choices{padding:0 18px 18px}
+  .graveyard-poster-continue{margin:0 18px 18px;width:calc(100% - 36px)}
+}
+@media (max-height:430px) and (orientation:landscape){
+  .graveyard-poster-event{padding:2dvh 4vw}
+  .graveyard-poster-card{width:min(86vw,760px);grid-template-columns:1.2fr .9fr;grid-template-rows:auto auto}
+  .graveyard-poster-art{grid-row:1 / span 2;min-height:0;height:84dvh}
+  .graveyard-poster-copy{align-self:end;border-top:0}
+  .graveyard-poster-choices{grid-column:2;align-self:start}
+  .graveyard-poster-continue{grid-column:2}
+}
