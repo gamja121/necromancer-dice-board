@@ -33,12 +33,17 @@ assert(css.includes("mix-blend-mode:screen"));
 assert(css.includes("@keyframes ghoul-layer-lunge"));
 assert(css.includes(".event-dialogue-box"));
 assert(css.includes(".event-tags"));
+assert(css.includes("Viewer-first portrait/mobile layout · stage 2"));
+assert(css.includes("@media (max-width:760px) and (orientation:portrait)"));
+assert(css.includes("flex-direction:column"));
+assert(css.includes("aspect-ratio:1229/1536"));
+assert(css.includes("object-fit:contain"));
 
 for (const file of [
   "v2-event-lab.html",
-  "v2-event-lab.css?v=20261005-event-lab-layered-graveyard-1",
-  "v2-event-lab.js?v=20261005-event-lab-layered-graveyard-1",
-  "v2-event-lab-data.js?v=20261005-event-lab-layered-graveyard-1",
+  "v2-event-lab.css?v=20261005-event-lab-mobile-viewer-2",
+  "v2-event-lab.js?v=20261005-event-lab-mobile-viewer-2",
+  "v2-event-lab-data.js?v=20261005-event-lab-mobile-viewer-2",
   "assets/event-lab/graveyard-child/base/part-000.txt",
   "assets/event-lab/graveyard-child/base/part-001.txt",
   "assets/event-lab/graveyard-child/ghoul/part-000.txt",
