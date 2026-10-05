@@ -192,21 +192,13 @@ dialog form > div { display: flex; justify-content: flex-end; gap: 8px; }
   left:44%;
   bottom:-2%;
   width:11.2%;
-  aspect-ratio:279/680;
-  background-image:url("art/v2-style/map-test/events/graveyard-child-idle.png?v=20261005-graveyard-ambush-stage1");
+  aspect-ratio:263/643;
+  background-image:url("art/v2-style/map-test/events/event-child-idle-01.png?v=20261005-graveyard-ambush-stage1-child-static-1");
   background-repeat:no-repeat;
-  background-size:600% 100%;
-  background-position:0% 0;
+  background-size:contain;
+  background-position:center bottom;
   filter:drop-shadow(0 11px 8px rgba(0,0,0,.62));
-  animation:eventChildIdle 1.45s steps(5,end) infinite;
   transform-origin:50% 100%;
-}
-@keyframes eventChildIdle{
-  from{background-position:0% 0}
-  to{background-position:100% 0}
-}
-@media (prefers-reduced-motion:reduce){
-  .event-child-idle{animation:none}
 }
 @media (max-width:980px){
   .event-scene-preview{aspect-ratio:16/9}
