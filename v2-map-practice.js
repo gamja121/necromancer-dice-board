@@ -334,8 +334,21 @@
     catch (_) { return false; }
   }
 
+  function syncLegacyGraveyardChildStoryResolved() {
+    try {
+      const key = "necromancer-v2-story-flags-v1";
+      const raw = sessionStorage.getItem(key);
+      const flags = raw ? JSON.parse(raw) : {};
+      const next = flags && typeof flags === "object" ? flags : {};
+      next.graveyard_child_ambush_seen = true;
+      next.graveyard_child_ambush_resolved = true;
+      sessionStorage.setItem(key, JSON.stringify(next));
+    } catch (_) {}
+  }
+
   async function markGraveyardChildEventComplete() {
     try { sessionStorage.setItem(GRAVEYARD_CHILD_EVENT_FALLBACK_KEY, "1"); } catch (_) {}
+    syncLegacyGraveyardChildStoryResolved();
     if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
       const result = await V2RunStateRuntime.commitExact("event-complete:graveyard-child", (draft) => {
         if (!draft.eventFlags || typeof draft.eventFlags !== "object") draft.eventFlags = {};
@@ -345,6 +358,8 @@
     }
     return true;
   }
+
+  if (graveyardChildEventCompleted()) syncLegacyGraveyardChildStoryResolved();
 
   function currentPartyUnits() {
     const runParty = globalThis.V2RunStateRuntime?.snapshot?.()?.party;
