@@ -9,7 +9,7 @@ const worker = fs.readFileSync("service-worker.js", "utf8");
 
 assert(data.includes('id: "graveyard_child_ambush_lab_01"'));
 assert(data.includes('tags: Object.freeze(["사건", "공동묘지", "습격받는아이"])'));
-assert(data.includes('description: "묘비 사이에서 아이가 뒷걸음친다. 바로 뒤, 구울이 몸을 일으킨다."'));
+assert(data.includes('description: "공동묘지 안쪽에서 길을 잃은 듯한 아이를 발견했다."'));
 assert(data.includes('speaker: "아이"'));
 assert(data.includes('text: "…도와주세요!"'));
 assert(data.includes('text: "아이를 구한다"'));
