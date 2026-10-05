@@ -2434,3 +2434,227 @@ body.is-graveyard-event-transition .map-board .swamp-damage-overlay{
   .graveyard-poster-choices{grid-column:2;align-self:start}
   .graveyard-poster-continue{grid-column:2}
 }
+
+
+/* Board-overlay cemetery event · stage 20
+   User direction: artwork on board, effect box beside it, existing buttons, existing dialogue box below artwork. */
+.map-board.is-story-event-open .dice-controller,
+.map-board.is-story-event-open .tile-info,
+.map-board.is-story-event-open .map-toolbar,
+.map-board.is-story-event-open .contamination-hud{
+  visibility:hidden!important;
+}
+
+.graveyard-story-event{
+  position:absolute!important;
+  z-index:120!important;
+  inset:0!important;
+  display:block;
+  background:rgba(5,4,3,.20)!important;
+  pointer-events:auto!important;
+  overflow:hidden!important;
+}
+.graveyard-story-event[hidden]{display:none!important}
+
+.graveyard-story-art-wrap{
+  position:absolute;
+  z-index:2;
+  left:7%;
+  top:8%;
+  width:58%;
+  height:68%;
+  overflow:hidden;
+  border:1px solid rgba(118,87,54,.72);
+  border-radius:4px;
+  background:#120d09;
+  box-shadow:0 14px 24px #000c;
+}
+.graveyard-story-artwork{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center 48%;
+  filter:sepia(.06) contrast(1.04) brightness(.92);
+}
+.graveyard-story-ghoul-layer{
+  position:absolute;
+  z-index:3;
+  left:-4%;
+  bottom:4%;
+  width:58%;
+  height:86%;
+  object-fit:contain;
+  object-position:left bottom;
+  filter:sepia(.12) saturate(.88) brightness(.82) contrast(1.12) drop-shadow(0 10px 10px #000b);
+  animation:board-event-ghoul-in .5s cubic-bezier(.18,.8,.2,1) both;
+}
+.graveyard-story-ghoul-layer[hidden]{display:none!important}
+
+.graveyard-story-effect-box{
+  position:absolute;
+  z-index:5;
+  right:5.2%;
+  top:13%;
+  width:25%;
+  min-height:30%;
+  box-sizing:border-box;
+  padding:3.5% 3.2%;
+  border:2px solid #4a3421;
+  border-radius:4px;
+  background:rgba(225,199,151,.96);
+  color:#3b291d;
+  box-shadow:0 8px 16px #0009,inset 0 0 0 1px #f4deb6;
+  text-shadow:0 1px #fff2d2;
+}
+.graveyard-story-effect-box strong{
+  display:block;
+  margin-bottom:8%;
+  font:1000 clamp(12px,1.25vw,17px)/1 Georgia,"Malgun Gothic",serif;
+  color:#62472e;
+  letter-spacing:.05em;
+}
+.graveyard-story-effect-box p{
+  margin:0;
+  font:900 clamp(13px,1.35vw,19px)/1.5 Georgia,"Malgun Gothic",serif;
+}
+
+.graveyard-story-dialogue{
+  position:absolute!important;
+  z-index:8!important;
+  left:9%!important;
+  top:auto!important;
+  right:auto!important;
+  bottom:2.5%!important;
+  width:54%!important;
+  height:23%!important;
+  inset:auto!important;
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+  transition:opacity .2s ease;
+}
+.graveyard-story-event.has-dialogue .graveyard-story-dialogue{
+  opacity:1!important;
+  visibility:visible!important;
+}
+.graveyard-story-portrait{display:none!important}
+.graveyard-story-box{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  left:0!important;
+  right:0!important;
+  top:0!important;
+  bottom:0!important;
+  display:block!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  filter:drop-shadow(0 8px 12px #000b)!important;
+  pointer-events:auto!important;
+}
+.graveyard-story-frame{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:fill!important;
+}
+.graveyard-story-name{
+  left:10%!important;
+  top:18%!important;
+  font-size:clamp(11px,1.15vw,16px)!important;
+}
+.graveyard-story-text{
+  left:10%!important;
+  right:10%!important;
+  top:43%!important;
+  font-size:clamp(13px,1.5vw,21px)!important;
+}
+.graveyard-story-next{
+  right:8%!important;
+  bottom:14%!important;
+}
+
+.graveyard-story-choices{
+  position:absolute!important;
+  z-index:9!important;
+  right:5.2%!important;
+  left:auto!important;
+  top:49%!important;
+  bottom:auto!important;
+  width:25%!important;
+  transform:none!important;
+  display:grid!important;
+  gap:10px!important;
+  pointer-events:auto!important;
+}
+.graveyard-story-choices[hidden]{display:none!important}
+.graveyard-story-choice-button{
+  position:relative!important;
+  right:auto!important;
+  left:auto!important;
+  top:auto!important;
+  bottom:auto!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:42px!important;
+  aspect-ratio:3/1!important;
+  padding:0 10px!important;
+  border:0!important;
+  border-radius:0!important;
+  background-color:transparent!important;
+  background-image:url("art/v2-style/ui/parchment-button-variant-01.png")!important;
+  background-size:100% 100%!important;
+  background-repeat:no-repeat!important;
+  color:#3f2818!important;
+  font-size:clamp(12px,1.25vw,18px)!important;
+  font-weight:1000!important;
+  text-align:center!important;
+  text-shadow:0 1px #fff0cf!important;
+  filter:drop-shadow(0 5px 5px #0009)!important;
+}
+.graveyard-story-choice-leave{
+  background-image:url("art/v2-style/ui/parchment-button-variant-04.png")!important;
+}
+.graveyard-story-event.is-choice-phase .graveyard-story-dialogue{
+  opacity:1!important;
+  visibility:visible!important;
+}
+.graveyard-story-event.is-choice-phase .graveyard-story-box{
+  pointer-events:none!important;
+}
+
+.graveyard-story-event.is-rescued .graveyard-story-effect-box p::after{
+  content:" 아이는 당신을 보자 안도하지 못하고 겁먹은 채 뒷걸음친다.";
+}
+.graveyard-story-event.is-child-fleeing .graveyard-story-artwork{
+  animation:board-event-child-flee 1.1s cubic-bezier(.18,.72,.2,1) both;
+}
+.graveyard-story-event.is-child-fleeing .graveyard-story-effect-box{
+  animation:board-event-effect-pulse .65s ease-out;
+}
+
+@keyframes board-event-ghoul-in{
+  0%{opacity:0;transform:translate3d(-8%,2%,0) scale(.95)}
+  100%{opacity:1;transform:translate3d(0,0,0) scale(1)}
+}
+@keyframes board-event-child-flee{
+  0%{transform:scale(1.02) translateX(0);filter:sepia(.06) contrast(1.04) brightness(.92)}
+  38%{transform:scale(1.06) translateX(-2%);filter:sepia(.10) contrast(1.08) brightness(.84)}
+  100%{transform:scale(1.03) translateX(-5%);filter:sepia(.15) contrast(1.04) brightness(.72)}
+}
+@keyframes board-event-effect-pulse{
+  0%{transform:scale(.98);filter:brightness(1.15)}
+  100%{transform:scale(1);filter:brightness(1)}
+}
+
+@media(max-height:430px) and (orientation:landscape){
+  .graveyard-story-art-wrap{left:6%;top:6%;width:59%;height:69%}
+  .graveyard-story-effect-box{right:4%;top:10%;width:27%;padding:2.8%}
+  .graveyard-story-dialogue{left:8%!important;width:56%!important;height:24%!important;bottom:1.5%!important}
+  .graveyard-story-choices{right:4%!important;width:27%!important;top:48%!important}
+}
