@@ -72,4 +72,4 @@ assert(js.includes('from: "event"'), "Event battle handoff must mark its source"
 assert(battleJs.includes('const fromEvent = battleQuery.get("from") === "event"'), "Battle screen does not recognize event battles");
 assert(battleJs.includes("requestedEventEnemySlugs"), "Battle screen does not accept fixed event enemies");
 assert(battleJs.includes('fromEvent && team === "enemy"'), "Event enemy lineup must stay locked");
-assert(battleHtml.includes("v2-auto-battle-practice.js?v=130"), "Battle screen JS cache version was not bumped");
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=131"), "Battle screen JS cache version was not bumped");
