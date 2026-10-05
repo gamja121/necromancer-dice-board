@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
   <title>네크로멘서 앤드 다이스 · 외곽 타일 맵 테스트</title>
-  <link rel="stylesheet" href="v2-map-practice.css?v=20261005-event-option-stage10-1">
+  <link rel="stylesheet" href="v2-map-practice.css?v=20261005-graveyard-inline-event-stage12-1">
   <link rel="stylesheet" href="v2-home-inheritance.css?v=9">
   <link rel="stylesheet" href="v2-altar-ritual.css?v=5">
 </head>
@@ -439,6 +439,28 @@
         <span class="graveyard-layout-item graveyard-item-h4 graveyard-sprite-h4 is-layout-flipped" data-graveyard-id="H4" data-graveyard-type="headstone" data-default-hidden="false" data-default-flip="true" style="left:46.0133%;top:16.5162%;bottom:auto;width:11%;z-index:4" data-default-left="46.0133%" data-default-top="16.5162%" data-default-bottom="auto" data-default-width="11%" data-default-z="4"><span class="graveyard-item-visual" aria-hidden="true"></span></span>
         <span class="graveyard-layout-item graveyard-item-c1 graveyard-sprite-c1" data-graveyard-id="C1" data-graveyard-type="crow" data-default-hidden="false" data-default-flip="false" style="left:61.9121%;top:44.0336%;bottom:auto;width:7%;z-index:6" data-default-left="61.9121%" data-default-top="44.0336%" data-default-bottom="auto" data-default-width="7%" data-default-z="6"><span class="graveyard-item-visual" aria-hidden="true"></span></span>
       </div>
+      <section id="graveyardStoryEvent" class="graveyard-story-event" hidden aria-label="공동묘지 사건 · 습격받는 아이">
+        <div class="graveyard-story-field" aria-hidden="true">
+          <div class="graveyard-story-child"></div>
+          <div class="graveyard-story-ghoul"></div>
+          <div class="graveyard-story-alert">!</div>
+        </div>
+        <div class="graveyard-story-dialogue" id="graveyardStoryDialogue">
+          <div class="graveyard-story-portrait" aria-hidden="true">
+            <img src="art/v2-style/event-portraits/dark-eyed-boy.png?v=1" alt="">
+          </div>
+          <button id="graveyardStoryAdvance" class="graveyard-story-box" type="button" aria-label="대화 계속">
+            <img class="graveyard-story-frame" src="art/v2-style/ui/intro-dialogue-box.webp?v=6" alt="" aria-hidden="true">
+            <span class="graveyard-story-name">아이</span>
+            <span id="graveyardStoryText" class="graveyard-story-text">…!</span>
+            <span class="graveyard-story-next" aria-hidden="true">▼</span>
+          </button>
+        </div>
+        <div id="graveyardStoryChoices" class="graveyard-story-choices" hidden>
+          <button type="button" data-graveyard-story-choice="protect">아이를 구한다</button>
+          <button type="button" data-graveyard-story-choice="leave">지나친다</button>
+        </div>
+      </section>
       <section id="graveyardLayerDebug" class="forest-layer-debug graveyard-layer-debug" aria-label="공동묘지 배치 에디터" hidden>
         <div class="forest-layer-debug-head">
           <strong>공동묘지 배치 에디터</strong>
@@ -504,6 +526,6 @@
   <script src="v2-world-tree-prayer-digits.js?v=2"></script>
   <script src="v2-event-data.js?v=1"></script>
   <script src="v2-map-events.js?v=1"></script>
-  <script src="v2-map-practice.js?v=20261005-graveyard-event-reuse-stage11-1"></script>
+  <script src="v2-map-practice.js?v=20261005-graveyard-inline-event-stage12-1"></script>
 </body>
 </html>
