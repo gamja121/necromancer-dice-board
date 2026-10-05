@@ -440,6 +440,21 @@ async function activate(page, selector) {
     assert(exported.H1&&exported.M1&&exported.C1,"Graveyard export must contain all stable IDs");
     assert.equal(exported.H1.flipX,true);
     console.log("PASS: graveyard stage 4 drag size layer flip save export");
+    await page.evaluate(() => {
+      localStorage.removeItem("necromancer-dice-graveyard-layout-v2");
+      document.getElementById("graveyardDioramaTestButton")?.click();
+    });
+    await page.waitForSelector("#graveyardDioramaTest:not([hidden])",{state:"visible",timeout:30000});
+    await page.locator("[data-graveyard-layout-reset]").evaluate((b)=>b.click());
+    const stage5Defaults=await page.evaluate(()=>({
+      gate:document.querySelector(".graveyard-item-g1")?.getAttribute("style")||"",
+      tree2:document.querySelector(".graveyard-item-t2")?.classList.contains("is-layout-flipped"),
+      widths:[...document.querySelectorAll(".graveyard-layout-item")].map(x=>x.style.width)
+    }));
+    assert(stage5Defaults.gate.includes("left: 36%")||stage5Defaults.gate.includes("left:36%"),"Stage 5 gate must use cemetery composition");
+    assert.equal(stage5Defaults.tree2,true,"Right cemetery tree must default flipped");
+    assert(stage5Defaults.widths.some(w=>w==="31%")&&stage5Defaults.widths.some(w=>w==="7%"),"Stage 5 must use varied object scales");
+    console.log("PASS: graveyard stage 5 initial cemetery composition");
     console.log("PASS: mobile village six distinct building assets " + JSON.stringify(villageAssets));
 
     await page.goto(base);
