@@ -464,6 +464,10 @@ async function activate(page, selector) {
     assert(graveZoom&&graveZoom!=="none","Graveyard camera must zoom map board");
     await page.waitForFunction(()=>document.getElementById("mapBoard")?.classList.contains("is-graveyard-tilted"),null,{timeout:10000});
     await page.waitForFunction(()=>document.getElementById("graveyardDioramaTest")?.classList.contains("is-playing"),null,{timeout:10000});
+    await page.waitForFunction(()=>{
+      const stage=document.querySelector(".graveyard-layout-stage");
+      return stage && Number.parseFloat(getComputedStyle(stage).opacity) >= .99;
+    },null,{timeout:10000});
     const cameraState=await page.evaluate(()=>({
       tilted:document.getElementById("mapBoard")?.classList.contains("is-graveyard-tilted"),
       props:document.getElementById("mapBoard")?.classList.contains("is-graveyard-props"),
