@@ -102,7 +102,7 @@ async function activate(page, selector) {
     assert(graveyardStage1.childBg.includes("event-child-idle-01.png"));
     assert.equal(graveyardStage1.childAnimation,"event-child-idle-breathe");
     assert.equal(graveyardStage1.duplicateTitleCount,1);
-    assert.equal(graveyardStage1.hasGhoul,false);
+    assert.equal(graveyardStage1.hasGhoul,true);
     assert.equal(graveyardStage1.hasDialogue,false);
     console.log("PASS: event lab graveyard child stage 2 idle motion");
     const graveyardStage3Choices = await page.evaluate(() => [...document.querySelectorAll("#choiceList button")].map((button) => button.firstChild?.textContent?.trim() || button.textContent.trim()));
@@ -112,6 +112,23 @@ async function activate(page, selector) {
     assert.equal(await page.locator("#rollPanel").evaluate((el) => el.hidden), true);
     assert.equal(await page.locator("#flagList").textContent().then((text)=>text.includes("child_saved")||text.includes("child_abandoned")), false);
     console.log("PASS: event lab graveyard child stage 3 choices");
+    await page.waitForFunction(() => {
+      const ghoul=document.querySelector("#eventScenePreview .event-ghoul");
+      if(!ghoul) return false;
+      const style=getComputedStyle(ghoul);
+      return Number.parseFloat(style.opacity) > .95 && style.backgroundImage.includes("ghoul.png");
+    }, null, { timeout: 10000 });
+    const stage4Ambush=await page.evaluate(()=>({
+      ghoulCount:document.querySelectorAll("#eventScenePreview [data-event-ghoul]").length,
+      ghoulBg:getComputedStyle(document.querySelector("#eventScenePreview .event-ghoul")).backgroundImage,
+      ghoulOpacity:getComputedStyle(document.querySelector("#eventScenePreview .event-ghoul")).opacity,
+      text:document.getElementById("eventText")?.textContent||""
+    }));
+    assert.equal(stage4Ambush.ghoulCount,1);
+    assert(stage4Ambush.ghoulBg.includes("processed/192/ghoul.png"));
+    assert(Number.parseFloat(stage4Ambush.ghoulOpacity)>.95);
+    assert(stage4Ambush.text.includes("구울"));
+    console.log("PASS: event lab graveyard child stage 4 ghoul ambush");
 
     await page.setViewportSize({ width: 844, height: 390 });
     await page.goto(new URL("v2-intro.html", base).href);
