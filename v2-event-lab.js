@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const events = Array.isArray(window.V2EventData?.events)
+  const events = Array.isArray(window.V2EventLabData?.events)
     ? window.V2EventData.events
     : [];
 
