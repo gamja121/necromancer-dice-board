@@ -144,9 +144,9 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261005-graveyard-poster-stage17-1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261005-map-event-graveyard-child-stage18-1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
-assert(battleHtml.includes("v2-auto-battle-practice.js?v=132"));
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=133"));
 for (const required of [
   "./v2-intro.html",
   "./v2-intro.css?v=15",
@@ -162,8 +162,8 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261005-graveyard-poster-stage17-1",
-  "./v2-auto-battle-practice.js?v=132",
+  "./v2-map-practice.js?v=20261005-map-event-graveyard-child-stage18-1",
+  "./v2-auto-battle-practice.js?v=133",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
   "./v2-sfx.js?v=4",
@@ -224,8 +224,8 @@ assert(map.includes('building.style.bottom = "auto"'));
 
 assert(battle.includes('makeState(data, "enemy", 3 - index)'));
 assert(!battle.includes('makeState(data, "enemy", index)'));
-assert(battleHtml.includes("v2-auto-battle-practice.js?v=132"));
-assert(worker.includes("./v2-auto-battle-practice.js?v=132"));
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=133"));
+assert(worker.includes("./v2-auto-battle-practice.js?v=133"));
 
 const rulesSource = read("v2-rules.js");
 const brandCardsSource = read("v2-brand-cards.js");
@@ -394,7 +394,7 @@ assert(battle.includes('fromEvent && team === "enemy"'));
 assert(battle.includes('EVENT_BATTLE_RESULT_KEY'));
 assert(battle.includes('function returnToEvent'));
 assert(battle.includes('if (fromEvent) {'));
-assert(battleHtml.includes('v2-auto-battle-practice.js?v=132'));
+assert(battleHtml.includes('v2-auto-battle-practice.js?v=133'));
 
 assert(map.includes("function installEventOptionShortcut"));
 assert(map.includes('button.textContent = "공동묘지"'));
@@ -412,9 +412,24 @@ assert(battle.includes('resumeGraveyardEvent: "1"'));
 
 // Empty Event Lab files must be available offline.
 assert(worker.includes("./v2-event-lab.html"));
-assert(worker.includes("./v2-event-lab.css?v=20261005-event-lab-unified-box-stage6"));
-assert(worker.includes("./v2-event-lab.js?v=20261005-event-lab-unified-box-stage6"));
-assert(worker.includes("./v2-event-lab-data.js?v=20261005-event-lab-unified-box-stage6"));
+assert(worker.includes("./v2-event-lab.css?v=20261005-event-lab-map-link-stage7"));
+assert(worker.includes("./v2-event-lab.js?v=20261005-event-lab-map-link-stage7"));
+assert(worker.includes("./v2-event-lab-data.js?v=20261005-event-lab-map-link-stage7"));
 
 assert(worker.includes("./assets/event-lab/graveyard-child/base/part-000.txt"));
 assert(worker.includes("./assets/event-lab/graveyard-child/ghoul/part-000.txt"));
+
+assert(map.includes("GRAVEYARD_CHILD_EVENT_FLAG"));
+assert(map.includes("launchGraveyardChildEventFromMap"));
+assert(map.includes('["event", "graveyard"].includes'));
+assert(map.includes("completeGraveyardChildEvent"));
+assert(map.includes('draft.party = selectedUnits.map((unit) => unit.instanceId)'));
+assert(eventJs.includes("fromMapEvent"));
+assert(eventJs.includes("resumeEventBattle"));
+assert(eventJs.includes("startMapEventBattle"));
+assert(eventJs.includes('eventReturn: "event-lab-map"'));
+assert(eventJs.includes('enemies: "ghoul"'));
+assert(eventJs.includes("showPostBattleEscape"));
+assert(battle.includes('eventReturnTarget === "event-lab-map"'));
+assert(battle.includes('event-battle-outcome:'));
+assert(battle.includes('(fromMap || fromEvent) && selectedAllySlugs.length'));
