@@ -149,6 +149,22 @@ async function activate(page, selector) {
     assert(choiceBrightness.includes("brightness(0.58)"));
     console.log("PASS: Event Lab gaze-directed beats");
 
+    const unifiedInfo = await page.evaluate(() => {
+      const shell=document.querySelector(".event-info-shell");
+      const frame=document.querySelector(".event-info-frame");
+      return {
+        shellVisible:!!shell && getComputedStyle(shell).display !== "none",
+        frameSrc:frame?.getAttribute("src") || "",
+        copyBg:getComputedStyle(document.querySelector(".event-copy")).backgroundColor,
+        actionsBg:getComputedStyle(document.querySelector(".event-actions")).backgroundColor
+      };
+    });
+    assert(unifiedInfo.shellVisible);
+    assert(unifiedInfo.frameSrc.includes("intro-dialogue-box.webp?v=6"));
+    assert(unifiedInfo.copyBg === "rgba(0, 0, 0, 0)" || unifiedInfo.copyBg === "transparent");
+    assert(unifiedInfo.actionsBg === "rgba(0, 0, 0, 0)" || unifiedInfo.actionsBg === "transparent");
+    console.log("PASS: Event Lab unified info box");
+
     console.log("PASS: Event Lab layered cemetery -> ghoul -> dialogue -> choice");
 
     await page.setViewportSize({ width: 689, height: 1536 });
