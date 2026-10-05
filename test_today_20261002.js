@@ -139,7 +139,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261005-village-stage14-approved-tree-layout-1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261005-graveyard-stage3-inspector-1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=129"));
 for (const required of [
@@ -157,7 +157,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261005-village-stage14-approved-tree-layout-1",
+  "./v2-map-practice.js?v=20261005-graveyard-stage3-inspector-1",
   "./v2-auto-battle-practice.js?v=129",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -176,22 +176,22 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!/(^|\\n)\\.map-options-button\\s*\\{\\s*visibility:\\s*hidden;\\s*\\}/.test(mapCss));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261005-village-stage14-approved-tree-layout-1"));
-assert(worker.includes("./v2-map-practice.css?v=20261005-village-stage14-approved-tree-layout-1"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261005-graveyard-stage3-inspector-1"));
+assert(worker.includes("./v2-map-practice.css?v=20261005-graveyard-stage3-inspector-1"));
 assert(mapHtml.includes('id="villageDioramaTestButton"'));
 assert(mapHtml.includes('id="villageDioramaTest"'));
-assert(mapHtml.includes("village-building-01.webp?v=20261005-village-stage14-approved-tree-layout-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-01.webp?v=20261005-village-stage14-approved-tree-layout-1"));
-assert(mapHtml.includes("village-building-02.webp?v=20261005-village-stage14-approved-tree-layout-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-02.webp?v=20261005-village-stage14-approved-tree-layout-1"));
-assert(mapHtml.includes("village-building-03.webp?v=20261005-village-stage14-approved-tree-layout-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-03.webp?v=20261005-village-stage14-approved-tree-layout-1"));
-assert(mapHtml.includes("village-building-04.webp?v=20261005-village-stage14-approved-tree-layout-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-04.webp?v=20261005-village-stage14-approved-tree-layout-1"));
-assert(mapHtml.includes("village-building-05.webp?v=20261005-village-stage14-approved-tree-layout-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-05.webp?v=20261005-village-stage14-approved-tree-layout-1"));
-assert(mapHtml.includes("village-building-06.webp?v=20261005-village-stage14-approved-tree-layout-1"));
-assert(worker.includes("./art/v2-style/map-test/diorama/village-building-06.webp?v=20261005-village-stage14-approved-tree-layout-1"));
+assert(mapHtml.includes("village-building-01.webp?v=20261005-graveyard-stage3-inspector-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-01.webp?v=20261005-graveyard-stage3-inspector-1"));
+assert(mapHtml.includes("village-building-02.webp?v=20261005-graveyard-stage3-inspector-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-02.webp?v=20261005-graveyard-stage3-inspector-1"));
+assert(mapHtml.includes("village-building-03.webp?v=20261005-graveyard-stage3-inspector-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-03.webp?v=20261005-graveyard-stage3-inspector-1"));
+assert(mapHtml.includes("village-building-04.webp?v=20261005-graveyard-stage3-inspector-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-04.webp?v=20261005-graveyard-stage3-inspector-1"));
+assert(mapHtml.includes("village-building-05.webp?v=20261005-graveyard-stage3-inspector-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-05.webp?v=20261005-graveyard-stage3-inspector-1"));
+assert(mapHtml.includes("village-building-06.webp?v=20261005-graveyard-stage3-inspector-1"));
+assert(worker.includes("./art/v2-style/map-test/diorama/village-building-06.webp?v=20261005-graveyard-stage3-inspector-1"));
 assert(map.includes('img.naturalWidth > 0 && img.naturalHeight > 0'));
 assert(mapHtml.includes("village-building-image"));
 assert(mapHtml.includes("village-layout-hint"));
@@ -294,3 +294,14 @@ assert(mapCss.includes(".village-tree-2{left:44.6792%;top:14.7396%;bottom:auto;w
 assert(mapCss.includes(".village-tree-3{left:23.1831%;top:17.6837%;bottom:auto;width:14%;z-index:3}"));
 assert(map.includes('item.dataset.defaultFlip === "true"'));
 assert(map.includes('item.dataset.defaultHidden === "true"'));
+
+assert(mapHtml.includes('id="graveyardDioramaTestButton"'));
+assert(mapHtml.includes('id="graveyardDioramaTest"'));
+assert(mapHtml.includes('id="graveyardAtlasProbe"'));
+assert((mapHtml.match(/data-graveyard-id="/g) || []).length === 14);
+assert(mapCss.includes(".graveyard-asset-grid"));
+assert(mapCss.includes(".graveyard-sprite-m1{background-position:0% 0%}"));
+assert(mapCss.includes(".graveyard-sprite-c1{background-position:33.333333% 100%}"));
+assert(map.includes("function openGraveyardDioramaTest"));
+assert(map.includes("function closeGraveyardDioramaTest"));
+assert(map.includes("width === 1536 && height === 1260"));
