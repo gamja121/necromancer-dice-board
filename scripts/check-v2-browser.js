@@ -101,7 +101,7 @@ async function activate(page, selector) {
       tags: [...document.querySelectorAll("#eventTags span")].map(el=>el.textContent)
     }));
     assert.equal(eventInitial.phase, "description");
-    assert(eventInitial.description.includes("묘비 사이에서 아이가 뒷걸음친다."));
+    assert(eventInitial.description.includes("길을 잃은 아이를 발견했다."));
     assert.equal(eventInitial.ghoulHidden, true);
     assert(eventInitial.baseWidth > 0);
     assert.deepEqual(eventInitial.tags, ["#사건","#공동묘지","#습격받는아이"]);
