@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
   <title>네크로멘서 앤드 다이스 · Event Lab · 사건 테스트</title>
-  <link rel="stylesheet" href="v2-event-lab.css?v=20261005-graveyard-ambush-stage10-ingame-event-1">
+  <link rel="stylesheet" href="v2-event-lab.css?v=20261005-graveyard-event-reuse-stage11-1">
 </head>
 <body>
   <main class="event-lab">
@@ -57,11 +57,14 @@
               <div class="event-ghoul" data-event-ghoul aria-label="아이를 습격하는 구울"></div>
               <div class="event-ambush-alert" aria-hidden="true"><span>!</span></div>
               <div class="event-dialogue-layer" aria-label="사건 대화">
-                <div class="event-dialogue-portrait" aria-label="아이 상반신"></div>
+                <div class="event-dialogue-portrait" aria-label="아이 상반신">
+                  <img src="art/v2-style/event-portraits/dark-eyed-boy.png?v=1" alt="아이">
+                </div>
                 <button class="event-dialogue-box" id="eventDialogueAdvance" type="button" aria-label="아이의 대화를 넘기기">
+                  <img class="event-dialogue-frame" src="art/v2-style/ui/intro-dialogue-box.webp?v=6" alt="" aria-hidden="true">
                   <span class="event-dialogue-name">아이</span>
                   <span class="event-dialogue-text">…!</span>
-                  <span class="event-dialogue-next" aria-hidden="true">◆</span>
+                  <span class="event-dialogue-next" aria-hidden="true">▼</span>
                 </button>
               </div>
             </div>
@@ -149,7 +152,7 @@
     </form>
   </dialog>
 
-  <script src="v2-event-data.js?v=20261005-graveyard-ambush-stage10-ingame-event-1"></script>
-  <script src="v2-event-lab.js?v=20261005-graveyard-ambush-stage10-ingame-event-1"></script>
+  <script src="v2-event-data.js?v=20261005-graveyard-event-reuse-stage11-1"></script>
+  <script src="v2-event-lab.js?v=20261005-graveyard-event-reuse-stage11-1"></script>
 </body>
 </html>
