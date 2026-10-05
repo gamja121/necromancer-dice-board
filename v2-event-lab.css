@@ -115,3 +115,136 @@ button{touch-action:manipulation}
   .event-dialogue{padding:0 6% 2%}
   .event-dialogue-box{height:32%;min-height:105px}
 }
+
+
+/* Viewer-first portrait/mobile layout · stage 2
+   On a phone the event must read top-to-bottom: scene -> description -> action. */
+@media (max-width:760px) and (orientation:portrait){
+  html,body{min-height:100%;overflow:auto}
+  body{min-height:100dvh}
+  .event-lab{min-height:100dvh;display:block}
+  .lab-header{
+    position:sticky;top:0;z-index:80;
+    min-height:52px;padding:8px 12px;
+    background:rgba(8,6,4,.96);
+    backdrop-filter:blur(6px)
+  }
+  .lab-header strong{font-size:18px}
+  .lab-header span{font-size:11px}
+  .lab-header nav{gap:6px}
+  .lab-header a{padding:5px 8px;font-size:12px}
+
+  .event-workspace{
+    display:block;
+    padding:12px 10px 24px;
+    overflow:visible
+  }
+  .event-card{
+    width:100%;
+    height:auto;
+    max-height:none;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    border-radius:5px
+  }
+  .event-scene{
+    order:1;
+    width:100%;
+    height:auto;
+    aspect-ratio:1229/1536;
+    min-height:0;
+    flex:none;
+    background:#070605
+  }
+  .event-base-image{
+    width:100%;height:100%;
+    object-fit:contain;
+    object-position:center;
+    transform:none;
+    filter:sepia(.08) contrast(1.03) brightness(.9)
+  }
+  .event-ghoul-layer{
+    left:-6%;bottom:-3%;
+    width:74%;height:88%;
+    object-fit:contain;
+    object-position:left bottom
+  }
+  .event-tags{
+    top:10px;left:10px;right:10px;
+    gap:5px
+  }
+  .event-tags span{
+    padding:4px 7px;
+    font-size:10px;
+    background:rgba(13,9,6,.86)
+  }
+
+  .event-copy{
+    order:2;
+    width:100%;
+    padding:16px 16px 14px;
+    border-left:0;
+    border-top:1px solid #6b492d;
+    box-shadow:inset 0 0 26px #5d361f33
+  }
+  .event-location{font-size:11px;margin-bottom:4px}
+  .event-copy h1{
+    margin:0 0 8px;
+    font-size:clamp(26px,8vw,38px);
+    line-height:1.15
+  }
+  .event-copy p:last-child{
+    font-size:15px;
+    line-height:1.55;
+    word-break:keep-all
+  }
+
+  .event-actions,.event-choices,.event-outcome{
+    order:3;
+    width:100%;
+    padding:0 16px 14px;
+    border-left:0
+  }
+  .event-advance,.event-choices button{
+    min-height:48px;
+    font-size:15px
+  }
+  .event-outcome{padding-top:10px;line-height:1.5}
+
+  .event-footer{
+    order:4;
+    width:100%;
+    padding:9px 16px;
+    border-left:0;
+    font-size:11px
+  }
+
+  .event-dialogue{
+    padding:0 3.5% 2.5%
+  }
+  .event-dialogue-box{
+    width:100%;
+    height:25%;
+    min-height:112px
+  }
+  .event-dialogue-name{
+    left:9%;top:16%;
+    font-size:13px
+  }
+  .event-dialogue-text{
+    left:9%;right:11%;top:43%;
+    font-size:clamp(17px,4.7vw,23px)
+  }
+  .event-dialogue-next{right:7%;bottom:13%}
+}
+
+/* Very narrow phones: keep the entire scene visible before copy. */
+@media (max-width:430px) and (orientation:portrait){
+  .lab-header span{display:none}
+  .event-workspace{padding:8px 7px 18px}
+  .event-scene{aspect-ratio:1229/1536}
+  .event-copy{padding:14px 14px 12px}
+  .event-actions,.event-choices,.event-outcome{padding-left:14px;padding-right:14px}
+  .event-footer{padding-left:14px;padding-right:14px}
+}
