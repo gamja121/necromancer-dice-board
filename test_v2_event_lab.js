@@ -32,9 +32,9 @@ assert(v2.includes('href="v2-event-lab.html"'), "V2 screen must link to Event La
 
 for (const file of [
   "v2-event-lab.html",
-  "v2-event-lab.css?v=20261005-graveyard-ambush-stage9-rescue-scene-1",
-  "v2-event-lab.js?v=20261005-graveyard-ambush-stage9-rescue-scene-1",
-  "v2-event-data.js?v=20261005-graveyard-ambush-stage9-rescue-scene-1"
+  "v2-event-lab.css?v=20261005-graveyard-ambush-stage10-ingame-event-1",
+  "v2-event-lab.js?v=20261005-graveyard-ambush-stage10-ingame-event-1",
+  "v2-event-data.js?v=20261005-graveyard-ambush-stage10-ingame-event-1"
 ]) {
   assert(worker.includes(file), `Event Lab is not cached: ${file}`);
 }
@@ -50,7 +50,7 @@ assert(css.includes(".event-graveyard-g1{left:39.5278%;top:11.2138%;width:25%;z-
 assert(data.includes('scene: "graveyard_child_ambush_intro"'), "Cemetery ambush scene marker is missing");
 assert(js.includes('event.scene === "graveyard_child_ambush_intro"'), "Scene preview switching is missing");
 
-assert(worker.includes("event-child-idle-01.png?v=20261005-graveyard-ambush-stage9-rescue-scene-1"), "Child static sprite is not cached");
+assert(worker.includes("event-child-idle-01.png?v=20261005-graveyard-ambush-stage10-ingame-event-1"), "Child static sprite is not cached");
 
 {
   const start = data.indexOf('id: "graveyard_child_ambush_01"');
@@ -79,3 +79,7 @@ assert(js.includes('el.eventDialogueText.textContent = isRescuedScene ? "…고�
 assert(css.includes(".event-card.is-cinematic-rescued .event-ghoul"), "Stage 9 must hide the ghoul after victory");
 assert(css.includes(".event-card.is-cinematic-rescued #choiceList"), "Stage 9 must hide the old choice list after victory");
 assert(css.includes("event-child-idle-breathe 3.4s"), "Stage 9 must keep the child idle breathing after rescue");
+assert(html.includes('id="eventSceneNarration"'), "Stage 10 must show story context inside the panorama");
+assert(js.includes('document.body.classList.add("is-ingame-event")'), "Stage 10 must support in-game event mode");
+assert(css.includes("body.is-ingame-event .event-stage"), "Stage 10 must hide lab chrome and present the event as gameplay");
+assert(css.includes("right:1%;bottom:26%;width:46%;height:78%"), "Child portrait must match the first knight-commander composition");
