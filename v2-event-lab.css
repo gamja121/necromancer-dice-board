@@ -635,3 +635,39 @@ button{touch-action:manipulation}
     align-self:center!important;
   }
 }
+
+
+/* Map-linked escape epilogue */
+.event-card.is-child-escaping .event-base-image{
+  transform-origin:78% 54%;
+  animation:event-child-escape-camera 1.25s cubic-bezier(.18,.72,.2,1) both!important;
+  filter:sepia(.12) contrast(1.04) brightness(.72)!important;
+}
+.event-card.is-child-escaping .event-scene-vignette{
+  background:
+    linear-gradient(90deg,rgba(8,5,4,.12),rgba(8,5,4,.48) 72%,rgba(8,5,4,.78)),
+    linear-gradient(to top,rgba(8,5,4,.55),transparent 42%)!important;
+}
+.event-card.is-child-escaping .event-scene::before{
+  content:"";
+  position:absolute;
+  z-index:8;
+  right:7%;
+  top:31%;
+  width:28%;
+  height:38%;
+  pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(226,210,180,.16),transparent);
+  filter:blur(10px);
+  animation:event-child-escape-streak .9s ease-out both;
+}
+@keyframes event-child-escape-camera{
+  0%{transform:scale(1.08) translate3d(1%,-.2%,0)}
+  40%{transform:scale(1.11) translate3d(-3%,-.5%,0)}
+  100%{transform:scale(1.07) translate3d(-7%,0,0)}
+}
+@keyframes event-child-escape-streak{
+  0%{opacity:0;transform:translateX(-10%)}
+  28%{opacity:.75}
+  100%{opacity:0;transform:translateX(48%)}
+}
