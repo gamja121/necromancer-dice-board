@@ -72,7 +72,7 @@ assert(js.includes('from: "event"'), "Event battle handoff must mark its source"
 assert(battleJs.includes('const fromEvent = battleQuery.get("from") === "event"'), "Battle screen does not recognize event battles");
 assert(battleJs.includes("requestedEventEnemySlugs"), "Battle screen does not accept fixed event enemies");
 assert(battleJs.includes('fromEvent && team === "enemy"'), "Event enemy lineup must stay locked");
-assert(battleHtml.includes("v2-auto-battle-practice.js?v=131"), "Battle screen JS cache version was not bumped");
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=132"), "Battle screen JS cache version was not bumped");
 
 assert(js.includes('classList.toggle("is-cinematic-rescued", isRescuedScene)'), "Stage 9 rescue scene class is missing");
 assert(js.includes('el.eventDialogueText.textContent = isRescuedScene ? "…고마워요." : "…!"'), "Stage 9 rescued child dialogue is missing");
