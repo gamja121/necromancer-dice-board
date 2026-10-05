@@ -411,6 +411,35 @@ async function activate(page, selector) {
     await page.locator("#graveyardDioramaClose").evaluate((button) => button.click());
     assert.equal(await page.locator("#graveyardDioramaTest").evaluate((el) => el.hidden), true);
     console.log("PASS: graveyard stage 3 atlas inspector");
+
+    await page.evaluate(() => document.getElementById("graveyardDioramaTestButton")?.click());
+    await page.waitForSelector("#graveyardDioramaTest:not([hidden])",{state:"visible",timeout:30000});
+    const graveItem=page.locator('.graveyard-item-h1');
+    await graveItem.evaluate((item)=>{
+      const r=item.getBoundingClientRect(); const id=91;
+      item.dispatchEvent(new PointerEvent("pointerdown",{pointerId:id,pointerType:"mouse",button:0,buttons:1,clientX:r.left+r.width/2,clientY:r.top+r.height/2,bubbles:true}));
+      item.dispatchEvent(new PointerEvent("pointermove",{pointerId:id,pointerType:"mouse",button:0,buttons:1,clientX:r.left+r.width/2+35,clientY:r.top+r.height/2+20,bubbles:true}));
+      item.dispatchEvent(new PointerEvent("pointerup",{pointerId:id,pointerType:"mouse",button:0,buttons:0,clientX:r.left+r.width/2+35,clientY:r.top+r.height/2+20,bubbles:true}));
+    });
+    const beforeSize=await graveItem.evaluate((item)=>item.getBoundingClientRect().width);
+    await page.locator('[data-graveyard-size="1"]').evaluate((b)=>b.click());
+    await page.locator('[data-graveyard-layer="1"]').evaluate((b)=>b.click());
+    await page.locator('[data-graveyard-flip]').evaluate((b)=>b.click());
+    const edited=await graveItem.evaluate((item)=>({left:item.style.left,top:item.style.top,width:item.getBoundingClientRect().width,z:item.style.zIndex,flip:item.classList.contains("is-layout-flipped")}));
+    assert(edited.left&&edited.top,"Graveyard drag must write position");
+    assert(edited.width>beforeSize,"Graveyard size control must grow selected item");
+    assert(edited.z,"Graveyard layer control must write z-index");
+    assert.equal(edited.flip,true,"Graveyard flip control must flip selected item");
+    await page.locator("[data-graveyard-layout-save]").evaluate((b)=>b.click());
+    await page.reload();
+    await page.waitForSelector(".graveyard-item-h1",{state:"attached"});
+    await page.waitForFunction(()=>document.querySelector(".graveyard-item-h1")?.classList.contains("is-layout-flipped"),null,{timeout:30000});
+    await page.evaluate(()=>document.getElementById("graveyardDioramaTestButton")?.click());
+    await page.locator("[data-graveyard-layout-copy]").evaluate((b)=>b.click());
+    const exported=JSON.parse(await page.locator("#graveyardLayoutExport").inputValue());
+    assert(exported.H1&&exported.M1&&exported.C1,"Graveyard export must contain all stable IDs");
+    assert.equal(exported.H1.flipX,true);
+    console.log("PASS: graveyard stage 4 drag size layer flip save export");
     console.log("PASS: mobile village six distinct building assets " + JSON.stringify(villageAssets));
 
     await page.goto(base);
