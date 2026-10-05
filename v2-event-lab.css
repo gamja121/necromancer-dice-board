@@ -551,7 +551,7 @@ dialog form > div { display: flex; justify-content: flex-end; gap: 8px; }
 }
 .event-dialogue-portrait::before{
   inset:0;
-  background:url("art/v2-style/map-test/events/event-child-idle-01.png?v=20261005-graveyard-inline-event-stage12-1") center bottom/contain no-repeat;
+  background:url("art/v2-style/map-test/events/event-child-idle-01.png?v=20261005-graveyard-dialogue-stage13-1") center bottom/contain no-repeat;
   transform:none;
 }
 .event-dialogue-box{
