@@ -353,7 +353,10 @@ assert((eventHtml.match(/class="event-graveyard-prop event-graveyard-/g)||[]).le
 assert(eventHtml.includes('class="event-child-idle"'));
 assert(eventCss.includes(".event-scene-preview"));
 assert(eventCss.includes(".event-child-idle"));
-assert(eventCss.includes('graveyard-child-idle.png?v=20261005-graveyard-ambush-stage1'));
+assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-ambush-stage1-child-static-1'));
 assert(eventJs.includes('event.scene === "graveyard_child_ambush_intro"'));
 assert(!eventHtml.includes('id="eventScene"'));
 assert(!eventData.includes("graveyard_child_ambush_test_01"));
+
+assert(!eventCss.includes("@keyframes eventChildIdle"));
+assert(eventCss.includes("aspect-ratio:263/643"));
