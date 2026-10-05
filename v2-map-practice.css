@@ -1858,7 +1858,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .graveyard-layout-item.is-debug-hidden{display:none!important}
 .graveyard-item-visual{
   display:block;width:100%;height:100%;
-  background-image:url("art/v2-style/map-test/diorama/graveyard/graveyard-atlas.webp?v=20261005-graveyard-stage5-camera-2");
+  background-image:url("art/v2-style/map-test/diorama/graveyard/graveyard-atlas.webp?v=20261005-graveyard-stage5-editor-collapse-1");
   background-repeat:no-repeat;background-size:400% 400%;background-color:transparent;
   transform:scaleX(var(--grave-flip));transform-origin:50% 50%;
 }
@@ -1892,3 +1892,43 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .graveyard-diorama-test.is-tilted .graveyard-layer-debug{opacity:.45}
 .graveyard-diorama-test.is-playing .graveyard-layer-debug{opacity:1;pointer-events:auto}
 .graveyard-layer-debug{transition:opacity 260ms ease}
+
+.graveyard-layer-debug{
+  transform:translateX(0);
+  transition:transform 220ms ease,opacity 260ms ease;
+  will-change:transform;
+}
+.graveyard-layer-debug.is-collapsed{
+  transform:translateX(calc(-100% - 18px));
+  pointer-events:none!important;
+}
+.graveyard-editor-head-actions{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.graveyard-editor-reopen{
+  position:fixed;
+  z-index:284;
+  left:0;
+  top:18%;
+  min-width:32px;
+  padding:10px 6px;
+  border:1px solid #806445;
+  border-left:0;
+  border-radius:0 6px 6px 0;
+  background:rgba(28,20,16,.96);
+  color:#efd7ad;
+  font-size:11px;
+  font-weight:800;
+  writing-mode:vertical-rl;
+  cursor:pointer;
+  pointer-events:auto;
+  box-shadow:3px 4px 12px rgba(0,0,0,.45);
+}
+.graveyard-editor-reopen[hidden]{display:none}
+.graveyard-editor-reopen:focus-visible,
+[data-graveyard-editor-collapse]:focus-visible{
+  outline:2px solid #d9ae67;
+  outline-offset:2px;
+}
