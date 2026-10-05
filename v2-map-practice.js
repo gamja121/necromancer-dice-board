@@ -4504,7 +4504,7 @@
   ];
   let graveyardStoryArtReady = null;
 
-  async function loadChunkedEventImage(img, chunks) {
+  async function loadChunkedEventImage(img, chunks, { removeBlack = false } = {}) {
     if (!img) return false;
     try {
       const parts = await Promise.all(chunks.map(async (src) => {
@@ -4514,6 +4514,23 @@
       }));
       img.src = "data:image/webp;base64," + parts.join("");
       await img.decode();
+      if (removeBlack) {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const context = canvas.getContext("2d", { willReadFrequently: true });
+        context.drawImage(img, 0, 0);
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        const pixels = imageData.data;
+        for (let i = 0; i < pixels.length; i += 4) {
+          const peak = Math.max(pixels[i], pixels[i + 1], pixels[i + 2]);
+          if (peak <= 10) pixels[i + 3] = 0;
+          else if (peak < 30) pixels[i + 3] = Math.round(((peak - 10) / 20) * pixels[i + 3]);
+        }
+        context.putImageData(imageData, 0, 0);
+        img.src = canvas.toDataURL("image/png");
+        await img.decode();
+      }
       return true;
     } catch (error) {
       console.error("[graveyard-event] event art load failed", error);
@@ -4525,7 +4542,7 @@
     if (!graveyardStoryArtReady) {
       graveyardStoryArtReady = Promise.all([
         loadChunkedEventImage(el.graveyardStoryArtwork, GRAVEYARD_EVENT_BASE_CHUNKS),
-        loadChunkedEventImage(el.graveyardStoryGhoulLayer, GRAVEYARD_EVENT_GHOUL_CHUNKS)
+        loadChunkedEventImage(el.graveyardStoryGhoulLayer, GRAVEYARD_EVENT_GHOUL_CHUNKS, { removeBlack: true })
       ]);
     }
     return graveyardStoryArtReady;
