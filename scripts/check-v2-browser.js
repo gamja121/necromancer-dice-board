@@ -538,9 +538,6 @@ async function activate(page, selector) {
     await page.locator("#graveyardDioramaClose").evaluate((button) => button.click());
     assert.equal(await page.locator("#graveyardDioramaTest").evaluate((el) => el.hidden), true);
     console.log("PASS: graveyard stage 3 atlas inspector");
-
-    // Diagnostic: identify any visible element occupying the top strip during the real cemetery story event.
-    await page.reload();
     await page.waitForSelector("#mapOptionsButton", { state: "visible", timeout: 30000 });
     await page.evaluate(() => document.getElementById("mapOptionsButton")?.click());
     await page.waitForSelector("[data-map-event-shortcut] .map-event-shortcut-button", { state: "attached", timeout: 30000 });
