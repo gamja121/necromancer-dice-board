@@ -149,6 +149,10 @@
     graveyardLayoutSaveStatus: document.getElementById("graveyardLayoutSaveStatus"),
     graveyardLayoutExport: document.getElementById("graveyardLayoutExport"),
     graveyardEditorReopen: document.getElementById("graveyardEditorReopen"),
+    graveyardStoryEvent: document.getElementById("graveyardStoryEvent"),
+    graveyardStoryAdvance: document.getElementById("graveyardStoryAdvance"),
+    graveyardStoryText: document.getElementById("graveyardStoryText"),
+    graveyardStoryChoices: document.getElementById("graveyardStoryChoices"),
     mapName: document.getElementById("mapName"),
     tileName: document.getElementById("tileName"),
     regenerate: document.getElementById("regenerateButton"),
@@ -4331,11 +4335,51 @@
       }
     });
   }
+  const GRAVEYARD_EVENT_BATTLE_RESULT_KEY = "necromancer-event-battle-result-v1";
+
+  function setGraveyardStoryChoicePhase(enabled) {
+    if (!el.graveyardStoryEvent || !el.graveyardStoryChoices) return;
+    el.graveyardStoryEvent.classList.toggle("is-choice-phase", enabled === true);
+    el.graveyardStoryChoices.hidden = enabled !== true;
+  }
+
+  function openGraveyardStoryEvent({ rescued = false } = {}) {
+    if (!el.graveyardStoryEvent) return;
+    el.graveyardStoryEvent.hidden = false;
+    el.graveyardStoryEvent.classList.toggle("is-rescued", rescued === true);
+    setGraveyardStoryChoicePhase(false);
+    if (el.graveyardStoryText) el.graveyardStoryText.textContent = rescued ? "…고마워요." : "…!";
+    if (el.graveyardStoryAdvance) {
+      el.graveyardStoryAdvance.disabled = rescued === true;
+      el.graveyardStoryAdvance.onclick = rescued ? null : () => setGraveyardStoryChoicePhase(true);
+    }
+  }
+
+  function startGraveyardEventBattle() {
+    const context = {
+      eventId: "graveyard_child_ambush_01",
+      choiceId: "protect_child",
+      enemies: ["ghoul"],
+      encounterType: "event-graveyard-child",
+      startedAt: Date.now()
+    };
+    try {
+      sessionStorage.setItem("necromancer-event-battle-context-v1", JSON.stringify(context));
+    } catch (_) {}
+    const params = new URLSearchParams({
+      from: "event",
+      event: "graveyard_child_ambush_01",
+      encounterType: "event-graveyard-child",
+      enemies: "ghoul",
+      eventReturn: "map-graveyard"
+    });
+    window.location.assign("v2-auto-battle-practice.html?" + params.toString());
+  }
+
   function startGraveyardEventCinematic() {
     if (!el.board || !el.graveyardDioramaTest) return;
 
-    // Reuse the approved cemetery stage transition:
-    // zoom -> tilt -> cemetery props -> event scene.
+    // Reuse the approved cemetery stage transition and keep the story on this same stage.
     openGraveyardDioramaTest();
     document.body.classList.add("is-graveyard-event-transition");
 
@@ -4343,15 +4387,32 @@
     if (el.graveyardDioramaClose) el.graveyardDioramaClose.hidden = true;
     if (el.graveyardEditorReopen) el.graveyardEditorReopen.hidden = true;
     if (el.graveyardAssetStatus) el.graveyardAssetStatus.hidden = true;
+    if (el.graveyardStoryEvent) el.graveyardStoryEvent.hidden = true;
 
-    const params = new URLSearchParams({
-      event: "graveyard_child_ambush_01",
-      from: "map",
-      mode: "ingame"
-    });
     graveyardDioramaTimers.push(window.setTimeout(() => {
-      window.location.assign("v2-event-lab.html?" + params.toString());
-    }, 2150));
+      openGraveyardStoryEvent();
+    }, 1750));
+  }
+
+  function resumeGraveyardEventAfterBattle() {
+    let result = null;
+    try {
+      const raw = sessionStorage.getItem(GRAVEYARD_EVENT_BATTLE_RESULT_KEY);
+      if (raw) result = JSON.parse(raw);
+      sessionStorage.removeItem(GRAVEYARD_EVENT_BATTLE_RESULT_KEY);
+    } catch (_) {}
+    if (!result || result.eventId !== "graveyard_child_ambush_01") return false;
+
+    openGraveyardDioramaTest();
+    document.body.classList.add("is-graveyard-event-transition");
+    if (el.graveyardLayerDebug) el.graveyardLayerDebug.hidden = true;
+    if (el.graveyardDioramaClose) el.graveyardDioramaClose.hidden = true;
+    if (el.graveyardEditorReopen) el.graveyardEditorReopen.hidden = true;
+    if (el.graveyardAssetStatus) el.graveyardAssetStatus.hidden = true;
+    graveyardDioramaTimers.push(window.setTimeout(() => {
+      openGraveyardStoryEvent({ rescued: result.won === true });
+    }, 1650));
+    return true;
   }
 
   function installEventOptionShortcut() {
@@ -4375,5 +4436,17 @@
   }
 
   installEventOptionShortcut();
+
+  el.graveyardStoryChoices?.querySelector('[data-graveyard-story-choice="protect"]')?.addEventListener("click", startGraveyardEventBattle);
+  el.graveyardStoryChoices?.querySelector('[data-graveyard-story-choice="leave"]')?.addEventListener("click", () => {
+    setGraveyardStoryChoicePhase(false);
+    if (el.graveyardStoryText) el.graveyardStoryText.textContent = "……";
+    el.graveyardStoryEvent?.classList.add("is-rescued");
+  });
+
+  const mapLaunchParams = new URLSearchParams(location.search);
+  if (mapLaunchParams.get("resumeGraveyardEvent") === "1") {
+    resumeGraveyardEventAfterBattle();
+  }
 
 })();
