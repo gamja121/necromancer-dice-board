@@ -2474,8 +2474,9 @@ body.is-graveyard-event-transition .map-board .swamp-damage-overlay{
   inset:0;
   width:100%;
   height:100%;
-  object-fit:cover;
-  object-position:center 48%;
+  object-fit:contain;
+  object-position:center center;
+  background:#120d09;
   filter:sepia(.06) contrast(1.04) brightness(.92);
 }
 .graveyard-story-ghoul-layer{
