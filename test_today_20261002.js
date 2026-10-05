@@ -145,7 +145,7 @@ assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 // Current cache/version wiring.
 assert(mapHtml.includes("v2-map-practice.js?v=20261005-graveyard-stage5-approved-layout-1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
-assert(battleHtml.includes("v2-auto-battle-practice.js?v=129"));
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=130"));
 for (const required of [
   "./v2-intro.html",
   "./v2-intro.css?v=15",
@@ -396,3 +396,7 @@ assert(eventJs.includes('function setCinematicChoiceReady'));
 assert(eventJs.includes('eventDialogueAdvance?.addEventListener("click"'));
 assert(eventCss.includes('.is-cinematic-choice-ready #choiceList'));
 assert(eventData.includes('아이를 구하기 위해 구울 앞을 막아선다'));
+
+assert(battle.includes('const fromEvent = battleQuery.get("from") === "event"'));
+assert(battle.includes("requestedEventEnemySlugs"));
+assert(battle.includes('fromEvent && team === "enemy"'));
