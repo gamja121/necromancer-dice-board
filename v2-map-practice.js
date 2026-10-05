@@ -833,8 +833,20 @@
   }
   function resetGraveyardLayout() {
     localStorage.removeItem(GRAVEYARD_LAYOUT_STORAGE_KEY);
-    getGraveyardItems().forEach((item)=>{item.style.left=item.dataset.defaultLeft||item.style.left;item.style.top=item.dataset.defaultTop||item.style.top;item.style.bottom="auto";item.style.width="";item.style.zIndex=item.dataset.defaultZ||item.style.zIndex;item.classList.remove("is-layout-flipped","is-debug-hidden");});
-    el.graveyardLayerDebug?.querySelectorAll("[data-graveyard-toggle]").forEach((b)=>b.setAttribute("aria-pressed","true"));
+    getGraveyardItems().forEach((item)=>{
+      item.style.left=item.dataset.defaultLeft||"";
+      item.style.top=item.dataset.defaultTop||"";
+      item.style.bottom="auto";
+      item.style.width="";
+      item.style.zIndex=item.dataset.defaultZ||"";
+      item.classList.toggle("is-layout-flipped",item.dataset.defaultFlip==="true");
+      item.classList.toggle("is-debug-hidden",item.dataset.defaultHidden==="true");
+    });
+    el.graveyardLayerDebug?.querySelectorAll("[data-graveyard-toggle]").forEach((b)=>{
+      const selector=b.dataset.graveyardToggle;
+      const item=selector?document.querySelector(selector):null;
+      b.setAttribute("aria-pressed",String(item?!item.classList.contains("is-debug-hidden"):false));
+    });
     selectGraveyardItem(null);
     if(el.graveyardLayoutSaveStatus)el.graveyardLayoutSaveStatus.textContent="기본 배치로 복원";
   }
@@ -4253,7 +4265,9 @@
   ensureVillageTreeAssets();
   ensureGraveyardAtlas();
   enableVillageBuildingDragging();
+  enableGraveyardDragging();
   loadVillageLayout();
+  loadGraveyardLayout();
   renderBookRoster();
   dealDiceControlHand();
   renderInventoryCounts();
