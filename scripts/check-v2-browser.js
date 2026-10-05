@@ -140,7 +140,7 @@ async function activate(page, selector) {
       const lr=lab.getBoundingClientRect(), cr=card.getBoundingClientRect(), sr=scene.getBoundingClientRect();
       const gs=getComputedStyle(ghoul);
       return {
-        lab:{w:lr.width,h:lr.height},
+        lab:{w:lr.width,h:lr.height,layoutW:lab.offsetWidth,layoutH:lab.offsetHeight},
         card:{w:cr.width,h:cr.height},
         scene:{w:sr.width,h:sr.height},
         transform:getComputedStyle(lab).transform,
@@ -149,7 +149,7 @@ async function activate(page, selector) {
         ghoulAlpha:ghoul.dataset.alphaReady
       };
     });
-    assert(portraitLandscape.lab.width > portraitLandscape.lab.height, "Portrait phone must render Event Lab as a landscape canvas");
+    assert(portraitLandscape.lab.layoutW > portraitLandscape.lab.layoutH, "Portrait phone must author Event Lab on a landscape layout canvas");
     assert.notEqual(portraitLandscape.transform, "none", "Portrait phone must rotate the Event Lab shell");
     assert.equal(portraitLandscape.ghoulBlend, "normal", "Ghoul must use a normal opaque layer, not screen blending");
     assert.equal(portraitLandscape.ghoulAlpha, "true", "Ghoul black background must be converted to alpha");
