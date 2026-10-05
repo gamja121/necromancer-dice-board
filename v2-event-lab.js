@@ -17,6 +17,7 @@
   const el = {
     eventList: document.getElementById("eventList"),
     eventArt: document.getElementById("eventArt"),
+    eventScenePreview: document.getElementById("eventScenePreview"),
     eventLocation: document.getElementById("eventLocation"),
     eventId: document.getElementById("eventId"),
     eventTitle: document.getElementById("eventTitle"),
@@ -275,8 +276,14 @@
   function renderCurrentEvent() {
     const event = eventById.get(state.currentEventId);
     if (!event) return;
-    el.eventArt.src = event.art;
-    el.eventArt.alt = `${event.locationLabel} · ${event.title}`;
+    const useScenePreview = event.scene === "graveyard_child_ambush_intro";
+    if (el.eventScenePreview) el.eventScenePreview.hidden = !useScenePreview;
+    el.eventArt.hidden = useScenePreview;
+    el.eventArt.closest(".event-card")?.classList.toggle("is-cinematic-scene", useScenePreview);
+    if (!useScenePreview) {
+      el.eventArt.src = event.art;
+      el.eventArt.alt = `${event.locationLabel} · ${event.title}`;
+    }
     el.eventLocation.textContent = event.locationLabel;
     el.eventId.textContent = event.id;
     el.eventTitle.textContent = event.title;
