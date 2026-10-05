@@ -2662,10 +2662,10 @@ body.is-graveyard-event-transition .map-board .swamp-damage-overlay{
 /* Stage 20.1 — keep artwork and effect panel in one horizontal board row.
    This changes only the event composition coordinates. */
 .graveyard-story-art-wrap{
-  left:6%!important;
-  top:7%!important;
-  width:50%!important;
-  height:58%!important;
+  left:9%!important;
+  top:11%!important;
+  width:44%!important;
+  height:52%!important;
 }
 .graveyard-story-effect-box{
   left:67%!important;
