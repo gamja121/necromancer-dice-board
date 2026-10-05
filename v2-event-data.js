@@ -3,6 +3,18 @@
 
   const events = [
     {
+      id: "graveyard_child_ambush_01",
+      location: "graveyard",
+      locationLabel: "공동묘지",
+      title: "습격받는 아이",
+      art: "art/v2-style/map-test/events/graveyard.jpg?v=20260927-2",
+      scene: "graveyard_child_ambush_intro",
+      once: true,
+      conditions: {},
+      text: "공동묘지 안쪽. 한 아이가 묘비 사이에 홀로 서 있다. 현재 단계에서는 아이의 등장과 대기 모션까지만 테스트한다.",
+      choices: []
+    },
+    {
       id: "forest_child_01",
       location: "forest",
       locationLabel: "숲",
