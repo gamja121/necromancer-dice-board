@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261005-cleanup-fresh-start-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261005-event-ingame-stage10-1";
 
 const CORE_ASSETS = [
   "./",
