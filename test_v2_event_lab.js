@@ -41,12 +41,18 @@ assert(css.includes("@media (orientation:portrait)"));
 assert(css.includes("transform:rotate(90deg) translateY(-100%)"));
 assert(css.includes("bottom:7%!important"));
 assert(css.includes("width:58%!important"));
+assert(css.includes("Event Lab cinematic gaze direction · stage 4"));
+assert(css.includes("@keyframes event-camera-child-focus"));
+assert(css.includes("@keyframes event-camera-threat-focus"));
+assert(css.includes("@keyframes event-camera-dialogue-focus"));
+assert(css.includes("@keyframes event-camera-impact"));
+assert(css.includes("@keyframes event-threat-flash"));
 
 for (const file of [
   "v2-event-lab.html",
-  "v2-event-lab.css?v=20261005-event-lab-landscape-alpha-3",
-  "v2-event-lab.js?v=20261005-event-lab-landscape-alpha-3",
-  "v2-event-lab-data.js?v=20261005-event-lab-landscape-alpha-3",
+  "v2-event-lab.css?v=20261005-event-lab-gaze-stage4",
+  "v2-event-lab.js?v=20261005-event-lab-gaze-stage4",
+  "v2-event-lab-data.js?v=20261005-event-lab-gaze-stage4",
   "assets/event-lab/graveyard-child/base/part-000.txt",
   "assets/event-lab/graveyard-child/base/part-001.txt",
   "assets/event-lab/graveyard-child/ghoul/part-000.txt",
