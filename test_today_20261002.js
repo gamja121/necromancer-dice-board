@@ -360,18 +360,22 @@ assert(eventHtml.includes("intro-dialogue-box.webp?v=6"));
 assert(eventJs.includes("BASE_IMAGE_CHUNKS"));
 assert(eventJs.includes("GHOUL_IMAGE_CHUNKS"));
 assert(eventJs.includes("loadChunkImage"));
+assert(eventJs.includes("removeBlackBackground"));
+assert(eventJs.includes("loadGhoulLayer"));
+assert(eventJs.includes('screen.orientation?.lock("landscape")'));
 assert(eventJs.includes("revealGhoul"));
 assert(eventJs.includes("showDialogue"));
 assert(eventJs.includes("showChoices"));
 assert(eventCss.includes(".event-ghoul-layer"));
-assert(eventCss.includes("mix-blend-mode:screen"));
-assert(eventCss.includes("@keyframes ghoul-layer-lunge"));
+assert(eventCss.includes("mix-blend-mode:normal!important"));
+assert(eventCss.includes("@keyframes ghoul-layer-lunge-landscape"));
 assert(eventCss.includes(".event-dialogue-box"));
 assert(eventCss.includes(".event-tags"));
-assert(eventCss.includes("Viewer-first portrait/mobile layout · stage 2"));
-assert(eventCss.includes("@media (max-width:760px) and (orientation:portrait)"));
-assert(eventCss.includes("aspect-ratio:1229/1536"));
-assert(eventCss.includes("object-fit:contain"));
+assert(eventCss.includes("Landscape-only Event Lab · stage 3"));
+assert(eventCss.includes("@media (orientation:portrait)"));
+assert(eventCss.includes("transform:rotate(90deg) translateY(-100%)"));
+assert(eventCss.includes("bottom:7%!important"));
+assert(eventCss.includes("width:58%!important"));
 
 // Production map/battle event flow remains available outside Event Lab.
 assert(battle.includes('const fromEvent = battleQuery.get("from") === "event"'));
@@ -398,9 +402,9 @@ assert(battle.includes('resumeGraveyardEvent: "1"'));
 
 // Empty Event Lab files must be available offline.
 assert(worker.includes("./v2-event-lab.html"));
-assert(worker.includes("./v2-event-lab.css?v=20261005-event-lab-mobile-viewer-2"));
-assert(worker.includes("./v2-event-lab.js?v=20261005-event-lab-mobile-viewer-2"));
-assert(worker.includes("./v2-event-lab-data.js?v=20261005-event-lab-mobile-viewer-2"));
+assert(worker.includes("./v2-event-lab.css?v=20261005-event-lab-landscape-alpha-3"));
+assert(worker.includes("./v2-event-lab.js?v=20261005-event-lab-landscape-alpha-3"));
+assert(worker.includes("./v2-event-lab-data.js?v=20261005-event-lab-landscape-alpha-3"));
 
 assert(worker.includes("./assets/event-lab/graveyard-child/base/part-000.txt"));
 assert(worker.includes("./assets/event-lab/graveyard-child/ghoul/part-000.txt"));
