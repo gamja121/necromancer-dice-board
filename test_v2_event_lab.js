@@ -30,9 +30,9 @@ assert(v2.includes('href="v2-event-lab.html"'), "V2 screen must link to Event La
 
 for (const file of [
   "v2-event-lab.html",
-  "v2-event-lab.css?v=20261005-graveyard-ambush-stage1",
-  "v2-event-lab.js?v=20261005-graveyard-ambush-stage1",
-  "v2-event-data.js?v=20261005-graveyard-ambush-stage1"
+  "v2-event-lab.css?v=20261005-graveyard-ambush-stage1-child-static-1",
+  "v2-event-lab.js?v=20261005-graveyard-ambush-stage1-child-static-1",
+  "v2-event-data.js?v=20261005-graveyard-ambush-stage1-child-static-1"
 ]) {
   assert(worker.includes(file), `Event Lab is not cached: ${file}`);
 }
@@ -42,10 +42,10 @@ console.log("v2 event lab tests passed");
 assert(html.includes('id="eventScenePreview"'), "Event Lab cemetery scene preview is missing");
 assert(html.includes("event-child-idle"), "Child idle actor is missing from cemetery scene");
 assert(css.includes("aspect-ratio:21/9"), "Cemetery event must use panoramic composition");
-assert(css.includes("@keyframes eventChildIdle"), "Child idle animation is missing");
-assert(css.includes("graveyard-child-idle.png"), "Transparent child idle sprite is not wired");
+assert(!css.includes("@keyframes eventChildIdle"), "Stage 1 child must remain a static first-frame actor");
+assert(css.includes("event-child-idle-01.png"), "Transparent child static sprite is not wired");
 assert(css.includes(".event-graveyard-g1{left:39.5278%;top:11.2138%;width:25%;z-index:8}"), "Approved cemetery layout is not reused");
 assert(data.includes('scene: "graveyard_child_ambush_intro"'), "Cemetery ambush scene marker is missing");
 assert(js.includes('event.scene === "graveyard_child_ambush_intro"'), "Scene preview switching is missing");
 
-assert(worker.includes("graveyard-child-idle.png?v=20261005-graveyard-ambush-stage1"), "Child idle sprite is not cached");
+assert(worker.includes("event-child-idle-01.png?v=20261005-graveyard-ambush-stage1-child-static-1"), "Child static sprite is not cached");
