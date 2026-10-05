@@ -85,18 +85,20 @@ async function activate(page, selector) {
       console.log("PASS: " + screen);
     }
     await page.goto(new URL("v2-event-lab.html", base).href);
-    await page.waitForSelector("#eventCount", { state: "visible", timeout: 15000 });
-    const emptyEventLab = await page.evaluate(() => ({
+    await page.waitForSelector(".event-poster", { state: "visible", timeout: 15000 });
+    const posterEventLab = await page.evaluate(() => ({
       count: document.getElementById("eventCount")?.textContent?.trim() || "",
-      heading: document.getElementById("emptyLabTitle")?.textContent?.trim() || "",
+      title: document.getElementById("posterTitle")?.textContent?.trim() || "",
+      text: document.getElementById("posterText")?.textContent?.trim() || "",
       oldScene: !!document.getElementById("eventScenePreview"),
       oldList: !!document.getElementById("eventList")
     }));
-    assert.equal(emptyEventLab.count, "0");
-    assert(emptyEventLab.heading.includes("등록된 테스트 이벤트가 없습니다."));
-    assert.equal(emptyEventLab.oldScene, false);
-    assert.equal(emptyEventLab.oldList, false);
-    console.log("PASS: Event Lab reset to empty workspace");
+    assert.equal(posterEventLab.count, "0");
+    assert.equal(posterEventLab.title, "새 사건");
+    assert(posterEventLab.text.includes("사건 내용이 여기에 표시됩니다."));
+    assert.equal(posterEventLab.oldScene, false);
+    assert.equal(posterEventLab.oldList, false);
+    console.log("PASS: Event Lab opens with empty poster shell");
 
     await page.setViewportSize({ width: 844, height: 390 });
     await page.goto(new URL("v2-intro.html", base).href);
