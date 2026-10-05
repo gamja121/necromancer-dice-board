@@ -30,9 +30,9 @@ assert(v2.includes('href="v2-event-lab.html"'), "V2 screen must link to Event La
 
 for (const file of [
   "v2-event-lab.html",
-  "v2-event-lab.css?v=20261005-graveyard-ambush-stage2-child-idle-1",
-  "v2-event-lab.js?v=20261005-graveyard-ambush-stage2-child-idle-1",
-  "v2-event-data.js?v=20261005-graveyard-ambush-stage2-child-idle-1"
+  "v2-event-lab.css?v=20261005-graveyard-ambush-stage3-choices-1",
+  "v2-event-lab.js?v=20261005-graveyard-ambush-stage3-choices-1",
+  "v2-event-data.js?v=20261005-graveyard-ambush-stage3-choices-1"
 ]) {
   assert(worker.includes(file), `Event Lab is not cached: ${file}`);
 }
@@ -48,4 +48,17 @@ assert(css.includes(".event-graveyard-g1{left:39.5278%;top:11.2138%;width:25%;z-
 assert(data.includes('scene: "graveyard_child_ambush_intro"'), "Cemetery ambush scene marker is missing");
 assert(js.includes('event.scene === "graveyard_child_ambush_intro"'), "Scene preview switching is missing");
 
-assert(worker.includes("event-child-idle-01.png?v=20261005-graveyard-ambush-stage2-child-idle-1"), "Child static sprite is not cached");
+assert(worker.includes("event-child-idle-01.png?v=20261005-graveyard-ambush-stage3-choices-1"), "Child static sprite is not cached");
+
+{
+  const start = data.indexOf('id: "graveyard_child_ambush_01"');
+  const end = data.indexOf('id: "forest_child_01"', start);
+  const ambush = data.slice(start, end);
+  assert(ambush.includes('id: "protect_child"'), "Ambush event is missing protect choice");
+  assert(ambush.includes('text: "아이를 구한다"'), "Ambush protect choice label is missing");
+  assert(ambush.includes('id: "leave_child"'), "Ambush event is missing leave choice");
+  assert(ambush.includes('text: "지나친다"'), "Ambush leave choice label is missing");
+  assert(!ambush.includes("setFlags:"), "Stage 3 must not commit world flags yet");
+  assert(!ambush.includes("nextEvents:"), "Stage 3 must not connect follow-up events yet");
+  assert(!ambush.includes("roll:"), "Stage 3 must not start battle/roll flow yet");
+}
