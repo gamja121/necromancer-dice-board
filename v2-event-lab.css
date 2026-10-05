@@ -551,7 +551,7 @@ dialog form > div { display: flex; justify-content: flex-end; gap: 8px; }
 }
 .event-dialogue-portrait::before{
   inset:0;
-  background:url("art/v2-style/map-test/events/event-child-idle-01.png?v=20261005-graveyard-ambush-stage10-ingame-event-1") center bottom/contain no-repeat;
+  background:url("art/v2-style/map-test/events/event-child-idle-01.png?v=20261005-graveyard-event-reuse-stage11-1") center bottom/contain no-repeat;
   transform:none;
 }
 .event-dialogue-box{
@@ -611,4 +611,45 @@ body.is-ingame-event .event-card.is-cinematic-rescued .event-scene-narration{bor
   .event-dialogue-portrait{right:0;width:47%;height:79%}
   .event-dialogue-box{left:7%;right:7%;height:30%}
   .event-scene-narration{top:4%;left:3%;width:46%;padding:8px 12px}
+}
+
+
+/* Cemetery event · stage 11: reuse established VN portrait and dialogue assets. */
+.event-dialogue-portrait{
+  left:auto!important;right:1%!important;bottom:26%!important;
+  width:46%!important;height:78%!important;overflow:visible!important;
+  background:none!important;
+}
+.event-dialogue-portrait::before{display:none!important}
+.event-dialogue-portrait img{
+  display:block;width:100%;height:100%;object-fit:contain;object-position:center bottom;
+  filter:none;transform:scaleX(-1);
+}
+.event-dialogue-box{
+  left:8%!important;right:8%!important;bottom:2%!important;height:30%!important;min-height:0!important;
+  padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;
+  box-shadow:none!important;filter:drop-shadow(0 8px 14px #000b);overflow:visible;
+}
+.event-dialogue-box::before{display:none!important}
+.event-dialogue-frame{
+  position:absolute;z-index:1;inset:0;width:100%;height:100%;object-fit:fill;display:block;pointer-events:none
+}
+.event-dialogue-name{
+  z-index:3;left:10%!important;top:17%!important;min-width:0!important;padding:0!important;
+  border:0!important;background:none!important;color:#3a2819!important;
+  font-family:Georgia,"Malgun Gothic",serif;font-size:clamp(12px,1.45vw,20px)!important;
+  font-weight:1000;letter-spacing:.04em;text-align:left!important;
+}
+.event-dialogue-text{
+  position:absolute!important;z-index:3!important;left:10%!important;right:10%!important;top:42%!important;
+  color:#21150d!important;font-size:clamp(15px,1.9vw,28px)!important;font-weight:900!important;
+  line-height:1.3!important;letter-spacing:.015em;text-shadow:none!important;
+}
+.event-dialogue-next{
+  z-index:3;right:8%!important;bottom:15%!important;color:#5e4329!important;
+  font-size:clamp(13px,1.35vw,20px)!important;
+}
+@media (max-height:430px) and (orientation:landscape){
+  .event-dialogue-portrait{right:0!important;width:47%!important;height:79%!important}
+  .event-dialogue-box{left:7%!important;right:7%!important;height:30%!important}
 }
