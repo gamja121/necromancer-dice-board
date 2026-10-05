@@ -2100,3 +2100,27 @@ body.is-graveyard-event-transition .graveyard-layout-item{pointer-events:none!im
   .graveyard-story-portrait{right:0!important;width:47%!important;height:79%!important}
   .graveyard-story-box{left:7%!important;right:7%!important;height:30%!important}
 }
+
+
+/* Cemetery story visual cleanup · stage 14
+   Hide map HUD remnants while the approved cemetery stage is active. */
+body.is-graveyard-event-transition .map-board .tile-info,
+body.is-graveyard-event-transition .map-board .contamination-hud,
+body.is-graveyard-event-transition .map-board .contamination-test-toggle,
+body.is-graveyard-event-transition .map-board .contamination-test-control,
+body.is-graveyard-event-transition .map-board .dice-controller,
+body.is-graveyard-event-transition .map-board .map-options-button,
+body.is-graveyard-event-transition .map-board .map-audio-options,
+body.is-graveyard-event-transition .map-board .map-book-button,
+body.is-graveyard-event-transition .map-board .map-card-deck-button,
+body.is-graveyard-event-transition .map-board .hero-token,
+body.is-graveyard-event-transition .map-board .swamp-damage-overlay{
+  display:none!important;
+}
+
+.graveyard-story-frame[data-asset-ready="frame-visible"],
+.graveyard-story-portrait img[data-asset-ready="child-portrait"]{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
