@@ -443,7 +443,7 @@ async function activate(page, selector) {
     assert.equal(exported.H1.flipX,true);
     console.log("PASS: graveyard stage 4 drag size layer flip save export");
     await page.evaluate(() => {
-      localStorage.removeItem("necromancer-dice-graveyard-layout-v2");
+      localStorage.removeItem("necromancer-dice-graveyard-layout-v3");
       document.getElementById("graveyardDioramaTestButton")?.click();
     });
     await page.waitForSelector("#graveyardDioramaTest:not([hidden])",{state:"visible",timeout:30000});
@@ -453,10 +453,26 @@ async function activate(page, selector) {
       tree2:document.querySelector(".graveyard-item-t2")?.classList.contains("is-layout-flipped"),
       widths:[...document.querySelectorAll(".graveyard-layout-item")].map(x=>x.style.width)
     }));
-    assert(stage5Defaults.gate.includes("left: 36%")||stage5Defaults.gate.includes("left:36%"),"Stage 5 gate must use cemetery composition");
+    assert(stage5Defaults.gate.includes("left: 39.5278%")||stage5Defaults.gate.includes("left:39.5278%"),"Stage 5 gate must use approved cemetery composition");
     assert.equal(stage5Defaults.tree2,true,"Right cemetery tree must default flipped");
-    assert(stage5Defaults.widths.some(w=>w==="31%")&&stage5Defaults.widths.some(w=>w==="7%"),"Stage 5 must use varied object scales");
+    assert(stage5Defaults.widths.some(w=>w==="25%")&&stage5Defaults.widths.some(w=>w==="7%"),"Stage 5 must use approved varied object scales");
     console.log("PASS: graveyard stage 5 initial cemetery composition");
+    const approvedDefaults=await page.evaluate(()=>({
+      m1:{left:document.querySelector(".graveyard-item-m1")?.style.left,z:document.querySelector(".graveyard-item-m1")?.style.zIndex},
+      m2:{left:document.querySelector(".graveyard-item-m2")?.style.left,z:document.querySelector(".graveyard-item-m2")?.style.zIndex},
+      t1:{bottom:document.querySelector(".graveyard-item-t1")?.style.bottom,z:document.querySelector(".graveyard-item-t1")?.style.zIndex},
+      h2:{width:document.querySelector(".graveyard-item-h2")?.style.width,z:document.querySelector(".graveyard-item-h2")?.style.zIndex,flip:document.querySelector(".graveyard-item-h2")?.classList.contains("is-layout-flipped")}
+    }));
+    assert.equal(approvedDefaults.m1.left,"30.729%");
+    assert.equal(approvedDefaults.m1.z,"2");
+    assert.equal(approvedDefaults.m2.left,"37.4085%");
+    assert.equal(approvedDefaults.m2.z,"0");
+    assert.equal(approvedDefaults.t1.bottom,"");
+    assert.equal(approvedDefaults.t1.z,"5");
+    assert.equal(approvedDefaults.h2.width,"12%");
+    assert.equal(approvedDefaults.h2.z,"9");
+    assert.equal(approvedDefaults.h2.flip,true);
+    console.log("PASS: graveyard approved layout defaults");
     await page.evaluate(()=>{
       document.getElementById("graveyardDioramaClose")?.click();
       document.getElementById("graveyardDioramaTestButton")?.click();
