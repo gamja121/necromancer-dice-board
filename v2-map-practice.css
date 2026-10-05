@@ -1858,7 +1858,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .graveyard-layout-item.is-debug-hidden{display:none!important}
 .graveyard-item-visual{
   display:block;width:100%;height:100%;
-  background-image:url("art/v2-style/map-test/diorama/graveyard/graveyard-atlas.webp?v=20261005-graveyard-stage5-approved-layout-1");
+  background-image:url("art/v2-style/map-test/diorama/graveyard/graveyard-atlas.webp?v=20261005-graveyard-inline-event-stage12-1");
   background-repeat:no-repeat;background-size:400% 400%;background-color:transparent;
   transform:scaleX(var(--grave-flip));transform-origin:50% 50%;
 }
@@ -1939,3 +1939,109 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   background:linear-gradient(#49301e,#2b1d14);color:#f1d9aa;letter-spacing:.04em
 }
 .map-event-option-row .map-event-shortcut-button:focus-visible{outline:2px solid #d9ae67;outline-offset:2px}
+
+
+/* Cemetery story event · stage 12: actors and dialogue live directly on the approved cemetery diorama. */
+.graveyard-story-event{
+  position:fixed;z-index:290;inset:0;width:100vw;height:100dvh;
+  pointer-events:none;background:transparent;overflow:hidden;
+}
+.graveyard-story-event[hidden]{display:none}
+.graveyard-story-field{position:absolute;inset:0;z-index:2;pointer-events:none}
+.graveyard-story-child{
+  position:absolute;left:48%;bottom:3.5%;width:7.2%;
+  aspect-ratio:263/643;
+  background:url("art/v2-style/map-test/events/event-child-idle-01.png?v=20261005-graveyard-inline-event-stage12-1") center bottom/contain no-repeat;
+  filter:drop-shadow(0 10px 8px rgba(0,0,0,.62));
+  transform-origin:50% 100%;
+  animation:graveyard-story-child-breathe 3.4s ease-in-out infinite;
+}
+.graveyard-story-ghoul{
+  position:absolute;left:61%;bottom:3%;width:12.5%;aspect-ratio:1/1;
+  background:url("art/v2-style/processed/192/ghoul.png?v=20261005-graveyard-inline-event-stage12-1") center bottom/contain no-repeat;
+  filter:drop-shadow(0 12px 9px rgba(0,0,0,.72));
+  transform-origin:50% 100%;
+  animation:graveyard-story-ghoul-in 1.1s cubic-bezier(.2,.76,.18,1) .2s both;
+}
+.graveyard-story-alert{
+  position:absolute;left:54.2%;top:23%;width:4.2%;aspect-ratio:1;
+  display:grid;place-items:center;border:2px solid rgba(220,176,105,.9);border-radius:50%;
+  background:rgba(45,14,12,.9);color:#ffd9a3;font-weight:1000;
+  font-size:clamp(14px,2.3vw,28px);box-shadow:0 0 18px rgba(156,38,24,.7);
+  opacity:0;animation:graveyard-story-alert-pop .72s ease-out .9s both;
+}
+.graveyard-story-dialogue{
+  position:absolute;z-index:5;inset:0;pointer-events:none;
+}
+.graveyard-story-portrait{
+  position:absolute;z-index:4;right:1%;bottom:26%;width:46%;height:78%;
+  opacity:0;transform:translate3d(18%,6%,0) scale(.94);transform-origin:50% 100%;
+  filter:drop-shadow(0 10px 10px rgba(0,0,0,.75));
+  animation:graveyard-story-portrait-in .55s cubic-bezier(.16,.84,.22,1) 1.55s both;
+}
+.graveyard-story-portrait img{
+  width:100%;height:100%;display:block;object-fit:contain;object-position:center bottom;transform:scaleX(-1)
+}
+.graveyard-story-box{
+  pointer-events:auto;position:absolute;z-index:8;left:8%;right:8%;bottom:2%;height:30%;
+  border:0;padding:0;background:transparent;color:inherit;cursor:pointer;
+  opacity:0;transform:translateY(38%);filter:drop-shadow(0 8px 14px #000b);
+  animation:graveyard-story-box-in .48s cubic-bezier(.2,.8,.2,1) 1.45s both;
+}
+.graveyard-story-frame{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;display:block;pointer-events:none}
+.graveyard-story-name{
+  position:absolute;z-index:3;left:10%;top:17%;color:#3a2819;
+  font-family:Georgia,"Malgun Gothic",serif;font-size:clamp(12px,1.45vw,20px);font-weight:1000;letter-spacing:.04em
+}
+.graveyard-story-text{
+  position:absolute;z-index:3;left:10%;right:10%;top:42%;color:#21150d;
+  font-size:clamp(15px,1.9vw,28px);font-weight:900;line-height:1.3;letter-spacing:.015em
+}
+.graveyard-story-next{
+  position:absolute;z-index:3;right:8%;bottom:15%;color:#5e4329;font-size:clamp(13px,1.35vw,20px);
+  animation:next-bob 900ms ease-in-out infinite;
+}
+.graveyard-story-choices{
+  pointer-events:auto;position:absolute;z-index:10;left:50%;bottom:5%;width:min(64%,700px);
+  transform:translateX(-50%);display:grid;gap:8px;
+}
+.graveyard-story-choices[hidden]{display:none}
+.graveyard-story-choices button{
+  padding:11px 14px;border:1px solid rgba(157,116,65,.9);border-radius:3px;
+  background:linear-gradient(#3a281a,#1e150f);color:#f0d7aa;font-weight:900;text-align:left;cursor:pointer
+}
+.graveyard-story-event.is-choice-phase .graveyard-story-dialogue{opacity:.35}
+.graveyard-story-event.is-choice-phase .graveyard-story-next{display:none}
+.graveyard-story-event.is-rescued .graveyard-story-ghoul,
+.graveyard-story-event.is-rescued .graveyard-story-alert{display:none}
+.graveyard-story-event.is-rescued .graveyard-story-child{left:50%;width:7.2%}
+.graveyard-story-event.is-rescued .graveyard-story-portrait,
+.graveyard-story-event.is-rescued .graveyard-story-box{animation-delay:.12s}
+@keyframes graveyard-story-child-breathe{
+  0%,100%{transform:translateY(0) scaleY(1)}
+  50%{transform:translateY(-.45%) scaleY(1.006)}
+}
+@keyframes graveyard-story-ghoul-in{
+  0%{opacity:0;transform:translate3d(115%,6%,0) scale(.76)}
+  100%{opacity:1;transform:translate3d(0,0,0) scale(1)}
+}
+@keyframes graveyard-story-alert-pop{
+  0%{opacity:0;transform:scale(.5)}
+  35%{opacity:1;transform:scale(1.15)}
+  100%{opacity:0;transform:scale(.9)}
+}
+@keyframes graveyard-story-portrait-in{
+  0%{opacity:0;transform:translate3d(18%,6%,0) scale(.94)}
+  100%{opacity:1;transform:translate3d(0,0,0) scale(1)}
+}
+@keyframes graveyard-story-box-in{
+  0%{opacity:0;transform:translateY(38%)}
+  100%{opacity:1;transform:translateY(0)}
+}
+body.is-graveyard-event-transition .graveyard-layout-item{pointer-events:none!important}
+@media (max-height:430px) and (orientation:landscape){
+  .graveyard-story-child{width:6.8%}
+  .graveyard-story-ghoul{width:11.8%}
+  .graveyard-story-portrait{right:0;width:47%;height:79%}
+  .graveyard-story-box{left:7%;right:7%;height:30%}
+}
