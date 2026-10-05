@@ -389,6 +389,28 @@ async function activate(page, selector) {
     assert.equal(treeExport.T4.flipX, true);
     assert.equal(treeExport.T4.hidden, false);
     console.log("PASS: village tree editor add flip save restore export");
+
+    await page.evaluate(() => document.getElementById("graveyardDioramaTestButton")?.click());
+    await page.waitForSelector("#graveyardDioramaTest:not([hidden])", { state: "visible", timeout: 30000 });
+    await page.waitForFunction(() => {
+      const probe = document.getElementById("graveyardAtlasProbe");
+      return probe && probe.complete && probe.naturalWidth === 1536 && probe.naturalHeight === 1260;
+    }, null, { timeout: 30000 });
+    const graveyardState = await page.evaluate(() => ({
+      count: document.querySelectorAll("[data-graveyard-id]").length,
+      ids: [...document.querySelectorAll("[data-graveyard-id]")].map((item) => item.dataset.graveyardId),
+      width: document.getElementById("graveyardAtlasProbe")?.naturalWidth || 0,
+      height: document.getElementById("graveyardAtlasProbe")?.naturalHeight || 0,
+      status: document.getElementById("graveyardAssetStatus")?.textContent || ""
+    }));
+    assert.equal(graveyardState.count, 14, "Graveyard inspector must show 14 logical assets");
+    assert.deepEqual(graveyardState.ids, ["M1","M2","M3","T1","T2","G1","L1","F1","F2","H1","H2","H3","H4","C1"]);
+    assert.equal(graveyardState.width, 1536);
+    assert.equal(graveyardState.height, 1260);
+    assert(graveyardState.status.includes("아틀라스 정상"), "Graveyard atlas status must report ready");
+    await page.locator("#graveyardDioramaClose").click();
+    assert.equal(await page.locator("#graveyardDioramaTest").evaluate((el) => el.hidden), true);
+    console.log("PASS: graveyard stage 3 atlas inspector");
     console.log("PASS: mobile village six distinct building assets " + JSON.stringify(villageAssets));
 
     await page.goto(base);
