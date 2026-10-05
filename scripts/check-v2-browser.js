@@ -455,6 +455,26 @@ async function activate(page, selector) {
     assert.equal(stage5Defaults.tree2,true,"Right cemetery tree must default flipped");
     assert(stage5Defaults.widths.some(w=>w==="31%")&&stage5Defaults.widths.some(w=>w==="7%"),"Stage 5 must use varied object scales");
     console.log("PASS: graveyard stage 5 initial cemetery composition");
+    await page.evaluate(()=>{
+      document.getElementById("graveyardDioramaClose")?.click();
+      document.getElementById("graveyardDioramaTestButton")?.click();
+    });
+    await page.waitForFunction(()=>document.getElementById("mapBoard")?.classList.contains("is-graveyard-zooming"),null,{timeout:10000});
+    const graveZoom=await page.locator("#mapBoard").evaluate(el=>getComputedStyle(el).transform);
+    assert(graveZoom&&graveZoom!=="none","Graveyard camera must zoom map board");
+    await page.waitForFunction(()=>document.getElementById("mapBoard")?.classList.contains("is-graveyard-tilted"),null,{timeout:10000});
+    await page.waitForFunction(()=>document.getElementById("graveyardDioramaTest")?.classList.contains("is-playing"),null,{timeout:10000});
+    const cameraState=await page.evaluate(()=>({
+      tilted:document.getElementById("mapBoard")?.classList.contains("is-graveyard-tilted"),
+      props:document.getElementById("mapBoard")?.classList.contains("is-graveyard-props"),
+      playing:document.getElementById("graveyardDioramaTest")?.classList.contains("is-playing"),
+      opacity:getComputedStyle(document.querySelector(".graveyard-layout-stage")).opacity
+    }));
+    assert.equal(cameraState.tilted,true);
+    assert.equal(cameraState.props,true);
+    assert.equal(cameraState.playing,true);
+    assert.equal(cameraState.opacity,"1");
+    console.log("PASS: graveyard zoom tilt camera sequence");
     console.log("PASS: mobile village six distinct building assets " + JSON.stringify(villageAssets));
 
     await page.goto(base);
