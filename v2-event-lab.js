@@ -17,6 +17,9 @@
   const el = {
     eventList: document.getElementById("eventList"),
     eventArt: document.getElementById("eventArt"),
+    eventCard: document.querySelector(".event-card"),
+    eventScene: document.getElementById("eventScene"),
+    graveyardEventChild: document.getElementById("graveyardEventChild"),
     eventScenePreview: document.getElementById("eventScenePreview"),
     eventLocation: document.getElementById("eventLocation"),
     eventId: document.getElementById("eventId"),
@@ -271,6 +274,21 @@
     state.pendingRoll = null;
     renderStateOnly();
     renderCurrentEvent();
+  }
+
+  function renderEventScene(event) {
+    const isGraveyardChildScene = event.scene === "graveyard_child_ambush_stage1";
+    el.eventCard?.classList.toggle("is-scene-event", isGraveyardChildScene);
+    if (el.eventScene) {
+      el.eventScene.hidden = !isGraveyardChildScene;
+      el.eventScene.classList.remove("is-entering");
+    }
+    if (el.eventArt) el.eventArt.hidden = isGraveyardChildScene;
+
+    if (isGraveyardChildScene && el.eventScene) {
+      void el.eventScene.offsetWidth;
+      el.eventScene.classList.add("is-entering");
+    }
   }
 
   function renderCurrentEvent() {
