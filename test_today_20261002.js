@@ -423,7 +423,7 @@ assert(map.includes('button.textContent = "공동묘지"'));
 assert(map.includes('mode: "ingame"'));
 assert(map.includes("function startGraveyardEventCinematic"));
 assert(map.includes("openGraveyardDioramaTest();"));
-assert(map.includes("}, 2150));");
+assert(map.includes("}, 2150));"));
 assert(eventHtml.includes("art/v2-style/event-portraits/dark-eyed-boy.png?v=1"));
 assert(eventHtml.includes("art/v2-style/ui/intro-dialogue-box.webp?v=6"));
 assert(worker.includes("./art/v2-style/event-portraits/dark-eyed-boy.png?v=1"));
