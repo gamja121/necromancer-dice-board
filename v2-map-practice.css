@@ -2654,7 +2654,26 @@ body.is-graveyard-event-transition .map-board .swamp-damage-overlay{
 
 @media(max-height:430px) and (orientation:landscape){
   .graveyard-story-art-wrap{left:6%;top:6%;width:59%;height:69%}
-  .graveyard-story-effect-box{right:4%;top:10%;width:27%;padding:2.8%}
+  .graveyard-story-effect-box{left:68%;right:auto;top:6%;width:27%;padding:2.8%}
   .graveyard-story-dialogue{left:8%!important;width:56%!important;height:24%!important;bottom:1.5%!important}
-  .graveyard-story-choices{right:4%!important;width:27%!important;top:48%!important}
+  .graveyard-story-choices{left:68%!important;right:auto!important;width:27%!important;top:48%!important}
+}
+
+/* Stage 20.1 — keep artwork and effect panel in one horizontal board row.
+   This changes only the event composition coordinates. */
+.graveyard-story-art-wrap{
+  left:6%!important;
+  top:7%!important;
+  width:58%!important;
+}
+.graveyard-story-effect-box{
+  left:67%!important;
+  right:auto!important;
+  top:7%!important;
+  width:27%!important;
+}
+.graveyard-story-choices{
+  left:67%!important;
+  right:auto!important;
+  width:27%!important;
 }
