@@ -353,7 +353,7 @@ assert((eventHtml.match(/class="event-graveyard-prop event-graveyard-/g)||[]).le
 assert(eventHtml.includes('class="event-child-idle"'));
 assert(eventCss.includes(".event-scene-preview"));
 assert(eventCss.includes(".event-child-idle"));
-assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-ambush-stage8-battle-return-1'));
+assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-ambush-stage9-rescue-scene-1'));
 assert(eventJs.includes('event.scene === "graveyard_child_ambush_intro"'));
 assert(!eventHtml.includes('id="eventScene"'));
 assert(!eventData.includes("graveyard_child_ambush_test_01"));
@@ -389,7 +389,7 @@ assert(eventHtml.includes('class="event-dialogue-name">아이</span>'));
 assert(eventCss.includes("@keyframes event-dialogue-box-rise"));
 assert(eventCss.includes("@keyframes event-dialogue-portrait-in"));
 assert(eventCss.includes("event-dialogue-portrait-in .66s"));
-assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-ambush-stage8-battle-return-1'));
+assert(eventCss.includes('event-child-idle-01.png?v=20261005-graveyard-ambush-stage9-rescue-scene-1'));
 
 assert(eventHtml.includes('data-cinematic-choices'));
 assert(eventJs.includes('function setCinematicChoiceReady'));
@@ -411,3 +411,7 @@ assert(battle.includes('function returnToEvent'));
 assert(battle.includes('사건으로 돌아가기'));
 assert(battle.includes('if (fromEvent) {'));
 assert(battleHtml.includes('v2-auto-battle-practice.js?v=131'));
+
+assert(eventLabJs.includes('classList.toggle("is-cinematic-rescued", isRescuedScene)'));
+assert(eventLabJs.includes('"…고마워요."'));
+assert(eventLabCss.includes(".event-card.is-cinematic-rescued .event-ghoul"));
