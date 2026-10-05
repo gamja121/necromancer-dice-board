@@ -538,48 +538,7 @@ async function activate(page, selector) {
     await page.locator("#graveyardDioramaClose").evaluate((button) => button.click());
     assert.equal(await page.locator("#graveyardDioramaTest").evaluate((el) => el.hidden), true);
     console.log("PASS: graveyard stage 3 atlas inspector");
-    await page.waitForSelector("#mapOptionsButton", { state: "visible", timeout: 30000 });
-    await page.evaluate(() => document.getElementById("mapOptionsButton")?.click());
-    await page.waitForSelector("[data-map-event-shortcut] .map-event-shortcut-button", { state: "attached", timeout: 30000 });
-    await page.evaluate(() => document.querySelector("[data-map-event-shortcut] .map-event-shortcut-button")?.click());
-    await page.waitForFunction(() => !document.getElementById("graveyardStoryEvent")?.hidden, null, { timeout: 30000 });
-    await page.waitForTimeout(400);
-    const topStripDiagnostic = await page.evaluate(() => {
-      const vw = innerWidth;
-      const vh = innerHeight;
-      const points = [
-        [vw * .58, vh * .025],
-        [vw * .64, vh * .025],
-        [vw * .70, vh * .025],
-        [vw * .76, vh * .025],
-        [vw * .82, vh * .025]
-      ];
-      const atPoints = points.map(([x,y]) => ({
-        x: Math.round(x), y: Math.round(y),
-        stack: document.elementsFromPoint(x,y).slice(0,8).map(el => ({
-          tag: el.tagName,
-          id: el.id || "",
-          cls: typeof el.className === "string" ? el.className : "",
-          text: (el.textContent || "").trim().slice(0,40)
-        }))
-      }));
-      const visibleTop = [...document.querySelectorAll("body *")].map(el => {
-        const r = el.getBoundingClientRect();
-        const cs = getComputedStyle(el);
-        return {el,r,cs};
-      }).filter(({r,cs}) => r.width > 2 && r.height > 2 && r.bottom > 0 && r.top < Math.min(100, vh*.14) && cs.display !== "none" && cs.visibility !== "hidden" && Number(cs.opacity || 1) > .01)
-        .map(({el,r,cs}) => ({
-          tag: el.tagName,
-          id: el.id || "",
-          cls: typeof el.className === "string" ? el.className : "",
-          x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height),
-          z: cs.zIndex, opacity: cs.opacity, backgroundImage: cs.backgroundImage
-        }))
-        .slice(0,80);
-      return {width:vw,height:vh,atPoints,visibleTop};
-    });
-    console.log("GRAVEYARD_TOP_STRIP_DIAGNOSTIC " + JSON.stringify(topStripDiagnostic));
-    await page.reload();
+
 
     await page.evaluate(() => document.getElementById("graveyardDioramaTestButton")?.click());
     await page.waitForSelector("#graveyardDioramaTest:not([hidden])",{state:"visible",timeout:30000});
