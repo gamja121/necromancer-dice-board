@@ -4331,4 +4331,32 @@
       }
     });
   }
+  function installEventOptionShortcut() {
+    const panel = el.audioOptions || document.getElementById("mapAudioOptions");
+    if (!panel || panel.querySelector("[data-map-event-shortcut]")) return;
+    const row = document.createElement("div");
+    row.className = "map-audio-option-row map-event-option-row";
+    row.dataset.mapEventShortcut = "true";
+    const label = document.createElement("span");
+    label.textContent = "사건";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "map-event-shortcut-button";
+    button.textContent = "공동묘지";
+    button.setAttribute("aria-label", "공동묘지 습격받는 아이 사건을 인게임 연출로 열기");
+    button.addEventListener("click", () => {
+      closeAudioOptions();
+      const params = new URLSearchParams({
+        event: "graveyard_child_ambush_01",
+        from: "map",
+        mode: "ingame"
+      });
+      window.location.assign("v2-event-lab.html?" + params.toString());
+    });
+    row.append(label, button);
+    panel.append(row);
+  }
+
+  installEventOptionShortcut();
+
 })();
