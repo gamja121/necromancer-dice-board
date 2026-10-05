@@ -127,29 +127,33 @@ async function activate(page, selector) {
     await page.setViewportSize({ width: 689, height: 1536 });
     await page.goto(new URL("v2-event-lab.html", base).href);
     await page.waitForSelector("#eventCard", { state: "visible", timeout: 15000 });
-    await page.waitForFunction(() => document.getElementById("eventBaseImage")?.dataset.assetReady === "base-ready", null, { timeout: 15000 });
-    const portraitEvent = await page.evaluate(() => {
-      const rect = (selector) => {
-        const el = document.querySelector(selector);
-        const r = el?.getBoundingClientRect();
-        return r ? { left:r.left, top:r.top, right:r.right, bottom:r.bottom, width:r.width, height:r.height } : null;
-      };
+    await page.waitForFunction(() => {
+      const ghoul=document.getElementById("eventGhoulLayer");
+      return ghoul?.dataset.assetReady === "ghoul-ready"
+        && ghoul?.dataset.alphaReady === "true";
+    }, null, { timeout: 15000 });
+    const portraitLandscape = await page.evaluate(() => {
+      const lab=document.querySelector(".event-lab");
+      const card=document.getElementById("eventCard");
+      const scene=document.querySelector(".event-scene");
+      const ghoul=document.getElementById("eventGhoulLayer");
+      const lr=lab.getBoundingClientRect(), cr=card.getBoundingClientRect(), sr=scene.getBoundingClientRect();
+      const gs=getComputedStyle(ghoul);
       return {
-        viewport:{width:innerWidth,height:innerHeight},
-        card:rect("#eventCard"),
-        scene:rect(".event-scene"),
-        copy:rect(".event-copy"),
-        image:rect("#eventBaseImage"),
-        imageFit:getComputedStyle(document.getElementById("eventBaseImage")).objectFit,
-        bodyOverflow:getComputedStyle(document.body).overflowY
+        lab:{w:lr.width,h:lr.height},
+        card:{w:cr.width,h:cr.height},
+        scene:{w:sr.width,h:sr.height},
+        transform:getComputedStyle(lab).transform,
+        ghoulBlend:gs.mixBlendMode,
+        ghoulBottom:gs.bottom,
+        ghoulAlpha:ghoul.dataset.alphaReady
       };
     });
-    assert(portraitEvent.scene.width >= portraitEvent.card.width * .96, "Portrait event scene must use full card width");
-    assert(portraitEvent.copy.width >= portraitEvent.card.width * .96, "Portrait event copy must use full card width");
-    assert(portraitEvent.copy.top >= portraitEvent.scene.bottom - 2, "Portrait event copy must sit below the scene");
-    assert.equal(portraitEvent.imageFit, "contain", "Portrait event artwork must remain fully visible");
-    assert(portraitEvent.scene.height > portraitEvent.scene.width, "Portrait artwork area should preserve its vertical poster ratio");
-    console.log("PASS: Event Lab portrait viewer layout");
+    assert(portraitLandscape.lab.width > portraitLandscape.lab.height, "Portrait phone must render Event Lab as a landscape canvas");
+    assert.notEqual(portraitLandscape.transform, "none", "Portrait phone must rotate the Event Lab shell");
+    assert.equal(portraitLandscape.ghoulBlend, "normal", "Ghoul must use a normal opaque layer, not screen blending");
+    assert.equal(portraitLandscape.ghoulAlpha, "true", "Ghoul black background must be converted to alpha");
+    console.log("PASS: Event Lab forces landscape and uses alpha-cut ghoul");
 
     await page.setViewportSize({ width: 844, height: 390 });
     await page.goto(new URL("v2-intro.html", base).href);
