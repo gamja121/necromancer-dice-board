@@ -148,6 +148,7 @@
     graveyardSelectedLabel: document.getElementById("graveyardSelectedLabel"),
     graveyardLayoutSaveStatus: document.getElementById("graveyardLayoutSaveStatus"),
     graveyardLayoutExport: document.getElementById("graveyardLayoutExport"),
+    graveyardEditorReopen: document.getElementById("graveyardEditorReopen"),
     mapName: document.getElementById("mapName"),
     tileName: document.getElementById("tileName"),
     regenerate: document.getElementById("regenerateButton"),
@@ -408,7 +409,7 @@
   }
 
   function ensureVillageBuildingAssets() {
-    const version = "20261005-graveyard-stage5-camera-2";
+    const version = "20261005-graveyard-stage5-editor-collapse-1";
     document.querySelectorAll(".village-building-image").forEach((img, index) => {
       if (!(img instanceof HTMLImageElement)) return;
       const assetNumber = String(index + 1).padStart(2, "0");
@@ -862,6 +863,17 @@
     try{await navigator.clipboard?.writeText?.(text);if(el.graveyardLayoutSaveStatus)el.graveyardLayoutSaveStatus.textContent="배치값 복사됨";}catch{if(el.graveyardLayoutSaveStatus)el.graveyardLayoutSaveStatus.textContent="배치값 표시됨";}
   }
 
+  function setGraveyardEditorCollapsed(collapsed) {
+    const shouldCollapse = collapsed === true;
+    el.graveyardLayerDebug?.classList.toggle("is-collapsed", shouldCollapse);
+    const collapseButton = el.graveyardLayerDebug?.querySelector("[data-graveyard-editor-collapse]");
+    if (collapseButton) {
+      collapseButton.setAttribute("aria-expanded", String(!shouldCollapse));
+      collapseButton.textContent = shouldCollapse ? "펼치기" : "접기";
+    }
+    if (el.graveyardEditorReopen) el.graveyardEditorReopen.hidden = !shouldCollapse;
+  }
+
   function updateGraveyardAssetStatus() {
     if (!el.graveyardAtlasProbe || !el.graveyardAssetStatus) return false;
     const width = el.graveyardAtlasProbe.naturalWidth;
@@ -877,7 +889,7 @@
 
   function ensureGraveyardAtlas() {
     if (!(el.graveyardAtlasProbe instanceof HTMLImageElement)) return;
-    const src = "art/v2-style/map-test/diorama/graveyard/graveyard-atlas.webp?v=20261005-graveyard-stage5-camera-2";
+    const src = "art/v2-style/map-test/diorama/graveyard/graveyard-atlas.webp?v=20261005-graveyard-stage5-editor-collapse-1";
     el.graveyardAtlasProbe.onload = updateGraveyardAssetStatus;
     el.graveyardAtlasProbe.onerror = () => {
       if (el.graveyardAssetStatus) {
@@ -906,6 +918,7 @@
     enableGraveyardDragging();
     loadGraveyardLayout();
     if (el.graveyardLayerDebug) el.graveyardLayerDebug.hidden=false;
+    setGraveyardEditorCollapsed(false);
     el.graveyardDioramaTest.hidden=false;
     void el.board.offsetWidth;
 
@@ -933,6 +946,7 @@
     el.board?.classList.remove("is-graveyard-props","is-graveyard-tilted","is-graveyard-zooming");
     el.graveyardDioramaTest.hidden=true;
     if (el.graveyardLayerDebug) el.graveyardLayerDebug.hidden=true;
+    setGraveyardEditorCollapsed(false);
     selectGraveyardItem(null);
     document.querySelector(".map-lab")?.classList.remove("is-graveyard-inspector-open");
   }
@@ -4195,6 +4209,7 @@
   el.villageDioramaTestButton?.addEventListener("click", openVillageDioramaTest);
   el.graveyardDioramaTestButton?.addEventListener("click", openGraveyardDioramaTest);
   el.graveyardLayerDebug?.addEventListener("click",(event)=>{
+    if(event.target.closest("[data-graveyard-editor-collapse]")){setGraveyardEditorCollapsed(true);return;}
     if(event.target.closest("[data-graveyard-flip]")){flipSelectedGraveyardItem();return;}
     if(event.target.closest("[data-graveyard-layout-save]")){saveGraveyardLayout();return;}
     if(event.target.closest("[data-graveyard-layout-copy]")){copyGraveyardLayoutExport();return;}
@@ -4204,6 +4219,7 @@
     const toggle=event.target.closest("[data-graveyard-toggle]"); if(toggle){const selector=toggle.dataset.graveyardToggle;const item=document.querySelector(selector);const visible=toggle.getAttribute("aria-pressed")!=="true";item?.classList.toggle("is-debug-hidden",!visible);toggle.setAttribute("aria-pressed",String(visible));if(visible&&item)selectGraveyardItem(item);return;}
     if(event.target.closest("[data-graveyard-reset-visibility]")){getGraveyardItems().forEach((i)=>i.classList.remove("is-debug-hidden"));el.graveyardLayerDebug.querySelectorAll("[data-graveyard-toggle]").forEach((b)=>b.setAttribute("aria-pressed","true"));return;}
   });
+  el.graveyardEditorReopen?.addEventListener("click",()=>setGraveyardEditorCollapsed(false));
   el.graveyardDioramaClose?.addEventListener("click", closeGraveyardDioramaTest);
   el.graveyardDioramaTest?.addEventListener("click", (event) => {
     if (event.target === el.graveyardDioramaTest) closeGraveyardDioramaTest();
