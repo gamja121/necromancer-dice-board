@@ -165,6 +165,7 @@ async function activate(page, selector) {
     assert.equal(eventBattleUrl.searchParams.get("event"), "graveyard_child_ambush_01");
     assert.equal(eventBattleUrl.searchParams.get("enemies"), "ghoul");
     await page.waitForSelector("#startOverlay", { state: "visible", timeout: 15000 });
+    await page.waitForFunction(() => document.getElementById("lineupStatus")?.textContent?.includes("사건 전투"), null, { timeout: 15000 });
     const eventBattleState = await page.evaluate(() => ({
       enemyTabDisabled: document.getElementById("enemyLineupTab")?.disabled === true,
       enemySlots: [...document.querySelectorAll("#selectedEnemyLineup [data-slug]")].map((el)=>el.dataset.slug).filter(Boolean),
@@ -186,18 +187,28 @@ async function activate(page, selector) {
     });
     await page.reload();
     await page.waitForSelector("#eventList");
+    await page.waitForFunction(() => document.querySelector(".event-card")?.classList.contains("is-cinematic-rescued"), null, { timeout: 10000 });
     const eventReturnState = await page.evaluate(() => ({
       selectedId: document.getElementById("eventId")?.textContent || "",
       flags: [...document.querySelectorAll("#flagList code")].map((node)=>node.textContent),
       outcome: document.getElementById("outcomeBox")?.textContent || "",
-      choices: [...document.querySelectorAll("#choiceList button")].map((button)=>({ text:button.textContent, disabled:button.disabled }))
+      choices: [...document.querySelectorAll("#choiceList button")].map((button)=>({ text:button.textContent, disabled:button.disabled })),
+      rescued: document.querySelector(".event-card")?.classList.contains("is-cinematic-rescued") || false,
+      ghoulDisplay: getComputedStyle(document.querySelector(".event-ghoul")).display,
+      dialogue: document.querySelector(".event-dialogue-text")?.textContent?.trim() || "",
+      childAnimation: getComputedStyle(document.querySelector(".event-child-idle")).animationName
     }));
     assert.equal(eventReturnState.selectedId, "graveyard_child_ambush_01");
     assert(eventReturnState.flags.includes("graveyard_child_ambush_resolved"));
     assert(eventReturnState.flags.includes("graveyard_child_saved"));
     assert(eventReturnState.outcome.includes("성공"));
     assert(eventReturnState.choices.every((choice)=>choice.disabled));
+    assert.equal(eventReturnState.rescued, true);
+    assert.equal(eventReturnState.ghoulDisplay, "none");
+    assert.equal(eventReturnState.dialogue, "…고마워요.");
+    assert(eventReturnState.childAnimation.includes("event-child-idle-breathe"));
     console.log("PASS: cemetery ambush stage 8 event battle return");
+    console.log("PASS: cemetery ambush stage 9 rescued child return scene");
 
     await page.setViewportSize({ width: 844, height: 390 });
     await page.goto(new URL("v2-intro.html", base).href);
