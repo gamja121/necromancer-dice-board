@@ -155,6 +155,9 @@
     graveyardStoryEvent: document.getElementById("graveyardStoryEvent"),
     graveyardStoryAdvance: document.getElementById("graveyardStoryAdvance"),
     graveyardStoryText: document.getElementById("graveyardStoryText"),
+    graveyardStoryEffectText: document.getElementById("graveyardStoryEffectText"),
+    graveyardStoryArtwork: document.getElementById("graveyardStoryArtwork"),
+    graveyardStoryGhoulLayer: document.getElementById("graveyardStoryGhoulLayer"),
     graveyardStoryChoices: document.getElementById("graveyardStoryChoices"),
     graveyardStoryPortraitImg: document.querySelector(".graveyard-story-portrait img"),
     graveyardStoryFrameImg: document.querySelector(".graveyard-story-frame"),
@@ -392,15 +395,7 @@
       });
       await V2RunStateRuntime.flush();
     }
-    const params = new URLSearchParams({
-      fromMapEvent: "1",
-      map: activeMapId,
-      tile: String(step),
-      allies: partyUnits.map((unit) => unit.slug).join(","),
-      allyIds: partyUnits.map((unit) => unit.instanceId).join(",")
-    });
-    if (typeof V2Music !== "undefined") V2Music.handoff("map");
-    window.location.assign("v2-event-lab.html?" + params.toString());
+    await openGraveyardStoryEvent();
     return true;
   }
 
@@ -4495,27 +4490,71 @@
 
   const GRAVEYARD_EVENT_BATTLE_RESULT_KEY = "necromancer-event-battle-result-v1";
 
+  const GRAVEYARD_EVENT_BASE_CHUNKS = [
+    "assets/event-lab/graveyard-child/base/part-000.txt",
+    "assets/event-lab/graveyard-child/base/part-001.txt"
+  ];
+  const GRAVEYARD_EVENT_GHOUL_CHUNKS = [
+    "assets/event-lab/graveyard-child/ghoul/part-000.txt",
+    "assets/event-lab/graveyard-child/ghoul/part-001.txt"
+  ];
+  let graveyardStoryArtReady = null;
+
+  async function loadChunkedEventImage(img, chunks) {
+    if (!img) return false;
+    try {
+      const parts = await Promise.all(chunks.map(async (src) => {
+        const response = await fetch(src, { cache: "force-cache" });
+        if (!response.ok) throw new Error("event art fetch failed: " + response.status);
+        return (await response.text()).trim();
+      }));
+      img.src = "data:image/webp;base64," + parts.join("");
+      await img.decode();
+      return true;
+    } catch (error) {
+      console.error("[graveyard-event] event art load failed", error);
+      return false;
+    }
+  }
+
+  function ensureGraveyardStoryArt() {
+    if (!graveyardStoryArtReady) {
+      graveyardStoryArtReady = Promise.all([
+        loadChunkedEventImage(el.graveyardStoryArtwork, GRAVEYARD_EVENT_BASE_CHUNKS),
+        loadChunkedEventImage(el.graveyardStoryGhoulLayer, GRAVEYARD_EVENT_GHOUL_CHUNKS)
+      ]);
+    }
+    return graveyardStoryArtReady;
+  }
+
   // Moving-diorama event data: each beat is only a change of stage state.
   const GRAVEYARD_EVENT_BEATS = Object.freeze([
     Object.freeze({
-      id: "child-alone",
-      text: "묘비 사이에 아이가 서 있다.",
+      id: "discovery",
+      effect: "공동묘지 안쪽에서 길을 잃은 듯한 아이를 발견했다.",
+      dialogue: "",
       stageClass: "beat-child-alone"
     }),
     Object.freeze({
-      id: "ghoul-appears",
-      text: "…!",
-      stageClass: "beat-ghoul-appears"
+      id: "threat",
+      effect: "아이는 자꾸 뒤를 돌아본다. 묘비 사이에서 마른 돌 긁는 소리가 들린다.",
+      dialogue: "",
+      stageClass: "beat-ghoul-appears",
+      ghoul: true
     }),
     Object.freeze({
-      id: "child-frightened",
-      text: "도와주세요…!",
-      stageClass: "beat-child-frightened"
+      id: "dialogue",
+      effect: "묘비 사이에서 구울이 몸을 일으킨다.",
+      dialogue: "…도와주세요!",
+      stageClass: "beat-child-frightened",
+      ghoul: true
     }),
     Object.freeze({
       id: "choice",
-      text: "아이를 구하시겠습니까?",
+      effect: "아이를 구하시겠습니까?",
+      dialogue: "…도와주세요!",
       stageClass: "beat-choice",
+      ghoul: true,
       choice: true
     })
   ]);
@@ -4540,7 +4579,10 @@
       "beat-choice"
     );
     el.graveyardStoryEvent.classList.add(beat.stageClass);
-    if (el.graveyardStoryText) el.graveyardStoryText.textContent = beat.text;
+    if (el.graveyardStoryEffectText) el.graveyardStoryEffectText.textContent = beat.effect || "";
+    if (el.graveyardStoryText) el.graveyardStoryText.textContent = beat.dialogue || "";
+    if (el.graveyardStoryGhoulLayer) el.graveyardStoryGhoulLayer.hidden = beat.ghoul !== true;
+    el.graveyardStoryEvent.classList.toggle("has-dialogue", Boolean(beat.dialogue));
     setGraveyardStoryChoicePhase(beat.choice === true);
   }
 
@@ -4553,9 +4595,11 @@
     renderGraveyardStoryBeat(graveyardStoryBeatIndex + 1);
   }
 
-  function openGraveyardStoryEvent({ rescued = false } = {}) {
+  async function openGraveyardStoryEvent({ rescued = false } = {}) {
     if (!el.graveyardStoryEvent) return;
     ensureGraveyardDialogueAssets();
+    await ensureGraveyardStoryArt();
+    el.board?.classList.add("is-story-event-open");
     el.graveyardStoryEvent.hidden = false;
     el.graveyardStoryEvent.classList.toggle("is-rescued", rescued === true);
 
@@ -4568,7 +4612,10 @@
         "beat-choice"
       );
       setGraveyardStoryChoicePhase(false);
-      if (el.graveyardStoryText) el.graveyardStoryText.textContent = "…고마워요.";
+      if (el.graveyardStoryEffectText) el.graveyardStoryEffectText.textContent = "구울이 쓰러졌다.";
+      if (el.graveyardStoryText) el.graveyardStoryText.textContent = "……!";
+      el.graveyardStoryEvent.classList.add("has-dialogue", "is-child-fleeing");
+      if (el.graveyardStoryGhoulLayer) el.graveyardStoryGhoulLayer.hidden = true;
       if (el.graveyardStoryAdvance) {
         el.graveyardStoryAdvance.disabled = true;
         el.graveyardStoryAdvance.onclick = null;
@@ -4585,6 +4632,7 @@
   }
 
   function startGraveyardEventBattle() {
+    const partyUnits = currentPartyUnits();
     const context = {
       eventId: "graveyard_child_ambush_01",
       choiceId: "protect_child",
@@ -4600,7 +4648,11 @@
       event: "graveyard_child_ambush_01",
       encounterType: "event-graveyard-child",
       enemies: "ghoul",
-      eventReturn: "map-graveyard"
+      eventReturn: "map-graveyard",
+      map: activeMapId,
+      tile: String(heroIndex + 1),
+      allies: partyUnits.map((unit) => unit.slug).join(","),
+      allyIds: partyUnits.map((unit) => unit.instanceId).join(",")
     });
     window.location.assign("v2-auto-battle-practice.html?" + params.toString());
   }
@@ -4656,7 +4708,10 @@
     } catch (_) {}
     if (!result || result.eventId !== "graveyard_child_ambush_01") return false;
 
-    openGraveyardPosterEvent({ rescued: result.won === true });
+    if (result.won === true) {
+      void markGraveyardChildEventComplete();
+      openGraveyardStoryEvent({ rescued: true });
+    }
     return true;
   }
 
