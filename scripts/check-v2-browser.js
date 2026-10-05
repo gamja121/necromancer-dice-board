@@ -84,6 +84,28 @@ async function activate(page, selector) {
       assert((await page.title()).startsWith("네크로멘서 앤드 다이스"));
       console.log("PASS: " + screen);
     }
+    await page.goto(new URL("v2-event-lab.html", base).href);
+    await page.waitForSelector("#eventScenePreview:not([hidden])", { state: "visible", timeout: 15000 });
+    const graveyardStage1 = await page.evaluate(() => ({
+      selected: document.querySelector(".event-list button.is-selected strong")?.textContent || "",
+      previewVisible: !document.getElementById("eventScenePreview")?.hidden,
+      propCount: document.querySelectorAll("#eventScenePreview .event-graveyard-prop").length,
+      childBg: getComputedStyle(document.querySelector("#eventScenePreview .event-child-idle")).backgroundImage,
+      childAnimation: getComputedStyle(document.querySelector("#eventScenePreview .event-child-idle")).animationName,
+      duplicateTitleCount: [...document.querySelectorAll(".event-list button strong")].filter((el)=>el.textContent?.includes("습격받는 아이")).length,
+      hasGhoul: !!document.querySelector("[data-event-ghoul], .event-ghoul"),
+      hasDialogue: !!document.querySelector(".event-dialogue-box")
+    }));
+    assert(graveyardStage1.selected.includes("습격받는 아이"));
+    assert.equal(graveyardStage1.previewVisible,true);
+    assert.equal(graveyardStage1.propCount,14);
+    assert(graveyardStage1.childBg.includes("graveyard-child-idle.png"));
+    assert.equal(graveyardStage1.childAnimation,"eventChildIdle");
+    assert.equal(graveyardStage1.duplicateTitleCount,1);
+    assert.equal(graveyardStage1.hasGhoul,false);
+    assert.equal(graveyardStage1.hasDialogue,false);
+    console.log("PASS: event lab graveyard child stage 1 cemetery + child only");
+
     await page.setViewportSize({ width: 844, height: 390 });
     await page.goto(new URL("v2-intro.html", base).href);
     await page.waitForSelector("#introAdvance");
