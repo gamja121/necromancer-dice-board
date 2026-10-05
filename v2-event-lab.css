@@ -139,7 +139,7 @@ dialog form > div { display: flex; justify-content: flex-end; gap: 8px; }
     linear-gradient(to bottom,rgba(20,18,24,.18),rgba(4,4,5,.38));
   pointer-events:none;
 }
-.event-graveyard-props{position:absolute;inset:0;z-index:2}
+.event-graveyard-props{position:absolute;inset:0;z-index:2;pointer-events:none}
 .event-graveyard-prop{
   --event-flip:1;
   position:absolute;
@@ -188,6 +188,7 @@ dialog form > div { display: flex; justify-content: flex-end; gap: 8px; }
 
 .event-child-idle{
   position:absolute;
+  pointer-events:none;
   z-index:14;
   left:44%;
   bottom:-2%;
@@ -240,6 +241,7 @@ dialog form > div { display: flex; justify-content: flex-end; gap: 8px; }
 /* Cemetery ambush event scene · stage 4: ghoul enters and closes on the child. */
 .event-ghoul{
   position:absolute;
+  pointer-events:none;
   z-index:15;
   right:13.5%;
   bottom:-1.5%;
