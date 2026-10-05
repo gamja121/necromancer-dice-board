@@ -4,6 +4,8 @@
   const events = V2EventData.events;
   const eventById = new Map(events.map((event) => [event.id, event]));
 
+  const EVENT_BATTLE_RESULT_KEY = "necromancer-event-battle-result-v1";
+
   const state = {
     contamination: 20,
     loop: 1,
@@ -39,6 +41,29 @@
     flagDialog: document.getElementById("flagDialog"),
     newFlagName: document.getElementById("newFlagName")
   };
+
+  function consumeEventBattleResult() {
+    let result = null;
+    try {
+      const raw = sessionStorage.getItem(EVENT_BATTLE_RESULT_KEY);
+      if (raw) result = JSON.parse(raw);
+      sessionStorage.removeItem(EVENT_BATTLE_RESULT_KEY);
+    } catch (_) {}
+    if (!result || !eventById.has(result.eventId)) return null;
+
+    state.currentEventId = result.eventId;
+    if (result.eventId === "graveyard_child_ambush_01") {
+      state.flags.graveyard_child_ambush_seen = true;
+      state.flags.graveyard_child_ambush_resolved = true;
+      if (result.won) {
+        state.flags.graveyard_child_saved = true;
+        state.flags.graveyard_child_abandoned = false;
+      } else {
+        state.flags.graveyard_child_rescue_failed = true;
+      }
+    }
+    return result;
+  }
 
   function flag(name) {
     return state.flags[name] === true;
@@ -350,7 +375,8 @@
       const button = document.createElement("button");
       button.type = "button";
       const available = choiceAvailable(choice);
-      button.disabled = !available;
+      const eventReady = eventAvailable(event);
+      button.disabled = !eventReady || !available;
       button.textContent = choice.text;
       const reqText = choiceRequirementText(choice);
       if (reqText) {
@@ -457,5 +483,18 @@
     setTimeout(refreshAll, 0);
   });
 
+  const resumedBattleResult = consumeEventBattleResult();
   renderAll();
+  if (resumedBattleResult) {
+    if (resumedBattleResult.eventId === "graveyard_child_ambush_01") {
+      showOutcome(resumedBattleResult.won
+        ? "구울을 쓰러뜨렸다. 아이를 구하는 데 성공했다."
+        : "구울을 막지 못했다. 아이 구조에 실패했다.");
+      addHistory(
+        eventById.get(resumedBattleResult.eventId),
+        resumedBattleResult.won ? "구울 전투 승리" : "구울 전투 패배",
+        resumedBattleResult.won ? "아이 구조 성공" : "아이 구조 실패"
+      );
+    }
+  }
 })();
