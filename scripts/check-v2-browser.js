@@ -105,6 +105,13 @@ async function activate(page, selector) {
     assert.equal(graveyardStage1.hasGhoul,false);
     assert.equal(graveyardStage1.hasDialogue,false);
     console.log("PASS: event lab graveyard child stage 2 idle motion");
+    const graveyardStage3Choices = await page.evaluate(() => [...document.querySelectorAll("#choiceList button")].map((button) => button.firstChild?.textContent?.trim() || button.textContent.trim()));
+    assert.deepEqual(graveyardStage3Choices, ["아이를 구한다", "지나친다"]);
+    await page.locator("#choiceList button").filter({ hasText: "아이를 구한다" }).click();
+    assert((await page.locator("#outcomeBox").textContent()).includes("구한다 선택 입력 확인"));
+    assert.equal(await page.locator("#rollPanel").evaluate((el) => el.hidden), true);
+    assert.equal(await page.locator("#flagList").textContent().then((text)=>text.includes("child_saved")||text.includes("child_abandoned")), false);
+    console.log("PASS: event lab graveyard child stage 3 choices");
 
     await page.setViewportSize({ width: 844, height: 390 });
     await page.goto(new URL("v2-intro.html", base).href);
