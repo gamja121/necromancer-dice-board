@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
   <title>네크로멘서 앤드 다이스 · Event Lab</title>
-  <link rel="stylesheet" href="v2-event-lab.css?v=20261005-event-lab-reset-1">
+  <link rel="stylesheet" href="v2-event-lab.css?v=20261005-event-lab-poster-shell-1">
 </head>
 <body>
   <main class="event-lab">
     <header class="lab-header">
       <div>
         <strong>EVENT LAB</strong>
-        <span>새 사건 제작용 빈 테스트 공간</span>
+        <span>벽보형 사건 테스트</span>
       </div>
       <nav>
         <a href="index.html">시작 화면</a>
@@ -20,19 +20,42 @@
       </nav>
     </header>
 
-    <section class="empty-lab" aria-labelledby="emptyLabTitle">
-      <div class="empty-lab-mark" aria-hidden="true">＋</div>
-      <p class="empty-lab-kicker">RESET COMPLETE</p>
-      <h1 id="emptyLabTitle">등록된 테스트 이벤트가 없습니다.</h1>
-      <p>기존 Event Lab의 사건·분기·상태·히스토리를 모두 비웠습니다.<br>새 이벤트는 여기서 처음부터 다시 구성합니다.</p>
-      <div class="empty-lab-status">
-        <span>이벤트 데이터 <b id="eventCount">0</b></span>
-        <span>테스트 상태 초기화 완료</span>
-      </div>
+    <section class="poster-workspace" aria-label="벽보형 사건 테스트 무대">
+      <div class="poster-backdrop" aria-hidden="true"></div>
+
+      <article class="event-poster is-empty" aria-labelledby="posterTitle">
+        <span class="poster-pin poster-pin-left" aria-hidden="true"></span>
+        <span class="poster-pin poster-pin-right" aria-hidden="true"></span>
+        <span class="poster-stamp" aria-hidden="true">사건</span>
+
+        <div class="poster-art" aria-hidden="true">
+          <div class="poster-art-vignette"></div>
+          <div class="poster-art-placeholder">
+            <span>ILLUSTRATION</span>
+            <small>새 사건 이미지 영역</small>
+          </div>
+        </div>
+
+        <div class="poster-copy">
+          <p class="poster-location">장소 미정</p>
+          <h1 id="posterTitle">새 사건</h1>
+          <p id="posterText">사건 내용이 여기에 표시됩니다.</p>
+        </div>
+
+        <div class="poster-choices" aria-label="선택지 미리보기">
+          <button type="button" disabled>선택지 1</button>
+          <button type="button" disabled>선택지 2</button>
+        </div>
+
+        <footer class="poster-footer">
+          <span>등록된 테스트 이벤트 <b id="eventCount">0</b></span>
+          <span>새 사건 제작 준비 완료</span>
+        </footer>
+      </article>
     </section>
   </main>
 
-  <script src="v2-event-lab-data.js?v=20261005-event-lab-reset-1"></script>
-  <script src="v2-event-lab.js?v=20261005-event-lab-reset-1"></script>
+  <script src="v2-event-lab-data.js?v=20261005-event-lab-poster-shell-1"></script>
+  <script src="v2-event-lab.js?v=20261005-event-lab-poster-shell-1"></script>
 </body>
 </html>
