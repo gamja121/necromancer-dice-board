@@ -196,7 +196,7 @@ dialog form > div { display: flex; justify-content: flex-end; gap: 8px; }
   bottom:-2%;
   width:11.2%;
   aspect-ratio:263/643;
-  background-image:url("art/v2-style/map-test/events/event-child-idle-01.png?v=20261005-graveyard-ambush-stage8-battle-return-1");
+  background-image:url("art/v2-style/map-test/events/event-child-idle-01.png?v=20261005-graveyard-ambush-stage9-rescue-scene-1");
   background-repeat:no-repeat;
   background-size:contain;
   background-position:center bottom;
@@ -250,7 +250,7 @@ dialog form > div { display: flex; justify-content: flex-end; gap: 8px; }
   bottom:-1.5%;
   width:14.5%;
   aspect-ratio:1/1;
-  background:url("art/v2-style/processed/192/ghoul.png?v=20261005-graveyard-ambush-stage8-battle-return-1") center bottom/contain no-repeat;
+  background:url("art/v2-style/processed/192/ghoul.png?v=20261005-graveyard-ambush-stage9-rescue-scene-1") center bottom/contain no-repeat;
   filter:drop-shadow(0 12px 9px rgba(0,0,0,.72));
   transform-origin:50% 100%;
   opacity:0;
@@ -429,7 +429,7 @@ dialog form > div { display: flex; justify-content: flex-end; gap: 8px; }
   content:"";
   position:absolute;
   inset:-3% -22% -42% -22%;
-  background:url("art/v2-style/map-test/events/event-child-idle-01.png?v=20261005-graveyard-ambush-stage8-battle-return-1") center top/72% auto no-repeat;
+  background:url("art/v2-style/map-test/events/event-child-idle-01.png?v=20261005-graveyard-ambush-stage9-rescue-scene-1") center top/72% auto no-repeat;
   transform:scale(1.23);
   transform-origin:50% 10%;
 }
@@ -496,4 +496,36 @@ dialog form > div { display: flex; justify-content: flex-end; gap: 8px; }
 @keyframes event-choice-panel-in{
   0%{opacity:0;transform:translateY(8px)}
   100%{opacity:1;transform:translateY(0)}
+}
+
+
+/* Cemetery ambush · stage 9: victorious return leaves the rescued child in the cemetery. */
+.event-card.is-cinematic-rescued .event-ghoul,
+.event-card.is-cinematic-rescued .event-ambush-alert{
+  display:none!important;
+}
+.event-card.is-cinematic-rescued .event-graveyard-panorama::after{
+  animation:none!important;
+  opacity:0!important;
+}
+.event-card.is-cinematic-rescued .event-child-idle{
+  left:46%;
+  bottom:-2%;
+  animation:event-child-idle-breathe 3.4s ease-in-out infinite!important;
+}
+.event-card.is-cinematic-rescued #choiceList{
+  display:none!important;
+}
+.event-card.is-cinematic-rescued .event-dialogue-layer{
+  opacity:1!important;
+}
+.event-card.is-cinematic-rescued .event-dialogue-box{
+  animation:event-dialogue-box-rise .38s cubic-bezier(.2,.8,.2,1) .12s both!important;
+  cursor:default;
+}
+.event-card.is-cinematic-rescued .event-dialogue-portrait{
+  animation:event-dialogue-portrait-in .48s cubic-bezier(.16,.84,.22,1) .2s both!important;
+}
+.event-card.is-cinematic-rescued .event-dialogue-next{
+  display:none;
 }
