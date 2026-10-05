@@ -57,9 +57,9 @@ assert(css.includes("@keyframes event-camera-unease-focus"));
 
 for (const file of [
   "v2-event-lab.html",
-  "v2-event-lab.css?v=20261005-event-lab-unified-box-stage6",
-  "v2-event-lab.js?v=20261005-event-lab-unified-box-stage6",
-  "v2-event-lab-data.js?v=20261005-event-lab-unified-box-stage6",
+  "v2-event-lab.css?v=20261005-event-lab-map-link-stage7",
+  "v2-event-lab.js?v=20261005-event-lab-map-link-stage7",
+  "v2-event-lab-data.js?v=20261005-event-lab-map-link-stage7",
   "assets/event-lab/graveyard-child/base/part-000.txt",
   "assets/event-lab/graveyard-child/base/part-001.txt",
   "assets/event-lab/graveyard-child/ghoul/part-000.txt",
@@ -67,3 +67,11 @@ for (const file of [
 ]) assert(worker.includes(file), `Event Lab layered asset is not cached: ${file}`);
 
 console.log("v2 event lab layered cemetery tests passed");
+
+assert(js.includes("fromMapEvent"));
+assert(js.includes("resumeEventBattle"));
+assert(js.includes("startMapEventBattle"));
+assert(js.includes('eventReturn: "event-lab-map"'));
+assert(js.includes('enemies: "ghoul"'));
+assert(js.includes("showPostBattleEscape"));
+assert(js.includes("completeGraveyardChildEvent"));
