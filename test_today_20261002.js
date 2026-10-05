@@ -346,29 +346,28 @@ assert(mapHtml.includes('data-graveyard-id="T1"') && mapHtml.includes('data-defa
 assert(mapHtml.includes('data-graveyard-id="H2"') && mapHtml.includes('data-default-width="12%"'));
 assert(map.includes('item.dataset.defaultBottom||""'));
 
-// Event Lab reset: production event data stays intact, lab data starts empty.
+// Event Lab is isolated from production data and now contains one layered cemetery test event.
 assert(eventData.includes('id: "graveyard_child_ambush_01"'), "Production map event data must remain intact");
-assert(eventLabData.includes("window.V2EventLabData"));
-assert(eventLabData.includes("events: Object.freeze([])"));
-assert(!eventLabData.includes("graveyard_child_ambush_01"));
-assert(!eventLabData.includes("forest_child_01"));
-assert(eventHtml.includes('class="event-poster is-empty"'));
-assert(eventHtml.includes('id="posterTitle"'));
-assert(eventHtml.includes("새 사건"));
-assert(eventHtml.includes("사건 내용이 여기에 표시됩니다."));
-assert(eventHtml.includes('id="eventCount"'));
-assert(!eventHtml.includes('id="eventScenePreview"'));
-assert(!eventHtml.includes('id="eventList"'));
-assert(!eventHtml.includes('id="historyList"'));
-assert(!eventHtml.includes('id="contaminationInput"'));
-assert(!eventHtml.includes('id="flagList"'));
-assert(!eventHtml.includes('id="choiceList"'));
-assert(eventJs.includes("window.V2EventLabData?.events"));
-assert(!eventJs.includes("conditionChecks"));
-assert(!eventJs.includes("startEventBattle"));
-assert(eventCss.includes(".event-poster"));
-assert(eventCss.includes("@keyframes poster-enter"));
-assert(eventCss.includes("@keyframes poster-drift"));
+assert(eventLabData.includes('id: "graveyard_child_ambush_lab_01"'));
+assert(eventLabData.includes('tags: Object.freeze(["사건", "공동묘지", "습격받는아이"])'));
+assert(eventLabData.includes('description: "묘비 사이에서 아이가 뒷걸음친다. 바로 뒤, 구울이 몸을 일으킨다."'));
+assert(eventLabData.includes('text: "…도와주세요!"'));
+assert(eventHtml.includes('id="eventBaseImage"'));
+assert(eventHtml.includes('id="eventGhoulLayer"'));
+assert(eventHtml.includes('id="eventDialogue"'));
+assert(eventHtml.includes('id="eventChoices"'));
+assert(eventHtml.includes("intro-dialogue-box.webp?v=6"));
+assert(eventJs.includes("BASE_IMAGE_CHUNKS"));
+assert(eventJs.includes("GHOUL_IMAGE_CHUNKS"));
+assert(eventJs.includes("loadChunkImage"));
+assert(eventJs.includes("revealGhoul"));
+assert(eventJs.includes("showDialogue"));
+assert(eventJs.includes("showChoices"));
+assert(eventCss.includes(".event-ghoul-layer"));
+assert(eventCss.includes("mix-blend-mode:screen"));
+assert(eventCss.includes("@keyframes ghoul-layer-lunge"));
+assert(eventCss.includes(".event-dialogue-box"));
+assert(eventCss.includes(".event-tags"));
 
 // Production map/battle event flow remains available outside Event Lab.
 assert(battle.includes('const fromEvent = battleQuery.get("from") === "event"'));
@@ -395,6 +394,9 @@ assert(battle.includes('resumeGraveyardEvent: "1"'));
 
 // Empty Event Lab files must be available offline.
 assert(worker.includes("./v2-event-lab.html"));
-assert(worker.includes("./v2-event-lab.css?v=20261005-event-lab-poster-shell-1"));
-assert(worker.includes("./v2-event-lab.js?v=20261005-event-lab-poster-shell-1"));
-assert(worker.includes("./v2-event-lab-data.js?v=20261005-event-lab-poster-shell-1"));
+assert(worker.includes("./v2-event-lab.css?v=20261005-event-lab-layered-graveyard-1"));
+assert(worker.includes("./v2-event-lab.js?v=20261005-event-lab-layered-graveyard-1"));
+assert(worker.includes("./v2-event-lab-data.js?v=20261005-event-lab-layered-graveyard-1"));
+
+assert(worker.includes("./assets/event-lab/graveyard-child/base/part-000.txt"));
+assert(worker.includes("./assets/event-lab/graveyard-child/ghoul/part-000.txt"));
