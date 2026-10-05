@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261005-event-lab-narrative-stage5";
+const CACHE_NAME = "necromancer-and-dice-v2-20261005-event-lab-gaze-stage4";
 
 const CORE_ASSETS = [
   "./",
@@ -56,9 +56,9 @@ const CORE_ASSETS = [
   "./v2-animation-practice.css?v=7",
   "./v2-animation-practice.js?v=82",
   "./v2-event-lab.html",
-  "./v2-event-lab.css?v=20261005-event-lab-narrative-stage5",
-  "./v2-event-lab.js?v=20261005-event-lab-narrative-stage5",
-  "./v2-event-lab-data.js?v=20261005-event-lab-narrative-stage5",
+  "./v2-event-lab.css?v=20261005-event-lab-gaze-stage4",
+  "./v2-event-lab.js?v=20261005-event-lab-gaze-stage4",
+  "./v2-event-lab-data.js?v=20261005-event-lab-gaze-stage4",
   "./assets/event-lab/graveyard-child/base/part-000.txt",
   "./assets/event-lab/graveyard-child/base/part-001.txt",
   "./assets/event-lab/graveyard-child/ghoul/part-000.txt",
