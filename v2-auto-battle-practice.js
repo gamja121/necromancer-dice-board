@@ -14,6 +14,7 @@
   const fromEvent = battleQuery.get("from") === "event";
   const eventSourceId = fromEvent ? (battleQuery.get("event") || "") : "";
   const requestedEventEnemyRaw = fromEvent ? (battleQuery.get("enemies") || "") : "";
+  const EVENT_BATTLE_RESULT_KEY = "necromancer-event-battle-result-v1";
   const undeadHealTest = battleQuery.get("test") === "undead-heal";
   const UNDEAD_HEAL_TEST_SLUGS = Object.freeze(["skeleton-spear", "skeleton-archer", "skeleton-cavalry", "grave-priest"]);
   const mapEncounterId = battleQuery.get("encounter") || "";
@@ -1903,6 +1904,28 @@
     pauseButton.disabled = true;
     speedButton.disabled = true;
     const won = aliveUnits("ally").length > 0;
+    if (fromEvent) {
+      const result = {
+        eventId: eventSourceId,
+        won,
+        enemies: [...selectedEnemySlugs],
+        encounterType: mapEncounterType,
+        finishedAt: Date.now()
+      };
+      try { sessionStorage.setItem(EVENT_BATTLE_RESULT_KEY, JSON.stringify(result)); } catch (_) {}
+      saveBattle("complete");
+      resultTitle.textContent = won ? "아이를 지켜냈다" : "구조 실패";
+      resultBody.textContent = won
+        ? "구울을 쓰러뜨렸다. 사건으로 돌아가 아이의 상태를 확인한다."
+        : "구울을 막아내지 못했다. 사건으로 돌아가 결과를 확인한다.";
+      capturePanel.hidden = true;
+      battlefield.classList.remove("is-corpse-capture");
+      resultOverlay.hidden = false;
+      message.textContent = "사건 전투 종료";
+      const resultButton = document.getElementById("resultRestartButton");
+      if (resultButton) resultButton.textContent = "사건으로 돌아가기";
+      return;
+    }
     const battleOutcome = persistMapAllyOutcome();
     const rosterOutcome = battleOutcome.roster;
     if (fromMap && globalThis.V2RunStateRuntime?.available) {
@@ -2127,6 +2150,12 @@
     });
   }
 
+  function returnToEvent() {
+    const params = new URLSearchParams();
+    if (eventSourceId) params.set("resumeEvent", eventSourceId);
+    window.location.assign(`v2-event-lab.html?${params.toString()}`);
+  }
+
   async function returnToMap() {
     const map = battleQuery.get("map");
     const tile = Math.max(1, Math.min(24, Number(battleQuery.get("tile")) || 1));
@@ -2276,7 +2305,14 @@
   document.getElementById("unitInfoClose").addEventListener("click", closeUnitInfo);
   document.getElementById("unitInfoBackdrop").addEventListener("click", closeUnitInfo);
   restartButton.addEventListener("click", () => resetBattle(true));
-  document.getElementById("resultRestartButton").addEventListener("click", () => { resetBattle(false); beginBattle(); });
+  document.getElementById("resultRestartButton").addEventListener("click", () => {
+    if (fromEvent) {
+      returnToEvent();
+      return;
+    }
+    resetBattle(false);
+    beginBattle();
+  });
   pauseButton.addEventListener("click", () => {
     paused = !paused;
     pauseButton.textContent = paused ? "계속" : "일시정지";
