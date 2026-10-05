@@ -2045,3 +2045,58 @@ body.is-graveyard-event-transition .graveyard-layout-item{pointer-events:none!im
   .graveyard-story-portrait{right:0;width:47%;height:79%}
   .graveyard-story-box{left:7%;right:7%;height:30%}
 }
+
+
+/* Cemetery story dialogue hotfix · stage 13
+   Only portrait/dialogue visibility is corrected. Cemetery stage and field actors are untouched. */
+.graveyard-story-dialogue{
+  position:absolute!important;z-index:305!important;inset:0!important;
+  display:block!important;visibility:visible!important;opacity:1!important;
+  pointer-events:none!important;
+}
+.graveyard-story-portrait{
+  position:absolute!important;z-index:306!important;
+  right:1%!important;bottom:26%!important;width:46%!important;height:78%!important;
+  display:block!important;visibility:visible!important;opacity:1!important;
+  transform:none!important;animation:none!important;
+  overflow:visible!important;pointer-events:none!important;
+  filter:drop-shadow(0 10px 10px rgba(0,0,0,.75))!important;
+}
+.graveyard-story-portrait img{
+  display:block!important;width:100%!important;height:100%!important;
+  object-fit:contain!important;object-position:center bottom!important;
+  opacity:1!important;visibility:visible!important;transform:scaleX(-1)!important;
+}
+.graveyard-story-box{
+  position:absolute!important;z-index:308!important;
+  left:8%!important;right:8%!important;bottom:2%!important;height:30%!important;min-height:0!important;
+  display:block!important;visibility:visible!important;opacity:1!important;
+  transform:none!important;animation:none!important;
+  padding:0!important;border:0!important;border-radius:0!important;
+  background:transparent!important;overflow:visible!important;
+  filter:drop-shadow(0 8px 14px #000b)!important;
+  pointer-events:auto!important;
+}
+.graveyard-story-frame{
+  position:absolute!important;z-index:1!important;inset:0!important;
+  display:block!important;width:100%!important;height:100%!important;
+  object-fit:fill!important;opacity:1!important;visibility:visible!important;pointer-events:none!important;
+}
+.graveyard-story-name{
+  position:absolute!important;z-index:3!important;left:10%!important;top:17%!important;
+  color:#3a2819!important;font-family:Georgia,"Malgun Gothic",serif!important;
+  font-size:clamp(12px,1.45vw,20px)!important;font-weight:1000!important;letter-spacing:.04em!important;
+}
+.graveyard-story-text{
+  position:absolute!important;z-index:3!important;left:10%!important;right:10%!important;top:42%!important;
+  margin:0!important;color:#21150d!important;font-size:clamp(15px,1.9vw,28px)!important;
+  font-weight:900!important;line-height:1.3!important;letter-spacing:.015em!important;
+}
+.graveyard-story-next{
+  position:absolute!important;z-index:3!important;right:8%!important;bottom:15%!important;
+  color:#5e4329!important;font-size:clamp(13px,1.35vw,20px)!important;
+}
+@media (max-height:430px) and (orientation:landscape){
+  .graveyard-story-portrait{right:0!important;width:47%!important;height:79%!important}
+  .graveyard-story-box{left:7%!important;right:7%!important;height:30%!important}
+}
