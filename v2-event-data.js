@@ -11,7 +11,7 @@
       scene: "graveyard_child_ambush_intro",
       once: true,
       conditions: {},
-      text: "공동묘지 안쪽. 한 아이가 묘비 사이에 홀로 서서 주변을 경계하고 있다. 당신은 이 아이를 두고 선택해야 한다.",
+      text: "공동묘지 안쪽. 홀로 서 있던 아이의 뒤편에서 구울이 묘비를 넘어 튀어나온다. 아이는 뒤늦게 인기척을 느끼고 몸을 움츠린다.",
       choices: [
         {
           id: "protect_child",
