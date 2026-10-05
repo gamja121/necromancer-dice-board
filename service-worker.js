@@ -80,6 +80,7 @@ const CORE_ASSETS = [
   "./art/v2-style/map-test/diorama/stone-tile-wall.svg?v=20261004-forest-user-wall-1",
   "./art/v2-style/map-test/events/fortune-prophecy-ui.png?v=1",
   "./v2-event-data.js?v=20261005-graveyard-ambush-stage1",
+  "./v2-event-data.js?v=1",
   "./art/v2-style/map-test/events/graveyard-child-idle.png?v=20261005-graveyard-ambush-stage1",
   "./art/v2-style/map-test/diorama/graveyard/graveyard-atlas.webp?v=20261005-graveyard-stage5-approved-layout-1",
   "./v2-map-events.js?v=1",
