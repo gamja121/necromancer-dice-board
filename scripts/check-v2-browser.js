@@ -106,6 +106,12 @@ async function activate(page, selector) {
     assert(eventInitial.baseWidth > 0);
     assert.deepEqual(eventInitial.tags, ["#사건","#공동묘지","#습격받는아이"]);
 
+    const initialFocus = await page.evaluate(() => ({
+      animation:getComputedStyle(document.getElementById("eventBaseImage")).animationName,
+      origin:getComputedStyle(document.getElementById("eventBaseImage")).transformOrigin
+    }));
+    assert(initialFocus.animation.includes("event-camera-child-focus"));
+
     await page.locator("#eventAdvance").click();
     await page.waitForFunction(() => {
       const card=document.getElementById("eventCard");
@@ -122,12 +128,6 @@ async function activate(page, selector) {
     await page.waitForSelector("#eventChoices", { state: "visible", timeout: 5000 });
     const eventChoices=await page.locator("#eventChoices button").allTextContents();
     assert.deepEqual(eventChoices.map(x=>x.trim()), ["아이를 구한다","지나친다"]);
-    const initialFocus = await page.evaluate(() => ({
-      animation:getComputedStyle(document.getElementById("eventBaseImage")).animationName,
-      origin:getComputedStyle(document.getElementById("eventBaseImage")).transformOrigin
-    }));
-    assert(initialFocus.animation.includes("event-camera-child-focus"));
-
     await page.locator("#eventReset").click();
     await page.locator("#eventAdvance").click();
     await page.waitForFunction(() => document.getElementById("eventCard")?.classList.contains("is-ghoul-revealed"));
