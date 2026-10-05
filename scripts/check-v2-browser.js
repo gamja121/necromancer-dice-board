@@ -124,6 +124,33 @@ async function activate(page, selector) {
     assert.deepEqual(eventChoices.map(x=>x.trim()), ["아이를 구한다","지나친다"]);
     console.log("PASS: Event Lab layered cemetery -> ghoul -> dialogue -> choice");
 
+    await page.setViewportSize({ width: 689, height: 1536 });
+    await page.goto(new URL("v2-event-lab.html", base).href);
+    await page.waitForSelector("#eventCard", { state: "visible", timeout: 15000 });
+    await page.waitForFunction(() => document.getElementById("eventBaseImage")?.dataset.assetReady === "base-ready", null, { timeout: 15000 });
+    const portraitEvent = await page.evaluate(() => {
+      const rect = (selector) => {
+        const el = document.querySelector(selector);
+        const r = el?.getBoundingClientRect();
+        return r ? { left:r.left, top:r.top, right:r.right, bottom:r.bottom, width:r.width, height:r.height } : null;
+      };
+      return {
+        viewport:{width:innerWidth,height:innerHeight},
+        card:rect("#eventCard"),
+        scene:rect(".event-scene"),
+        copy:rect(".event-copy"),
+        image:rect("#eventBaseImage"),
+        imageFit:getComputedStyle(document.getElementById("eventBaseImage")).objectFit,
+        bodyOverflow:getComputedStyle(document.body).overflowY
+      };
+    });
+    assert(portraitEvent.scene.width >= portraitEvent.card.width * .96, "Portrait event scene must use full card width");
+    assert(portraitEvent.copy.width >= portraitEvent.card.width * .96, "Portrait event copy must use full card width");
+    assert(portraitEvent.copy.top >= portraitEvent.scene.bottom - 2, "Portrait event copy must sit below the scene");
+    assert.equal(portraitEvent.imageFit, "contain", "Portrait event artwork must remain fully visible");
+    assert(portraitEvent.scene.height > portraitEvent.scene.width, "Portrait artwork area should preserve its vertical poster ratio");
+    console.log("PASS: Event Lab portrait viewer layout");
+
     await page.setViewportSize({ width: 844, height: 390 });
     await page.goto(new URL("v2-intro.html", base).href);
     await page.waitForSelector("#introAdvance");
