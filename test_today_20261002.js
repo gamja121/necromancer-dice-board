@@ -145,7 +145,7 @@ assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 // Current cache/version wiring.
 assert(mapHtml.includes("v2-map-practice.js?v=20261005-graveyard-stage5-approved-layout-1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
-assert(battleHtml.includes("v2-auto-battle-practice.js?v=130"));
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=131"));
 for (const required of [
   "./v2-intro.html",
   "./v2-intro.css?v=15",
@@ -162,7 +162,7 @@ for (const required of [
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
   "./v2-map-practice.js?v=20261005-graveyard-stage5-approved-layout-1",
-  "./v2-auto-battle-practice.js?v=130",
+  "./v2-auto-battle-practice.js?v=131",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
   "./v2-sfx.js?v=4",
@@ -223,8 +223,8 @@ assert(map.includes('building.style.bottom = "auto"'));
 
 assert(battle.includes('makeState(data, "enemy", 3 - index)'));
 assert(!battle.includes('makeState(data, "enemy", index)'));
-assert(battleHtml.includes("v2-auto-battle-practice.js?v=130"));
-assert(worker.includes("./v2-auto-battle-practice.js?v=130"));
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=131"));
+assert(worker.includes("./v2-auto-battle-practice.js?v=131"));
 
 const rulesSource = read("v2-rules.js");
 const brandCardsSource = read("v2-brand-cards.js");
@@ -400,3 +400,14 @@ assert(eventData.includes('아이를 구하기 위해 구울 앞을 막아선다
 assert(battle.includes('const fromEvent = battleQuery.get("from") === "event"'));
 assert(battle.includes("requestedEventEnemySlugs"));
 assert(battle.includes('fromEvent && team === "enemy"'));
+
+assert(eventData.includes('graveyard_child_ambush_resolved'));
+assert(eventJs.includes('EVENT_BATTLE_RESULT_KEY'));
+assert(eventJs.includes('function consumeEventBattleResult'));
+assert(eventJs.includes('graveyard_child_saved'));
+assert(eventJs.includes('graveyard_child_rescue_failed'));
+assert(battle.includes('EVENT_BATTLE_RESULT_KEY'));
+assert(battle.includes('function returnToEvent'));
+assert(battle.includes('사건으로 돌아가기'));
+assert(battle.includes('if (fromEvent) {'));
+assert(battleHtml.includes('v2-auto-battle-practice.js?v=131'));
