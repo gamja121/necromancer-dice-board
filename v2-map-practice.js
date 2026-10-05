@@ -4331,6 +4331,29 @@
       }
     });
   }
+  function startGraveyardEventCinematic() {
+    if (!el.board || !el.graveyardDioramaTest) return;
+
+    // Reuse the approved cemetery stage transition:
+    // zoom -> tilt -> cemetery props -> event scene.
+    openGraveyardDioramaTest();
+    document.body.classList.add("is-graveyard-event-transition");
+
+    if (el.graveyardLayerDebug) el.graveyardLayerDebug.hidden = true;
+    if (el.graveyardDioramaClose) el.graveyardDioramaClose.hidden = true;
+    if (el.graveyardEditorReopen) el.graveyardEditorReopen.hidden = true;
+    if (el.graveyardAssetStatus) el.graveyardAssetStatus.hidden = true;
+
+    const params = new URLSearchParams({
+      event: "graveyard_child_ambush_01",
+      from: "map",
+      mode: "ingame"
+    });
+    graveyardDioramaTimers.push(window.setTimeout(() => {
+      window.location.assign("v2-event-lab.html?" + params.toString());
+    }, 2150));
+  }
+
   function installEventOptionShortcut() {
     const panel = el.audioOptions || document.getElementById("mapAudioOptions");
     if (!panel || panel.querySelector("[data-map-event-shortcut]")) return;
@@ -4345,13 +4368,7 @@
     button.textContent = "공동묘지";
     button.setAttribute("aria-label", "공동묘지 습격받는 아이 사건을 인게임 연출로 열기");
     button.addEventListener("click", () => {
-      closeAudioOptions();
-      const params = new URLSearchParams({
-        event: "graveyard_child_ambush_01",
-        from: "map",
-        mode: "ingame"
-      });
-      window.location.assign("v2-event-lab.html?" + params.toString());
+      startGraveyardEventCinematic();
     });
     row.append(label, button);
     panel.append(row);
