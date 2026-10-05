@@ -32,9 +32,9 @@ assert(v2.includes('href="v2-event-lab.html"'), "V2 screen must link to Event La
 
 for (const file of [
   "v2-event-lab.html",
-  "v2-event-lab.css?v=20261005-graveyard-inline-event-stage12-1",
-  "v2-event-lab.js?v=20261005-graveyard-inline-event-stage12-1",
-  "v2-event-data.js?v=20261005-graveyard-inline-event-stage12-1"
+  "v2-event-lab.css?v=20261005-graveyard-dialogue-stage13-1",
+  "v2-event-lab.js?v=20261005-graveyard-dialogue-stage13-1",
+  "v2-event-data.js?v=20261005-graveyard-dialogue-stage13-1"
 ]) {
   assert(worker.includes(file), `Event Lab is not cached: ${file}`);
 }
@@ -50,7 +50,7 @@ assert(css.includes(".event-graveyard-g1{left:39.5278%;top:11.2138%;width:25%;z-
 assert(data.includes('scene: "graveyard_child_ambush_intro"'), "Cemetery ambush scene marker is missing");
 assert(js.includes('event.scene === "graveyard_child_ambush_intro"'), "Scene preview switching is missing");
 
-assert(worker.includes("event-child-idle-01.png?v=20261005-graveyard-inline-event-stage12-1"), "Child static sprite is not cached");
+assert(worker.includes("event-child-idle-01.png?v=20261005-graveyard-dialogue-stage13-1"), "Child static sprite is not cached");
 
 {
   const start = data.indexOf('id: "graveyard_child_ambush_01"');
