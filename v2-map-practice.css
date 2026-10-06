@@ -2180,20 +2180,23 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   width:100%!important;
   min-width:0!important;
   min-height:42px!important;
-  aspect-ratio:3/1!important;
-  padding:0 10px!important;
+  aspect-ratio:744 / 294!important;
+  padding:0 11%!important;
   border:0!important;
   border-radius:0!important;
-  background:transparent url("art/v2-style/ui/parchment-button-variant-01.png") center/100% 100% no-repeat!important;
+  background:transparent url("art/v2-style/ui/graveyard-choice-parchment.webp?v=1") center/100% 100% no-repeat!important;
   color:#3f2818!important;
-  font-size:clamp(12px,1.25vw,18px)!important;
+  font-size:clamp(12px,1.18vw,18px)!important;
   font-weight:1000!important;
   text-align:center!important;
-  text-shadow:0 1px #fff0cf!important;
+  text-shadow:0 1px rgba(255,244,216,.82)!important;
   filter:drop-shadow(0 5px 5px #0009)!important;
 }
+.graveyard-story-choice-button:active{
+  transform:translateY(1px) scale(.985)!important;
+}
 .graveyard-story-choice-leave{
-  background-image:url("art/v2-style/ui/parchment-button-variant-04.png")!important;
+  filter:brightness(.94) saturate(.86) drop-shadow(0 5px 5px #0009)!important;
 }
 .graveyard-story-event.is-choice-phase .graveyard-story-box{
   pointer-events:none!important;
