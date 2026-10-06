@@ -4666,6 +4666,20 @@
     }
   }
 
+  function installGraveyardStoryTapAdvance() {
+    if (!el.graveyardStoryEvent || el.graveyardStoryEvent.dataset.tapAdvanceReady === "1") return;
+    el.graveyardStoryEvent.dataset.tapAdvanceReady = "1";
+    el.graveyardStoryEvent.addEventListener("click", (event) => {
+      if (el.graveyardStoryEvent.hidden) return;
+      if (el.graveyardStoryEvent.classList.contains("is-choice-phase")) return;
+      if (event.target.closest(".graveyard-story-choices")) return;
+      if (event.target.closest("#graveyardStoryAdvance")) return;
+      advanceGraveyardStoryBeat();
+    });
+  }
+
+  installGraveyardStoryTapAdvance();
+
   function startGraveyardEventBattle() {
     const partyUnits = currentPartyUnits();
     const context = {
