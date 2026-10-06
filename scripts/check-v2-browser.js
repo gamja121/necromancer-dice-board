@@ -301,12 +301,33 @@ async function activate(page, selector) {
     console.log("PASS: V2 battle roster and start");
 
     await page.waitForFunction(() => !document.getElementById("brandReferenceOverlay").hidden);
+    const brandReferenceMetrics = await page.evaluate(() => {
+      const panel = document.querySelector(".brand-reference-panel").getBoundingClientRect();
+      const rows = [...document.querySelectorAll(".brand-reference-row")];
+      const faces = [...document.querySelectorAll(".brand-face")];
+      return {
+        panel,
+        rowCount: rows.length,
+        faceCount: faces.length,
+        overflowX: document.querySelector(".brand-reference-grid").scrollWidth > document.querySelector(".brand-reference-grid").clientWidth,
+        overflowY: document.querySelector(".brand-reference-grid").scrollHeight > document.querySelector(".brand-reference-grid").clientHeight
+      };
+    });
+    assert.equal(brandReferenceMetrics.rowCount, 8, "Brand reference must show 4 allies and 4 enemies");
+    assert.equal(brandReferenceMetrics.faceCount, 6, "Brand reference must show six dice faces");
+    assert(!brandReferenceMetrics.overflowX && !brandReferenceMetrics.overflowY, "Brand reference must fit without grid scrolling");
+    assert(brandReferenceMetrics.panel.width <= 844 && brandReferenceMetrics.panel.height <= 390, "Brand reference must fit mobile landscape viewport");
     await page.locator("#brandReferenceClose").click();
     await page.waitForFunction(() =>
       document.getElementById("brandReferenceOverlay").hidden &&
-      !document.getElementById("turnDice").hidden
+      !document.getElementById("turnDice").hidden &&
+      !document.getElementById("brandReferenceButton").hidden
     );
-    console.log("PASS: V2 initial brand reference gate");
+    await page.locator("#brandReferenceButton").click();
+    await page.waitForFunction(() => !document.getElementById("brandReferenceOverlay").hidden);
+    await page.locator("#brandReferenceClose").click();
+    await page.waitForFunction(() => document.getElementById("brandReferenceOverlay").hidden);
+    console.log("PASS: V2 initial + manual brand reference flow");
 
     await page.locator("#turnDiceButton").click();
     await page.waitForFunction(() => {
