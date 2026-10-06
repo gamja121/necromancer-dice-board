@@ -62,6 +62,8 @@ function setup() {
   const context = {
     running: false, introRunning: false, actionBusy: false, battleToken: 1, paused: false,
     window: {}, startOverlay: {}, resultOverlay: {}, pauseButton: {}, speedButton: {}, turnDice: {}, message: {},
+    brandReferenceInitialPending: false, brandReferenceButton: { hidden: false },
+    openBrandReference() {},
     console: { warn() {} }, wait: async () => {},
     units: [0, 1, 2, 3].map(slot => ({ team: "ally", slot, name: "ally" + slot, element: element(true) }))
       .concat([0, 1, 2, 3].map(slot => ({ team: "enemy", slot, name: "enemy" + slot, element: element() }))),
