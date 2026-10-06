@@ -2873,3 +2873,110 @@ body.is-graveyard-event-transition .map-board .swamp-damage-overlay{
   .graveyard-story-dialogue{left:2%!important;top:72%!important;width:59%!important;height:26%!important}
   .graveyard-story-choices{left:64%!important;top:48%!important;width:34%!important}
 }
+
+
+/* Stage 22 — reuse the battlefield "효과 정보" window for map story events.
+   The event remains a landscape board overlay; only the event composition and
+   effect-panel skin are aligned to the battle UI. */
+.graveyard-story-stage{
+  width:82%!important;
+  height:74%!important;
+}
+.graveyard-story-art-wrap{
+  left:3%!important;
+  top:4%!important;
+  width:55%!important;
+  height:65%!important;
+  border-radius:3px!important;
+}
+.graveyard-story-effect-box{
+  position:absolute!important;
+  z-index:7!important;
+  left:61%!important;
+  top:4%!important;
+  right:auto!important;
+  width:36%!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  aspect-ratio:643 / 470!important;
+  padding:0!important;
+  overflow:hidden!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  clip-path:polygon(2% 0,98% 0,100% 4%,100% 96%,98% 100%,2% 100%,0 96%,0 4%)!important;
+  color:inherit!important;
+  text-shadow:none!important;
+  font-family:inherit!important;
+}
+.graveyard-story-effect-box::before{display:none!important}
+.graveyard-story-effect-frame{
+  position:absolute!important;
+  z-index:0!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:fill!important;
+  pointer-events:none!important;
+  user-select:none!important;
+}
+.graveyard-story-effect-inner{
+  position:absolute!important;
+  z-index:1!important;
+  inset:8% 7% 9%!important;
+  display:flex!important;
+  flex-direction:column!important;
+  min-height:0!important;
+}
+.graveyard-story-effect-inner>h2{
+  display:grid!important;
+  place-items:center!important;
+  flex:0 0 14%!important;
+  margin:0 0 3%!important;
+  color:#3b2d25!important;
+  font:900 clamp(10px,1.25vw,17px)/1 Georgia,"Malgun Gothic",serif!important;
+  text-align:center!important;
+  text-shadow:none!important;
+  writing-mode:horizontal-tb!important;
+}
+.graveyard-story-effect-content{
+  min-height:0!important;
+  display:grid!important;
+  place-items:center!important;
+  overflow:auto!important;
+}
+.graveyard-story-effect-content p{
+  margin:0!important;
+  padding:0 5%!important;
+  color:#49382e!important;
+  font:800 clamp(10px,1.05vw,14px)/1.5 "Malgun Gothic","Apple SD Gothic Neo",sans-serif!important;
+  text-align:center!important;
+  text-shadow:none!important;
+  writing-mode:horizontal-tb!important;
+  text-orientation:mixed!important;
+  direction:ltr!important;
+  white-space:normal!important;
+  word-break:keep-all!important;
+  overflow-wrap:break-word!important;
+  transform:none!important;
+}
+.graveyard-story-dialogue{
+  left:3%!important;
+  top:72%!important;
+  width:55%!important;
+  height:24%!important;
+}
+.graveyard-story-choices{
+  left:61%!important;
+  top:58%!important;
+  width:36%!important;
+}
+@media(max-height:430px) and (orientation:landscape){
+  .graveyard-story-stage{width:84%!important;height:78%!important}
+  .graveyard-story-art-wrap{left:3%!important;top:3%!important;width:55%!important;height:65%!important}
+  .graveyard-story-effect-box{left:61%!important;top:3%!important;width:36%!important}
+  .graveyard-story-dialogue{left:3%!important;top:71%!important;width:55%!important;height:25%!important}
+  .graveyard-story-choices{left:61%!important;top:58%!important;width:36%!important}
+}
