@@ -60,7 +60,6 @@
   const STARTING_UNIT_SLUGS = Object.freeze(["skeleton-spear", "skeleton-archer"]);
   const DICE_CONTROL_INVENTORY_KEY = "necromancer-map-dice-control-v1";
   const GRAVEYARD_CORPSES_KEY = "necromancer-map-graveyard-corpses-v1";
-  const GRAVEYARD_CHILD_EVENT_ID = "graveyard_child_ambush_01";
   const GRAVEYARD_CHILD_EVENT_FLAG = "event:graveyard_child_ambush_01:complete";
   const GRAVEYARD_CHILD_EVENT_FALLBACK_KEY = "necromancer-event-graveyard-child-complete-v1";
   const MONSTER_CAPACITY = 10;
@@ -161,10 +160,6 @@
     graveyardStoryChoices: document.getElementById("graveyardStoryChoices"),
     graveyardStoryPortraitImg: document.querySelector(".graveyard-story-portrait img"),
     graveyardStoryFrameImg: document.querySelector(".graveyard-story-frame"),
-    graveyardPosterEvent: document.getElementById("graveyardPosterEvent"),
-    graveyardPosterText: document.getElementById("graveyardPosterText"),
-    graveyardPosterChoices: document.getElementById("graveyardPosterChoices"),
-    graveyardPosterContinue: document.getElementById("graveyardPosterContinue"),
     mapName: document.getElementById("mapName"),
     tileName: document.getElementById("tileName"),
     regenerate: document.getElementById("regenerateButton"),
@@ -224,15 +219,6 @@
     fortuneProphecyUi: document.getElementById("fortuneProphecyUi"),
     eventPrayerResult: document.getElementById("tileEventPrayerResult"),
     eventContaminationChange: document.getElementById("tileEventContaminationChange"),
-    storyPanel: document.getElementById("tileStoryEventPanel"),
-    storyTitle: document.getElementById("tileStoryEventTitle"),
-    storyText: document.getElementById("tileStoryEventText"),
-    storyChoices: document.getElementById("tileStoryEventChoices"),
-    storyRoll: document.getElementById("tileStoryEventRoll"),
-    storyRollLabel: document.getElementById("tileStoryEventRollLabel"),
-    storyRollButton: document.getElementById("tileStoryEventRollButton"),
-    storyRollResult: document.getElementById("tileStoryEventRollResult"),
-    storyOutcome: document.getElementById("tileStoryEventOutcome"),
     eventClose: document.getElementById("tileEventClose"),
     bookButton: document.getElementById("mapBookButton"),
     cardDeckButton: document.getElementById("mapCardDeckButton"),
@@ -337,21 +323,8 @@
     catch (_) { return false; }
   }
 
-  function syncLegacyGraveyardChildStoryResolved() {
-    try {
-      const key = "necromancer-v2-story-flags-v1";
-      const raw = sessionStorage.getItem(key);
-      const flags = raw ? JSON.parse(raw) : {};
-      const next = flags && typeof flags === "object" ? flags : {};
-      next.graveyard_child_ambush_seen = true;
-      next.graveyard_child_ambush_resolved = true;
-      sessionStorage.setItem(key, JSON.stringify(next));
-    } catch (_) {}
-  }
-
   async function markGraveyardChildEventComplete() {
     try { sessionStorage.setItem(GRAVEYARD_CHILD_EVENT_FALLBACK_KEY, "1"); } catch (_) {}
-    syncLegacyGraveyardChildStoryResolved();
     if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
       const result = await V2RunStateRuntime.commitExact("event-complete:graveyard-child", (draft) => {
         if (!draft.eventFlags || typeof draft.eventFlags !== "object") draft.eventFlags = {};
@@ -361,8 +334,6 @@
     }
     return true;
   }
-
-  if (graveyardChildEventCompleted()) syncLegacyGraveyardChildStoryResolved();
 
   function currentPartyUnits() {
     const runParty = globalThis.V2RunStateRuntime?.snapshot?.()?.party;
@@ -1146,7 +1117,6 @@
     activeEventRatio = tileEventRatios.forest || WORLD_TREE_EVENT_RATIO;
     el.diceButton.disabled = true;
     el.regenerate.disabled = true;
-    mapStoryEvents?.close();
     el.eventOverlay.hidden = true;
     el.board.classList.remove("is-tile-event-open");
     openForestDioramaTest({ fromTile: true });
@@ -1335,33 +1305,6 @@
   function addContamination(amount) {
     return setContamination(contamination + Number(amount || 0));
   }
-
-  function ownedMonsterTags() {
-    const tags = new Set();
-    for (const unit of ownedUnits.values()) {
-      const design = globalThis.V2DesignData?.units?.[unit.slug];
-      for (const tag of design?.legions || []) tags.add(tag);
-    }
-    return [...tags];
-  }
-
-  const mapStoryEvents = globalThis.V2MapEvents?.create({
-    panel: el.storyPanel,
-    title: el.storyTitle,
-    text: el.storyText,
-    choices: el.storyChoices,
-    outcome: el.storyOutcome,
-    rollBox: el.storyRoll,
-    rollLabel: el.storyRollLabel,
-    rollButton: el.storyRollButton,
-    rollResult: el.storyRollResult,
-    image: el.eventImage,
-    getContamination: () => contamination,
-    addContamination,
-    getMonsterTags: ownedMonsterTags,
-    onStateChanged: () => {}
-  }) || null;
-
 
   function loadGraveyardCorpses() {
     const runCorpses = globalThis.V2RunStateRuntime?.snapshot?.()?.graveyardCorpses;
@@ -1623,8 +1566,31 @@
     return SCOUT_ENCOUNTER_STAGES[0];
   }
 
+  const MAP_LOOP_FALLBACK_KEY = "necromancer-map-loop-v1";
+  let mapLoop = (() => {
+    const runLap = globalThis.V2RunStateRuntime?.snapshot?.()?.currentMap?.lap;
+    if (Number.isInteger(runLap) && runLap >= 0) return runLap + 1;
+    try {
+      return Math.max(1, Math.floor(Number(sessionStorage.getItem(MAP_LOOP_FALLBACK_KEY)) || 1));
+    } catch (_) {
+      return 1;
+    }
+  })();
+
   function currentEncounterLoop() {
-    return Math.max(1, Math.floor(Number(mapStoryEvents?.snapshot?.()?.loop) || 1));
+    return mapLoop;
+  }
+
+  async function advanceMapLoop() {
+    mapLoop += 1;
+    try { sessionStorage.setItem(MAP_LOOP_FALLBACK_KEY, String(mapLoop)); } catch (_) {}
+    if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
+      await V2RunStateRuntime.commitExact("map-lap-advance", (draft) => {
+        if (!draft.currentMap || typeof draft.currentMap !== "object") draft.currentMap = {};
+        draft.currentMap.lap = mapLoop - 1;
+      });
+    }
+    return mapLoop;
   }
 
   function constrainedEncounterCount(requestedCount, value = contamination, loop = currentEncounterLoop()) {
@@ -3157,20 +3123,6 @@
     el.eventContaminationChange.hidden = true;
     el.eventContaminationChange.className = "tile-event-contamination-change";
     el.eventContaminationChange.textContent = "";
-    mapStoryEvents?.close();
-    const storyOpened = !treasure && Boolean(mapStoryEvents?.openForTile(tile.id));
-    if (storyOpened) {
-      el.eventEnter.hidden = true;
-      el.eventInheritance.hidden = true;
-      el.eventPatrolRoute.hidden = true;
-      el.eventHeal.hidden = true;
-      el.eventPray.hidden = true;
-      el.eventRitual.hidden = true;
-      el.eventProphecy.hidden = true;
-      el.eventMonsterShop.hidden = tile.id !== "village";
-      el.eventGraveyard.hidden = tile.id !== "graveyard" || !hasGraveyardCorpses();
-      el.eventHillScout.hidden = tile.id !== "forest";
-    }
     el.eventClose.hidden = treasure;
     if (treasure) {
       el.eventImage.removeAttribute("src");
@@ -3190,7 +3142,7 @@
         }
         showTreasureRewards();
       });
-    } else if (!storyOpened) {
+    } else {
       el.eventImage.src = scene.image;
       el.eventImage.alt = `${scene.title} 풍경`;
     }
@@ -3764,7 +3716,7 @@
     const completedLap = refreshAfterHome && lapReadyForRefresh;
     if (completedLap) {
       addContamination(4);
-      mapStoryEvents?.advanceLoop();
+      await advanceMapLoop();
     }
     closeTileEvent();
     if (refreshAfterHome) await playCloudTileRefresh();
@@ -3799,7 +3751,6 @@
     el.eventContaminationChange.hidden = true;
     el.eventContaminationChange.className = "tile-event-contamination-change";
     el.eventContaminationChange.textContent = "";
-    mapStoryEvents?.close();
     el.eventClose.disabled = false;
     worldTreePrayerRolling = false;
     el.board.classList.remove("is-world-tree-praying", "is-fortune-prophesying");
@@ -3889,6 +3840,10 @@
           el.diceButton.disabled = false;
           el.regenerate.disabled = false;
           return;
+        }
+        if (tile.id === "graveyard") {
+          const launchedStory = await launchGraveyardChildEventFromMap(index + 1);
+          if (launchedStory) return;
         }
         if (openTileEvent(tile, index + 1)) return;
         enterMonsterBattle(tile, index + 1);
@@ -4199,7 +4154,7 @@
       el.regenerate.disabled = false;
       return;
     }
-    if (["event", "graveyard"].includes(currentTiles[heroIndex]?.id)) {
+    if (currentTiles[heroIndex]?.id === "graveyard") {
       const launchedStory = await launchGraveyardChildEventFromMap(heroIndex + 1);
       if (launchedStory) {
         rolling = false;
@@ -4706,48 +4661,6 @@
     window.location.assign("v2-auto-battle-practice.html?" + params.toString());
   }
 
-  function closeGraveyardPosterEvent() {
-    if (el.graveyardPosterEvent) el.graveyardPosterEvent.hidden = true;
-    document.body.classList.remove("is-graveyard-poster-event");
-  }
-
-  function openGraveyardPosterEvent({ rescued = false } = {}) {
-    if (!el.graveyardPosterEvent) return;
-    document.body.classList.add("is-graveyard-poster-event");
-    el.graveyardPosterEvent.hidden = false;
-    el.graveyardPosterEvent.classList.toggle("is-result", rescued === true);
-    if (el.graveyardPosterText) {
-      el.graveyardPosterText.textContent = rescued
-        ? "구울은 쓰러졌다. 아이는 한참 동안 당신을 바라보다가 작게 고개를 숙였다."
-        : "묘비 사이에서 아이가 구울에게 쫓기고 있다. 아직 당신을 보지 못했다.";
-    }
-    if (el.graveyardPosterChoices) el.graveyardPosterChoices.hidden = rescued === true;
-    if (el.graveyardPosterContinue) el.graveyardPosterContinue.hidden = rescued !== true;
-  }
-
-  function startGraveyardPosterEvent() {
-    closeAudioOptions();
-    openGraveyardPosterEvent();
-  }
-
-  function startGraveyardEventCinematic() {
-    if (!el.board || !el.graveyardDioramaTest) return;
-
-    // Reuse the approved cemetery stage transition and keep the story on this same stage.
-    openGraveyardDioramaTest();
-    document.body.classList.add("is-graveyard-event-transition");
-
-    if (el.graveyardLayerDebug) el.graveyardLayerDebug.hidden = true;
-    if (el.graveyardDioramaClose) el.graveyardDioramaClose.hidden = true;
-    if (el.graveyardEditorReopen) el.graveyardEditorReopen.hidden = true;
-    if (el.graveyardAssetStatus) el.graveyardAssetStatus.hidden = true;
-    if (el.graveyardStoryEvent) el.graveyardStoryEvent.hidden = true;
-
-    graveyardDioramaTimers.push(window.setTimeout(() => {
-      openGraveyardStoryEvent();
-    }, 1750));
-  }
-
   function resumeGraveyardEventAfterBattle() {
     let result = null;
     try {
@@ -4786,17 +4699,6 @@
   }
 
   installEventOptionShortcut();
-
-  el.graveyardPosterChoices?.querySelector('[data-graveyard-poster-choice="protect"]')?.addEventListener("click", () => {
-    closeGraveyardPosterEvent();
-    startGraveyardEventBattle();
-  });
-  el.graveyardPosterChoices?.querySelector('[data-graveyard-poster-choice="leave"]')?.addEventListener("click", () => {
-    if (el.graveyardPosterText) el.graveyardPosterText.textContent = "당신은 발걸음을 돌린다. 뒤에서 낮은 신음과 아이의 숨소리가 멀어진다.";
-    if (el.graveyardPosterChoices) el.graveyardPosterChoices.hidden = true;
-    if (el.graveyardPosterContinue) el.graveyardPosterContinue.hidden = false;
-  });
-  el.graveyardPosterContinue?.addEventListener("click", closeGraveyardPosterEvent);
 
   el.graveyardStoryChoices?.querySelector('[data-graveyard-story-choice="protect"]')?.addEventListener("click", startGraveyardEventBattle);
   el.graveyardStoryChoices?.querySelector('[data-graveyard-story-choice="leave"]')?.addEventListener("click", async () => {
