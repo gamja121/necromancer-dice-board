@@ -401,7 +401,7 @@ assert(map.includes('button.textContent = "공동묘지"'));
 assert(mapHtml.includes('id="graveyardPosterEvent"'));
 assert(map.includes("function openGraveyardPosterEvent"));
 assert(map.includes("function startGraveyardPosterEvent"));
-assert(map.includes("startGraveyardPosterEvent();"));
+assert(map.includes("void openGraveyardStoryEvent();"));
 assert(mapCss.includes("Cemetery poster event · stage 17"));
 assert(mapCss.includes("@keyframes graveyard-poster-enter"));
 assert(mapCss.includes("@keyframes graveyard-poster-drift"));
