@@ -4424,17 +4424,17 @@
   const GRAVEYARD_EVENT_BATTLE_RESULT_KEY = "necromancer-event-battle-result-v1";
 
   const GRAVEYARD_EVENT_BASE_ART =
-    "art/v2-style/map-test/events/graveyard-child-base-v2.webp?v=1";
+    "art/v2-style/map-test/events/graveyard-child-base-v2.webp?v=2";
   const GRAVEYARD_EVENT_GHOUL_ART =
-    "art/v2-style/map-test/events/graveyard-child-ghoul-v2.webp?v=1";
+    "art/v2-style/map-test/events/graveyard-child-ghoul-v2.webp?v=2";
   let graveyardStoryArtReady = null;
 
   async function decodeGraveyardStoryImage(img, src) {
     if (!img) return false;
-    img.src = src;
+    if (!img.src || !img.src.includes(src.split("?")[0])) img.src = src;
     try {
-      await img.decode();
-      return true;
+      if (!img.complete || !img.naturalWidth) await img.decode();
+      return img.naturalWidth > 0 && img.naturalHeight > 0;
     } catch (error) {
       console.error("[graveyard-event] image decode failed", src, error);
       return false;
