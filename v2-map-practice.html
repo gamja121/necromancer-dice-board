@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0907">
   <title>네크로멘서 앤드 다이스 · 외곽 타일 맵 테스트</title>
-  <link rel="stylesheet" href="v2-map-practice.css?v=20261006-board-event-ui-stage22-battle-effect-frame">
+  <link rel="stylesheet" href="v2-map-practice.css?v=20261006-board-event-ui-stage23-legacy-event-cleanup">
   <link rel="stylesheet" href="v2-home-inheritance.css?v=9">
   <link rel="stylesheet" href="v2-altar-ritual.css?v=5">
 </head>
@@ -245,17 +245,6 @@
               </section>
             </div>
           </section>
-          <section id="tileStoryEventPanel" class="tile-story-event-panel" aria-live="polite" hidden>
-            <h2 id="tileStoryEventTitle">사건</h2>
-            <p id="tileStoryEventText"></p>
-            <div id="tileStoryEventChoices" class="tile-story-event-choices"></div>
-            <div id="tileStoryEventRoll" class="tile-story-event-roll" hidden>
-              <strong id="tileStoryEventRollLabel">판정</strong>
-              <span id="tileStoryEventRollResult">d6</span>
-              <button id="tileStoryEventRollButton" type="button">주사위 굴리기</button>
-            </div>
-            <div id="tileStoryEventOutcome" class="tile-story-event-outcome" hidden></div>
-          </section>
           <button id="tileEventClose" class="tile-event-exit" type="button">나가기</button>
         </div>
           <section id="monsterShopPanel" class="monster-shop-panel" aria-live="polite" hidden>
@@ -439,29 +428,6 @@
         <span class="graveyard-layout-item graveyard-item-h4 graveyard-sprite-h4 is-layout-flipped" data-graveyard-id="H4" data-graveyard-type="headstone" data-default-hidden="false" data-default-flip="true" style="left:46.0133%;top:16.5162%;bottom:auto;width:11%;z-index:4" data-default-left="46.0133%" data-default-top="16.5162%" data-default-bottom="auto" data-default-width="11%" data-default-z="4"><span class="graveyard-item-visual" aria-hidden="true"></span></span>
         <span class="graveyard-layout-item graveyard-item-c1 graveyard-sprite-c1" data-graveyard-id="C1" data-graveyard-type="crow" data-default-hidden="false" data-default-flip="false" style="left:61.9121%;top:44.0336%;bottom:auto;width:7%;z-index:6" data-default-left="61.9121%" data-default-top="44.0336%" data-default-bottom="auto" data-default-width="7%" data-default-z="6"><span class="graveyard-item-visual" aria-hidden="true"></span></span>
       </div>
-      <section id="graveyardPosterEvent" class="graveyard-poster-event" hidden aria-label="공동묘지 사건 벽보">
-        <div class="graveyard-poster-backdrop" aria-hidden="true"></div>
-        <article class="graveyard-poster-card" role="dialog" aria-modal="true" aria-labelledby="graveyardPosterTitle">
-          <div class="graveyard-poster-pin graveyard-poster-pin-left" aria-hidden="true"></div>
-          <div class="graveyard-poster-pin graveyard-poster-pin-right" aria-hidden="true"></div>
-          <div class="graveyard-poster-stamp" aria-hidden="true">사건</div>
-          <div class="graveyard-poster-art" aria-hidden="true">
-            <div class="graveyard-poster-mist"></div>
-            <img class="graveyard-poster-ghoul" src="art/v2-style/processed/192/ghoul.png?v=20261005-graveyard-poster-stage17-1" alt="">
-            <img class="graveyard-poster-child" src="art/v2-style/event-portraits/dark-eyed-boy.png?v=1" alt="">
-          </div>
-          <div class="graveyard-poster-copy">
-            <p class="graveyard-poster-kicker">공동묘지</p>
-            <h2 id="graveyardPosterTitle">묘비 사이의 아이</h2>
-            <p id="graveyardPosterText">묘비 사이에서 아이가 구울에게 쫓기고 있다. 아직 당신을 보지 못했다.</p>
-          </div>
-          <div id="graveyardPosterChoices" class="graveyard-poster-choices">
-            <button type="button" data-graveyard-poster-choice="protect">아이를 구한다</button>
-            <button type="button" data-graveyard-poster-choice="leave">지나친다</button>
-          </div>
-          <button id="graveyardPosterContinue" class="graveyard-poster-continue" type="button" hidden>계속</button>
-        </article>
-      </section>
       <section id="graveyardStoryEvent" class="graveyard-story-event" hidden aria-label="공동묘지 사건 · 습격받는 아이">
         <div class="graveyard-story-stage" role="dialog" aria-modal="true" aria-label="습격받는 아이 사건">
           <div class="graveyard-story-art-wrap" aria-hidden="true">
@@ -554,8 +520,6 @@
   <script src="v2-altar-ritual.js?v=5"></script>
   <script src="v2-dice-control.js?v=1"></script>
   <script src="v2-world-tree-prayer-digits.js?v=2"></script>
-  <script src="v2-event-data.js?v=1"></script>
-  <script src="v2-map-events.js?v=1"></script>
-  <script src="v2-map-practice.js?v=20261006-board-event-ui-stage22-battle-effect-frame"></script>
+  <script src="v2-map-practice.js?v=20261006-board-event-ui-stage23-legacy-event-cleanup"></script>
 </body>
 </html>
