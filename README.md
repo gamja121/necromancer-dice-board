@@ -20,7 +20,7 @@
 
 시작 마물 2마리와 주사위 컨트롤 카드 1장, 개체별 보유 목록, 1~4마리 전투 편성, 마물 영구 사망·영입, 보물 보상, 소비형 주사위 카드 18종, 낙인 계승, 숙영 회복, 오염도 및 단계별 타일 재생성까지 연결되어 있습니다.
 
-Event Lab의 조건/선택/후속 사건 데이터는 아직 실제 맵 사건 선택기에 연결하기 전입니다. 정화 행동, 희귀·보스 전용 적 생성, 통합 원정 저장은 후속 개발 범위입니다. 최신 상태와 수정 내역은 [진행 기록](AI_PROJECT_PROGRESS.md)을 확인하세요.
+기존 공통 사건 선택기와 구형 사건 데이터는 제거했습니다. 현재 공동묘지 ‘습격받는 아이’는 `v2-map-practice.js`의 전용 사건 연출만 사용하며, Event Lab은 별도 개발용 시나리오 실험실로 유지합니다. 정화 행동, 희귀·보스 전용 적 생성은 후속 개발 범위입니다. 최신 상태와 수정 내역은 [진행 기록](AI_PROJECT_PROGRESS.md)을 확인하세요.
 
 ## 코드 기준
 
@@ -29,7 +29,7 @@ Event Lab의 조건/선택/후속 사건 데이터는 아직 실제 맵 사건 �
 | 현재 전투 데이터·판정 | `v2-design-data.js`, `v2-rules.js` |
 | 원정·전투 연결 | `v2-map-practice.js`, `v2-auto-battle-practice.js` |
 | 주사위 컨트롤 | `v2-dice-control.js` |
-| 사건 데이터·테스트 | `v2-event-data.js`, `v2-event-lab.js` |
+| 사건 연출·테스트 | `v2-map-practice.js`, `v2-event-lab-data.js`, `v2-event-lab.js` |
 | 직접 조작 전투의 마물 목록 | `v2-unit-data.js` |
 | 원화·모션·UI | `art/v2-style/` |
 | 설치·오프라인 | `manifest.webmanifest`, `service-worker.js` |
