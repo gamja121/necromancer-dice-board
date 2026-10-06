@@ -300,6 +300,14 @@ async function activate(page, selector) {
     await page.waitForFunction(() => document.getElementById("startOverlay").hidden);
     console.log("PASS: V2 battle roster and start");
 
+    await page.waitForFunction(() => !document.getElementById("brandReferenceOverlay").hidden);
+    await page.locator("#brandReferenceClose").click();
+    await page.waitForFunction(() =>
+      document.getElementById("brandReferenceOverlay").hidden &&
+      !document.getElementById("turnDice").hidden
+    );
+    console.log("PASS: V2 initial brand reference gate");
+
     await page.locator("#turnDiceButton").click();
     await page.waitForFunction(() => {
       const saved = JSON.parse(localStorage.getItem("necromancer-v2-battle-v1") || "null");
