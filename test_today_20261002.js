@@ -143,7 +143,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261006-graveyard-story-canonical-3"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261006-graveyard-story-canonical-4"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=133"));
 for (const required of [
@@ -161,7 +161,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261006-graveyard-story-canonical-3",
+  "./v2-map-practice.js?v=20261006-graveyard-story-canonical-4",
   "./v2-auto-battle-practice.js?v=133",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -180,8 +180,8 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!/(^|\\n)\\.map-options-button\\s*\\{\\s*visibility:\\s*hidden;\\s*\\}/.test(mapCss));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261006-graveyard-story-canonical-3"));
-assert(worker.includes("./v2-map-practice.css?v=20261006-graveyard-story-canonical-3"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261006-graveyard-story-canonical-4"));
+assert(worker.includes("./v2-map-practice.css?v=20261006-graveyard-story-canonical-4"));
 assert(mapHtml.includes('id="villageDioramaTestButton"'));
 assert(mapHtml.includes('id="villageDioramaTest"'));
 assert(mapHtml.includes("village-building-01.webp?v=20261005-graveyard-poster-stage17-1"));
@@ -443,10 +443,17 @@ assert(battle.includes('(fromMap || fromEvent) && selectedAllySlugs.length'));
 
 
 assert(mapHtml.includes('id="graveyardStoryArtwork"'));
+assert(!mapHtml.includes('id="graveyardStoryGhoulLayer"'), "ghoul must be composited into the event artwork");
 assert(mapHtml.includes('id="graveyardStoryEffectText"'));
 assert(mapHtml.includes('class="tile-event-enter graveyard-story-choice-button"'));
 assert(mapHtml.includes('class="graveyard-story-frame" src="art/v2-style/ui/intro-dialogue-box.webp?v=6"'));
 assert(map.includes("ensureGraveyardStoryArt"));
+assert(map.includes("composeGraveyardGhoulArtwork"), "ghoul reveal must be composited into the artwork");
+assert(map.includes("setGraveyardArtwork(beat.ghoul === true)"), "story beats must swap the single artwork source");
+assert(!map.includes("graveyardStoryGhoulLayer"), "separate ghoul DOM layer must stay removed");
+assert(mapCss.includes("width:90%!important"), "graveyard event stage should be enlarged");
+assert(mapCss.includes("height:88%!important"), "graveyard event stage should be taller");
+assert(mapCss.includes("width:50%!important"), "graveyard artwork region should be larger");
 assert(map.includes("el.board.appendChild(el.graveyardStoryEvent)"));
 assert(map.includes("await openGraveyardStoryEvent()"));
 assert(!map.includes('window.location.assign("v2-event-lab.html?" + params.toString())'));
