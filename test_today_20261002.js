@@ -143,7 +143,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261006-graveyard-story-landscape-1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261006-graveyard-story-layered-1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=133"));
 for (const required of [
@@ -161,7 +161,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261006-graveyard-story-landscape-1",
+  "./v2-map-practice.js?v=20261006-graveyard-story-layered-1",
   "./v2-auto-battle-practice.js?v=133",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -180,8 +180,8 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!/(^|\\n)\\.map-options-button\\s*\\{\\s*visibility:\\s*hidden;\\s*\\}/.test(mapCss));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261006-graveyard-story-landscape-1"));
-assert(worker.includes("./v2-map-practice.css?v=20261006-graveyard-story-landscape-1"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261006-graveyard-story-layered-1"));
+assert(worker.includes("./v2-map-practice.css?v=20261006-graveyard-story-layered-1"));
 assert(mapHtml.includes('id="villageDioramaTestButton"'));
 assert(mapHtml.includes('id="villageDioramaTest"'));
 assert(mapHtml.includes("village-building-01.webp?v=20261005-graveyard-poster-stage17-1"));
@@ -443,23 +443,31 @@ assert(battle.includes('(fromMap || fromEvent) && selectedAllySlugs.length'));
 
 
 assert(mapHtml.includes('id="graveyardStoryArtwork"'));
-assert(!mapHtml.includes('id="graveyardStoryGhoulLayer"'), "ghoul must be composited into the event artwork");
+assert(mapHtml.includes('id="graveyardStoryGhoulLayer"'), "graveyard event must keep the ghoul as a separate reveal layer");
 assert(mapHtml.includes('id="graveyardStoryEffectText"'));
 assert(mapHtml.includes('class="tile-event-enter graveyard-story-choice-button"'));
 assert(mapHtml.includes('class="graveyard-story-frame" src="art/v2-style/ui/intro-dialogue-box.webp?v=6"'));
 assert(map.includes("ensureGraveyardStoryArt"));
-assert(map.includes("if (ghoulSrc)"), "ghoul reveal must be composited into the landscape artwork");
-assert(map.includes("setGraveyardArtwork(beat.ghoul === true)"), "story beats must swap the single artwork source");
-assert(!map.includes("graveyardStoryGhoulLayer"), "separate ghoul DOM layer must stay removed");
-assert(map.includes("composeGraveyardLandscapeArtwork"), "graveyard event must build a landscape artwork");
-assert(map.includes("canvas.width = 1536"), "graveyard landscape must use 16:9 width");
-assert(map.includes("canvas.height = 864"), "graveyard landscape must use 16:9 height");
-assert(mapCss.includes("width:96%!important"), "graveyard landscape should nearly fill the board width");
-assert(mapCss.includes("height:82%!important"), "graveyard landscape should fill the tile-background scale");
+assert(map.includes('graveyardStoryGhoulLayer: document.getElementById("graveyardStoryGhoulLayer")'));
+assert(map.includes('const GRAVEYARD_EVENT_BASE_ART ='));
+assert(map.includes('"art/v2-style/map-test/events/graveyard-child-base-v2.webp?v=1"'));
+assert(map.includes('const GRAVEYARD_EVENT_GHOUL_ART ='));
+assert(map.includes('"art/v2-style/map-test/events/graveyard-child-ghoul-v2.webp?v=1"'));
+assert(map.includes("setGraveyardGhoulVisible"));
+assert(map.includes('animate: beat.id === "threat"'), "ghoul reveal animation must start on the threat beat");
+assert(!map.includes("composeGraveyardLandscapeArtwork"), "runtime landscape compositor must stay removed");
+assert(!map.includes("loadChunkedEventSource"), "old production chunk loader must stay removed");
+assert(mapCss.includes("width:96%!important"), "graveyard artwork should nearly fill the board width");
+assert(mapCss.includes("height:82%!important"), "graveyard artwork should fill the tile-background scale");
 assert(mapCss.includes("left:4%!important"), "effect window should stay inside the artwork");
 assert(mapCss.includes("width:20%!important"), "effect window should remain compact");
-assert(map.includes("canvas.width * 0.47"), "ghoul should sit behind-left of the child");
-assert(map.includes("canvas.height * 0.055"), "ghoul should sit above the child");
+assert(mapCss.includes(".graveyard-story-ghoul-layer"));
+assert(mapCss.includes("@keyframes graveyard-ghoul-reveal"));
+assert(mapCss.includes("@keyframes graveyard-ghoul-idle"));
+assert(mapCss.includes("left:59%!important"), "ghoul must appear in the right-middle graveyard space");
+assert(mapCss.includes("top:21%!important"), "ghoul must enter from the marked upper-right area");
+assert(worker.includes("./art/v2-style/map-test/events/graveyard-child-base-v2.webp?v=1"));
+assert(worker.includes("./art/v2-style/map-test/events/graveyard-child-ghoul-v2.webp?v=1"));
 assert(map.includes("el.board.appendChild(el.graveyardStoryEvent)"));
 assert(map.includes("await openGraveyardStoryEvent()"));
 assert(!map.includes('window.location.assign("v2-event-lab.html?" + params.toString())'));
