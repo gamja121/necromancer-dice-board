@@ -156,6 +156,7 @@
     graveyardStoryText: document.getElementById("graveyardStoryText"),
     graveyardStoryEffectText: document.getElementById("graveyardStoryEffectText"),
     graveyardStoryArtwork: document.getElementById("graveyardStoryArtwork"),
+    graveyardStoryGhoulLayer: document.getElementById("graveyardStoryGhoulLayer"),
     graveyardStoryChoices: document.getElementById("graveyardStoryChoices"),
     graveyardStoryFrameImg: document.querySelector(".graveyard-story-frame"),
     mapName: document.getElementById("mapName"),
@@ -4422,154 +4423,50 @@
 
   const GRAVEYARD_EVENT_BATTLE_RESULT_KEY = "necromancer-event-battle-result-v1";
 
-  const GRAVEYARD_EVENT_BASE_CHUNKS = [
-    "assets/event-lab/graveyard-child/base/part-000.txt",
-    "assets/event-lab/graveyard-child/base/part-001.txt"
-  ];
-  const GRAVEYARD_EVENT_GHOUL_CHUNKS = [
-    "assets/event-lab/graveyard-child/ghoul/part-000.txt",
-    "assets/event-lab/graveyard-child/ghoul/part-001.txt"
-  ];
+  const GRAVEYARD_EVENT_BASE_ART =
+    "art/v2-style/map-test/events/graveyard-child-base-v2.webp?v=1";
+  const GRAVEYARD_EVENT_GHOUL_ART =
+    "art/v2-style/map-test/events/graveyard-child-ghoul-v2.webp?v=1";
   let graveyardStoryArtReady = null;
-  let graveyardStoryBaseSrc = "";
-  let graveyardStoryGhoulCompositeSrc = "";
 
-  async function loadChunkedEventSource(chunks) {
-    const parts = await Promise.all(chunks.map(async (src) => {
-      const response = await fetch(src, { cache: "force-cache" });
-      if (!response.ok) throw new Error("event art fetch failed: " + response.status);
-      return (await response.text()).trim();
-    }));
-    return "data:image/webp;base64," + parts.join("");
-  }
-
-  async function decodeEventImage(src) {
-    const image = new Image();
-    image.src = src;
-    await image.decode();
-    return image;
-  }
-
-  function removeNearBlackPixels(image) {
-    const canvas = document.createElement("canvas");
-    canvas.width = image.naturalWidth;
-    canvas.height = image.naturalHeight;
-    const context = canvas.getContext("2d", { willReadFrequently: true });
-    context.drawImage(image, 0, 0);
-    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-    const pixels = imageData.data;
-    for (let i = 0; i < pixels.length; i += 4) {
-      const peak = Math.max(pixels[i], pixels[i + 1], pixels[i + 2]);
-      if (peak <= 10) pixels[i + 3] = 0;
-      else if (peak < 30) pixels[i + 3] = Math.round(((peak - 10) / 20) * pixels[i + 3]);
+  async function decodeGraveyardStoryImage(img, src) {
+    if (!img) return false;
+    img.src = src;
+    try {
+      await img.decode();
+      return true;
+    } catch (error) {
+      console.error("[graveyard-event] image decode failed", src, error);
+      return false;
     }
-    context.putImageData(imageData, 0, 0);
-    return canvas;
   }
 
-  function drawContainedTopLeft(context, image, x, y, boxWidth, boxHeight) {
-    const scale = Math.min(boxWidth / image.naturalWidth, boxHeight / image.naturalHeight);
-    const width = image.naturalWidth * scale;
-    const height = image.naturalHeight * scale;
-    context.drawImage(image, x, y, width, height);
-  }
-
-  function drawGraveyardLandscapeBase(context, baseImage, width, height) {
-    context.save();
-    context.filter = "brightness(.68) contrast(1.08) saturate(.78)";
-    const sourceWidth = Math.round(baseImage.naturalWidth * 0.58);
-    context.drawImage(
-      baseImage,
-      0, 0, sourceWidth, baseImage.naturalHeight,
-      0, 0, width, height
-    );
-    context.restore();
-
-    const portraitHeight = height * 1.02;
-    const portraitWidth = portraitHeight * (baseImage.naturalWidth / baseImage.naturalHeight);
-    const portraitX = width * 0.34;
-    const portraitY = (height - portraitHeight) / 2;
-
-    const portraitCanvas = document.createElement("canvas");
-    portraitCanvas.width = width;
-    portraitCanvas.height = height;
-    const portraitContext = portraitCanvas.getContext("2d");
-    portraitContext.drawImage(baseImage, portraitX, portraitY, portraitWidth, portraitHeight);
-
-    portraitContext.globalCompositeOperation = "destination-in";
-    const feather = portraitContext.createLinearGradient(portraitX, 0, portraitX + portraitWidth, 0);
-    feather.addColorStop(0, "rgba(0,0,0,0)");
-    feather.addColorStop(0.08, "rgba(0,0,0,1)");
-    feather.addColorStop(0.92, "rgba(0,0,0,1)");
-    feather.addColorStop(1, "rgba(0,0,0,0)");
-    portraitContext.fillStyle = feather;
-    portraitContext.fillRect(portraitX, 0, portraitWidth, height);
-
-    context.drawImage(portraitCanvas, 0, 0);
-
-    const vignette = context.createRadialGradient(
-      width * 0.58, height * 0.48, height * 0.10,
-      width * 0.58, height * 0.48, width * 0.72
-    );
-    vignette.addColorStop(0, "rgba(0,0,0,0)");
-    vignette.addColorStop(1, "rgba(5,3,2,.34)");
-    context.fillStyle = vignette;
-    context.fillRect(0, 0, width, height);
-  }
-
-  async function composeGraveyardLandscapeArtwork(baseSrc, ghoulSrc = "") {
-    const baseImage = await decodeEventImage(baseSrc);
-    const canvas = document.createElement("canvas");
-    canvas.width = 1536;
-    canvas.height = 864;
-    const context = canvas.getContext("2d");
-    drawGraveyardLandscapeBase(context, baseImage, canvas.width, canvas.height);
-
-    if (ghoulSrc) {
-      const ghoulImage = await decodeEventImage(ghoulSrc);
-      const transparentGhoulCanvas = removeNearBlackPixels(ghoulImage);
-      const transparentGhoul = await decodeEventImage(transparentGhoulCanvas.toDataURL("image/png"));
-
-      context.save();
-      context.globalAlpha = 0.88;
-      context.filter = "brightness(.72) contrast(.96) saturate(.76)";
-      drawContainedTopLeft(
-        context,
-        transparentGhoul,
-        canvas.width * 0.47,
-        canvas.height * 0.055,
-        canvas.width * 0.25,
-        canvas.height * 0.46
-      );
-      context.restore();
+  function setGraveyardGhoulVisible(visible, { animate = true } = {}) {
+    const ghoul = el.graveyardStoryGhoulLayer;
+    if (!ghoul) return;
+    if (!visible) {
+      ghoul.hidden = true;
+      ghoul.classList.remove("is-entering", "is-visible");
+      return;
     }
-
-    return canvas.toDataURL("image/webp", 0.88);
-  }
-
-  function setGraveyardArtwork(hasGhoul) {
-    if (!el.graveyardStoryArtwork) return;
-    const src = hasGhoul ? graveyardStoryGhoulCompositeSrc : graveyardStoryBaseSrc;
-    if (src && el.graveyardStoryArtwork.src !== src) el.graveyardStoryArtwork.src = src;
+    ghoul.hidden = false;
+    ghoul.classList.add("is-visible");
+    ghoul.classList.remove("is-entering");
+    if (animate) {
+      void ghoul.offsetWidth;
+      ghoul.classList.add("is-entering");
+    }
   }
 
   function ensureGraveyardStoryArt() {
     if (!graveyardStoryArtReady) {
-      graveyardStoryArtReady = (async () => {
-        try {
-          const [baseSrc, ghoulSrc] = await Promise.all([
-            loadChunkedEventSource(GRAVEYARD_EVENT_BASE_CHUNKS),
-            loadChunkedEventSource(GRAVEYARD_EVENT_GHOUL_CHUNKS)
-          ]);
-          graveyardStoryBaseSrc = await composeGraveyardLandscapeArtwork(baseSrc);
-          graveyardStoryGhoulCompositeSrc = await composeGraveyardLandscapeArtwork(baseSrc, ghoulSrc);
-          setGraveyardArtwork(false);
-          return true;
-        } catch (error) {
-          console.error("[graveyard-event] event art load failed", error);
-          return false;
-        }
-      })();
+      graveyardStoryArtReady = Promise.all([
+        decodeGraveyardStoryImage(el.graveyardStoryArtwork, GRAVEYARD_EVENT_BASE_ART),
+        decodeGraveyardStoryImage(el.graveyardStoryGhoulLayer, GRAVEYARD_EVENT_GHOUL_ART)
+      ]).then(([baseReady, ghoulReady]) => {
+        setGraveyardGhoulVisible(false, { animate: false });
+        return baseReady && ghoulReady;
+      });
     }
     return graveyardStoryArtReady;
   }
@@ -4628,7 +4525,9 @@
     el.graveyardStoryEvent.classList.add(beat.stageClass);
     if (el.graveyardStoryEffectText) el.graveyardStoryEffectText.textContent = beat.effect || "";
     if (el.graveyardStoryText) el.graveyardStoryText.textContent = beat.dialogue || "";
-    setGraveyardArtwork(beat.ghoul === true);
+    setGraveyardGhoulVisible(beat.ghoul === true, {
+      animate: beat.id === "threat"
+    });
     el.graveyardStoryEvent.classList.toggle("has-dialogue", Boolean(beat.dialogue));
     setGraveyardStoryChoicePhase(beat.choice === true);
   }
@@ -4637,6 +4536,7 @@
     if (!el.graveyardStoryEvent) return;
     el.graveyardStoryEvent.hidden = true;
     el.graveyardStoryEvent.classList.remove("is-rescued", "is-child-fleeing", "has-dialogue", "is-choice-phase");
+    setGraveyardGhoulVisible(false, { animate: false });
     el.board?.classList.remove("is-story-event-open");
     eventOpen = false;
     if (activeEventTileId === "graveyard") activeEventTileId = null;
@@ -4687,7 +4587,7 @@
       }
       if (el.graveyardStoryText) el.graveyardStoryText.textContent = "……!";
       el.graveyardStoryEvent.classList.add("has-dialogue", "is-child-fleeing");
-      setGraveyardArtwork(false);
+      setGraveyardGhoulVisible(false, { animate: false });
       if (el.graveyardStoryAdvance) {
         el.graveyardStoryAdvance.disabled = false;
         el.graveyardStoryAdvance.onclick = closeGraveyardStoryEvent;
