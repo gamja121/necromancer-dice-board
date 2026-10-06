@@ -128,7 +128,7 @@ async function activate(page, selector) {
     await page.waitForSelector("#eventChoices", { state: "visible", timeout: 5000 });
     const eventChoices=await page.locator("#eventChoices button").allTextContents();
     assert.deepEqual(eventChoices.map(x=>x.trim()), ["아이를 구한다","지나친다"]);
-    await page.locator("#eventReset").click();
+    await page.locator("#eventReset").evaluate((button) => button.click());
     await page.locator("#eventAdvance").click();
     await page.waitForFunction(() => document.getElementById("eventCard")?.classList.contains("is-ghoul-revealed"));
     const threatFocus = await page.evaluate(() => ({
