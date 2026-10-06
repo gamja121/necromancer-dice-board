@@ -566,17 +566,24 @@ button{touch-action:manipulation}
 }
 .event-choices[hidden],.event-outcome[hidden]{display:none!important}
 .event-advance,.event-choices button{
+  position:relative;
   width:100%;
-  min-height:40px;
-  padding:8px 11px;
-  border:1px solid rgba(94,67,41,.82)!important;
-  border-radius:2px!important;
-  background:rgba(58,40,25,.92)!important;
-  color:#f1e7d5!important;
+  min-height:44px;
+  padding:8px 18px;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent url("art/v2-style/ui/parchment-button-variant-01.png") center/100% 100% no-repeat!important;
+  color:#3f2818!important;
   font-weight:1000!important;
-  box-shadow:0 3px 7px #0004;
+  text-align:center!important;
+  text-shadow:0 1px #fff0cf!important;
+  filter:drop-shadow(0 5px 5px #0008);
+  box-shadow:none!important;
 }
-.event-choices button{text-align:left}
+.event-choices button:nth-child(even){
+  background-image:url("art/v2-style/ui/parchment-button-variant-04.png")!important;
+}
+.event-choices button{text-align:center!important}
 .event-outcome{
   margin-top:auto;
   color:#21150d!important;
