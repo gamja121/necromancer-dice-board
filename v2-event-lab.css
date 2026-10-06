@@ -678,3 +678,17 @@ button{touch-action:manipulation}
   28%{opacity:.75}
   100%{opacity:0;transform:translateX(48%)}
 }
+
+
+/* Minimal event copy: show narrative content and actions only */
+.event-location,
+.event-copy h1,
+.event-footer{
+  display:none!important;
+}
+.event-info-content{
+  padding-top:14%!important;
+}
+.event-copy p:last-child{
+  margin:0!important;
+}
