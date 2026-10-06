@@ -1987,17 +1987,18 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   z-index:6!important;
   left:57%!important;
   top:24%!important;
-  width:26%!important;
-  height:60%!important;
+  width:22%!important;
+  height:52%!important;
   object-fit:contain!important;
   object-position:center center!important;
   pointer-events:none!important;
   user-select:none!important;
-  opacity:.96;
+  opacity:.94;
   transform-origin:50% 82%;
   mix-blend-mode:normal!important;
-  filter:grayscale(.08) sepia(.10) saturate(.78) brightness(.90) contrast(1.10)
-         drop-shadow(0 10px 11px rgba(0,0,0,.72));
+  image-rendering:auto!important;
+  filter:brightness(.96) contrast(1.04)
+         drop-shadow(0 8px 10px rgba(0,0,0,.65));
 }
 .graveyard-story-ghoul-layer[hidden]{display:none!important}
 .graveyard-story-ghoul-layer.is-entering{
@@ -2215,16 +2216,16 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 @keyframes graveyard-ghoul-reveal{
   0%{
     opacity:0;
-    transform:translate3d(10%,6%,0) scale(.78) rotate(2deg);
-    filter:grayscale(.12) sepia(.12) saturate(.72) brightness(.72) contrast(1.08) blur(1.6px)
-           drop-shadow(0 7px 8px rgba(0,0,0,.46));
+    transform:translate3d(6%,4%,0) scale(.92) rotate(1deg);
+    filter:brightness(.78) contrast(1.02) blur(1px)
+           drop-shadow(0 6px 8px rgba(0,0,0,.42));
   }
   55%{
-    opacity:.76;
-    transform:translate3d(2.5%,1.5%,0) scale(.95) rotate(.5deg);
+    opacity:.78;
+    transform:translate3d(1.5%,1%,0) scale(.97) rotate(.4deg);
   }
   100%{
-    opacity:.96;
+    opacity:.94;
     transform:translate3d(0,0,0) scale(1) rotate(0);
   }
 }
@@ -2249,7 +2250,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 @media(max-height:430px) and (orientation:landscape){
   .graveyard-story-stage{width:96%!important;height:94%!important}
   .graveyard-story-art-wrap{left:3%!important;top:1%!important;width:94%!important;height:auto!important;aspect-ratio:16 / 9!important}
-  .graveyard-story-ghoul-layer{left:57%!important;top:23%!important;width:26%!important;height:60%!important}
+  .graveyard-story-ghoul-layer{left:57%!important;top:23%!important;width:22%!important;height:52%!important}
   .graveyard-story-effect-box{left:4%!important;top:5%!important;width:20%!important}
   .graveyard-story-dialogue{left:7%!important;right:7%!important;bottom:2%!important;height:30%!important}
   .graveyard-story-name{font-size:clamp(10px,1.3vw,17px)!important}
