@@ -4567,6 +4567,12 @@
     el.graveyardStoryEvent.hidden = true;
     el.graveyardStoryEvent.classList.remove("is-rescued", "is-child-fleeing", "has-dialogue", "is-choice-phase");
     el.board?.classList.remove("is-story-event-open");
+    eventOpen = false;
+    if (activeEventTileId === "graveyard") activeEventTileId = null;
+    rolling = false;
+    el.diceButton.disabled = false;
+    el.regenerate.disabled = false;
+    el.diceButton.focus();
   }
 
   function advanceGraveyardStoryBeat() {
@@ -4584,6 +4590,11 @@
 
   async function openGraveyardStoryEvent({ rescued = false } = {}) {
     if (!el.graveyardStoryEvent) return;
+    eventOpen = true;
+    activeEventTileId = "graveyard";
+    rolling = false;
+    el.diceButton.disabled = true;
+    el.regenerate.disabled = true;
     ensureGraveyardDialogueAssets();
     await ensureGraveyardStoryArt();
     el.board?.classList.add("is-story-event-open");
