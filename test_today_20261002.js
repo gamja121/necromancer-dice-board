@@ -448,7 +448,7 @@ assert(mapHtml.includes('id="graveyardStoryEffectText"'));
 assert(mapHtml.includes('class="tile-event-enter graveyard-story-choice-button"'));
 assert(mapHtml.includes('class="graveyard-story-frame" src="art/v2-style/ui/intro-dialogue-box.webp?v=6"'));
 assert(map.includes("ensureGraveyardStoryArt"));
-assert(map.includes("composeGraveyardGhoulArtwork"), "ghoul reveal must be composited into the artwork");
+assert(map.includes("if (ghoulSrc)"), "ghoul reveal must be composited into the landscape artwork");
 assert(map.includes("setGraveyardArtwork(beat.ghoul === true)"), "story beats must swap the single artwork source");
 assert(!map.includes("graveyardStoryGhoulLayer"), "separate ghoul DOM layer must stay removed");
 assert(map.includes("composeGraveyardLandscapeArtwork"), "graveyard event must build a landscape artwork");
