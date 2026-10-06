@@ -156,7 +156,6 @@
     graveyardStoryText: document.getElementById("graveyardStoryText"),
     graveyardStoryEffectText: document.getElementById("graveyardStoryEffectText"),
     graveyardStoryArtwork: document.getElementById("graveyardStoryArtwork"),
-    graveyardStoryGhoulLayer: document.getElementById("graveyardStoryGhoulLayer"),
     graveyardStoryChoices: document.getElementById("graveyardStoryChoices"),
     graveyardStoryFrameImg: document.querySelector(".graveyard-story-frame"),
     mapName: document.getElementById("mapName"),
@@ -4432,47 +4431,99 @@
     "assets/event-lab/graveyard-child/ghoul/part-001.txt"
   ];
   let graveyardStoryArtReady = null;
+  let graveyardStoryBaseSrc = "";
+  let graveyardStoryGhoulCompositeSrc = "";
 
-  async function loadChunkedEventImage(img, chunks, { removeBlack = false } = {}) {
-    if (!img) return false;
-    try {
-      const parts = await Promise.all(chunks.map(async (src) => {
-        const response = await fetch(src, { cache: "force-cache" });
-        if (!response.ok) throw new Error("event art fetch failed: " + response.status);
-        return (await response.text()).trim();
-      }));
-      img.src = "data:image/webp;base64," + parts.join("");
-      await img.decode();
-      if (removeBlack) {
-        const canvas = document.createElement("canvas");
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        const context = canvas.getContext("2d", { willReadFrequently: true });
-        context.drawImage(img, 0, 0);
-        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-        const pixels = imageData.data;
-        for (let i = 0; i < pixels.length; i += 4) {
-          const peak = Math.max(pixels[i], pixels[i + 1], pixels[i + 2]);
-          if (peak <= 10) pixels[i + 3] = 0;
-          else if (peak < 30) pixels[i + 3] = Math.round(((peak - 10) / 20) * pixels[i + 3]);
-        }
-        context.putImageData(imageData, 0, 0);
-        img.src = canvas.toDataURL("image/png");
-        await img.decode();
-      }
-      return true;
-    } catch (error) {
-      console.error("[graveyard-event] event art load failed", error);
-      return false;
+  async function loadChunkedEventSource(chunks) {
+    const parts = await Promise.all(chunks.map(async (src) => {
+      const response = await fetch(src, { cache: "force-cache" });
+      if (!response.ok) throw new Error("event art fetch failed: " + response.status);
+      return (await response.text()).trim();
+    }));
+    return "data:image/webp;base64," + parts.join("");
+  }
+
+  async function decodeEventImage(src) {
+    const image = new Image();
+    image.src = src;
+    await image.decode();
+    return image;
+  }
+
+  function removeNearBlackPixels(image) {
+    const canvas = document.createElement("canvas");
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    context.drawImage(image, 0, 0);
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    const pixels = imageData.data;
+    for (let i = 0; i < pixels.length; i += 4) {
+      const peak = Math.max(pixels[i], pixels[i + 1], pixels[i + 2]);
+      if (peak <= 10) pixels[i + 3] = 0;
+      else if (peak < 30) pixels[i + 3] = Math.round(((peak - 10) / 20) * pixels[i + 3]);
     }
+    context.putImageData(imageData, 0, 0);
+    return canvas;
+  }
+
+  function drawContainedBottomLeft(context, image, x, y, boxWidth, boxHeight) {
+    const scale = Math.min(boxWidth / image.naturalWidth, boxHeight / image.naturalHeight);
+    const width = image.naturalWidth * scale;
+    const height = image.naturalHeight * scale;
+    context.drawImage(image, x, y + boxHeight - height, width, height);
+  }
+
+  async function composeGraveyardGhoulArtwork(baseSrc, ghoulSrc) {
+    const [baseImage, ghoulImage] = await Promise.all([
+      decodeEventImage(baseSrc),
+      decodeEventImage(ghoulSrc)
+    ]);
+    const transparentGhoulCanvas = removeNearBlackPixels(ghoulImage);
+    const transparentGhoul = await decodeEventImage(transparentGhoulCanvas.toDataURL("image/png"));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = baseImage.naturalWidth;
+    canvas.height = baseImage.naturalHeight;
+    const context = canvas.getContext("2d");
+    context.drawImage(baseImage, 0, 0);
+
+    const width = canvas.width;
+    const height = canvas.height;
+    drawContainedBottomLeft(
+      context,
+      transparentGhoul,
+      -0.04 * width,
+      0.10 * height,
+      0.58 * width,
+      0.86 * height
+    );
+    return canvas.toDataURL("image/png");
+  }
+
+  function setGraveyardArtwork(hasGhoul) {
+    if (!el.graveyardStoryArtwork) return;
+    const src = hasGhoul ? graveyardStoryGhoulCompositeSrc : graveyardStoryBaseSrc;
+    if (src && el.graveyardStoryArtwork.src !== src) el.graveyardStoryArtwork.src = src;
   }
 
   function ensureGraveyardStoryArt() {
     if (!graveyardStoryArtReady) {
-      graveyardStoryArtReady = Promise.all([
-        loadChunkedEventImage(el.graveyardStoryArtwork, GRAVEYARD_EVENT_BASE_CHUNKS),
-        loadChunkedEventImage(el.graveyardStoryGhoulLayer, GRAVEYARD_EVENT_GHOUL_CHUNKS, { removeBlack: true })
-      ]);
+      graveyardStoryArtReady = (async () => {
+        try {
+          const [baseSrc, ghoulSrc] = await Promise.all([
+            loadChunkedEventSource(GRAVEYARD_EVENT_BASE_CHUNKS),
+            loadChunkedEventSource(GRAVEYARD_EVENT_GHOUL_CHUNKS)
+          ]);
+          graveyardStoryBaseSrc = baseSrc;
+          graveyardStoryGhoulCompositeSrc = await composeGraveyardGhoulArtwork(baseSrc, ghoulSrc);
+          setGraveyardArtwork(false);
+          return true;
+        } catch (error) {
+          console.error("[graveyard-event] event art load failed", error);
+          return false;
+        }
+      })();
     }
     return graveyardStoryArtReady;
   }
@@ -4531,7 +4582,7 @@
     el.graveyardStoryEvent.classList.add(beat.stageClass);
     if (el.graveyardStoryEffectText) el.graveyardStoryEffectText.textContent = beat.effect || "";
     if (el.graveyardStoryText) el.graveyardStoryText.textContent = beat.dialogue || "";
-    if (el.graveyardStoryGhoulLayer) el.graveyardStoryGhoulLayer.hidden = beat.ghoul !== true;
+    setGraveyardArtwork(beat.ghoul === true);
     el.graveyardStoryEvent.classList.toggle("has-dialogue", Boolean(beat.dialogue));
     setGraveyardStoryChoicePhase(beat.choice === true);
   }
@@ -4590,7 +4641,7 @@
       }
       if (el.graveyardStoryText) el.graveyardStoryText.textContent = "……!";
       el.graveyardStoryEvent.classList.add("has-dialogue", "is-child-fleeing");
-      if (el.graveyardStoryGhoulLayer) el.graveyardStoryGhoulLayer.hidden = true;
+      setGraveyardArtwork(false);
       if (el.graveyardStoryAdvance) {
         el.graveyardStoryAdvance.disabled = false;
         el.graveyardStoryAdvance.onclick = closeGraveyardStoryEvent;
