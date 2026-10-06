@@ -4644,7 +4644,10 @@
         "beat-choice"
       );
       setGraveyardStoryChoicePhase(false);
-      if (el.graveyardStoryEffectText) el.graveyardStoryEffectText.textContent = "구울이 쓰러졌다.";
+      if (el.graveyardStoryEffectText) {
+        el.graveyardStoryEffectText.textContent =
+          "구울이 쓰러지자 아이는 당신을 바라본다. 그러나 안도하기보다 겁에 질린 표정으로 뒷걸음치더니, 묘비 사이로 달아나 버린다.";
+      }
       if (el.graveyardStoryText) el.graveyardStoryText.textContent = "……!";
       el.graveyardStoryEvent.classList.add("has-dialogue", "is-child-fleeing");
       if (el.graveyardStoryGhoulLayer) el.graveyardStoryGhoulLayer.hidden = true;
@@ -4742,7 +4745,7 @@
 
     if (result.won === true) {
       void markGraveyardChildEventComplete();
-      openGraveyardStoryEvent({ rescued: true });
+      void openGraveyardStoryEvent({ rescued: true });
     }
     return true;
   }
@@ -4761,7 +4764,8 @@
     button.textContent = "공동묘지";
     button.setAttribute("aria-label", "공동묘지 습격받는 아이 사건을 인게임 연출로 열기");
     button.addEventListener("click", () => {
-      startGraveyardPosterEvent();
+      closeAudioOptions();
+      void openGraveyardStoryEvent();
     });
     row.append(label, button);
     panel.append(row);
