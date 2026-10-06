@@ -4425,18 +4425,33 @@
 
   const GRAVEYARD_EVENT_BASE_ART =
     "art/v2-style/map-test/events/graveyard-child-base-v2.webp?v=2";
-  const GRAVEYARD_EVENT_GHOUL_ART =
-    "art/v2-style/map-test/events/graveyard-child-ghoul-v2.webp?v=2";
+  const GRAVEYARD_EVENT_GHOUL_CHUNKS = Array.from(
+    { length: 9 },
+    (_, index) =>
+      `assets/event-lab/graveyard-child/ghoul-hq/part-${String(index).padStart(3, "0")}.txt?v=1`
+  );
   let graveyardStoryArtReady = null;
+  let graveyardStoryGhoulSource = "";
+
+  async function loadGraveyardGhoulSource() {
+    const parts = await Promise.all(
+      GRAVEYARD_EVENT_GHOUL_CHUNKS.map(async (src) => {
+        const response = await fetch(src, { cache: "force-cache" });
+        if (!response.ok) throw new Error("graveyard ghoul fetch failed: " + response.status);
+        return (await response.text()).trim();
+      })
+    );
+    return "data:image/webp;base64," + parts.join("");
+  }
 
   async function decodeGraveyardStoryImage(img, src) {
-    if (!img) return false;
-    if (!img.src || !img.src.includes(src.split("?")[0])) img.src = src;
+    if (!img || !src) return false;
+    if (src.startsWith("data:") || !img.src || !img.src.includes(src.split("?")[0])) img.src = src;
     try {
       if (!img.complete || !img.naturalWidth) await img.decode();
       return img.naturalWidth > 0 && img.naturalHeight > 0;
     } catch (error) {
-      console.error("[graveyard-event] image decode failed", src, error);
+      console.error("[graveyard-event] image decode failed", src.startsWith("data:") ? "ghoul-hq-data" : src, error);
       return false;
     }
   }
@@ -4460,13 +4475,21 @@
 
   function ensureGraveyardStoryArt() {
     if (!graveyardStoryArtReady) {
-      graveyardStoryArtReady = Promise.all([
-        decodeGraveyardStoryImage(el.graveyardStoryArtwork, GRAVEYARD_EVENT_BASE_ART),
-        decodeGraveyardStoryImage(el.graveyardStoryGhoulLayer, GRAVEYARD_EVENT_GHOUL_ART)
-      ]).then(([baseReady, ghoulReady]) => {
-        setGraveyardGhoulVisible(false, { animate: false });
-        return baseReady && ghoulReady;
-      });
+      graveyardStoryArtReady = (async () => {
+        try {
+          graveyardStoryGhoulSource = await loadGraveyardGhoulSource();
+          const [baseReady, ghoulReady] = await Promise.all([
+            decodeGraveyardStoryImage(el.graveyardStoryArtwork, GRAVEYARD_EVENT_BASE_ART),
+            decodeGraveyardStoryImage(el.graveyardStoryGhoulLayer, graveyardStoryGhoulSource)
+          ]);
+          setGraveyardGhoulVisible(false, { animate: false });
+          return baseReady && ghoulReady;
+        } catch (error) {
+          console.error("[graveyard-event] HQ ghoul load failed", error);
+          setGraveyardGhoulVisible(false, { animate: false });
+          return false;
+        }
+      })();
     }
     return graveyardStoryArtReady;
   }
