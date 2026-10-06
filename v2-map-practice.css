@@ -2751,3 +2751,18 @@ body.is-graveyard-event-transition .map-board .swamp-damage-overlay{
   top:47%!important;
   width:28%!important;
 }
+
+
+/* Stage 20.13 — interaction + transparent artwork letterbox.
+   Preserve the full illustration without black side bars. */
+.graveyard-story-art-wrap{
+  background:transparent!important;
+}
+.graveyard-story-artwork{
+  background:transparent!important;
+}
+.graveyard-story-event:not(.is-choice-phase) .graveyard-story-art-wrap,
+.graveyard-story-event:not(.is-choice-phase) .graveyard-story-effect-box,
+.graveyard-story-event:not(.is-choice-phase) .graveyard-story-dialogue{
+  cursor:pointer!important;
+}
