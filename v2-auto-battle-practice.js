@@ -1163,9 +1163,11 @@
       const portrait = document.createElement("img");
       portrait.src = unitState.infoPortrait || unitState.portrait;
       portrait.alt = "";
+      const side = document.createElement("small");
+      side.textContent = unitState.team === "ally" ? "아군" : "적군";
       const name = document.createElement("span");
-      name.textContent = `${unitState.team === "ally" ? "아군" : "적군"} · ${unitState.name}`;
-      unitButton.append(portrait, name);
+      name.textContent = unitState.name;
+      unitButton.append(portrait, side, name);
       unitButton.addEventListener("click", () => showBrandReferenceTooltip(unitState));
       row.append(unitButton);
 
