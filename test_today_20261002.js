@@ -413,6 +413,8 @@ assert(worker.includes("./assets/event-lab/graveyard-child/ghoul/part-000.txt"))
 
 assert(map.includes("GRAVEYARD_CHILD_EVENT_FLAG"));
 assert(map.includes("launchGraveyardChildEventFromMap"));
+assert(map.includes('eventOpen = true;\n    activeEventTileId = "graveyard";'), "graveyard story must own interaction state");
+assert(map.includes('if (activeEventTileId === "graveyard") activeEventTileId = null;'), "graveyard story must release its event state");
 assert(map.includes('if (currentTiles[heroIndex]?.id === "graveyard")'));
 assert(map.includes('if (tile.id === "graveyard")'));
 assert(map.includes("function advanceMapLoop"));
