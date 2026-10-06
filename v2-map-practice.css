@@ -1948,8 +1948,8 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 
 .graveyard-story-stage{
   position:relative!important;
-  width:90%!important;
-  height:88%!important;
+  width:94%!important;
+  height:92%!important;
   max-width:none!important;
   max-height:none!important;
   margin:0!important;
@@ -1959,10 +1959,10 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .graveyard-story-art-wrap{
   position:absolute!important;
   z-index:2!important;
-  left:2%!important;
+  left:3%!important;
   top:3%!important;
-  width:50%!important;
-  height:88%!important;
+  width:42%!important;
+  height:94%!important;
   margin:0!important;
   overflow:hidden!important;
   border:1px solid rgba(118,87,54,.72)!important;
@@ -1984,10 +1984,10 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .graveyard-story-effect-box{
   position:absolute!important;
   z-index:7!important;
-  left:55%!important;
-  top:4%!important;
+  left:5%!important;
+  top:7%!important;
   right:auto!important;
-  width:34%!important;
+  width:22%!important;
   height:auto!important;
   min-height:0!important;
   max-height:none!important;
@@ -2027,7 +2027,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   flex:0 0 14%!important;
   margin:0 0 3%!important;
   color:#3b2d25!important;
-  font:900 clamp(10px,1.25vw,17px)/1 Georgia,"Malgun Gothic",serif!important;
+  font:900 clamp(9px,.95vw,14px)/1 Georgia,"Malgun Gothic",serif!important;
   text-align:center!important;
   text-shadow:none!important;
   writing-mode:horizontal-tb!important;
@@ -2042,7 +2042,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   margin:0!important;
   padding:0 5%!important;
   color:#49382e!important;
-  font:800 clamp(10px,1.05vw,14px)/1.5 "Malgun Gothic","Apple SD Gothic Neo",sans-serif!important;
+  font:800 clamp(9px,.82vw,12px)/1.42 "Malgun Gothic","Apple SD Gothic Neo",sans-serif!important;
   text-align:center!important;
   text-shadow:none!important;
   writing-mode:horizontal-tb!important;
@@ -2135,11 +2135,11 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .graveyard-story-choices{
   position:absolute!important;
   z-index:12!important;
-  left:55%!important;
-  top:58%!important;
+  left:50%!important;
+  top:56%!important;
   right:auto!important;
   bottom:auto!important;
-  width:34%!important;
+  width:30%!important;
   margin:0!important;
   display:grid!important;
   gap:8px!important;
@@ -2199,11 +2199,11 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 }
 
 @media(max-height:430px) and (orientation:landscape){
-  .graveyard-story-stage{width:92%!important;height:90%!important}
-  .graveyard-story-art-wrap{left:2%!important;top:2%!important;width:50%!important;height:90%!important}
-  .graveyard-story-effect-box{left:55%!important;top:3%!important;width:34%!important}
+  .graveyard-story-stage{width:96%!important;height:94%!important}
+  .graveyard-story-art-wrap{left:3%!important;top:2%!important;width:42%!important;height:96%!important}
+  .graveyard-story-effect-box{left:5%!important;top:6%!important;width:22%!important}
   .graveyard-story-dialogue{left:7%!important;right:7%!important;bottom:2%!important;height:30%!important}
   .graveyard-story-name{font-size:clamp(10px,1.3vw,17px)!important}
   .graveyard-story-text{font-size:clamp(12px,1.7vw,22px)!important}
-  .graveyard-story-choices{left:55%!important;top:58%!important;width:34%!important}
+  .graveyard-story-choices{left:50%!important;top:56%!important;width:30%!important}
 }
