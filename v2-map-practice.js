@@ -4467,11 +4467,11 @@
     return canvas;
   }
 
-  function drawContainedBottomLeft(context, image, x, y, boxWidth, boxHeight) {
+  function drawContainedTopLeft(context, image, x, y, boxWidth, boxHeight) {
     const scale = Math.min(boxWidth / image.naturalWidth, boxHeight / image.naturalHeight);
     const width = image.naturalWidth * scale;
     const height = image.naturalHeight * scale;
-    context.drawImage(image, x, y + boxHeight - height, width, height);
+    context.drawImage(image, x, y, width, height);
   }
 
   async function composeGraveyardGhoulArtwork(baseSrc, ghoulSrc) {
@@ -4490,14 +4490,18 @@
 
     const width = canvas.width;
     const height = canvas.height;
-    drawContainedBottomLeft(
+    context.save();
+    context.globalAlpha = 0.92;
+    context.filter = "brightness(.78) contrast(.96) saturate(.82)";
+    drawContainedTopLeft(
       context,
       transparentGhoul,
-      -0.04 * width,
-      0.10 * height,
-      0.58 * width,
-      0.86 * height
+      0.30 * width,
+      0.035 * height,
+      0.42 * width,
+      0.46 * height
     );
+    context.restore();
     return canvas.toDataURL("image/png");
   }
 
