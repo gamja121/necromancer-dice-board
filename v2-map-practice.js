@@ -4815,5 +4815,10 @@
   if (mapLaunchParams.get("resumeGraveyardEvent") === "1") {
     resumeGraveyardEventAfterBattle();
   }
+  if (mapLaunchParams.get("storyEvent") === "graveyard_child_ambush_01") {
+    window.setTimeout(() => {
+      void openGraveyardStoryEvent();
+    }, 0);
+  }
 
 })();
