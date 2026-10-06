@@ -342,7 +342,7 @@
     return candidateIds.map((instanceId) => ownedUnits.get(instanceId)).filter(Boolean).slice(0, 4);
   }
 
-  async function launchGraveyardChildEventFromMap(step) {
+  async function launchGraveyardChildEventFromMap() {
     if (graveyardChildEventCompleted()) return false;
     const partyUnits = currentPartyUnits();
     if (!partyUnits.length) return false;
@@ -3843,7 +3843,7 @@
         if (tile.id === "graveyard") {
           heroIndex = index;
           placeHero(true);
-          const launchedStory = await launchGraveyardChildEventFromMap(index + 1);
+          const launchedStory = await launchGraveyardChildEventFromMap();
           if (launchedStory) return;
         }
         if (openTileEvent(tile, index + 1)) return;
@@ -4156,7 +4156,7 @@
       return;
     }
     if (currentTiles[heroIndex]?.id === "graveyard") {
-      const launchedStory = await launchGraveyardChildEventFromMap(heroIndex + 1);
+      const launchedStory = await launchGraveyardChildEventFromMap();
       if (launchedStory) {
         rolling = false;
         return;
@@ -4477,7 +4477,7 @@
     return graveyardStoryArtReady;
   }
 
-  // Moving-diorama event data: each beat is only a change of stage state.
+  // Story beat data: each beat changes only the event presentation state.
   const GRAVEYARD_EVENT_BEATS = Object.freeze([
     Object.freeze({
       id: "discovery",
