@@ -4474,35 +4474,77 @@
     context.drawImage(image, x, y, width, height);
   }
 
-  async function composeGraveyardGhoulArtwork(baseSrc, ghoulSrc) {
-    const [baseImage, ghoulImage] = await Promise.all([
-      decodeEventImage(baseSrc),
-      decodeEventImage(ghoulSrc)
-    ]);
-    const transparentGhoulCanvas = removeNearBlackPixels(ghoulImage);
-    const transparentGhoul = await decodeEventImage(transparentGhoulCanvas.toDataURL("image/png"));
-
-    const canvas = document.createElement("canvas");
-    canvas.width = baseImage.naturalWidth;
-    canvas.height = baseImage.naturalHeight;
-    const context = canvas.getContext("2d");
-    context.drawImage(baseImage, 0, 0);
-
-    const width = canvas.width;
-    const height = canvas.height;
+  function drawGraveyardLandscapeBase(context, baseImage, width, height) {
     context.save();
-    context.globalAlpha = 0.92;
-    context.filter = "brightness(.78) contrast(.96) saturate(.82)";
-    drawContainedTopLeft(
-      context,
-      transparentGhoul,
-      0.30 * width,
-      0.035 * height,
-      0.42 * width,
-      0.46 * height
+    context.filter = "brightness(.68) contrast(1.08) saturate(.78)";
+    const sourceWidth = Math.round(baseImage.naturalWidth * 0.58);
+    context.drawImage(
+      baseImage,
+      0, 0, sourceWidth, baseImage.naturalHeight,
+      0, 0, width, height
     );
     context.restore();
-    return canvas.toDataURL("image/png");
+
+    const portraitHeight = height * 1.02;
+    const portraitWidth = portraitHeight * (baseImage.naturalWidth / baseImage.naturalHeight);
+    const portraitX = width * 0.34;
+    const portraitY = (height - portraitHeight) / 2;
+
+    const portraitCanvas = document.createElement("canvas");
+    portraitCanvas.width = width;
+    portraitCanvas.height = height;
+    const portraitContext = portraitCanvas.getContext("2d");
+    portraitContext.drawImage(baseImage, portraitX, portraitY, portraitWidth, portraitHeight);
+
+    portraitContext.globalCompositeOperation = "destination-in";
+    const feather = portraitContext.createLinearGradient(portraitX, 0, portraitX + portraitWidth, 0);
+    feather.addColorStop(0, "rgba(0,0,0,0)");
+    feather.addColorStop(0.08, "rgba(0,0,0,1)");
+    feather.addColorStop(0.92, "rgba(0,0,0,1)");
+    feather.addColorStop(1, "rgba(0,0,0,0)");
+    portraitContext.fillStyle = feather;
+    portraitContext.fillRect(portraitX, 0, portraitWidth, height);
+
+    context.drawImage(portraitCanvas, 0, 0);
+
+    const vignette = context.createRadialGradient(
+      width * 0.58, height * 0.48, height * 0.10,
+      width * 0.58, height * 0.48, width * 0.72
+    );
+    vignette.addColorStop(0, "rgba(0,0,0,0)");
+    vignette.addColorStop(1, "rgba(5,3,2,.34)");
+    context.fillStyle = vignette;
+    context.fillRect(0, 0, width, height);
+  }
+
+  async function composeGraveyardLandscapeArtwork(baseSrc, ghoulSrc = "") {
+    const baseImage = await decodeEventImage(baseSrc);
+    const canvas = document.createElement("canvas");
+    canvas.width = 1536;
+    canvas.height = 864;
+    const context = canvas.getContext("2d");
+    drawGraveyardLandscapeBase(context, baseImage, canvas.width, canvas.height);
+
+    if (ghoulSrc) {
+      const ghoulImage = await decodeEventImage(ghoulSrc);
+      const transparentGhoulCanvas = removeNearBlackPixels(ghoulImage);
+      const transparentGhoul = await decodeEventImage(transparentGhoulCanvas.toDataURL("image/png"));
+
+      context.save();
+      context.globalAlpha = 0.88;
+      context.filter = "brightness(.72) contrast(.96) saturate(.76)";
+      drawContainedTopLeft(
+        context,
+        transparentGhoul,
+        canvas.width * 0.47,
+        canvas.height * 0.055,
+        canvas.width * 0.25,
+        canvas.height * 0.46
+      );
+      context.restore();
+    }
+
+    return canvas.toDataURL("image/webp", 0.88);
   }
 
   function setGraveyardArtwork(hasGhoul) {
@@ -4519,8 +4561,8 @@
             loadChunkedEventSource(GRAVEYARD_EVENT_BASE_CHUNKS),
             loadChunkedEventSource(GRAVEYARD_EVENT_GHOUL_CHUNKS)
           ]);
-          graveyardStoryBaseSrc = baseSrc;
-          graveyardStoryGhoulCompositeSrc = await composeGraveyardGhoulArtwork(baseSrc, ghoulSrc);
+          graveyardStoryBaseSrc = await composeGraveyardLandscapeArtwork(baseSrc);
+          graveyardStoryGhoulCompositeSrc = await composeGraveyardLandscapeArtwork(baseSrc, ghoulSrc);
           setGraveyardArtwork(false);
           return true;
         } catch (error) {
