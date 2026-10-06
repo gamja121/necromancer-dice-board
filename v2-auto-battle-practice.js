@@ -410,6 +410,11 @@
   const turnDice = document.getElementById("turnDice");
   const turnDiceButton = document.getElementById("turnDiceButton");
   const turnDiceImage = document.getElementById("turnDiceImage");
+  const brandReferenceButton = document.getElementById("brandReferenceButton");
+  const brandReferenceOverlay = document.getElementById("brandReferenceOverlay");
+  const brandReferenceRows = document.getElementById("brandReferenceRows");
+  const brandReferenceTooltip = document.getElementById("brandReferenceTooltip");
+  const brandReferenceHint = document.getElementById("brandReferenceHint");
   const unitInfoOverlay = document.getElementById("unitInfoOverlay");
   const unitInfoName = document.getElementById("unitInfoName");
   const unitInfoImage = document.getElementById("unitInfoImage");
@@ -530,6 +535,7 @@
   let lastDiceRoll = null;
   let diceFrameIndex = 0;
   let introRunning = false;
+  let brandReferenceInitialPending = false;
   let loadingLineup = false;
   let legionState = null;
   let rulesState = null;
@@ -805,6 +811,7 @@
     battleToken += 1;
     running = false;
     introRunning = false;
+    brandReferenceInitialPending = false;
     paused = false;
     actionBusy = false;
     actionCount = 0;
@@ -836,6 +843,10 @@
     turnDiceButton.classList.remove("is-rolling");
     turnDiceImage.src = DICE_ROLL_FRAMES[0];
     unitInfoOverlay.hidden = true;
+    brandReferenceOverlay.hidden = true;
+    brandReferenceButton.hidden = true;
+    brandReferenceButton.disabled = true;
+    brandReferenceTooltip.hidden = true;
     battlefield.classList.remove("is-between-turns");
     if (!battlefield.classList.contains("is-background-loading")) {
       battlefield.style.backgroundImage = `url("${initialBattlefield}")`;
@@ -1067,6 +1078,148 @@
     }
   }
 
+
+  function normalizedBrandsForReference(unitState) {
+    if (typeof V2Rules.normalizeUnitBrands === "function") return V2Rules.normalizeUnitBrands(unitState);
+    return Array.isArray(unitState.brands) ? unitState.brands.filter(V2Rules.validateBrand) : [];
+  }
+
+  function brandFaceInfo(unitState, face) {
+    const brands = normalizedBrandsForReference(unitState);
+    const curses = brands.filter((brandState) => brandState.curse.includes(face));
+    if (curses.length) return { mode: "curse", brands: curses };
+    const blessings = brands.filter((brandState) => brandState.bless.includes(face));
+    if (blessings.length) return { mode: "blessing", brands: blessings };
+    return { mode: "normal", brands: [] };
+  }
+
+  function showBrandReferenceTooltip(unitState, face = null) {
+    const brands = normalizedBrandsForReference(unitState);
+    brandReferenceTooltip.replaceChildren();
+    if (!brands.length) {
+      brandReferenceTooltip.textContent = `${unitState.name} · 낙인 없음`;
+      brandReferenceTooltip.hidden = false;
+      return;
+    }
+
+    const title = document.createElement("strong");
+    title.textContent = face == null ? unitState.name : `${unitState.name} · ${face}번`;
+    brandReferenceTooltip.append(title);
+
+    const relevant = face == null
+      ? brands.map((brandState) => ({ brandState, mode: "summary" }))
+      : brandFaceInfo(unitState, face).brands.map((brandState) => ({
+          brandState,
+          mode: V2Rules.mode(brandState, face)
+        }));
+
+    if (!relevant.length) {
+      brandReferenceTooltip.append(document.createTextNode(" · 발동 없음"));
+      brandReferenceTooltip.hidden = false;
+      return;
+    }
+
+    for (const entry of relevant) {
+      const definition = V2Rules.definitions[entry.brandState.type];
+      if (!definition) continue;
+      const line = document.createElement("div");
+      if (entry.mode === "summary") {
+        line.innerHTML = `<span>${definition.name.replace("의 낙인", "")}</span> · ✨ ${entry.brandState.bless.join(", ") || "-"} · ☠ ${entry.brandState.curse.join(", ") || "-"}`;
+      } else if (entry.mode === "blessing") {
+        line.className = "is-blessing";
+        line.textContent = `✨ ${definition.name.replace("의 낙인", "")} · ${definition.blessing}`;
+      } else if (entry.mode === "curse") {
+        line.className = "is-curse";
+        line.textContent = `☠ ${definition.name.replace("의 낙인", "")} · ${definition.penalty}`;
+      }
+      brandReferenceTooltip.append(line);
+    }
+    brandReferenceTooltip.hidden = false;
+  }
+
+  function buildBrandReferenceTable() {
+    brandReferenceRows.replaceChildren();
+    const ordered = [
+      ...units.filter((unitState) => unitState.team === "ally" && !unitState.isSummon && unitState.slot < 4)
+        .sort((a, b) => b.slot - a.slot),
+      ...units.filter((unitState) => unitState.team === "enemy" && !unitState.isSummon && unitState.slot < 4)
+        .sort((a, b) => b.slot - a.slot)
+    ];
+
+    let enemyStarted = false;
+    for (const unitState of ordered) {
+      const row = document.createElement("div");
+      row.className = "brand-reference-row";
+      row.dataset.team = unitState.team;
+      if (unitState.team === "enemy" && !enemyStarted) {
+        row.classList.add("is-enemy-start");
+        enemyStarted = true;
+      }
+
+      const unitButton = document.createElement("button");
+      unitButton.type = "button";
+      unitButton.className = "brand-reference-unit";
+      unitButton.setAttribute("aria-label", `${unitState.team === "ally" ? "아군" : "적군"} ${unitState.name} 낙인 상세`);
+      const portrait = document.createElement("img");
+      portrait.src = unitState.infoPortrait || unitState.portrait;
+      portrait.alt = "";
+      const name = document.createElement("span");
+      name.textContent = `${unitState.team === "ally" ? "아군" : "적군"} · ${unitState.name}`;
+      unitButton.append(portrait, name);
+      unitButton.addEventListener("click", () => showBrandReferenceTooltip(unitState));
+      row.append(unitButton);
+
+      for (let face = 1; face <= 6; face += 1) {
+        const info = brandFaceInfo(unitState, face);
+        const cell = document.createElement("button");
+        cell.type = "button";
+        cell.className = `brand-reference-cell is-${info.mode}`;
+        cell.disabled = info.mode === "normal";
+        cell.textContent = info.mode === "blessing" ? "✨" : info.mode === "curse" ? "☠" : "";
+        cell.setAttribute("aria-label", info.mode === "normal"
+          ? `${unitState.name} ${face}번 발동 없음`
+          : `${unitState.name} ${face}번 ${info.mode === "blessing" ? "축복" : "저주"}`);
+        if (info.mode !== "normal") cell.addEventListener("click", () => showBrandReferenceTooltip(unitState, face));
+        row.append(cell);
+      }
+
+      brandReferenceRows.append(row);
+    }
+  }
+
+  function canOpenBrandReference() {
+    return Boolean(running && !diceRolling && !actionBusy && (awaitingRoll || brandReferenceInitialPending));
+  }
+
+  function openBrandReference(initial = false) {
+    if (!initial && !canOpenBrandReference()) return;
+    closeUnitInfo();
+    buildBrandReferenceTable();
+    brandReferenceTooltip.hidden = true;
+    brandReferenceTooltip.replaceChildren();
+    brandReferenceHint.hidden = false;
+    brandReferenceOverlay.hidden = false;
+    brandReferenceButton.setAttribute("aria-expanded", "true");
+  }
+
+  function closeBrandReference() {
+    if (brandReferenceOverlay.hidden) return;
+    brandReferenceOverlay.hidden = true;
+    brandReferenceTooltip.hidden = true;
+    brandReferenceTooltip.replaceChildren();
+    brandReferenceButton.setAttribute("aria-expanded", "false");
+    if (brandReferenceInitialPending) {
+      brandReferenceInitialPending = false;
+      beginTurnIntermission(true);
+    }
+  }
+
+  function syncBrandReferenceButton() {
+    const available = running && awaitingRoll && !diceRolling && !actionBusy && !battlefield.classList.contains("is-corpse-capture");
+    brandReferenceButton.hidden = !available;
+    brandReferenceButton.disabled = !available;
+  }
+
   function updateHud() {
     const allyAlive = aliveUnits("ally").length;
     const enemyAlive = aliveUnits("enemy").length;
@@ -1283,7 +1436,9 @@
     actionBusy = false;
     running = true;
     speedButton.disabled = false;
-    beginTurnIntermission(true);
+    brandReferenceInitialPending = true;
+    brandReferenceButton.hidden = true;
+    openBrandReference(true);
   }
 
   function recoverBattleFlow(error, phase = "전투 처리") {
@@ -1328,6 +1483,8 @@
     awaitingRoll = false;
     diceRolling = false;
     turnDice.hidden = true;
+    brandReferenceButton.hidden = true;
+    brandReferenceButton.disabled = true;
     battlefield.classList.remove("is-between-turns");
     closeUnitInfo();
     pauseButton.disabled = false;
@@ -1400,13 +1557,17 @@
     turnDiceImage.alt = "굴리기 전 주사위";
     turnDiceButton.setAttribute("aria-label", `${turnNumber + 1}턴 주사위 굴리기`);
     battlefield.classList.add("is-between-turns");
-    message.textContent = initial ? "주사위를 굴리면 1턴이 시작됩니다" : `${turnNumber}턴 종료 · 유닛 정보 확인 또는 주사위 굴리기`;
+    message.textContent = initial ? "주사위를 굴리면 1턴이 시작됩니다" : `${turnNumber}턴 종료 · 낙인표 확인 또는 주사위 굴리기`;
+    syncBrandReferenceButton();
     saveBattle('ready');
   }
 
   async function rollTurnDice() {
     if (!running || !awaitingRoll || diceRolling) return;
     closeUnitInfo();
+    brandReferenceOverlay.hidden = true;
+    brandReferenceButton.hidden = true;
+    brandReferenceButton.disabled = true;
     diceRolling = true;
     if (typeof V2UnitCards !== "undefined") V2UnitCards.setPhase("acting");
     showRolledBrands(null);
@@ -1898,6 +2059,10 @@
     running = false;
     actionBusy = false;
     awaitingRoll = false;
+    brandReferenceInitialPending = false;
+    brandReferenceOverlay.hidden = true;
+    brandReferenceButton.hidden = true;
+    brandReferenceButton.disabled = true;
     diceRolling = false;
     turnDice.hidden = true;
     battlefield.classList.remove("is-between-turns");
@@ -2344,6 +2509,9 @@
     if (battlefield.classList.contains("is-corpse-capture")) rollCorpseCapture();
     else rollTurnDice();
   });
+  brandReferenceButton.addEventListener("click", () => openBrandReference(false));
+  document.getElementById("brandReferenceClose").addEventListener("click", closeBrandReference);
+  document.getElementById("brandReferenceBackdrop").addEventListener("click", closeBrandReference);
   document.getElementById("unitInfoClose").addEventListener("click", closeUnitInfo);
   document.getElementById("unitInfoBackdrop").addEventListener("click", closeUnitInfo);
   restartButton.addEventListener("click", () => resetBattle(true));
