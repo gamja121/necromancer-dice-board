@@ -450,14 +450,20 @@ assert(map.includes("ensureGraveyardStoryArt"));
 assert(map.includes("el.board.appendChild(el.graveyardStoryEvent)"));
 assert(map.includes("await openGraveyardStoryEvent()"));
 assert(!map.includes('window.location.assign("v2-event-lab.html?" + params.toString())'));
-assert(mapCss.includes("Board-overlay cemetery event · stage 20"));
+assert(mapCss.includes("Graveyard child story — canonical production layout"), "canonical cemetery story CSS missing");
 assert(mapCss.includes(".graveyard-story-effect-box"));
 assert(mapCss.includes(".graveyard-story-choice-button"));
 assert(mapCss.includes(".map-board.is-story-event-open"));
 
 assert(mapHtml.includes('class="graveyard-story-stage"'), "cemetery event should use one centered stage");
-assert(mapCss.includes("Stage 21 — centered board-overlay event"), "centered cemetery event CSS missing");
-assert(mapCss.includes("background-color:transparent!important"), "cemetery artwork letterbox must stay transparent");
+assert(mapCss.includes("background:transparent!important"), "cemetery artwork letterbox must stay transparent");
+
+assert(!map.includes("loadGraveyardChildPortrait"), "old cemetery portrait loader must be removed");
+assert(!map.includes("graveyardStoryPortraitImg"), "old cemetery portrait handle must be removed");
+assert(!mapCss.includes(".graveyard-story-portrait"), "old cemetery portrait CSS must be removed");
+assert(!mapCss.includes(".graveyard-story-child{"), "old inline child actor CSS must be removed");
+assert(!worker.includes("dark-eyed-boy.png"), "unused cemetery portrait must not be precached");
+assert(!worker.includes("event-child-idle-01.png"), "unused inline child actor must not be precached");
 
 // production event deep-link regression
 assert(map.includes('mapLaunchParams.get("storyEvent") === "graveyard_child_ambush_01"'));
