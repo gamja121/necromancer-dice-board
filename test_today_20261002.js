@@ -417,6 +417,7 @@ assert(map.includes('eventOpen = true;\n    activeEventTileId = "graveyard";'), 
 assert(map.includes('if (activeEventTileId === "graveyard") activeEventTileId = null;'), "graveyard story must release its event state");
 assert(map.includes('if (currentTiles[heroIndex]?.id === "graveyard")'));
 assert(map.includes('if (tile.id === "graveyard")'));
+assert(map.includes('if (tile.id === "graveyard") {\n          heroIndex = index;\n          placeHero(true);'), "graveyard direct click must move the hero before story launch");
 assert(map.includes("function advanceMapLoop"));
 assert(!mapHtml.includes('id="graveyardPosterEvent"'));
 assert(!mapHtml.includes('id="tileStoryEventPanel"'));
