@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0a0807">
   <title>네크로멘서 앤드 다이스 · 4대4 속도 자동전투 테스트</title>
-  <link rel="stylesheet" href="v2-auto-battle-practice.css?v=78">
+  <link rel="stylesheet" href="v2-auto-battle-practice.css?v=79">
 </head>
 <body data-v2-music="battle">
   <main class="auto-battle-lab">
@@ -37,6 +37,34 @@
         <button id="turnDiceButton" type="button" aria-label="다음 턴 주사위 굴리기">
           <img id="turnDiceImage" src="art/v2-style/dice-test/frames/roll-01.png" alt="굴리기 전 주사위">
         </button>
+      </section>
+
+      <button id="brandReferenceButton" class="brand-reference-button" type="button" aria-haspopup="dialog" aria-controls="brandReferenceOverlay" hidden>
+        <span aria-hidden="true">✦☠</span>
+        <strong>낙인표</strong>
+      </button>
+
+      <section id="brandReferenceOverlay" class="brand-reference-overlay" role="dialog" aria-modal="true" aria-labelledby="brandReferenceTitle" hidden>
+        <button id="brandReferenceBackdrop" class="brand-reference-backdrop" type="button" aria-label="낙인 정보판 닫기"></button>
+        <article class="brand-reference-panel">
+          <header class="brand-reference-head">
+            <div>
+              <span class="brand-reference-kicker">BRAND REFERENCE</span>
+              <h2 id="brandReferenceTitle">낙인 정보판</h2>
+            </div>
+            <button id="brandReferenceClose" class="brand-reference-close" type="button" aria-label="낙인 정보판 닫기">×</button>
+          </header>
+          <div class="brand-reference-grid" aria-label="아군과 적군의 주사위 숫자별 축복·저주 참조표">
+            <div class="brand-reference-corner" aria-hidden="true"></div>
+            <div class="brand-face">①</div><div class="brand-face">②</div><div class="brand-face">③</div>
+            <div class="brand-face">④</div><div class="brand-face">⑤</div><div class="brand-face">⑥</div>
+            <div id="brandReferenceRows" class="brand-reference-rows"></div>
+          </div>
+          <footer class="brand-reference-footer">
+            <p id="brandReferenceHint">✨ 축복 · ☠ 저주 · 아이콘을 누르면 상세 효과를 확인할 수 있습니다.</p>
+            <aside id="brandReferenceTooltip" class="brand-reference-tooltip" hidden></aside>
+          </footer>
+        </article>
       </section>
 
       <section id="unitInfoOverlay" class="unit-info-overlay" hidden>
@@ -162,6 +190,6 @@
   <script src="v2-presentation.js?v=1"></script>
   <script src="v2-presentation-rail.js?v=2"></script>
   <script src="v2-sfx.js?v=4"></script>
-  <script src="v2-auto-battle-practice.js?v=133"></script>
+  <script src="v2-auto-battle-practice.js?v=134"></script>
 </body>
 </html>
