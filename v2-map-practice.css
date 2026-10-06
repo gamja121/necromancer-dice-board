@@ -2766,3 +2766,110 @@ body.is-graveyard-event-transition .map-board .swamp-damage-overlay{
 .graveyard-story-event:not(.is-choice-phase) .graveyard-story-dialogue{
   cursor:pointer!important;
 }
+
+/* Stage 21 — centered board-overlay event.
+   Keep the normal map/tile board visible behind one centered event stage. */
+.graveyard-story-event{
+  position:absolute!important;
+  inset:0!important;
+  z-index:120!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:0!important;
+  background:rgba(5,4,3,.04)!important;
+  overflow:hidden!important;
+  pointer-events:auto!important;
+}
+.graveyard-story-event[hidden]{display:none!important}
+
+.graveyard-story-stage{
+  position:relative!important;
+  width:88%!important;
+  height:82%!important;
+  max-width:none!important;
+  max-height:none!important;
+  margin:0!important;
+  pointer-events:auto!important;
+}
+
+.graveyard-story-art-wrap{
+  position:absolute!important;
+  left:2%!important;
+  top:2%!important;
+  width:58%!important;
+  height:68%!important;
+  margin:0!important;
+  overflow:hidden!important;
+  background:none!important;
+  border:1px solid rgba(118,87,54,.72)!important;
+  box-shadow:0 10px 18px rgba(0,0,0,.38)!important;
+}
+.graveyard-story-artwork{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+  background:none!important;
+}
+.graveyard-story-effect-box{
+  position:absolute!important;
+  left:63%!important;
+  right:auto!important;
+  top:2%!important;
+  width:35%!important;
+  min-height:36%!important;
+  max-height:58%!important;
+  margin:0!important;
+}
+.graveyard-story-dialogue{
+  position:absolute!important;
+  left:2%!important;
+  top:73%!important;
+  right:auto!important;
+  bottom:auto!important;
+  width:58%!important;
+  height:25%!important;
+  margin:0!important;
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+}
+.graveyard-story-choices{
+  position:absolute!important;
+  left:63%!important;
+  right:auto!important;
+  top:48%!important;
+  bottom:auto!important;
+  width:35%!important;
+  margin:0!important;
+  z-index:12!important;
+  gap:8px!important;
+}
+
+.graveyard-story-box{
+  pointer-events:auto!important;
+  cursor:pointer!important;
+}
+.graveyard-story-event:not(.is-choice-phase) .graveyard-story-art-wrap,
+.graveyard-story-event:not(.is-choice-phase) .graveyard-story-effect-box,
+.graveyard-story-event:not(.is-choice-phase) .graveyard-story-dialogue{
+  cursor:pointer!important;
+}
+
+/* The map itself is the visual background. Never paint black letterbox bars. */
+.graveyard-story-art-wrap,
+.graveyard-story-artwork{
+  background-color:transparent!important;
+  background-image:none!important;
+}
+
+@media(max-height:430px) and (orientation:landscape){
+  .graveyard-story-stage{width:90%!important;height:86%!important}
+  .graveyard-story-art-wrap{left:2%!important;top:2%!important;width:59%!important;height:67%!important}
+  .graveyard-story-effect-box{left:64%!important;top:2%!important;width:34%!important;min-height:35%!important}
+  .graveyard-story-dialogue{left:2%!important;top:72%!important;width:59%!important;height:26%!important}
+  .graveyard-story-choices{left:64%!important;top:48%!important;width:34%!important}
+}
