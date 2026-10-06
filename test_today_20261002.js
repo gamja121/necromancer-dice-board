@@ -145,7 +145,7 @@ assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 // Current cache/version wiring.
 assert(mapHtml.includes("v2-map-practice.js?v=20261007-graveyard-story-ghoul-v3"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
-assert(battleHtml.includes("v2-auto-battle-practice.js?v=134"));
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=135"));
 for (const required of [
   "./v2-intro.html",
   "./v2-intro.css?v=15",
@@ -162,7 +162,7 @@ for (const required of [
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
   "./v2-map-practice.js?v=20261007-graveyard-story-ghoul-v3",
-  "./v2-auto-battle-practice.js?v=134",
+  "./v2-auto-battle-practice.js?v=135",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
   "./v2-sfx.js?v=4",
@@ -223,8 +223,8 @@ assert(map.includes('building.style.bottom = "auto"'));
 
 assert(battle.includes('makeState(data, "enemy", 3 - index)'));
 assert(!battle.includes('makeState(data, "enemy", index)'));
-assert(battleHtml.includes("v2-auto-battle-practice.js?v=134"));
-assert(worker.includes("./v2-auto-battle-practice.js?v=134"));
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=135"));
+assert(worker.includes("./v2-auto-battle-practice.js?v=135"));
 
 const rulesSource = read("v2-rules.js");
 const brandCardsSource = read("v2-brand-cards.js");
@@ -392,7 +392,7 @@ assert(battle.includes('fromEvent && team === "enemy"'));
 assert(battle.includes('EVENT_BATTLE_RESULT_KEY'));
 assert(battle.includes('function returnToEvent'));
 assert(battle.includes('if (fromEvent) {'));
-assert(battleHtml.includes('v2-auto-battle-practice.js?v=134'));
+assert(battleHtml.includes('v2-auto-battle-practice.js?v=135'));
 
 assert(map.includes("void openGraveyardStoryEvent();"));
 assert(map.includes("function startGraveyardEventBattle"));
