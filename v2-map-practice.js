@@ -3842,6 +3842,8 @@
           return;
         }
         if (tile.id === "graveyard") {
+          heroIndex = index;
+          placeHero(true);
           const launchedStory = await launchGraveyardChildEventFromMap(index + 1);
           if (launchedStory) return;
         }
