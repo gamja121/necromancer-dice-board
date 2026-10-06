@@ -58,12 +58,17 @@ function element(pending = false) {
 }
 function setup() {
   const revealed = [], played = [];
-  let diceStarts = 0;
+  let diceStarts = 0, brandReferenceOpens = 0;
   const context = {
     running: false, introRunning: false, actionBusy: false, battleToken: 1, paused: false,
     window: {}, startOverlay: {}, resultOverlay: {}, pauseButton: {}, speedButton: {}, turnDice: {}, message: {},
     brandReferenceInitialPending: false, brandReferenceButton: { hidden: false },
-    openBrandReference() {},
+    openBrandReference(initial) {
+      assert.equal(initial, true);
+      assert.equal(context.running, true);
+      assert(context.units.filter(u => u.team === "ally").every(u => !u.element.classes.has("is-pending")));
+      brandReferenceOpens++;
+    },
     console: { warn() {} }, wait: async () => {},
     units: [0, 1, 2, 3].map(slot => ({ team: "ally", slot, name: "ally" + slot, element: element(true) }))
       .concat([0, 1, 2, 3].map(slot => ({ team: "enemy", slot, name: "enemy" + slot, element: element() }))),
@@ -88,7 +93,7 @@ function setup() {
   };
   vm.createContext(context);
   vm.runInContext(source.slice(source.indexOf("  function revealUnit("), source.indexOf("  function battleLoop(")), context);
-  return { context, revealed, played, diceStarts: () => diceStarts };
+  return { context, revealed, played, diceStarts: () => diceStarts, brandReferenceOpens: () => brandReferenceOpens };
 }
 async function run() {
   const test = setup();
@@ -97,7 +102,9 @@ async function run() {
   await first;
   assert.deepEqual(test.played, [3, 2, 1, 0]);
   assert.deepEqual(test.revealed, [3, 2, 1, 0]);
-  assert.equal(test.diceStarts(), 1);
+  assert.equal(test.diceStarts(), 0, "Initial brand reference must gate the first dice roll");
+  assert.equal(test.brandReferenceOpens(), 1, "Initial brand reference opens after all allies materialize");
+  assert.equal(test.context.brandReferenceInitialPending, true);
   assert.equal(test.context.running, true);
   assert.equal(test.context.introRunning, false);
   assert.equal(test.context.actionBusy, false);
@@ -109,11 +116,14 @@ async function run() {
   };
   await vm.runInContext("beginBattle()", cancelled.context);
   assert.equal(cancelled.diceStarts(), 0, "Stale intro must not start a turn after reset");
+  assert.equal(cancelled.brandReferenceOpens(), 0, "Stale intro must not open the brand reference");
   assert.equal(cancelled.context.running, false);
   const failed = setup();
   failed.context.V2SummonEffect.prepare = async () => { throw new Error("missing sheet"); };
   await vm.runInContext("beginBattle()", failed.context);
-  assert.equal(failed.diceStarts(), 1, "Asset failure must not lock the battle");
+  assert.equal(failed.diceStarts(), 0, "Asset failure must still honor the initial brand-reference gate");
+  assert.equal(failed.brandReferenceOpens(), 1, "Asset failure must still reach the initial brand reference");
+  assert.equal(failed.context.running, true, "Asset failure must not lock the battle");
   assert(failed.context.units.every(u => !u.element.classes.has("is-pending")));
 
   // Run the actual effect player: frame order, reveal timing, and cleanup.
