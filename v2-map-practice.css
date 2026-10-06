@@ -2654,9 +2654,6 @@ body.is-graveyard-event-transition .map-board .swamp-damage-overlay{
   pointer-events:none!important;
 }
 
-.graveyard-story-event.is-rescued .graveyard-story-effect-box p::after{
-  content:" 아이는 당신을 보자 안도하지 못하고 겁먹은 채 뒷걸음친다.";
-}
 .graveyard-story-event.is-child-fleeing .graveyard-story-artwork{
   animation:board-event-child-flee 1.1s cubic-bezier(.18,.72,.2,1) both;
 }
