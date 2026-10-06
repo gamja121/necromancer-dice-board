@@ -1985,20 +1985,20 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .graveyard-story-ghoul-layer{
   position:absolute!important;
   z-index:6!important;
-  left:57%!important;
-  top:24%!important;
-  width:22%!important;
-  height:52%!important;
+  left:55%!important;
+  top:18%!important;
+  width:30%!important;
+  height:64%!important;
   object-fit:contain!important;
   object-position:center center!important;
   pointer-events:none!important;
   user-select:none!important;
-  opacity:.94;
-  transform-origin:50% 82%;
+  opacity:.96;
+  transform-origin:58% 82%;
   mix-blend-mode:normal!important;
   image-rendering:auto!important;
-  filter:brightness(.96) contrast(1.04)
-         drop-shadow(0 8px 10px rgba(0,0,0,.65));
+  filter:brightness(.84) contrast(1.08) saturate(.72)
+         drop-shadow(0 10px 12px rgba(0,0,0,.72));
 }
 .graveyard-story-ghoul-layer[hidden]{display:none!important}
 .graveyard-story-ghoul-layer.is-entering{
@@ -2216,22 +2216,22 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 @keyframes graveyard-ghoul-reveal{
   0%{
     opacity:0;
-    transform:translate3d(6%,4%,0) scale(.92) rotate(1deg);
-    filter:brightness(.78) contrast(1.02) blur(1px)
-           drop-shadow(0 6px 8px rgba(0,0,0,.42));
+    transform:translate3d(18%,4%,0) scale(.86) rotate(2deg);
+    filter:brightness(.62) contrast(1.02) saturate(.58) blur(1.2px)
+           drop-shadow(0 6px 8px rgba(0,0,0,.44));
   }
-  55%{
+  58%{
     opacity:.78;
-    transform:translate3d(1.5%,1%,0) scale(.97) rotate(.4deg);
+    transform:translate3d(4%,1%,0) scale(.96) rotate(.5deg);
   }
   100%{
-    opacity:.94;
+    opacity:.96;
     transform:translate3d(0,0,0) scale(1) rotate(0);
   }
 }
 @keyframes graveyard-ghoul-idle{
-  0%,100%{transform:translate3d(0,0,0) rotate(-.25deg)}
-  50%{transform:translate3d(-1.1%,-.8%,0) rotate(.35deg)}
+  0%,100%{transform:translate3d(0,0,0) rotate(-.2deg)}
+  50%{transform:translate3d(-1.2%,-.6%,0) rotate(.25deg)}
 }
 @keyframes graveyard-story-next-bob{
   0%,100%{transform:translateY(0);opacity:.45}
@@ -2250,7 +2250,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 @media(max-height:430px) and (orientation:landscape){
   .graveyard-story-stage{width:96%!important;height:94%!important}
   .graveyard-story-art-wrap{left:3%!important;top:1%!important;width:94%!important;height:auto!important;aspect-ratio:16 / 9!important}
-  .graveyard-story-ghoul-layer{left:57%!important;top:23%!important;width:22%!important;height:52%!important}
+  .graveyard-story-ghoul-layer{left:55%!important;top:17%!important;width:30%!important;height:65%!important}
   .graveyard-story-effect-box{left:4%!important;top:5%!important;width:20%!important}
   .graveyard-story-dialogue{left:7%!important;right:7%!important;bottom:2%!important;height:30%!important}
   .graveyard-story-name{font-size:clamp(10px,1.3vw,17px)!important}
