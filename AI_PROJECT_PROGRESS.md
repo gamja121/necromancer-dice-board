@@ -7,6 +7,8 @@
 - 구형 사건 엔진이 맡던 루프 카운트는 맵 자체의 `mapLoop` / RunState `currentMap.lap`으로 옮겼다.
 - 사건 확인용 딥링크 `?storyEvent=graveyard_child_ambush_01`는 현재 전용 사건 연출을 직접 여는 개발용 경로로 유지한다.
 - Event Lab(`v2-event-lab-*`)은 실제 맵 구형 사건 시스템과 별개인 개발용 실험실로 유지한다.
+- 사건 CSS는 `Graveyard child story — canonical production layout` 한 블록만 남겼고 Stage 12~22 누적 스타일, 구형 초상화 로더/이미지, 설정창 사건 바로가기를 제거했다.
+- 사건이 열리면 `eventOpen / activeEventTileId`가 사건 상태를 소유하고, 닫힐 때 주사위·맵 조작을 복구한다. 공동묘지 타일 직접 클릭도 `heroIndex`를 먼저 맞춘 뒤 같은 사건 진입 경로를 탄다.
 
 
 ## 2026-10-03: 1번 작업 — 자동 검증·배포 안전망 복구
