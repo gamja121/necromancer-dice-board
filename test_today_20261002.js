@@ -20,7 +20,6 @@ const mapCss = read("v2-map-practice.css");
 const eventHtml = read("v2-event-lab.html");
 const eventCss = read("v2-event-lab.css");
 const eventJs = read("v2-event-lab.js");
-const eventData = read("v2-event-data.js");
 const eventLabData = read("v2-event-lab-data.js");
 const music = read("v2-music.js");
 const sfx = read("v2-sfx.js");
@@ -144,7 +143,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261006-board-event-ui-stage22-battle-effect-frame"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261006-board-event-ui-stage23-legacy-event-cleanup"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=133"));
 for (const required of [
@@ -162,7 +161,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261006-board-event-ui-stage22-battle-effect-frame",
+  "./v2-map-practice.js?v=20261006-board-event-ui-stage23-legacy-event-cleanup",
   "./v2-auto-battle-practice.js?v=133",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -181,8 +180,8 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!/(^|\\n)\\.map-options-button\\s*\\{\\s*visibility:\\s*hidden;\\s*\\}/.test(mapCss));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261006-board-event-ui-stage22-battle-effect-frame"));
-assert(worker.includes("./v2-map-practice.css?v=20261006-board-event-ui-stage22-battle-effect-frame"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261006-board-event-ui-stage23-legacy-event-cleanup"));
+assert(worker.includes("./v2-map-practice.css?v=20261006-board-event-ui-stage23-legacy-event-cleanup"));
 assert(mapHtml.includes('id="villageDioramaTestButton"'));
 assert(mapHtml.includes('id="villageDioramaTest"'));
 assert(mapHtml.includes("village-building-01.webp?v=20261005-graveyard-poster-stage17-1"));
@@ -347,7 +346,6 @@ assert(mapHtml.includes('data-graveyard-id="H2"') && mapHtml.includes('data-defa
 assert(map.includes('item.dataset.defaultBottom||""'));
 
 // Event Lab is isolated from production data and now contains one layered cemetery test event.
-assert(eventData.includes('id: "graveyard_child_ambush_01"'), "Production map event data must remain intact");
 assert(eventLabData.includes('id: "graveyard_child_ambush_lab_01"'));
 assert(eventLabData.includes('tags: Object.freeze(["사건", "공동묘지", "습격받는아이"])'));
 assert(eventLabData.includes('description: "공동묘지 안쪽에서 길을 잃은 듯한 아이를 발견했다."'));
@@ -398,13 +396,7 @@ assert(battleHtml.includes('v2-auto-battle-practice.js?v=133'));
 
 assert(map.includes("function installEventOptionShortcut"));
 assert(map.includes('button.textContent = "공동묘지"'));
-assert(mapHtml.includes('id="graveyardPosterEvent"'));
-assert(map.includes("function openGraveyardPosterEvent"));
-assert(map.includes("function startGraveyardPosterEvent"));
 assert(map.includes("void openGraveyardStoryEvent();"));
-assert(mapCss.includes("Cemetery poster event · stage 17"));
-assert(mapCss.includes("@keyframes graveyard-poster-enter"));
-assert(mapCss.includes("@keyframes graveyard-poster-drift"));
 assert(map.includes("function startGraveyardEventBattle"));
 assert(map.includes('eventReturn: "map-graveyard"'));
 assert(battle.includes('eventReturnTarget === "map-graveyard"'));
@@ -421,7 +413,19 @@ assert(worker.includes("./assets/event-lab/graveyard-child/ghoul/part-000.txt"))
 
 assert(map.includes("GRAVEYARD_CHILD_EVENT_FLAG"));
 assert(map.includes("launchGraveyardChildEventFromMap"));
-assert(map.includes('["event", "graveyard"].includes'));
+assert(map.includes('if (currentTiles[heroIndex]?.id === "graveyard")'));
+assert(map.includes('if (tile.id === "graveyard")'));
+assert(map.includes("function advanceMapLoop"));
+assert(!mapHtml.includes('id="graveyardPosterEvent"'));
+assert(!mapHtml.includes('id="tileStoryEventPanel"'));
+assert(!map.includes("mapStoryEvents"));
+assert(!map.includes("openGraveyardPosterEvent"));
+assert(!mapCss.includes("graveyard-poster-"));
+assert(!mapCss.includes(".tile-story-"));
+assert(!worker.includes("./v2-event-data.js?v=1"));
+assert(!worker.includes("./v2-map-events.js?v=1"));
+assert(!fs.existsSync("v2-event-data.js"));
+assert(!fs.existsSync("v2-map-events.js"));
 assert(map.includes("completeGraveyardChildEvent"));
 assert(map.includes('draft.party = selectedUnits.map((unit) => unit.instanceId)'));
 assert(eventJs.includes("fromMapEvent"));
@@ -434,10 +438,6 @@ assert(battle.includes('eventReturnTarget === "event-lab-map"'));
 assert(battle.includes('event-battle-outcome:'));
 assert(battle.includes('(fromMap || fromEvent) && selectedAllySlugs.length'));
 
-assert(map.includes("function syncLegacyGraveyardChildStoryResolved"));
-assert(map.includes("graveyard_child_ambush_resolved = true"));
-assert(map.includes("graveyard_child_ambush_seen = true"));
-assert(map.includes("if (graveyardChildEventCompleted()) syncLegacyGraveyardChildStoryResolved()"));
 
 assert(mapHtml.includes('id="graveyardStoryArtwork"'));
 assert(mapHtml.includes('id="graveyardStoryEffectText"'));
