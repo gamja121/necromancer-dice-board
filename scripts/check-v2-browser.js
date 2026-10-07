@@ -329,6 +329,28 @@ async function activate(page, selector) {
     await page.waitForFunction(() => document.getElementById("brandReferenceOverlay").hidden);
     console.log("PASS: V2 initial + manual brand reference flow");
 
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.reload();
+    await page.waitForSelector("#unitRoster button");
+    const portraitChoices = page.locator("#unitRoster button");
+    for (let i = 0; i < 4; i++) await portraitChoices.nth(i).click();
+    await page.locator("#startButton").click();
+    await page.waitForFunction(() => !document.getElementById("brandReferenceOverlay").hidden);
+    const portraitBrandMetrics = await page.evaluate(() => {
+      const grid = document.querySelector(".brand-reference-grid").getBoundingClientRect();
+      const rows = [...document.querySelectorAll(".brand-reference-row")].map(row => row.getBoundingClientRect());
+      return {
+        grid,
+        count: rows.length,
+        allVisible: rows.every(row => row.top >= grid.top - 1 && row.bottom <= grid.bottom + 1)
+      };
+    });
+    assert.equal(portraitBrandMetrics.count, 8, "Rotated portrait view must contain all eight brand rows");
+    assert(portraitBrandMetrics.allVisible, "All eight brand rows must be visible at once on a portrait phone");
+    console.log("PASS: portrait rotated brand reference fits all eight rows");
+    await page.locator("#brandReferenceClose").click();
+    await page.setViewportSize({ width: 844, height: 390 });
+
     await page.locator("#turnDiceButton").click();
     await page.waitForFunction(() => {
       const saved = JSON.parse(localStorage.getItem("necromancer-v2-battle-v1") || "null");
