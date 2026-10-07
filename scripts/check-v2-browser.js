@@ -361,12 +361,13 @@ async function activate(page, selector) {
     await page.locator("#battleDiceControlButton").click();
     await page.waitForFunction(() => !document.getElementById("battleDiceControlOverlay").hidden);
     assert.equal(await page.locator("#battleDiceControlHand .dice-control-card").count(), 1, "Owned dice control card must appear in battle");
-    const cardBox = await page.locator("#battleDiceControlHand .dice-control-card").boundingBox();
+    const battleControlCard = page.locator("#battleDiceControlHand .dice-control-card");
+    const cardBox = await battleControlCard.boundingBox();
     assert(cardBox, "Battle dice control card must have a visible drag target");
-    await page.mouse.move(cardBox.x + cardBox.width * .5, cardBox.y + cardBox.height * .55);
-    await page.mouse.down();
-    await page.mouse.move(cardBox.x + cardBox.width * .5, cardBox.y + cardBox.height * .55 - 72, { steps: 5 });
-    await page.mouse.up();
+    // Keyboard activation is the map interaction's accessible equivalent of the upward drag.
+    // Static regression assertions above separately lock the pointer drag threshold/consume animation.
+    await battleControlCard.focus();
+    await page.keyboard.press("Enter");
     await page.waitForFunction(() => document.getElementById("battleDiceControlOverlay").hidden);
     await page.waitForFunction(() => {
       const saved = JSON.parse(localStorage.getItem("necromancer-v2-battle-v1") || "null");
