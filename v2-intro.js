@@ -52,14 +52,10 @@
     }
   }
 
-  async function loadDialogueFrame(img) {
-    return loadChunkImage(img, frameChunks, null, "frame-visible");
-  }
-
   const introAssetsReady = Promise.all([
     loadChunkImage(heroImg, heroChunks, "art/v2-style/event-portraits/necromancer.png?v=2", "hero-hd"),
     loadChunkImage(commanderImg, commanderChunks, "art/v2-style/event-portraits/knight-commander.png?v=2", "commander-hd"),
-    loadDialogueFrame(frameImg)
+    loadChunkImage(frameImg, frameChunks, null, "frame-visible")
   ]);
 
   const dialogue = [
