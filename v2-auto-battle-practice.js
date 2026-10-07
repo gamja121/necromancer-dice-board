@@ -312,7 +312,7 @@
   const requestedAllyInstanceIds = (battleQuery.get("allyIds") || "").split(",").filter(Boolean);
   let mapVictoryContaminationApplied = false;
 
-  if ((fromMap || fromEvent) && globalThis.V2RunStateRuntime?.available) {
+  if (globalThis.V2RunStateRuntime?.available) {
     await V2RunStateRuntime.bootstrap();
     await V2RunStateRuntime.flush();
   }
