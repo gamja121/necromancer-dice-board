@@ -167,6 +167,9 @@
     graveyardStoryEffectText: document.getElementById("graveyardStoryEffectText"),
     graveyardStoryArtwork: document.getElementById("graveyardStoryArtwork"),
     graveyardStoryGhoulLayer: document.getElementById("graveyardStoryGhoulLayer"),
+    rumorStoryWhisperLayer: document.getElementById("rumorStoryWhisperLayer"),
+    rumorStoryTurnLayer: document.getElementById("rumorStoryTurnLayer"),
+    rumorStoryNecromancerLayer: document.getElementById("rumorStoryNecromancerLayer"),
     graveyardStoryChoices: document.getElementById("graveyardStoryChoices"),
     graveyardStoryFrameImg: document.querySelector(".graveyard-story-frame"),
     mapName: document.getElementById("mapName"),
@@ -4542,7 +4545,16 @@
     "art/v2-style/map-test/events/graveyard-child-base-v3.webp?v=1";
   const GRAVEYARD_EVENT_GHOUL_ART =
     "art/v2-style/map-test/events/graveyard-child-ghoul-event-v3.webp?v=2";
+  const RUMOR_EVENT_BASE_ART =
+    "art/v2-style/map-test/events/rumor-village-base.webp?v=1";
+  const RUMOR_EVENT_WHISPER_ART =
+    "art/v2-style/map-test/events/rumor-villagers-whisper.webp?v=1";
+  const RUMOR_EVENT_TURN_ART =
+    "art/v2-style/map-test/events/rumor-villagers-turn.webp?v=1";
+  const RUMOR_EVENT_NECROMANCER_ART =
+    "art/v2-style/map-test/events/rumor-necromancer.webp?v=1";
   let graveyardStoryArtReady = null;
+  let rumorStoryArtReady = null;
 
   async function decodeGraveyardStoryImage(img, src) {
     if (!img || !src) return false;
@@ -4554,6 +4566,29 @@
       console.error("[graveyard-event] image decode failed", src, error);
       return false;
     }
+  }
+
+  function setRumorLayerVisible(layer, visible, { animate = true } = {}) {
+    if (!layer) return;
+    if (!visible) {
+      layer.hidden = true;
+      layer.classList.remove("is-visible");
+      return;
+    }
+    layer.hidden = false;
+    layer.classList.remove("is-visible");
+    if (animate) {
+      void layer.offsetWidth;
+      layer.classList.add("is-visible");
+    } else {
+      layer.classList.add("is-visible");
+    }
+  }
+
+  function setRumorLayerVisibility({ whisper = false, turn = false, necromancer = false, animate = true } = {}) {
+    setRumorLayerVisible(el.rumorStoryWhisperLayer, whisper, { animate });
+    setRumorLayerVisible(el.rumorStoryTurnLayer, turn, { animate });
+    setRumorLayerVisible(el.rumorStoryNecromancerLayer, necromancer, { animate });
   }
 
   function setGraveyardGhoulVisible(visible, { animate = true } = {}) {
@@ -4571,6 +4606,21 @@
       void ghoul.offsetWidth;
       ghoul.classList.add("is-entering");
     }
+  }
+
+  function ensureRumorStoryArt() {
+    if (!rumorStoryArtReady) {
+      rumorStoryArtReady = Promise.all([
+        decodeGraveyardStoryImage(el.graveyardStoryArtwork, RUMOR_EVENT_BASE_ART),
+        decodeGraveyardStoryImage(el.rumorStoryWhisperLayer, RUMOR_EVENT_WHISPER_ART),
+        decodeGraveyardStoryImage(el.rumorStoryTurnLayer, RUMOR_EVENT_TURN_ART),
+        decodeGraveyardStoryImage(el.rumorStoryNecromancerLayer, RUMOR_EVENT_NECROMANCER_ART)
+      ]).then((ready) => ready.every(Boolean)).catch((error) => {
+        console.error("[rumor-event] story art load failed", error);
+        return false;
+      });
+    }
+    return rumorStoryArtReady;
   }
 
   function ensureGraveyardStoryArt() {
@@ -4594,6 +4644,7 @@
     const storyEvent = el.graveyardStoryEvent;
     if (!storyEvent) return;
     activeStoryEventId = id || null;
+    setRumorLayerVisibility({ animate: false });
     storyEvent.dataset.storyEvent = id || "";
     storyEvent.classList.toggle("is-rumor-event", id === "rumor_saved_child_01");
     storyEvent.setAttribute("aria-label", id === "rumor_saved_child_01" ? "마을 사건 · 소문" : "공동묘지 사건 · 습격받는 아이");
@@ -4778,6 +4829,15 @@
     if (speakerName) speakerName.textContent = beat.speaker || "";
     setGraveyardGhoulVisible(false, { animate: false });
     setGraveyardStoryChoicePhase(false);
+    if (beat.id === "arrival") {
+      setRumorLayerVisibility({ animate: false });
+    } else if (beat.id === "gossip") {
+      setRumorLayerVisibility({ whisper: true });
+    } else if (beat.id === "detail") {
+      setRumorLayerVisibility({ whisper: true, turn: true });
+    } else {
+      setRumorLayerVisibility({ turn: true, necromancer: true });
+    }
     el.graveyardStoryEvent.classList.toggle("has-dialogue", Boolean(beat.dialogue));
     applyRumorStoryFocus(beat.focus || "");
   }
@@ -4806,6 +4866,7 @@
     }
     el.graveyardStoryEvent.classList.remove("is-rescued", "is-child-fleeing", "has-dialogue", "is-choice-phase", "is-board-drop-entering", "is-rumor-event");
     setGraveyardGhoulVisible(false, { animate: false });
+    setRumorLayerVisibility({ animate: false });
     setGraveyardStoryChoicePhase(false);
     if (el.graveyardStoryArtwork) {
       el.graveyardStoryArtwork.style.transform = "";
@@ -4897,12 +4958,13 @@
       id: "rumor_saved_child_01",
       title: "사건 · 마을",
       speaker: "",
-      artSrc: tileEventScenes.village.image,
-      backgroundSrc: tileEventScenes.village.image
+      artSrc: RUMOR_EVENT_BASE_ART,
+      backgroundSrc: RUMOR_EVENT_BASE_ART
     });
     ensureGraveyardDialogueFrame();
-    await decodeGraveyardStoryImage(el.graveyardStoryArtwork, tileEventScenes.village.image);
+    await ensureRumorStoryArt();
     setGraveyardGhoulVisible(false, { animate: false });
+    setRumorLayerVisibility({ animate: false });
     el.board?.classList.add("is-story-event-open");
     el.graveyardStoryEvent.hidden = false;
     el.graveyardStoryEvent.classList.remove("is-rescued", "is-child-fleeing");
