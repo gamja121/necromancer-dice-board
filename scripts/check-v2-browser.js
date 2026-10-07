@@ -115,6 +115,25 @@ async function activate(page, selector) {
     assert(inheritanceFrame.includes("legion-info-window-hd-clean.webp?v=2"));
     console.log("PASS: clean info-window asset is wired to inheritance brand panel");
 
+    await page.goto(new URL("v2-map-practice.html", base).href);
+    await page.waitForLoadState("domcontentloaded");
+    await page.waitForFunction(() => {
+      const img = document.querySelector(".graveyard-story-effect-frame");
+      return img?.complete && img.naturalWidth > 0 && img.naturalHeight > 0;
+    }, null, { timeout: 15000 });
+    const storyEffectFrame = await page.evaluate(() => {
+      const img = document.querySelector(".graveyard-story-effect-frame");
+      return {
+        src: img?.getAttribute("src") || "",
+        width: img?.naturalWidth || 0,
+        height: img?.naturalHeight || 0
+      };
+    });
+    assert(storyEffectFrame.src.includes("legion-info-window-hd-clean.webp?v=2"));
+    assert.equal(storyEffectFrame.width, 643);
+    assert.equal(storyEffectFrame.height, 470);
+    console.log("PASS: clean info-window asset loads in map story effect panel");
+
     await page.goto(new URL("v2-event-lab.html", base).href);
     await page.waitForSelector("#eventCard", { state: "visible", timeout: 15000 });
     await page.waitForFunction(() => {
