@@ -496,7 +496,9 @@ assert(map.includes("if (graveyardChildEventConsumed()) return false;"), "gravey
 assert(map.includes('mapLaunchParams.get("eventPreview") === "1"'), "forced cemetery preview must be explicit and separate from production flow");
 assert(map.includes("await resumeGraveyardEventAfterBattle();"), "battle return must finish event state before continuing");
 assert(worker.includes("./art/v2-style/map-test/events/graveyard.jpg?v=20260927-2"), "cemetery story background must be available offline");
-assert(map.includes("if (graveyardChildEventCompleted()) return false;"), "completed graveyard story must not launch again from the real map");
+assert(map.includes("if (graveyardChildEventConsumed()) return false;"), "seen or completed graveyard story must not launch again from the real map");
+assert(map.includes("await markGraveyardChildEventStarted();"), "graveyard story must persist seen state before it opens");
+assert(map.includes("draft.eventFlags[GRAVEYARD_CHILD_EVENT_SEEN_FLAG] = true;"), "graveyard story start must persist run-level seen state");
 assert(map.includes("draft.eventFlags[GRAVEYARD_CHILD_EVENT_FLAG] = true;"), "graveyard story completion must persist in run eventFlags");
 assert(map.includes("await markGraveyardChildEventComplete();") && map.includes("await openGraveyardStoryEvent({ rescued: true });"), "battle return must persist completion before showing the rescued epilogue");
 assert(mapCss.includes("rotate(-7deg)") && mapCss.includes("rotate(2.5deg)") && mapCss.includes("rotate(0)"), "event artwork entrance must wobble and finish aligned");
