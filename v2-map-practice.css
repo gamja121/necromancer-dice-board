@@ -1982,6 +1982,48 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   filter:none!important;
 }
 
+.graveyard-story-event.is-board-drop-entering .graveyard-story-art-wrap{
+  transform-origin:50% 54%!important;
+  will-change:transform,filter,box-shadow;
+  animation:graveyard-story-board-drop .66s cubic-bezier(.16,.82,.26,1) both!important;
+}
+.graveyard-story-event.is-board-drop-entering .graveyard-story-effect-box{
+  animation:graveyard-story-board-info-in .24s ease-out .38s both!important;
+}
+@keyframes graveyard-story-board-drop{
+  0%{
+    opacity:.48;
+    transform:translate3d(-4.8%,-19%,0) rotate(-7deg) scale(.94);
+    filter:brightness(.82) saturate(.88);
+    box-shadow:0 24px 32px rgba(0,0,0,.18);
+  }
+  45%{
+    opacity:1;
+    transform:translate3d(.6%,2.8%,0) rotate(2.5deg) scale(1.018);
+    filter:brightness(1.03) saturate(1);
+    box-shadow:0 5px 10px rgba(0,0,0,.56);
+  }
+  61%{
+    transform:translate3d(-.55%,-.7%,0) rotate(-1.65deg) scale(.998);
+  }
+  75%{
+    transform:translate3d(.32%,.35%,0) rotate(.82deg) scale(1.003);
+  }
+  88%{
+    transform:translate3d(-.12%,-.12%,0) rotate(-.28deg) scale(1);
+  }
+  100%{
+    opacity:1;
+    transform:translate3d(0,0,0) rotate(0) scale(1);
+    filter:none;
+    box-shadow:0 10px 18px rgba(0,0,0,.38);
+  }
+}
+@keyframes graveyard-story-board-info-in{
+  0%{opacity:0;transform:translateY(-5px) scale(.97)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+
 .graveyard-story-ghoul-layer{
   position:absolute!important;
   z-index:6!important;
@@ -2256,4 +2298,17 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   .graveyard-story-name{font-size:clamp(10px,1.3vw,17px)!important}
   .graveyard-story-text{font-size:clamp(12px,1.7vw,22px)!important}
   .graveyard-story-choices{left:74%!important;top:39%!important;width:21%!important}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .graveyard-story-event.is-board-drop-entering .graveyard-story-art-wrap{
+    animation:graveyard-story-board-drop-reduced .16s ease-out both!important;
+  }
+  .graveyard-story-event.is-board-drop-entering .graveyard-story-effect-box{
+    animation:none!important;
+  }
+  @keyframes graveyard-story-board-drop-reduced{
+    from{opacity:.72;transform:translateY(-2%) scale(.99)}
+    to{opacity:1;transform:none}
+  }
 }
