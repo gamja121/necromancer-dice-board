@@ -2,6 +2,8 @@
 
 > 확정 설계 기준이다. 현재 전투 구현의 기준은 `v2-design-data.js`, `v2-rules.js`이며, 원정 흐름은 `v2-map-practice.js`, 전투 진행은 `v2-auto-battle-practice.js`가 담당한다. 직접 조작 전투 화면(`v2.html`)은 별도의 개발용 테스트 화면이다.
 
+> 플레이어가 시스템을 배우는 순서, 해금, 정보 노출 기준은 [플레이어 학습·해금 설계 규칙](PLAYER_LEARNING_UNLOCK_RULES.md)을 함께 따른다.
+
 ## 군단 효과
 
 ### 공통 원칙
