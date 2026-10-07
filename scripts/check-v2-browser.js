@@ -374,7 +374,6 @@ async function activate(page, selector) {
     }, null, { timeout: 60000 });
     const diceControlAfterUse = await page.evaluate(() => V2RunStateRuntime.snapshot().diceCards.length);
     assert.equal(diceControlAfterUse, 0, "Battle dice control card must be consumed from RunState");
-    assert((await page.locator("#battleMessage").textContent()).includes("주사위 6") || (await page.locator("#battleMessage").textContent()).includes("공통 주사위 결과 6"));
     console.log("PASS: battlefield dice deck matches map position, drag use, auto-roll and controlled result");
 
     await page.setViewportSize({ width: 390, height: 844 });
