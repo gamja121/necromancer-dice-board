@@ -45,4 +45,4 @@
 - 사건: `node test_v2_event_lab.js`
 - [V1 제거 기록과 복구 기준](V2_MIGRATION.md)
 
-작업 전 [GitHub 개발 운영 규칙](00_AI_GITHUB_DEV_RULES.md)과 [Codex 개발·자산 파이프라인](CODEX_DEVELOPMENT_WORKFLOW.md)을 읽습니다. 상세 기획은 [게임 규칙](GAME_DESIGN_RULES.md)과 [사건 설계](EVENT_STORY_DESIGN.md)를 따릅니다.
+작업 전 [GitHub 개발 운영 규칙](00_AI_GITHUB_DEV_RULES.md)과 [Codex 개발·자산 파이프라인](CODEX_DEVELOPMENT_WORKFLOW.md)을 읽습니다. 상세 기획은 [게임 규칙](GAME_DESIGN_RULES.md), [플레이어 학습·해금 설계 규칙](PLAYER_LEARNING_UNLOCK_RULES.md), [사건 설계](EVENT_STORY_DESIGN.md)를 따릅니다.
