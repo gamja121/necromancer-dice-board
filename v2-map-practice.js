@@ -4713,8 +4713,21 @@
     "art/v2-style/map-test/events/rumor-villagers-turn.webp?v=2";
   const RUMOR_EVENT_NECROMANCER_ART =
     "art/v2-style/map-test/events/rumor-necromancer.webp?v=2";
-  const KNIGHT_COMMANDER_EVENT_ART =
-    "art/v2-style/event-portraits/knight-commander.png?v=2";
+  const KNIGHT_COMMANDER_EVENT_FALLBACK_ART =
+    "art/v2-style/event-portraits/knight-commander-upperbody-hd.webp?v=1";
+  const KNIGHT_COMMANDER_EVENT_CHUNKS = Object.freeze([
+    ...Array.from({ length: 8 }, (_, i) => Object.freeze({
+      path: `assets/intro-data/commander/part-${String(i).padStart(3, "0")}.txt`,
+      mode: "plain"
+    })),
+    Object.freeze({ path: "assets/intro-data/commander/part-008.rev.txt", mode: "reverse" }),
+    Object.freeze({ path: "assets/intro-data/commander/part-009.rev.txt", mode: "reverse" }),
+    Object.freeze({ path: "assets/intro-data/commander/part-010.rev.txt", mode: "reverse" }),
+    Object.freeze({ path: "assets/intro-data/commander/part-011.rev.txt", mode: "reverse" }),
+    Object.freeze({ path: "assets/intro-data/commander/part-012.b64txt.txt", mode: "base64-text" }),
+    Object.freeze({ path: "assets/intro-data/commander/part-013.rev.txt", mode: "reverse" }),
+    Object.freeze({ path: "assets/intro-data/commander/part-014.rev.txt", mode: "reverse" })
+  ]);
   let graveyardStoryArtReady = null;
   let rumorStoryArtReady = null;
   let knightCommanderStoryArtReady = null;
@@ -4803,11 +4816,40 @@
     return rumorStoryArtReady;
   }
 
+  async function loadKnightCommanderIntroHdImage(img) {
+    if (!img) return false;
+    try {
+      const parts = await Promise.all(KNIGHT_COMMANDER_EVENT_CHUNKS.map(async ({ path, mode }) => {
+        const response = await fetch(path, { cache: "force-cache" });
+        if (!response.ok) throw new Error(`Commander HD chunk failed: ${path}`);
+        let chunk = (await response.text()).trim();
+        if (mode === "reverse") chunk = [...chunk].reverse().join("");
+        if (mode === "base64-text") chunk = atob(chunk.replace(/\s+/g, ""));
+        return chunk;
+      }));
+      img.src = `data:image/webp;base64,${parts.join("")}`;
+      await img.decode();
+      img.dataset.assetReady = "commander-intro-hd";
+      return img.naturalWidth > 0 && img.naturalHeight > 0;
+    } catch (error) {
+      console.error("[knight-commander-event] opening HD portrait load failed", error);
+      img.src = KNIGHT_COMMANDER_EVENT_FALLBACK_ART;
+      try {
+        await img.decode();
+        img.dataset.assetReady = "commander-hd-fallback";
+        return img.naturalWidth > 0 && img.naturalHeight > 0;
+      } catch (fallbackError) {
+        console.error("[knight-commander-event] fallback portrait load failed", fallbackError);
+        return false;
+      }
+    }
+  }
+
   function ensureKnightCommanderStoryArt() {
     if (!knightCommanderStoryArtReady) {
       knightCommanderStoryArtReady = Promise.all([
         decodeGraveyardStoryImage(el.graveyardStoryArtwork, RUMOR_EVENT_BASE_ART),
-        decodeGraveyardStoryImage(el.knightCommanderStoryLayer, KNIGHT_COMMANDER_EVENT_ART)
+        loadKnightCommanderIntroHdImage(el.knightCommanderStoryLayer)
       ]).then((ready) => ready.every(Boolean)).catch((error) => {
         console.error("[knight-commander-event] story art load failed", error);
         return false;

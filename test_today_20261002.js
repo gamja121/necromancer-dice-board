@@ -143,7 +143,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261007-knight-commander-contamination-v1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261007-knight-commander-intro-hd-flip-v1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=137"));
 for (const required of [
@@ -161,7 +161,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261007-knight-commander-contamination-v1",
+  "./v2-map-practice.js?v=20261007-knight-commander-intro-hd-flip-v1",
   "./v2-auto-battle-practice.js?v=137",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -180,8 +180,8 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!/(^|\\n)\\.map-options-button\\s*\\{\\s*visibility:\\s*hidden;\\s*\\}/.test(mapCss));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261007-knight-commander-contamination-v1"));
-assert(worker.includes("./v2-map-practice.css?v=20261007-knight-commander-contamination-v1"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261007-knight-commander-intro-hd-flip-v1"));
+assert(worker.includes("./v2-map-practice.css?v=20261007-knight-commander-intro-hd-flip-v1"));
 assert(mapHtml.includes('id="villageDioramaTestButton"'));
 assert(mapHtml.includes('id="villageDioramaTest"'));
 assert(mapHtml.includes("village-building-01.webp?v=20261005-graveyard-poster-stage17-1"));
@@ -531,10 +531,17 @@ assert(map.includes("마물 사냥꾼 하나가 오염에 대해 뭔가 알고 �
 assert(map.includes("[오염에 대한 의뢰를 받았습니다.]"), "commander event must show the contamination quest acceptance message");
 assert(map.includes('mapLaunchParams.get("storyEvent") === "knight_commander_contamination_01"'), "commander event needs a direct preview route");
 assert(mapHtml.includes('id="knightCommanderStoryLayer"'), "commander portrait layer must exist in the story frame");
-assert(mapHtml.includes("art/v2-style/event-portraits/knight-commander.png?v=2"), "commander event must reuse the existing high-quality intro portrait");
+assert(map.includes("KNIGHT_COMMANDER_EVENT_CHUNKS"), "commander event must reuse the opening HD portrait chunk source");
+assert(map.includes("loadKnightCommanderIntroHdImage"), "commander event must reconstruct the opening HD portrait before showing it");
+assert(map.includes('img.dataset.assetReady = "commander-intro-hd"'), "commander event must mark the opening HD portrait as ready");
+assert(map.includes("data:image/webp;base64,"), "commander event must reconstruct the opening HD WebP from chunk data");
+assert(mapHtml.includes("art/v2-style/event-portraits/knight-commander-upperbody-hd.webp?v=1"), "commander event must keep an HD fallback portrait");
 assert(mapCss.includes(".commander-story-layer"), "commander event portrait positioning CSS must exist");
 assert(mapCss.includes(".graveyard-story-event.is-commander-event"), "commander scene must reuse the framed board-event composition");
-assert(worker.includes("./art/v2-style/event-portraits/knight-commander.png?v=2"), "commander portrait must remain precached");
+assert(mapCss.includes("transform:scaleX(-1)"), "commander event portrait must face the opposite direction");
+assert(mapCss.includes("scale(1) scaleX(-1)"), "commander entrance animation must preserve the mirrored direction");
+assert(worker.includes("./art/v2-style/event-portraits/knight-commander-upperbody-hd.webp?v=1"), "commander HD fallback must be precached");
+assert(worker.includes("./assets/intro-data/commander/part-000.txt") && worker.includes("./assets/intro-data/commander/part-014.rev.txt"), "opening commander HD chunks must stay precached");
 
 
 assert(mapHtml.includes('id="rumorStoryWhisperLayer"') && mapHtml.includes('id="rumorStoryTurnLayer"') && mapHtml.includes('id="rumorStoryNecromancerLayer"'), "rumor event must keep its three transparent actor layers");
