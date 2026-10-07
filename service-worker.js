@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261007-battle-dice-mapmatch-2";
+const CACHE_NAME = "necromancer-and-dice-v2-20261007-battle-dice-mapmatch-3";
 
 const CORE_ASSETS = [
   "./",
