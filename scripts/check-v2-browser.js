@@ -134,6 +134,20 @@ async function activate(page, selector) {
     assert.equal(storyEffectFrame.height, 470);
     console.log("PASS: clean info-window asset loads in map story effect panel");
 
+    await page.goto(new URL("v2-auto-battle-practice.html", base).href);
+    await page.waitForLoadState("domcontentloaded");
+    const remainingInfoFrames = await page.evaluate(() => {
+      const capture = document.querySelector(".battlefield-capture");
+      const reference = document.querySelector(".brand-reference-panel");
+      return {
+        captureBorder: capture ? getComputedStyle(capture).borderImageSource : "",
+        referenceBorder: reference ? getComputedStyle(reference).borderImageSource : ""
+      };
+    });
+    assert(remainingInfoFrames.captureBorder.includes("legion-info-window-hd-clean.webp?v=2"));
+    assert(remainingInfoFrames.referenceBorder.includes("legion-info-window-hd-clean.webp?v=2"));
+    console.log("PASS: clean info-window asset is wired to soul-capture and brand-reference panels");
+
     await page.goto(new URL("v2-event-lab.html", base).href);
     await page.waitForSelector("#eventCard", { state: "visible", timeout: 15000 });
     await page.waitForFunction(() => {
