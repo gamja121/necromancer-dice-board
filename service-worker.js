@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261007-story-trigger-designated-or-event-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261008-clean-info-window-1";
 
 const CORE_ASSETS = [
   "./",
@@ -90,9 +90,10 @@ const CORE_ASSETS = [
   "./art/v2-style/ui/parchment-button-variant-03.png",
   "./art/v2-style/ui/parchment-button-variant-04.png",
   "./art/v2-style/ui/graveyard-choice-parchment.webp?v=1",
-  "./v2-home-inheritance.css?v=9",
+  "./art/v2-style/ui/legion-info-window-hd-clean.webp?v=2",
+  "./v2-home-inheritance.css?v=10",
   "./v2-altar-ritual.css?v=5",
-  "./v2-auto-battle-practice.css?v=86",
+  "./v2-auto-battle-practice.css?v=87",
   "./v2-asset-loader.js?v=1",
   "./v2-map-practice.js?v=20261007-story-trigger-designated-or-event-v1",
   "./art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage26-atlas-edge-mask-1",

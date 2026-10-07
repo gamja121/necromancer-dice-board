@@ -10,7 +10,7 @@ const source = fs.readFileSync(path.join(root, "v2-home-inheritance.js"), "utf8"
 const worker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
 const board = "art/v2-style/map-test/events/inheritance-board.png";
 if (!fs.existsSync(path.join(root, board))) throw Error("Two-panel inheritance image is missing");
-for (const file of [board, "v2-home-inheritance.css?v=9", "v2-home-inheritance.js?v=17", "v2-brand-cards.js?v=6", "art/v2-style/ui/brand-card.png?v=4"]) {
+for (const file of [board, "v2-home-inheritance.css?v=10", "v2-home-inheritance.js?v=17", "v2-brand-cards.js?v=6", "art/v2-style/ui/brand-card.png?v=4"]) {
   if (!worker.includes(file)) throw Error(`Inheritance resource is not cached: ${file}`);
 }
 if (!html.includes('class="home-inheritance-material"') && !html.includes('home-inheritance-material"')) throw Error("Material panel is missing");

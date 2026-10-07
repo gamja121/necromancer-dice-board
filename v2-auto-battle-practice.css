@@ -29,7 +29,7 @@
 .legion-team-effects li { display: grid; grid-template-columns: auto 1fr; gap: 5px; }
 .legion-team-effects b { color: #f0cf91; white-space: nowrap; }
 .legion-team-effects span { color: #bfb19d; }
-.battlefield-capture { position: absolute; z-index: 78; top: 7%; left: 50%; width: min(34%, 430px); height: clamp(86px, 12vw, 142px); overflow: hidden; transform: translateX(-50%); border: clamp(9px, 1.15vw, 15px) solid transparent; border-image: url("art/v2-style/ui/legion-info-window-hd-clean.webp?v=1") 54 38 54 fill / 1; background: #c9aa94; text-align: center; }
+.battlefield-capture { position: absolute; z-index: 78; top: 7%; left: 50%; width: min(34%, 430px); height: clamp(86px, 12vw, 142px); overflow: hidden; transform: translateX(-50%); border: clamp(9px, 1.15vw, 15px) solid transparent; border-image: url("art/v2-style/ui/legion-info-window-hd-clean.webp?v=2") 54 38 54 fill / 1; background: #c9aa94; text-align: center; }
 .battlefield-capture[hidden] { display: none; }
 .battlefield-capture > .legion-info-frame-art { display: none; }
 .battlefield-capture .legion-info-inner { inset: 0; }
@@ -313,7 +313,7 @@ button, a { font: inherit; }
 .overlay-panel h1, .overlay-panel h2 { margin: 8px 0; color: #ffe0a5; font: 900 clamp(18px, 3vw, 32px)/1.2 Georgia, "Malgun Gothic", serif; }
 .overlay-panel p { margin: 0 auto 13px; color: #cfbea6; font-size: clamp(9px, 1.2vw, 12px); line-height: 1.55; }
 .overlay-panel button { min-width: 150px; height: 38px; border: 1px solid #d0944f; border-radius: 3px; background: linear-gradient(#79431f, #41200f); color: #fff0c8; font-weight: 900; }
-#resultOverlay .overlay-panel { border: clamp(12px, 1.6vw, 22px) solid transparent; border-image: url("art/v2-style/ui/legion-info-window-hd-clean.webp?v=1") 54 38 54 fill / 1; border-radius: 0; background: #c9aa94; box-shadow: 0 15px 38px #000; }
+#resultOverlay .overlay-panel { border: clamp(12px, 1.6vw, 22px) solid transparent; border-image: url("art/v2-style/ui/legion-info-window-hd-clean.webp?v=2") 54 38 54 fill / 1; border-radius: 0; background: #c9aa94; box-shadow: 0 15px 38px #000; }
 #resultOverlay .overlay-panel > span, #resultOverlay .overlay-panel h2, #resultOverlay .overlay-panel p { color: #3b2d25; text-shadow: none; }
 .lineup-panel { display: grid; grid-template-rows: auto auto auto auto auto auto minmax(0, 1fr); width: min(960px, 94%); height: min(92%, 660px); min-height: 0; overflow: hidden; overscroll-behavior: contain; padding: clamp(8px, 1.4vw, 16px); }
 .lineup-panel h1 { margin: 3px 0; font-size: clamp(15px, 2.2vw, 25px); }
@@ -625,7 +625,7 @@ button, a { font: inherit; }
 .brand-reference-overlay { position:absolute; z-index:96; inset:0; display:grid; place-items:center; }
 .brand-reference-overlay[hidden] { display:none; }
 .brand-reference-backdrop { position:absolute; inset:0; border:0; background:#050302d9; backdrop-filter:blur(3px); }
-.brand-reference-panel { position:relative; z-index:1; width:min(82%,960px); height:min(78%,570px); display:grid; grid-template-rows:auto 1fr auto; gap:7px; padding:clamp(10px,1.25vw,18px); border:clamp(8px,.9vw,12px) solid transparent; border-image:url("art/v2-style/ui/legion-info-window-hd-clean.webp?v=1") 54 38 54 fill / 1; background:#c7ad8e; color:#35271d; filter:drop-shadow(0 12px 22px #000d); }
+.brand-reference-panel { position:relative; z-index:1; width:min(82%,960px); height:min(78%,570px); display:grid; grid-template-rows:auto 1fr auto; gap:7px; padding:clamp(10px,1.25vw,18px); border:clamp(8px,.9vw,12px) solid transparent; border-image:url("art/v2-style/ui/legion-info-window-hd-clean.webp?v=2") 54 38 54 fill / 1; background:#c7ad8e; color:#35271d; filter:drop-shadow(0 12px 22px #000d); }
 .brand-reference-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; min-height:38px; }
 .brand-reference-kicker { display:block; color:#70543b; font-size:clamp(7px,.75vw,10px); font-weight:900; letter-spacing:.18em; }
 .brand-reference-head h2 { margin:2px 0 0; color:#35271d; font-size:clamp(15px,1.8vw,23px); line-height:1; }
