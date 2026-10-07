@@ -16,6 +16,10 @@
     { path: "assets/intro-data/hero/part-001.txt", mode: "plain" },
     { path: "assets/intro-data/hero/part-002.txt", mode: "plain" }
   ];
+  const frameChunks = Array.from({ length: 8 }, (_, i) => ({
+    path: `assets/intro-data/frame-v2/part-${String(i).padStart(3, "0")}.txt`,
+    mode: "plain"
+  }));
   const commanderChunks = [
     ...Array.from({ length: 8 }, (_, i) => ({ path: `assets/intro-data/commander/part-${String(i).padStart(3, "0")}.txt`, mode: "plain" })),
     { path: "assets/intro-data/commander/part-008.rev.txt", mode: "reverse" },
@@ -49,15 +53,7 @@
   }
 
   async function loadDialogueFrame(img) {
-    if (!img) return;
-    try {
-      img.src = "art/v2-style/ui/intro-dialogue-box.webp?v=7";
-      if (!img.complete || !img.naturalWidth) await img.decode();
-      img.dataset.assetReady = "frame-visible";
-    } catch (error) {
-      console.error(error);
-      img.dataset.assetReady = "fallback";
-    }
+    return loadChunkImage(img, frameChunks, null, "frame-visible");
   }
 
   const introAssetsReady = Promise.all([
