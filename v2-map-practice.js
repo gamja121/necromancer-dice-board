@@ -4824,9 +4824,9 @@
       speaker: ""
     }),
     Object.freeze({
-      id: "death",
+      id: "missing",
       effect: "공동묘지에서 있었던 일이 이미 마을까지 퍼진 모양이다.",
-      dialogue: "아이 울음소리가 들렸는데… 결국 시체로 발견됐다더군.",
+      dialogue: "공동묘지에서 아이 울음소리가 들렸다더군… 그런데 그 아이는 결국 마을로 돌아오지 못했대.",
       speaker: "주민",
       focus: "gossip"
     }),
@@ -5002,7 +5002,7 @@
 
     if (beat.id === "arrival") {
       setRumorLayerVisibility({ animate: false });
-    } else if (beat.id === "death") {
+    } else if (beat.id === "missing") {
       setRumorLayerVisibility({ whisper: true });
     } else if (beat.id === "abandoned") {
       setRumorLayerVisibility({ whisper: true, turn: true });

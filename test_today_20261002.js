@@ -143,7 +143,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261007-rumor-framed-board-v1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261007-rumor-missing-child-v1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=136"));
 for (const required of [
@@ -161,7 +161,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261007-rumor-framed-board-v1",
+  "./v2-map-practice.js?v=20261007-rumor-missing-child-v1",
   "./v2-auto-battle-practice.js?v=136",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -513,7 +513,9 @@ assert(map.includes("launchVillageRumorEventFromVillage"), "village rumor must b
 assert(map.includes('mapLaunchParams.get("storyEvent") === "rumor_abandoned_child_01"'), "abandoned-child rumor needs a direct preview route");
 assert(map.includes("graveyardChildWasRescued()) return launchRumorSavedChildEventFromVillage()"), "saved answer must still route to the original rumor");
 assert(map.includes("graveyardChildWasAbandoned()) return launchRumorAbandonedChildEventFromVillage()"), "abandoned answer must route to the new rumor");
-assert(map.includes("아이 울음소리가 들렸는데… 결국 시체로 발견됐다더군."), "abandoned rumor death line must be preserved");
+assert(map.includes("공동묘지에서 아이 울음소리가 들렸다더군… 그런데 그 아이는 결국 마을로 돌아오지 못했대."), "abandoned rumor must leave the child's fate unresolved");
+assert(!map.includes("아이 울음소리가 들렸는데… 결국 시체로 발견됐다더군."), "abandoned rumor must not canonize the child's death before the later ghoul-child event");
+assert(map.includes('id: "missing"'), "abandoned rumor first gossip beat must use unresolved missing-child semantics");
 assert(map.includes("보고도 그냥 두고 갔다더군."), "abandoned rumor must reflect the player's leave choice");
 assert(map.includes("산 자를 구하지 않는 괴물이라면… 그건 더 위험한 거 아냐?"), "abandoned rumor must escalate village fear");
 
