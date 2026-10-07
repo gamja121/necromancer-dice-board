@@ -417,7 +417,6 @@
   const battleDiceControlOverlay = document.getElementById("battleDiceControlOverlay");
   const battleDiceControlBackdrop = document.getElementById("battleDiceControlBackdrop");
   const battleDiceControlHand = document.getElementById("battleDiceControlHand");
-  const battleDiceControlGuideText = document.getElementById("battleDiceControlGuideText");
   const brandReferenceOverlay = document.getElementById("brandReferenceOverlay");
   const brandReferenceRows = document.getElementById("brandReferenceRows");
   const brandReferenceTooltip = document.getElementById("brandReferenceTooltip");
@@ -1249,16 +1248,23 @@
     return battleDiceControlCards;
   }
 
+  function screenDeltaToBattleY(deltaX, deltaY) {
+    const root = document.querySelector(".auto-battle-lab");
+    const transform = root ? getComputedStyle(root).transform : "none";
+    if (!transform || transform === "none" || typeof DOMMatrixReadOnly === "undefined") return deltaY;
+    try {
+      const matrix = new DOMMatrixReadOnly(transform);
+      const det = matrix.a * matrix.d - matrix.b * matrix.c;
+      if (Math.abs(det) < .0001) return deltaY;
+      return (-matrix.b * deltaX + matrix.a * deltaY) / det;
+    } catch (_) {
+      return deltaY;
+    }
+  }
+
   function renderBattleDiceControlHand() {
     if (!battleDiceControlHand) return;
     battleDiceControlHand.replaceChildren();
-    if (!battleDiceControlCards.length) {
-      const empty = document.createElement("p");
-      empty.className = "dice-control-empty";
-      empty.textContent = "보유한 주사위 컨트롤 카드가 없습니다.";
-      battleDiceControlHand.append(empty);
-      return;
-    }
     for (const [index, entry] of battleDiceControlCards.entries()) {
       const availability = V2DiceControl.canUse(entry.cardId, battleDiceControlContext());
       const slot = BATTLE_DICE_CONTROL_CARD_SLOTS[Math.min(index, BATTLE_DICE_CONTROL_CARD_SLOTS.length - 1)];
@@ -1270,31 +1276,93 @@
       button.style.setProperty("--card-x", slot.x);
       button.style.setProperty("--card-y", slot.y);
       button.style.setProperty("--card-rot", slot.rot);
-      button.style.setProperty("--card-delay", `${index * 48}ms`);
+      button.style.setProperty("--card-delay", `${index * 55}ms`);
       button.style.zIndex = String(5 - index);
+      button.style.setProperty("--drag-y", "0px");
       button.setAttribute("role", "option");
-      const selected = entry.instanceId === pendingBattleDiceCardInstanceId;
-      button.classList.toggle("is-selected", selected);
-      button.setAttribute("aria-selected", String(selected));
+      button.setAttribute("aria-selected", "false");
       button.disabled = !availability.ok;
       button.title = availability.ok
-        ? `${entry.card.label}: ${entry.card.description}`
+        ? `${entry.card.label}: 위로 살짝 끌어 사용 · ${entry.card.description}`
         : availability.reason;
       image.src = V2DiceControl.imagePath(entry.card, "ko");
       image.alt = `${entry.card.label}: ${entry.card.description}`;
       button.append(image);
-      button.addEventListener("click", () => {
-        if (!canOpenBattleDiceControl() || button.disabled) return;
-        pendingBattleDiceCardInstanceId = selected ? null : entry.instanceId;
-        if (pendingBattleDiceCardInstanceId) {
-          message.textContent = `${entry.card.label} 선택 · 주사위를 굴리면 이 카드가 사용됩니다`;
-        } else {
-          message.textContent = "주사위 컨트롤 카드 선택 취소 · 일반 주사위를 굴립니다";
-        }
-        renderBattleDiceControlHand();
-        saveBattle("ready");
-        closeBattleDiceControlOverlay();
-      });
+
+      if (availability.ok) {
+        let pointerId = null;
+        let startX = 0;
+        let startY = 0;
+        let dragY = 0;
+        let moved = false;
+        const USE_THRESHOLD = -34;
+
+        const resetDrag = () => {
+          button.classList.remove("is-dragging", "is-use-ready");
+          button.style.setProperty("--drag-y", "0px");
+          button.setAttribute("aria-selected", "false");
+          pointerId = null;
+          dragY = 0;
+          moved = false;
+        };
+
+        button.addEventListener("pointerdown", (event) => {
+          if (pendingBattleDiceCardInstanceId || pointerId !== null || !canOpenBattleDiceControl()) return;
+          event.preventDefault();
+          pointerId = event.pointerId;
+          startX = event.clientX;
+          startY = event.clientY;
+          dragY = 0;
+          moved = false;
+          button.setPointerCapture(pointerId);
+          button.classList.add("is-dragging");
+          button.setAttribute("aria-selected", "true");
+        });
+
+        button.addEventListener("pointermove", (event) => {
+          if (event.pointerId !== pointerId) return;
+          event.preventDefault();
+          const localDeltaY = screenDeltaToBattleY(event.clientX - startX, event.clientY - startY);
+          dragY = Math.max(-110, Math.min(0, localDeltaY));
+          moved ||= Math.abs(dragY) > 3;
+          button.style.setProperty("--drag-y", `${dragY}px`);
+          button.classList.toggle("is-use-ready", dragY <= USE_THRESHOLD);
+        });
+
+        button.addEventListener("pointerup", async (event) => {
+          if (event.pointerId !== pointerId) return;
+          event.preventDefault();
+          const shouldUse = dragY <= USE_THRESHOLD;
+          if (button.hasPointerCapture(pointerId)) button.releasePointerCapture(pointerId);
+          if (!shouldUse) {
+            resetDrag();
+            return;
+          }
+          button.classList.remove("is-dragging", "is-use-ready");
+          button.classList.add("is-consuming");
+          button.style.setProperty("--drag-y", "-120px");
+          await wait(140);
+          useBattleDiceControlCard(entry.instanceId);
+        });
+
+        button.addEventListener("pointercancel", resetDrag);
+        button.addEventListener("lostpointercapture", () => {
+          if (!button.classList.contains("is-consuming") && pointerId !== null) resetDrag();
+        });
+
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+          if (!moved) message.textContent = `${entry.card.label} · 위로 살짝 끌어 사용`;
+        });
+
+        button.addEventListener("keydown", (event) => {
+          if ((event.key === "Enter" || event.key === " ") && !pendingBattleDiceCardInstanceId) {
+            event.preventDefault();
+            useBattleDiceControlCard(entry.instanceId);
+          }
+        });
+      }
+
       battleDiceControlHand.append(button);
     }
   }
@@ -1313,32 +1381,31 @@
     if (!canOpenBattleDiceControl()) return;
     if (!brandReferenceOverlay.hidden) closeBrandReference();
     loadBattleDiceControlCards();
+    battleDiceControlDeckImage.src = "art/v2-style/ui/map-card-deck-open.png";
+    battleDiceControlButton.setAttribute("aria-expanded", "true");
     battleDiceControlOverlay.hidden = false;
     battleDiceControlOverlay.classList.remove("is-closing");
     void battleDiceControlOverlay.offsetWidth;
     battleDiceControlOverlay.classList.add("is-open");
-    battleDiceControlButton.setAttribute("aria-expanded", "true");
-    battleDiceControlDeckImage.src = "art/v2-style/ui/map-card-deck-open.png";
-    battleDiceControlGuideText.textContent = pendingBattleDiceCardInstanceId
-      ? "선택된 카드를 바꾸거나 닫은 뒤 주사위를 굴리세요."
-      : "카드를 선택한 뒤 주사위를 굴리세요.";
+    battleDiceControlBackdrop.focus();
   }
 
-  function closeBattleDiceControlOverlay(immediate = false) {
+  async function closeBattleDiceControlOverlay(immediate = false) {
     if (battleDiceControlOverlay.hidden) return;
     battleDiceControlOverlay.classList.remove("is-open");
     battleDiceControlButton.setAttribute("aria-expanded", "false");
-    battleDiceControlDeckImage.src = "art/v2-style/ui/map-card-deck.png";
     if (immediate) {
       battleDiceControlOverlay.classList.remove("is-closing");
       battleDiceControlOverlay.hidden = true;
+      battleDiceControlDeckImage.src = "art/v2-style/ui/map-card-deck.png";
       return;
     }
     battleDiceControlOverlay.classList.add("is-closing");
-    window.setTimeout(() => {
-      battleDiceControlOverlay.hidden = true;
-      battleDiceControlOverlay.classList.remove("is-closing");
-    }, 220);
+    await wait(360);
+    battleDiceControlOverlay.hidden = true;
+    battleDiceControlOverlay.classList.remove("is-closing");
+    battleDiceControlDeckImage.src = "art/v2-style/ui/map-card-deck.png";
+    if (canOpenBattleDiceControl()) battleDiceControlButton.focus();
   }
 
   function syncBattleDiceControlButton() {
@@ -1359,10 +1426,35 @@
       if (!stored?.ok) return false;
     }
     battleDiceControlCards = battleDiceControlCards.filter((candidate) => candidate.instanceId !== instanceId);
-    pendingBattleDiceCardInstanceId = null;
     renderBattleDiceControlHand();
     battleDiceCardCount.textContent = `${battleDiceControlCards.length}/5`;
     return true;
+  }
+
+  async function useBattleDiceControlCard(instanceId) {
+    if (pendingBattleDiceCardInstanceId || !canOpenBattleDiceControl()) {
+      message.textContent = pendingBattleDiceCardInstanceId
+        ? "이미 다음 굴림에 사용할 카드가 선택되어 있습니다."
+        : "지금은 주사위 컨트롤 카드를 사용할 수 없습니다.";
+      renderBattleDiceControlHand();
+      return;
+    }
+    const entry = battleDiceControlCards.find((candidate) => candidate.instanceId === instanceId);
+    if (!entry) return;
+    const availability = V2DiceControl.canUse(entry.cardId, battleDiceControlContext());
+    if (!availability.ok) {
+      message.textContent = availability.reason;
+      renderBattleDiceControlHand();
+      return;
+    }
+
+    pendingBattleDiceCardInstanceId = instanceId;
+    message.textContent = `${entry.card.label} · 사용 · 자동으로 굴립니다`;
+    saveBattle("ready");
+    await closeBattleDiceControlOverlay();
+    if (running && awaitingRoll && !diceRolling && pendingBattleDiceCardInstanceId === instanceId) {
+      await rollTurnDice();
+    }
   }
 
   function canOpenBrandReference() {
