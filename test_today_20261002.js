@@ -145,7 +145,7 @@ assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 // Current cache/version wiring.
 assert(mapHtml.includes("v2-map-practice.js?v=20261007-knight-commander-contamination-v1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
-assert(battleHtml.includes("v2-auto-battle-practice.js?v=136"));
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=137"));
 for (const required of [
   "./v2-intro.html",
   "./v2-intro.css?v=15",
@@ -162,7 +162,7 @@ for (const required of [
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
   "./v2-map-practice.js?v=20261007-knight-commander-contamination-v1",
-  "./v2-auto-battle-practice.js?v=136",
+  "./v2-auto-battle-practice.js?v=137",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
   "./v2-sfx.js?v=4",
@@ -223,8 +223,8 @@ assert(map.includes('building.style.bottom = "auto"'));
 
 assert(battle.includes('makeState(data, "enemy", 3 - index)'));
 assert(!battle.includes('makeState(data, "enemy", index)'));
-assert(battleHtml.includes("v2-auto-battle-practice.js?v=136"));
-assert(worker.includes("./v2-auto-battle-practice.js?v=136"));
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=137"));
+assert(worker.includes("./v2-auto-battle-practice.js?v=137"));
 
 const rulesSource = read("v2-rules.js");
 const brandCardsSource = read("v2-brand-cards.js");
@@ -392,7 +392,7 @@ assert(battle.includes('fromEvent && team === "enemy"'));
 assert(battle.includes('EVENT_BATTLE_RESULT_KEY'));
 assert(battle.includes('function returnToEvent'));
 assert(battle.includes('if (fromEvent) {'));
-assert(battleHtml.includes('v2-auto-battle-practice.js?v=136'));
+assert(battleHtml.includes('v2-auto-battle-practice.js?v=137'));
 
 assert(map.includes("void openGraveyardStoryEvent();"));
 assert(map.includes("function startGraveyardEventBattle"));
@@ -581,6 +581,16 @@ assert(map.includes('mapLaunchParams.get("storyEvent") === "graveyard_child_ambu
 
 assert(battleHtml.includes('id="brandReferenceOverlay"'), "Battle must include one integrated brand reference board");
 assert(battleHtml.includes('id="brandReferenceButton"'), "Battle must expose a manual pre-roll brand table button");
+assert(battleHtml.includes('id="battleDiceControlButton"'), "Battle must expose a pre-roll dice control card button");
+assert(battleHtml.includes('id="battleDiceControlOverlay"'), "Battle must include a dice control card hand overlay");
+assert(battleHtml.includes('v2-dice-control.js?v=1'), "Battle must load the shared dice control rules");
+assert(battle.includes("function openBattleDiceControlOverlay()"), "Battle dice control hand must be openable before rolling");
+assert(battle.includes("pendingBattleDiceCardInstanceId"), "Battle must keep one selected dice control card before the roll");
+assert(battle.includes("V2DiceControl.resolve(pendingEntry.cardId, battleDiceControlContext(), battleRandom)"), "Battle roll must resolve the selected control card through shared rules");
+assert(battle.includes('draft.diceCards = (draft.diceCards || []).filter((card) => card.instanceId !== instanceId)'), "Used battle dice cards must be consumed from RunState");
+assert(battle.includes("controlledRoll ?? (Math.floor(battleRandom() * 6) + 1)"), "Battle must fall back to the normal roll when no control card is selected");
+assert(battleCss.includes(".battle-dice-control-button"), "Battle dice control button styles are missing");
+assert(battleCss.includes(".dice-control-hand"), "Battle dice control card hand styles are missing");
 for (let face = 1; face <= 6; face += 1) {
   const file = `art/v2-style/dice-test/frames/result-${String(face).padStart(2, "0")}.png`;
   assert(battleHtml.includes(file), `Brand reference header must use existing die face ${face}`);
