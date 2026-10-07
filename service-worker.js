@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261007-knight-commander-day-village-final-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261007-tile-visit-single-use-1";
 
 const CORE_ASSETS = [
   "./",
@@ -93,7 +93,7 @@ const CORE_ASSETS = [
   "./v2-altar-ritual.css?v=5",
   "./v2-auto-battle-practice.css?v=86",
   "./v2-asset-loader.js?v=1",
-  "./v2-map-practice.js?v=20261007-knight-commander-day-village-final-v1",
+  "./v2-map-practice.js?v=20261007-tile-visit-single-use-v1",
   "./art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage26-atlas-edge-mask-1",
   "./art/v2-style/map-test/diorama/village-building-01.webp?v=20261005-graveyard-poster-stage17-1",
   "./art/v2-style/map-test/diorama/village-building-02.webp?v=20261005-graveyard-poster-stage17-1",
@@ -129,8 +129,8 @@ const CORE_ASSETS = [
   "./v2-presentation.js?v=1",
   "./v2-presentation-rail.js?v=2",
   "./v2-brand-cards.js?v=6",
-  "./v2-home-inheritance.js?v=16",
-  "./v2-altar-ritual.js?v=5",
+  "./v2-home-inheritance.js?v=17",
+  "./v2-altar-ritual.js?v=6",
   "./v2-dice-control.js?v=1",
   "./v2-world-tree-prayer-digits.js?v=2",
   "./art/v2-style/map-test/maps/default-map.jpg?v=20261004-board-bg-final-1",

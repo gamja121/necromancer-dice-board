@@ -36,6 +36,16 @@ assert(map.includes("V2BrandCards.addAsync"), "Treasure brand rewards must await
 assert(home.includes("V2RunStateRuntime.atomicRosterAndBrands"), "Brand-card inheritance must commit roster + card consumption atomically.");
 assert(home.includes('saveOwnedUnits("monster-inheritance")'), "Monster inheritance must persist through the RunState roster writer.");
 assert(altar.includes("V2RunStateRuntime.replaceOwnedMonsters"), "Altar sacrifice/enhancement must persist through RunState.");
+assert(map.includes('const TILE_VISIT_USAGE_KEY = "necromancer-map-tile-visit-usage-v1"') &&
+  map.includes("function beginTileVisit(step") && map.includes('markTileActionUsed("purify")') &&
+  map.includes('markTileActionUsed("prophecy")') && map.includes('markTileActionUsed("ritual")') &&
+  map.includes('markTileActionUsed("inheritance")'),
+  "Tile actions must be visit-scoped and lock after successful use.");
+assert(map.includes('el.eventMonsterShop.hidden = tile.id !== "village";') &&
+  !map.includes('tileActionUsed("shop")'),
+  "Monster shop must remain reusable during the same tile visit.");
+assert(home.includes("if (completed) return;") && altar.includes("if (!roster.has(instanceId) || completed) return;"),
+  "Inheritance and altar overlays must not allow a second successful action before leaving.");
 assert(battle.includes("V2RunStateRuntime.applyBattleOutcome"), "Battle finish must atomically persist HP/death/contamination/cleared tile.");
 assert(battleHtml.includes("v2-battle-rng.js?v=1") && worker.includes("v2-battle-rng.js?v=1") &&
   battleHtml.indexOf("v2-battle-rng.js?v=1") < battleHtml.indexOf("v2-auto-battle-practice.js?"),

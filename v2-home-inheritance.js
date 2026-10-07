@@ -165,15 +165,13 @@
     if (notice) brandHint.textContent = notice;
     else if (completed) brandHint.textContent = "✓ 계승 완료";
 
-    inheritButton.disabled = sourceCard
+    inheritButton.disabled = completed || (sourceCard
       ? !result || result.brands.length >= 3
-      : !material || !result || !material.brands.length || result.brands.length >= 3;
+      : !material || !result || !material.brands.length || result.brands.length >= 3);
   }
 
   function selectMonster(instanceId) {
-    if (completed) {
-      materialInstanceId = null; resultInstanceId = null; selectedBrandCardId = null; completed = false;
-    }
+    if (completed) return;
     notice = "";
     if (selectedBrandCardId) {
       if (instanceId === resultInstanceId) resultInstanceId = null;
@@ -191,7 +189,7 @@
   }
 
   function selectBrandCard(cardId) {
-    if (completed) completed = false;
+    if (completed) return;
     notice = "";
     if (selectedBrandCardId === cardId) {
       selectedBrandCardId = null;
@@ -305,6 +303,7 @@
   }
 
   async function inherit() {
+    if (completed) return;
     const owned = loadOwnedUnits();
     const result = owned.get(resultInstanceId);
     const sourceCard = selectedBrandCard();

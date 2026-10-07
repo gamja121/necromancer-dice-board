@@ -168,12 +168,7 @@
   }
 
   function selectUnit(instanceId) {
-    if (!roster.has(instanceId)) return;
-    if (completed) {
-      materialId = null;
-      targetId = null;
-      completed = false;
-    }
+    if (!roster.has(instanceId) || completed) return;
     if (instanceId === materialId) {
       materialId = null;
       targetId = null;
@@ -188,6 +183,7 @@
   }
 
   async function performRitual() {
+    if (completed) return;
     const material = roster.get(materialId);
     const target = roster.get(targetId);
     if (!material || !target || material.instanceId === target.instanceId || enhancementLevel(target) >= MAX_ENHANCEMENTS) return;

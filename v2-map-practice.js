@@ -109,6 +109,7 @@
   const LEGACY_MAP_LAYOUT_KEY = "necromancer-map-layout-v1";
   const MAP_CLEARED_MONSTER_KEY = "necromancer-map-cleared-monsters-v1";
   const WORLD_TREE_PRAYER_KEY = "necromancer-map-world-tree-prayed-v1";
+  const TILE_VISIT_USAGE_KEY = "necromancer-map-tile-visit-usage-v1";
   const PATROL_ROUTE_KEY = "necromancer-patrol-route-v2";
   const PATROL_ROUTE_PERSIST_KEY = "necromancer-patrol-route-persistent-v1";
   const PATROL_ROUTE_DEFAULT_CURRENT = Object.freeze(["basic", "basic", "graveyard", "forest", "rest", "event"]);
@@ -319,6 +320,9 @@
   let clearedMonsterSteps = new Set();
   let worldTreePrayed = false;
   let worldTreePrayerRolling = false;
+  let activeTileVisitMapId = "";
+  let activeTileVisitStep = null;
+  let usedTileVisitActions = new Set();
   let selectedDeck = [];
   let bookOpen = false;
   let bookAnimating = false;
@@ -340,6 +344,54 @@
   let hillScout = loadHillScoutState();
   let contamination = loadContamination();
   const ownedUnits = loadOwnedRoster();
+
+  function tileVisitMapId() {
+    const run = globalThis.V2RunStateRuntime?.snapshot?.();
+    const lap = Number(run?.currentMap?.lap) || 0;
+    const layout = currentTiles.map((tile) => tile?.id || "").join(",");
+    return `${run?.runId || "session"}|${lap}|${activeMapId}|${layout}`;
+  }
+
+  function persistTileVisitUsage() {
+    if (!activeTileVisitMapId || !Number.isInteger(activeTileVisitStep)) return;
+    try {
+      sessionStorage.setItem(TILE_VISIT_USAGE_KEY, JSON.stringify({
+        mapId: activeTileVisitMapId,
+        step: activeTileVisitStep,
+        used: [...usedTileVisitActions]
+      }));
+    } catch (_) { /* Visit limits still work in memory when storage is unavailable. */ }
+  }
+
+  function beginTileVisit(step, { forceNew = false } = {}) {
+    const normalizedStep = Number(step);
+    if (!Number.isInteger(normalizedStep) || normalizedStep < 1 || normalizedStep > 24) return;
+    const mapId = tileVisitMapId();
+    if (!forceNew && activeTileVisitMapId === mapId && activeTileVisitStep === normalizedStep) return;
+
+    let restored = null;
+    if (!forceNew) {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(TILE_VISIT_USAGE_KEY) || "null");
+        if (saved?.mapId === mapId && Number(saved.step) === normalizedStep && Array.isArray(saved.used)) restored = saved;
+      } catch (_) { restored = null; }
+    }
+
+    activeTileVisitMapId = mapId;
+    activeTileVisitStep = normalizedStep;
+    usedTileVisitActions = new Set(restored ? restored.used.filter((item) => typeof item === "string") : []);
+    persistTileVisitUsage();
+  }
+
+  function tileActionUsed(action) {
+    return usedTileVisitActions.has(action);
+  }
+
+  function markTileActionUsed(action) {
+    if (!action || action === "shop" || usedTileVisitActions.has(action)) return;
+    usedTileVisitActions.add(action);
+    persistTileVisitUsage();
+  }
 
   function graveyardChildEventConsumed() {
     const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
@@ -1376,6 +1428,7 @@
 
   function openForestTileEvent(tile, step) {
     if (!tile || tile.id !== "forest" || enteringBattle || eventOpen) return false;
+    beginTileVisit(step);
     eventOpen = true;
     activeEventTileId = "forest";
     activeEventRatio = tileEventRatios.forest || WORLD_TREE_EVENT_RATIO;
@@ -1973,10 +2026,11 @@
   }
 
   async function openHillScout() {
-    if (!eventOpen || activeEventTileId !== "forest") return;
+    if (!eventOpen || activeEventTileId !== "forest" || tileActionUsed("scout")) return;
     el.eventHillScout.disabled = true;
     el.diceResult.textContent = "언덕 · 전역 정찰 중…";
     await ensureHillScoutIntel();
+    markTileActionUsed("scout");
     renderHillScoutPanel();
     el.hillScoutPanel.hidden = false;
     el.eventHillScout.hidden = true;
@@ -1988,9 +2042,10 @@
   function closeHillScout() {
     if (!eventOpen || activeEventTileId !== "forest") return;
     el.hillScoutPanel.hidden = true;
-    el.eventHillScout.hidden = false;
+    el.eventHillScout.hidden = tileActionUsed("scout");
     el.eventHillScout.textContent = hillScout.scouted ? "정찰 정보" : "정찰";
-    el.eventHillScout.focus();
+    if (!el.eventHillScout.hidden) el.eventHillScout.focus();
+    else el.eventClose.focus();
   }
 
   function defaultPatrolRouteState() {
@@ -2148,7 +2203,7 @@
   }
 
   function openPatrolRoute() {
-    if (!eventOpen || activeEventTileId !== "home") return;
+    if (!eventOpen || activeEventTileId !== "home" || tileActionUsed("patrol")) return;
     // Re-read storage whenever the editor opens so returning to home never
     // reconstructs the default route from a stale in-memory draft.
     patrolRouteState = loadPatrolRouteState();
@@ -2171,10 +2226,12 @@
     patrolRouteSelectedCurrent = null;
     patrolRouteSelectedReserve = null;
     if (eventOpen && activeEventTileId === "home") {
-      el.eventPatrolRoute.hidden = false;
-      el.eventInheritance.hidden = false;
+      el.eventPatrolRoute.hidden = tileActionUsed("patrol");
+      el.eventInheritance.hidden = tileActionUsed("inheritance");
       el.eventClose.hidden = false;
-      el.eventPatrolRoute.focus();
+      if (!el.eventPatrolRoute.hidden) el.eventPatrolRoute.focus();
+      else if (!el.eventInheritance.hidden) el.eventInheritance.focus();
+      else el.eventClose.focus();
     }
   }
 
@@ -2201,6 +2258,7 @@
       return;
     }
     patrolRouteState = verified;
+    markTileActionUsed("patrol");
     el.diceResult.textContent = "순찰경로 저장 완료 · 다음 타일 배치에 적용";
     closePatrolRoute();
   }
@@ -3356,6 +3414,7 @@
     if (tile?.id === "forest") return openForestTileEvent(tile, step);
     const scene = tileEventScenes[tile?.id];
     if (!scene || enteringBattle) return false;
+    beginTileVisit(step);
     eventOpen = true;
     activeEventTileId = tile.id;
     activeEventRatio = tileEventRatios[tile.id] || WORLD_TREE_EVENT_RATIO;
@@ -3370,13 +3429,13 @@
     el.eventInheritance.hidden = true;
     el.eventPatrolRoute.hidden = true;
     el.patrolRoutePanel.hidden = true;
-    el.eventHeal.hidden = tile.id !== "rest" || !hasInjuredOwnedUnits();
-    el.eventPray.hidden = tile.id !== "unknown" || worldTreePrayed;
-    el.eventRitual.hidden = tile.id !== "altar";
-    el.eventProphecy.hidden = tile.id !== "fortune-teller-camp";
+    el.eventHeal.hidden = tile.id !== "rest" || tileActionUsed("heal") || !hasInjuredOwnedUnits();
+    el.eventPray.hidden = tile.id !== "unknown" || tileActionUsed("purify");
+    el.eventRitual.hidden = tile.id !== "altar" || tileActionUsed("ritual");
+    el.eventProphecy.hidden = tile.id !== "fortune-teller-camp" || tileActionUsed("prophecy");
     el.eventMonsterShop.hidden = tile.id !== "village";
-    el.eventGraveyard.hidden = tile.id !== "graveyard" || !hasGraveyardCorpses();
-    el.eventHillScout.hidden = tile.id !== "forest";
+    el.eventGraveyard.hidden = tile.id !== "graveyard" || tileActionUsed("graveyard-extract") || !hasGraveyardCorpses();
+    el.eventHillScout.hidden = tile.id !== "forest" || tileActionUsed("scout");
     el.eventHillScout.textContent = hillScout.scouted ? "정찰 정보" : "정찰";
     el.monsterShopPanel.hidden = true;
     el.graveyardExtractPanel.hidden = true;
@@ -3416,12 +3475,13 @@
   }
 
   async function healAtRestTile() {
-    if (!eventOpen || activeEventTileId !== "rest" || !hasInjuredOwnedUnits()) {
+    if (!eventOpen || activeEventTileId !== "rest" || tileActionUsed("heal") || !hasInjuredOwnedUnits()) {
       el.eventHeal.hidden = true;
       return;
     }
     el.eventHeal.hidden = true;
     el.eventClose.disabled = true;
+    markTileActionUsed("heal");
     el.diceResult.textContent = "숙영 · 모든 마물 체력 완전 회복";
     await healOwnedRosterFullWithImpact();
     el.eventClose.disabled = false;
@@ -3429,13 +3489,13 @@
   }
 
   async function prayAtWorldTree() {
-    if (!eventOpen || activeEventTileId !== "unknown" || worldTreePrayed || worldTreePrayerRolling) {
+    if (!eventOpen || activeEventTileId !== "unknown" || tileActionUsed("purify") || worldTreePrayerRolling) {
       el.eventPray.hidden = true;
       return;
     }
 
     worldTreePrayerRolling = true;
-    markWorldTreePrayed();
+    markTileActionUsed("purify");
     el.eventPray.hidden = true;
     el.eventRitual.hidden = true;
     el.eventProphecy.hidden = true;
@@ -3498,7 +3558,7 @@
       button.type = "button";
       button.className = "graveyard-corpse";
       button.classList.toggle("is-selected", corpse.instanceId === graveyardSelectedCorpseId);
-      button.disabled = graveyardExtracting;
+      button.disabled = graveyardExtracting || tileActionUsed("graveyard-extract");
       image.src = `art/v2-style/ui/unit-card-${corpse.slug}.png?v=19`;
       image.alt = "";
       name.textContent = corpse.name || globalThis.V2DesignData?.units?.[corpse.slug]?.name || corpse.slug;
@@ -3545,7 +3605,7 @@
       const label = V2BrandCards.label(card);
       button.type = "button";
       button.className = "graveyard-brand-choice";
-      button.disabled = graveyardExtracting;
+      button.disabled = graveyardExtracting || tileActionUsed("graveyard-extract");
       image.src = V2BrandCards.imagePath();
       image.alt = label;
       title.textContent = label.split(" · ")[0];
@@ -3557,7 +3617,7 @@
   }
 
   async function extractGraveyardBrand(corpse, brand) {
-    if (graveyardExtracting || !corpse || !V2Rules.validateBrand(brand)) return;
+    if (graveyardExtracting || tileActionUsed("graveyard-extract") || !corpse || !V2Rules.validateBrand(brand)) return;
     const currentCorpses = loadGraveyardCorpses();
     if (!currentCorpses.some((entry) => entry.instanceId === corpse.instanceId && entry.diedInBattle === true)) return;
 
@@ -3595,6 +3655,7 @@
       return;
     }
 
+    markTileActionUsed("graveyard-extract");
     const corpseName = corpse.name || globalThis.V2DesignData?.units?.[corpse.slug]?.name || corpse.slug;
     const brandName = V2BrandCards.label(extracted).split(" · ")[0];
     graveyardSelectedCorpseId = null;
@@ -3614,7 +3675,7 @@
   }
 
   function openGraveyardExtraction() {
-    if (!eventOpen || activeEventTileId !== "graveyard" || !hasGraveyardCorpses()) return;
+    if (!eventOpen || activeEventTileId !== "graveyard" || tileActionUsed("graveyard-extract") || !hasGraveyardCorpses()) return;
     el.graveyardExtractPanel.hidden = false;
     el.eventGraveyard.hidden = true;
     resetGraveyardExtraction();
@@ -3626,8 +3687,9 @@
     if (!eventOpen || activeEventTileId !== "graveyard" || graveyardExtracting) return;
     graveyardSelectedCorpseId = null;
     el.graveyardExtractPanel.hidden = true;
-    el.eventGraveyard.hidden = !hasGraveyardCorpses();
+    el.eventGraveyard.hidden = tileActionUsed("graveyard-extract") || !hasGraveyardCorpses();
     if (!el.eventGraveyard.hidden) el.eventGraveyard.focus();
+    else el.eventClose.focus();
   }
 
   function monsterShopGrade(unit) {
@@ -3837,8 +3899,9 @@
   }
 
   async function showFortuneProphecy() {
-    if (!eventOpen || activeEventTileId !== "fortune-teller-camp" || worldTreePrayerRolling) return;
+    if (!eventOpen || activeEventTileId !== "fortune-teller-camp" || tileActionUsed("prophecy") || worldTreePrayerRolling) return;
     worldTreePrayerRolling = true;
+    markTileActionUsed("prophecy");
     el.eventProphecy.hidden = true;
     el.fortuneProphecyUi.hidden = false;
     el.eventPrayerResult.hidden = true;
@@ -3907,10 +3970,12 @@
     }
 
     if (!eventOpen || activeEventTileId !== "home") return;
-    el.eventInheritance.hidden = false;
-    el.eventPatrolRoute.hidden = false;
+    el.eventInheritance.hidden = tileActionUsed("inheritance");
+    el.eventPatrolRoute.hidden = tileActionUsed("patrol");
     el.eventEnter.disabled = false;
-    el.eventInheritance.focus();
+    if (!el.eventInheritance.hidden) el.eventInheritance.focus();
+    else if (!el.eventPatrolRoute.hidden) el.eventPatrolRoute.focus();
+    else el.eventClose.focus();
   }
 
   async function warpToOtherWarp() {
@@ -3927,6 +3992,7 @@
     heroIndex = destination;
     placeHero(true);
     selectTile(currentButtons[heroIndex], currentTiles[heroIndex], heroIndex + 1);
+    beginTileVisit(heroIndex + 1, { forceNew: true });
     el.diceResult.textContent = `${heroIndex + 1}번 워프로 이동 완료`;
     if (globalThis.V2RunStateRuntime?.available) {
       await V2RunStateRuntime.setMapProgress({
@@ -4095,6 +4161,7 @@
       button.append(image, step);
       button.addEventListener("click", async () => {
         if (rolling || eventOpen) return;
+        beginTileVisit(index + 1, { forceNew: activeTileVisitStep !== index + 1 });
         selectTile(button, tile, index + 1);
         if (tile.id === "warp") {
           rolling = true;
@@ -4128,6 +4195,7 @@
     resumeHeroIndex = null;
     heroIndex = startingIndex;
     placeHero();
+    beginTileVisit(heroIndex + 1, { forceNew: !restoredPool });
     selectTile(currentButtons[heroIndex], currentTiles[heroIndex], heroIndex + 1);
     if (globalThis.V2RunStateRuntime?.available) {
       V2RunStateRuntime.setMapProgress({
@@ -4385,6 +4453,7 @@
       await wait(230);
       if (heroIndex === HOME_INDEX) { reachedHome = true; lapReadyForRefresh = true; break; }
     }
+    beginTileVisit(heroIndex + 1, { forceNew: true });
     const controlText = controlLabel ? ` · ${controlLabel}` : "";
     el.diceResult.textContent = reachedHome
       ? `${result}${controlText} · 집 도착 (${stepsMoved}칸 이동)`
@@ -4520,6 +4589,15 @@
     }
   });
   window.addEventListener("v2-roster-changed", (event) => {
+    const source = event.detail?.source;
+    if (source === "altar-ritual" && activeEventTileId === "altar") {
+      markTileActionUsed("ritual");
+      el.eventRitual.hidden = true;
+    }
+    if ((source === "monster-inheritance" || source === "brand-card") && activeEventTileId === "home") {
+      markTileActionUsed("inheritance");
+      el.eventInheritance.hidden = true;
+    }
     if (event.detail.donorInstanceId) ownedUnits.delete(event.detail.donorInstanceId);
     ownedUnits.set(event.detail.recipient.instanceId, event.detail.recipient);
     selectedDeck = selectedDeck.filter((instanceId) => ownedUnits.has(instanceId));
