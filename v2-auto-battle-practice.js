@@ -1878,6 +1878,7 @@
         controlledRoll = controlled.value;
         usedControlLabel = controlled.label;
         previousBattleEffectiveCardId = controlled.effectiveCardId;
+        pendingBattleDiceCardInstanceId = null;
       } else {
         pendingBattleDiceCardInstanceId = null;
       }
