@@ -294,6 +294,10 @@ async function activate(page, selector) {
 
     await page.goto(new URL("v2-auto-battle-practice.html", base).href);
     await page.waitForSelector("#unitRoster button");
+    await page.evaluate(async () => {
+      await V2RunStateRuntime.replaceDiceCards(["fixed-6"], "smoke:battle-dice-control");
+      await V2RunStateRuntime.flush();
+    });
     const choices = page.locator("#unitRoster button");
     for (let i = 0; i < 4; i++) await choices.nth(i).click();
     await page.locator("#startButton").click();
@@ -338,6 +342,24 @@ async function activate(page, selector) {
     });
     if (!deadReferenceCheck.skipped) assert.equal(deadReferenceCheck.after, deadReferenceCheck.before - 1, "Dead unit must disappear from brand reference");
     console.log("PASS: dead units disappear from brand reference");
+
+    assert.equal(await page.locator("#battleDiceControlButton").isVisible(), true, "Dice control button must be visible before the battle roll");
+    assert.equal(await page.locator("#battleDiceControlButton").isEnabled(), true, "Dice control button must be enabled when a card is owned");
+    assert.equal((await page.locator("#battleDiceCardCount").textContent()).trim(), "1/5");
+    await page.locator("#battleDiceControlButton").click();
+    await page.waitForFunction(() => !document.getElementById("battleDiceControlOverlay").hidden);
+    assert.equal(await page.locator("#battleDiceControlHand .dice-control-card").count(), 1, "Owned dice control card must appear in battle");
+    await page.locator("#battleDiceControlHand .dice-control-card").click();
+    await page.waitForFunction(() => document.getElementById("battleDiceControlOverlay").hidden);
+    assert((await page.locator("#battleMessage").textContent()).includes("주사위를 굴리면 이 카드가 사용됩니다"));
+    await page.locator("#turnDiceButton").click();
+    await page.waitForFunction(() => {
+      const saved = JSON.parse(localStorage.getItem("necromancer-v2-battle-v1") || "null");
+      return saved?.roll === 6 && saved?.state?.round >= 1;
+    }, null, { timeout: 60000 });
+    const diceControlAfterUse = await page.evaluate(() => V2RunStateRuntime.snapshot().diceCards.length);
+    assert.equal(diceControlAfterUse, 0, "Battle dice control card must be consumed from RunState");
+    console.log("PASS: battlefield dice control card selects before roll and controls the result");
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload();
