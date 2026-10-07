@@ -143,7 +143,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261007-event-story-once-v3"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261007-rumor-saved-child-v1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=136"));
 for (const required of [
@@ -161,7 +161,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261007-event-story-once-v3",
+  "./v2-map-practice.js?v=20261007-rumor-saved-child-v1",
   "./v2-auto-battle-practice.js?v=136",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -414,7 +414,7 @@ assert(map.includes("launchGraveyardChildEventFromMap"));
 assert(map.includes("async function launchGraveyardChildEventFromMap()"), "graveyard launch should not keep an unused step argument");
 assert(!map.includes("launchGraveyardChildEventFromMap(step)"));
 assert(map.includes('eventOpen = true;\n    activeEventTileId = "graveyard";'), "graveyard story must own interaction state");
-assert(map.includes('if (activeEventTileId === "graveyard") activeEventTileId = null;'), "graveyard story must release its event state");
+assert(map.includes('if (activeEventTileId === "graveyard" || activeEventTileId === "village-rumor") activeEventTileId = null;'), "shared story overlay must release graveyard and rumor event state");
 assert(map.includes('if (currentTiles[heroIndex]?.id === "graveyard")'));
 assert(map.includes('if (tile.id === "graveyard")'));
 assert(map.includes('if (tile.id === "graveyard") {\n          heroIndex = index;\n          placeHero(true);'), "graveyard direct click must move the hero before story launch");
@@ -500,7 +500,10 @@ assert(map.includes("if (graveyardChildEventConsumed()) return false;"), "seen o
 assert(map.includes("await markGraveyardChildEventStarted();"), "graveyard story must persist seen state before it opens");
 assert(map.includes("draft.eventFlags[GRAVEYARD_CHILD_EVENT_SEEN_FLAG] = true;"), "graveyard story start must persist run-level seen state");
 assert(map.includes("draft.eventFlags[GRAVEYARD_CHILD_EVENT_FLAG] = true;"), "graveyard story completion must persist in run eventFlags");
-assert(map.includes("await markGraveyardChildEventComplete();") && map.includes("await openGraveyardStoryEvent({ rescued: true });"), "battle return must persist completion before showing the rescued epilogue");
+assert(map.includes('await markGraveyardChildEventComplete("rescued");') && map.includes("await openGraveyardStoryEvent({ rescued: true });"), "battle return must persist the rescued branch before showing the epilogue");
+assert(map.includes('await markGraveyardChildEventComplete("abandoned");'), "leaving the child must persist the abandoned branch");
+assert(map.includes("RUMOR_SAVED_CHILD_EVENT_FLAG") && map.includes("launchRumorSavedChildEventFromVillage"), "rescued-child rumor follow-up must be wired into the village");
+assert(map.includes('mapLaunchParams.get("storyEvent") === "rumor_saved_child_01"'), "rumor event needs a direct preview route");
 assert(mapCss.includes("rotate(-7deg)") && mapCss.includes("rotate(2.5deg)") && mapCss.includes("rotate(0)"), "event artwork entrance must wobble and finish aligned");
 assert(map.includes("function playGraveyardStoryBoardDrop()"), "production event must trigger the board-drop entrance");
 assert(map.includes('classList.contains("is-board-drop-entering")'), "event taps must be ignored while the artwork is landing");
