@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261007-event-story-once-3";
+const CACHE_NAME = "necromancer-and-dice-v2-20261007-brand-dice-faces-1";
 
 const CORE_ASSETS = [
   "./",
@@ -89,7 +89,7 @@ const CORE_ASSETS = [
   "./art/v2-style/ui/graveyard-choice-parchment.webp?v=1",
   "./v2-home-inheritance.css?v=9",
   "./v2-altar-ritual.css?v=5",
-  "./v2-auto-battle-practice.css?v=82",
+  "./v2-auto-battle-practice.css?v=83",
   "./v2-asset-loader.js?v=1",
   "./v2-map-practice.js?v=20261007-rumor-layers-v1",
   "./art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage26-atlas-edge-mask-1",
@@ -103,6 +103,12 @@ const CORE_ASSETS = [
   "./art/v2-style/map-test/events/fortune-prophecy-ui.png?v=1",
   "./art/v2-style/map-test/diorama/graveyard/graveyard-atlas.webp?v=20261005-graveyard-poster-stage17-1",
   "./v2-auto-battle-practice.js?v=136",
+  "./art/v2-style/dice-test/frames/result-01.png",
+  "./art/v2-style/dice-test/frames/result-02.png",
+  "./art/v2-style/dice-test/frames/result-03.png",
+  "./art/v2-style/dice-test/frames/result-04.png",
+  "./art/v2-style/dice-test/frames/result-05.png",
+  "./art/v2-style/dice-test/frames/result-06.png",
   "./v2-heal-effect.js?v=1",
   "./v2-landscape.js?v=3",
   "./v2-music.js?v=3",
