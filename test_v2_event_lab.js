@@ -18,9 +18,9 @@ assert(data.includes('text: "지나친다"'));
 for (const id of ["eventCard","eventBaseImage","eventGhoulLayer","eventDescription","eventAdvance","eventDialogue","eventDialogueAdvance","eventChoices","eventOutcome"]) {
   assert(html.includes(`id="${id}"`), `Layered Event Lab is missing #${id}`);
 }
-assert(html.includes("intro-dialogue-box.webp?v=6"));
+assert(html.includes("intro-dialogue-box-clean.svg?v=1"));
 assert(html.includes('class="event-info-shell"'));
-assert(html.includes('class="event-info-frame" src="art/v2-style/ui/intro-dialogue-box.webp?v=6"'));
+assert(html.includes('class="event-info-frame" src="art/v2-style/ui/intro-dialogue-box-clean.svg?v=1"'));
 assert(css.includes(".event-info-shell"));
 assert(css.includes(".event-info-frame"));
 assert(js.includes("BASE_IMAGE_CHUNKS"));
