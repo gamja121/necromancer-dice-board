@@ -44,7 +44,7 @@ assert(introHtml.includes('art/v2-style/event-portraits/necromancer.png?v=2'), "
 assert(introHtml.includes('art/v2-style/event-portraits/knight-commander.png?v=2'), "Prologue must keep a visible commander fallback while HD chunks load");
 assert(introJs.includes('loadChunkImage(heroImg, heroChunks'), "Prologue must reconstruct the protagonist HD portrait from chunk data");
 assert(introJs.includes('data:image/webp;base64,'), "Prologue must reconstruct the commander HD portrait from chunk data");
-assert(introHtml.includes('art/v2-style/ui/intro-dialogue-box-clean.svg?v=1'));
+assert(introHtml.includes('art/v2-style/ui/intro-dialogue-box.webp?v=7'));
 assert(introHtml.includes('쿵쾅쾅.'));
 assert(introJs.includes('{ speaker: "주인공", text: "..." }'));
 assert(!introJs.match(/speaker: "주인공", text: "(?!\.\.\.)/), "Every protagonist dialogue line must stay silent");
@@ -67,7 +67,7 @@ assert(introCss.includes(".portrait-left.is-speaking{opacity:1;visibility:visibl
 assert(introCss.includes(".portrait-right:not(.is-speaking){opacity:0;visibility:hidden}"), "Inactive commander portrait must stay hidden");
 assert(introCss.includes(".portrait-right.is-speaking{opacity:1;visibility:visible}"), "Active commander portrait must be visible");
 assert(introCss.includes("rotate(90deg)"), "Portrait phones must render the intro as a CSS-rotated landscape canvas");
-assert(introHtml.includes('intro-dialogue-box-clean.svg?v=1'), "Prologue must show the parchment dialogue frame");
+assert(introHtml.includes('intro-dialogue-box.webp?v=7'), "Prologue must show the parchment dialogue frame");
 
 // Rotated-mobile card placement.
 assert(cards.includes("offsetLeft") && cards.includes("offsetParent"));
@@ -148,7 +148,7 @@ assert(mapCss.includes("z-index:120"), "Map options button must stay above map U
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=136"));
 for (const required of [
   "./v2-intro.html",
-  "./v2-intro.css?v=15",
+  "./v2-intro.css?v=16",
   "./v2-intro.js?v=10",
   "./art/v2-style/event-portraits/necromancer.png?v=2",
   "./assets/intro-data/hero/part-000.txt",
@@ -158,7 +158,7 @@ for (const required of [
   "./art/v2-style/event-portraits/knight-commander.png?v=2",
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
-  "./art/v2-style/ui/intro-dialogue-box-clean.svg?v=1",
+  "./art/v2-style/ui/intro-dialogue-box.webp?v=7",
   "./v2-map-practice.js?v=20261007-clean-dialogue-frame-v1",
   "./v2-auto-battle-practice.js?v=136",
   "./v2-heal-effect.js?v=1",
@@ -178,8 +178,8 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!/(^|\\n)\\.map-options-button\\s*\\{\\s*visibility:\\s*hidden;\\s*\\}/.test(mapCss));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261007-rumor-layers-v1"));
-assert(worker.includes("./v2-map-practice.css?v=20261007-rumor-layers-v1"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261007-clean-frame-v1"));
+assert(worker.includes("./v2-map-practice.css?v=20261007-clean-frame-v1"));
 assert(mapHtml.includes('id="villageDioramaTestButton"'));
 assert(mapHtml.includes('id="villageDioramaTest"'));
 assert(mapHtml.includes("village-building-01.webp?v=20261005-graveyard-poster-stage17-1"));
@@ -352,9 +352,9 @@ assert(eventHtml.includes('id="eventBaseImage"'));
 assert(eventHtml.includes('id="eventGhoulLayer"'));
 assert(eventHtml.includes('id="eventDialogue"'));
 assert(eventHtml.includes('id="eventChoices"'));
-assert(eventHtml.includes("intro-dialogue-box-clean.svg?v=1"));
+assert(eventHtml.includes("intro-dialogue-box.webp?v=7"));
 assert(eventHtml.includes('class="event-info-shell"'));
-assert(eventHtml.includes('class="event-info-frame" src="art/v2-style/ui/intro-dialogue-box-clean.svg?v=1"'));
+assert(eventHtml.includes('class="event-info-frame" src="art/v2-style/ui/intro-dialogue-box.webp?v=7"'));
 assert(eventCss.includes(".event-info-shell"));
 assert(eventCss.includes(".event-info-frame"));
 assert(eventJs.includes("BASE_IMAGE_CHUNKS"));
@@ -400,7 +400,7 @@ assert(battle.includes('resumeGraveyardEvent: "1"'));
 
 // Empty Event Lab files must be available offline.
 assert(worker.includes("./v2-event-lab.html"));
-assert(worker.includes("./v2-event-lab.css?v=20261005-event-lab-map-link-stage7"));
+assert(worker.includes("./v2-event-lab.css?v=20261007-clean-frame-v1"));
 assert(worker.includes("./v2-event-lab.js?v=20261005-event-lab-map-link-stage7"));
 assert(worker.includes("./v2-event-lab-data.js?v=20261005-event-lab-map-link-stage7"));
 
@@ -445,7 +445,7 @@ assert(mapHtml.includes('id="graveyardStoryGhoulLayer"'), "graveyard event must 
 assert(mapHtml.includes('src="art/v2-style/map-test/events/graveyard-child-ghoul-event-v3.webp?v=2"'), "graveyard ghoul layer must preload the new event artwork");
 assert(mapHtml.includes('id="graveyardStoryEffectText"'));
 assert(mapHtml.includes('class="tile-event-enter graveyard-story-choice-button"'));
-assert(mapHtml.includes('class="graveyard-story-frame" src="art/v2-style/ui/intro-dialogue-box-clean.svg?v=1"'));
+assert(mapHtml.includes('class="graveyard-story-frame" src="art/v2-style/ui/intro-dialogue-box.webp?v=7"'));
 assert(map.includes("ensureGraveyardStoryArt"));
 assert(map.includes('graveyardStoryGhoulLayer: document.getElementById("graveyardStoryGhoulLayer")'));
 assert(map.includes('const GRAVEYARD_EVENT_BASE_ART ='));
