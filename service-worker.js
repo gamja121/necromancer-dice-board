@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261007-brand-dice-faces-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261007-rumor-hq-1";
 
 const CORE_ASSETS = [
   "./",
@@ -65,10 +65,10 @@ const CORE_ASSETS = [
   "./art/v2-style/map-test/events/graveyard.jpg?v=20260927-2",
   "./art/v2-style/map-test/events/graveyard-child-base-v3.webp?v=1",
   "./art/v2-style/map-test/events/graveyard-child-ghoul-event-v3.webp?v=2",
-  "./art/v2-style/map-test/events/rumor-village-base.webp?v=1",
-  "./art/v2-style/map-test/events/rumor-villagers-whisper.webp?v=1",
-  "./art/v2-style/map-test/events/rumor-villagers-turn.webp?v=1",
-  "./art/v2-style/map-test/events/rumor-necromancer.webp?v=1",
+  "./art/v2-style/map-test/events/rumor-village-base.webp?v=2",
+  "./art/v2-style/map-test/events/rumor-villagers-whisper.webp?v=2",
+  "./art/v2-style/map-test/events/rumor-villagers-turn.webp?v=2",
+  "./art/v2-style/map-test/events/rumor-necromancer.webp?v=2",
 
 
 

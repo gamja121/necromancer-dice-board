@@ -508,7 +508,8 @@ assert(mapHtml.includes('id="rumorStoryWhisperLayer"') && mapHtml.includes('id="
 for (const asset of ["rumor-village-base.webp","rumor-villagers-whisper.webp","rumor-villagers-turn.webp","rumor-necromancer.webp"]) {
   const relative = `art/v2-style/map-test/events/${asset}`;
   assert(fs.existsSync(relative), "Rumor artwork missing: " + relative);
-  assert(worker.includes("./" + relative + "?v=1"), "Rumor artwork not cached: " + relative);
+  assert(worker.includes("./" + relative + "?v=2"), "Rumor artwork not cached at HQ version: " + relative);
+  assert(fs.statSync(relative).size >= 400000, "Rumor artwork must keep production-quality source size (>=400KB): " + relative);
 }
 assert(map.includes("ensureRumorStoryArt") && map.includes("setRumorLayerVisibility"), "rumor actor artwork must be loaded and revealed by story beats");
 assert(map.includes("artSrc: RUMOR_EVENT_BASE_ART") && !map.includes('artSrc: tileEventScenes.village.image,\n      backgroundSrc: tileEventScenes.village.image'), "rumor event must use its dedicated base artwork instead of the generic village tile image");

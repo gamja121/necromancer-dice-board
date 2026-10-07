@@ -4546,13 +4546,13 @@
   const GRAVEYARD_EVENT_GHOUL_ART =
     "art/v2-style/map-test/events/graveyard-child-ghoul-event-v3.webp?v=2";
   const RUMOR_EVENT_BASE_ART =
-    "art/v2-style/map-test/events/rumor-village-base.webp?v=1";
+    "art/v2-style/map-test/events/rumor-village-base.webp?v=2";
   const RUMOR_EVENT_WHISPER_ART =
-    "art/v2-style/map-test/events/rumor-villagers-whisper.webp?v=1";
+    "art/v2-style/map-test/events/rumor-villagers-whisper.webp?v=2";
   const RUMOR_EVENT_TURN_ART =
-    "art/v2-style/map-test/events/rumor-villagers-turn.webp?v=1";
+    "art/v2-style/map-test/events/rumor-villagers-turn.webp?v=2";
   const RUMOR_EVENT_NECROMANCER_ART =
-    "art/v2-style/map-test/events/rumor-necromancer.webp?v=1";
+    "art/v2-style/map-test/events/rumor-necromancer.webp?v=2";
   let graveyardStoryArtReady = null;
   let rumorStoryArtReady = null;
 
