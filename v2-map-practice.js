@@ -60,7 +60,9 @@
   const STARTING_UNIT_SLUGS = Object.freeze(["skeleton-spear", "skeleton-archer"]);
   const DICE_CONTROL_INVENTORY_KEY = "necromancer-map-dice-control-v1";
   const GRAVEYARD_CORPSES_KEY = "necromancer-map-graveyard-corpses-v1";
+  const GRAVEYARD_CHILD_EVENT_SEEN_FLAG = "event:graveyard_child_ambush_01:seen";
   const GRAVEYARD_CHILD_EVENT_FLAG = "event:graveyard_child_ambush_01:complete";
+  const GRAVEYARD_CHILD_EVENT_SEEN_FALLBACK_KEY = "necromancer-event-graveyard-child-seen-v1";
   const GRAVEYARD_CHILD_EVENT_FALLBACK_KEY = "necromancer-event-graveyard-child-complete-v1";
   const MONSTER_CAPACITY = 10;
   const DICE_CONTROL_CAPACITY = 5;
@@ -315,18 +317,38 @@
   let contamination = loadContamination();
   const ownedUnits = loadOwnedRoster();
 
-  function graveyardChildEventCompleted() {
-    const runFlag = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags?.[GRAVEYARD_CHILD_EVENT_FLAG];
-    if (runFlag === true) return true;
-    try { return sessionStorage.getItem(GRAVEYARD_CHILD_EVENT_FALLBACK_KEY) === "1"; }
-    catch (_) { return false; }
+  function graveyardChildEventConsumed() {
+    const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
+    if (eventFlags[GRAVEYARD_CHILD_EVENT_SEEN_FLAG] === true || eventFlags[GRAVEYARD_CHILD_EVENT_FLAG] === true) return true;
+    try {
+      return sessionStorage.getItem(GRAVEYARD_CHILD_EVENT_SEEN_FALLBACK_KEY) === "1"
+        || sessionStorage.getItem(GRAVEYARD_CHILD_EVENT_FALLBACK_KEY) === "1";
+    } catch (_) {
+      return false;
+    }
+  }
+
+  async function markGraveyardChildEventStarted() {
+    try { sessionStorage.setItem(GRAVEYARD_CHILD_EVENT_SEEN_FALLBACK_KEY, "1"); } catch (_) {}
+    if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
+      const result = await V2RunStateRuntime.commitExact("event-seen:graveyard-child", (draft) => {
+        if (!draft.eventFlags || typeof draft.eventFlags !== "object") draft.eventFlags = {};
+        draft.eventFlags[GRAVEYARD_CHILD_EVENT_SEEN_FLAG] = true;
+      });
+      return Boolean(result?.ok);
+    }
+    return true;
   }
 
   async function markGraveyardChildEventComplete() {
-    try { sessionStorage.setItem(GRAVEYARD_CHILD_EVENT_FALLBACK_KEY, "1"); } catch (_) {}
+    try {
+      sessionStorage.setItem(GRAVEYARD_CHILD_EVENT_SEEN_FALLBACK_KEY, "1");
+      sessionStorage.setItem(GRAVEYARD_CHILD_EVENT_FALLBACK_KEY, "1");
+    } catch (_) {}
     if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
       const result = await V2RunStateRuntime.commitExact("event-complete:graveyard-child", (draft) => {
         if (!draft.eventFlags || typeof draft.eventFlags !== "object") draft.eventFlags = {};
+        draft.eventFlags[GRAVEYARD_CHILD_EVENT_SEEN_FLAG] = true;
         draft.eventFlags[GRAVEYARD_CHILD_EVENT_FLAG] = true;
       });
       return Boolean(result?.ok);
@@ -343,7 +365,7 @@
   }
 
   async function launchGraveyardChildEventFromMap() {
-    if (graveyardChildEventCompleted()) return false;
+    if (graveyardChildEventConsumed()) return false;
     const partyUnits = currentPartyUnits();
     if (!partyUnits.length) return false;
     if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
@@ -365,6 +387,7 @@
       });
       await V2RunStateRuntime.flush();
     }
+    await markGraveyardChildEventStarted();
     await openGraveyardStoryEvent();
     return true;
   }
@@ -3723,6 +3746,7 @@
 
   function closeTileEvent() {
     if (!eventOpen) return;
+    if (el.graveyardStoryEvent && !el.graveyardStoryEvent.hidden) return;
     eventOpen = false;
     activeEventTileId = null;
     rolling = false;
@@ -4356,6 +4380,7 @@
   });
   el.deckConfirm.addEventListener("click", confirmMonsterBattle);
   document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && el.graveyardStoryEvent && !el.graveyardStoryEvent.hidden) return;
     if (event.key === "Escape" && el.graveyardDioramaTest && !el.graveyardDioramaTest.hidden) { closeGraveyardDioramaTest(); return; }
     if (event.key === "Escape" && el.villageDioramaTest && !el.villageDioramaTest.hidden) { closeVillageDioramaTest(); return; }
     if (event.key === "Escape" && el.forestDioramaTest && !el.forestDioramaTest.hidden) { closeForestDioramaTest(); return; }
