@@ -400,6 +400,22 @@ async function activate(page, selector) {
 
     // Reproduce the mobile-only village asset path before going offline. Each of the
     // six buildings must resolve to its own file and finish in the ready state.
+    await page.goto(new URL("v2-map-practice.html?storyEvent=graveyard_child_ambush_01", base).href);
+    await page.waitForSelector("#graveyardStoryEvent:not([hidden])", { state: "visible", timeout: 30000 });
+    const graveyardStoryVisual = await page.evaluate(() => {
+      const event = document.getElementById("graveyardStoryEvent");
+      const art = document.querySelector(".graveyard-story-art-wrap");
+      return {
+        background: getComputedStyle(event).backgroundImage,
+        animation: getComputedStyle(art).animationName,
+        visible: !event.hidden
+      };
+    });
+    assert(graveyardStoryVisual.visible);
+    assert(graveyardStoryVisual.background.includes("graveyard.jpg"), "Production story must retain the cemetery scene behind the artwork");
+    assert(graveyardStoryVisual.animation.includes("graveyard-story-board-drop"), "Production story artwork must use the board-drop entrance");
+    console.log("PASS: production graveyard story uses cemetery background and board-drop entrance");
+
     await page.goto(new URL("v2-map-practice.html", base).href);
     await page.waitForSelector(".village-building-image", { state: "attached" });
     await page.waitForFunction(() => document.querySelector(".village-scene-building")?.dataset.dragReady === "1", null, { timeout: 30000 });
