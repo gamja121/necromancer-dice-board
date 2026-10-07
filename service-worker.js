@@ -1,11 +1,11 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261007-clean-dialogue-frame-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261007-clean-dialogue-frame-2";
 
 const CORE_ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest?v=20261004-fullscreen-pwa-1",
   "./v2-intro.html",
-  "./v2-intro.css?v=15",
+  "./v2-intro.css?v=16",
   "./v2-intro.js?v=10",
   "./art/v2-style/event-portraits/necromancer.png?v=2",
   "./assets/intro-data/hero/part-000.txt",
@@ -29,7 +29,7 @@ const CORE_ASSETS = [
   "./assets/intro-data/commander/part-012.b64txt.txt",
   "./assets/intro-data/commander/part-013.rev.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
-  "./art/v2-style/ui/intro-dialogue-box-clean.svg?v=1",
+  "./art/v2-style/ui/intro-dialogue-box.webp?v=7",
   "./assets/title/exit.webp",
   "./assets/title/options.webp",
   "./assets/title/continue.webp",
@@ -47,7 +47,7 @@ const CORE_ASSETS = [
   "./v2-animation-practice.css?v=7",
   "./v2-animation-practice.js?v=82",
   "./v2-event-lab.html",
-  "./v2-event-lab.css?v=20261005-event-lab-map-link-stage7",
+  "./v2-event-lab.css?v=20261007-clean-frame-v1",
   "./v2-event-lab.js?v=20261005-event-lab-map-link-stage7",
   "./v2-event-lab-data.js?v=20261005-event-lab-map-link-stage7",
   "./assets/event-lab/graveyard-child/base/part-000.txt",
@@ -73,7 +73,7 @@ const CORE_ASSETS = [
   "./v2-tile-practice.html",
   "./v2-tile-practice.css?v=1",
   "./v2-tile-practice.js?v=2",
-  "./v2-map-practice.css?v=20261007-rumor-layers-v1",
+  "./v2-map-practice.css?v=20261007-clean-frame-v1",
   "./art/v2-style/ui/parchment-button-variant-01.png",
   "./art/v2-style/ui/parchment-button-variant-02.png",
   "./art/v2-style/ui/parchment-button-variant-03.png",
