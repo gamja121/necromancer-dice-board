@@ -346,20 +346,36 @@ async function activate(page, selector) {
     assert.equal(await page.locator("#battleDiceControlButton").isVisible(), true, "Dice control button must be visible before the battle roll");
     assert.equal(await page.locator("#battleDiceControlButton").isEnabled(), true, "Dice control button must be enabled when a card is owned");
     assert.equal((await page.locator("#battleDiceCardCount").textContent()).trim(), "1/5");
+    const battleDeckMetrics = await page.evaluate(() => {
+      const board = document.getElementById("battlefield").getBoundingClientRect();
+      const deck = document.getElementById("battleDiceControlButton").getBoundingClientRect();
+      return {
+        widthRatio: deck.width / board.width,
+        rightInsetRatio: (board.right - deck.right) / board.width,
+        bottomInsetRatio: (board.bottom - deck.bottom) / board.height
+      };
+    });
+    assert(Math.abs(battleDeckMetrics.widthRatio - .13) < .02, "Battle dice deck width must match the map deck");
+    assert(Math.abs(battleDeckMetrics.rightInsetRatio - .015) < .012, "Battle dice deck must sit at the same right inset as the map");
+    assert(Math.abs(battleDeckMetrics.bottomInsetRatio - .05) < .018, "Battle dice deck must sit at the same bottom inset as the map");
     await page.locator("#battleDiceControlButton").click();
     await page.waitForFunction(() => !document.getElementById("battleDiceControlOverlay").hidden);
     assert.equal(await page.locator("#battleDiceControlHand .dice-control-card").count(), 1, "Owned dice control card must appear in battle");
-    await page.locator("#battleDiceControlHand .dice-control-card").click();
+    const cardBox = await page.locator("#battleDiceControlHand .dice-control-card").boundingBox();
+    assert(cardBox, "Battle dice control card must have a visible drag target");
+    await page.mouse.move(cardBox.x + cardBox.width * .5, cardBox.y + cardBox.height * .55);
+    await page.mouse.down();
+    await page.mouse.move(cardBox.x + cardBox.width * .5, cardBox.y + cardBox.height * .55 - 72, { steps: 5 });
+    await page.mouse.up();
     await page.waitForFunction(() => document.getElementById("battleDiceControlOverlay").hidden);
-    assert((await page.locator("#battleMessage").textContent()).includes("주사위를 굴리면 이 카드가 사용됩니다"));
-    await page.locator("#turnDiceButton").click();
     await page.waitForFunction(() => {
       const saved = JSON.parse(localStorage.getItem("necromancer-v2-battle-v1") || "null");
       return saved?.roll === 6 && saved?.state?.round >= 1;
     }, null, { timeout: 60000 });
     const diceControlAfterUse = await page.evaluate(() => V2RunStateRuntime.snapshot().diceCards.length);
     assert.equal(diceControlAfterUse, 0, "Battle dice control card must be consumed from RunState");
-    console.log("PASS: battlefield dice control card selects before roll and controls the result");
+    assert((await page.locator("#battleMessage").textContent()).includes("주사위 6") || (await page.locator("#battleMessage").textContent()).includes("공통 주사위 결과 6"));
+    console.log("PASS: battlefield dice deck matches map position, drag use, auto-roll and controlled result");
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload();
