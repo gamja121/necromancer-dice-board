@@ -12,7 +12,7 @@
 
 - Godot 이식 때 혼동하지 않도록 구형 공통 사건 시스템 `v2-event-data.js` / `v2-map-events.js`를 저장소에서 삭제했다.
 - 맵의 구형 `tileStoryEventPanel` UI와 공동묘지 벽보형 `graveyardPosterEvent` UI·CSS·JS도 함께 제거했다.
-- 공동묘지 ‘습격받는 아이’의 기준 구현은 이제 `graveyardStoryEvent` 하나뿐이며, 전장에서 쓰는 `legion-info-window-hd.png` 효과창을 재사용한다.
+- 공동묘지 ‘습격받는 아이’의 기준 구현은 이제 `graveyardStoryEvent` 하나뿐이며, 전장에서 쓰는 검증 완료 공용 효과창 `legion-info-window-hd-clean.webp?v=2`를 재사용한다. 구형 `legion-info-window-hd.png`와 깨진 임시 `legion-info-window-hd-clean.png`는 혼동 방지를 위해 저장소에서 폐기했다.
 - 실제 주사위 이동으로 공동묘지에 도착할 때와 개발 중 공동묘지 타일을 직접 눌렀을 때 모두 같은 `launchGraveyardChildEventFromMap() → openGraveyardStoryEvent()` 경로를 사용한다.
 - 구형 사건 엔진이 맡던 루프 카운트는 맵 자체의 `mapLoop` / RunState `currentMap.lap`으로 옮겼다.
 - 사건 확인용 딥링크 `?storyEvent=graveyard_child_ambush_01`는 현재 전용 사건 연출을 직접 여는 개발용 경로로 유지한다.
