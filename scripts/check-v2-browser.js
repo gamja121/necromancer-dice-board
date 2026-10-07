@@ -400,7 +400,7 @@ async function activate(page, selector) {
 
     // Reproduce the mobile-only village asset path before going offline. Each of the
     // six buildings must resolve to its own file and finish in the ready state.
-    await page.goto(new URL("v2-map-practice.html?storyEvent=graveyard_child_ambush_01", base).href);
+    await page.goto(new URL("v2-map-practice.html?storyEvent=graveyard_child_ambush_01&eventPreview=1", base).href);
     await page.waitForSelector("#graveyardStoryEvent:not([hidden])", { state: "visible", timeout: 30000 });
     const graveyardStoryVisual = await page.evaluate(() => {
       const event = document.getElementById("graveyardStoryEvent");
@@ -415,6 +415,27 @@ async function activate(page, selector) {
     assert(graveyardStoryVisual.background.includes("graveyard.jpg"), "Production story must retain the cemetery scene behind the artwork");
     assert(graveyardStoryVisual.animation.includes("graveyard-story-board-drop"), "Production story artwork must use the board-drop entrance");
     console.log("PASS: production graveyard story uses cemetery background and board-drop entrance");
+    await page.evaluate(async () => {
+      await V2RunStateRuntime.commitExact("smoke:graveyard-story-seen", (draft) => {
+        if (!draft.eventFlags || typeof draft.eventFlags !== "object") draft.eventFlags = {};
+        draft.eventFlags["event:graveyard_child_ambush_01:seen"] = true;
+      });
+      await V2RunStateRuntime.flush();
+    });
+    await page.goto(new URL("v2-map-practice.html?storyEvent=graveyard_child_ambush_01", base).href);
+    await page.waitForTimeout(450);
+    assert.equal(await page.locator("#graveyardStoryEvent").isVisible(), false, "Seen cemetery story must not reopen");
+    console.log("PASS: seen cemetery story does not reopen");
+    await page.evaluate(async () => {
+      await V2RunStateRuntime.commitExact("smoke:graveyard-story-reset", (draft) => {
+        if (!draft.eventFlags || typeof draft.eventFlags !== "object") return;
+        delete draft.eventFlags["event:graveyard_child_ambush_01:seen"];
+        delete draft.eventFlags["event:graveyard_child_ambush_01:complete"];
+      });
+      await V2RunStateRuntime.flush();
+      sessionStorage.removeItem("necromancer-event-graveyard-child-seen-v1");
+      sessionStorage.removeItem("necromancer-event-graveyard-child-complete-v1");
+    });
 
     await page.goto(new URL("v2-map-practice.html", base).href);
     await page.waitForSelector(".village-building-image", { state: "attached" });
