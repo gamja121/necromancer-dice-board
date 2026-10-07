@@ -143,7 +143,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261007-clean-dialogue-frame-v2"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261007-rumor-choice-branches-v1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=136"));
 for (const required of [
@@ -161,7 +161,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=7",
-  "./v2-map-practice.js?v=20261007-clean-dialogue-frame-v2",
+  "./v2-map-practice.js?v=20261007-rumor-choice-branches-v1",
   "./v2-auto-battle-practice.js?v=136",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -414,7 +414,7 @@ assert(map.includes("launchGraveyardChildEventFromMap"));
 assert(map.includes("async function launchGraveyardChildEventFromMap()"), "graveyard launch should not keep an unused step argument");
 assert(!map.includes("launchGraveyardChildEventFromMap(step)"));
 assert(map.includes('eventOpen = true;\n    activeEventTileId = "graveyard";'), "graveyard story must own interaction state");
-assert(map.includes('if (activeEventTileId === "graveyard" || activeEventTileId === "village-rumor") activeEventTileId = null;'), "shared story overlay must release graveyard and rumor event state");
+assert(map.includes('activeEventTileId === "village-rumor-abandoned"'), "shared story overlay must release both rumor branches");
 assert(map.includes('if (currentTiles[heroIndex]?.id === "graveyard")'));
 assert(map.includes('if (tile.id === "graveyard")'));
 assert(map.includes('if (tile.id === "graveyard") {\n          heroIndex = index;\n          placeHero(true);'), "graveyard direct click must move the hero before story launch");
@@ -504,6 +504,19 @@ assert(map.includes('await markGraveyardChildEventComplete("rescued");') && map.
 assert(map.includes('await markGraveyardChildEventComplete("abandoned");'), "leaving the child must persist the abandoned branch");
 assert(map.includes("RUMOR_SAVED_CHILD_EVENT_FLAG") && map.includes("launchRumorSavedChildEventFromVillage"), "rescued-child rumor follow-up must be wired into the village");
 assert(map.includes('mapLaunchParams.get("storyEvent") === "rumor_saved_child_01"'), "rumor event needs a direct preview route");
+assert(map.includes("RUMOR_ABANDONED_CHILD_EVENT_FLAG"), "abandoned-child rumor must be a separate saved event");
+assert(map.includes("graveyardChildWasAbandoned"), "graveyard abandoned outcome must be readable");
+assert(map.includes("RUMOR_ABANDONED_CHILD_BEATS"), "abandoned-child rumor must keep separate story beats");
+assert(map.includes("openRumorAbandonedChildEvent"), "abandoned-child rumor opener must exist");
+assert(map.includes("renderRumorAbandonedChildBeat") && map.includes("advanceRumorAbandonedChildBeat"), "abandoned-child rumor must have its own renderer and progression");
+assert(map.includes("launchVillageRumorEventFromVillage"), "village rumor must branch from the saved graveyard answer");
+assert(map.includes('mapLaunchParams.get("storyEvent") === "rumor_abandoned_child_01"'), "abandoned-child rumor needs a direct preview route");
+assert(map.includes("graveyardChildWasRescued()) return launchRumorSavedChildEventFromVillage()"), "saved answer must still route to the original rumor");
+assert(map.includes("graveyardChildWasAbandoned()) return launchRumorAbandonedChildEventFromVillage()"), "abandoned answer must route to the new rumor");
+assert(map.includes("아이 울음소리가 들렸는데… 결국 시체로 발견됐다더군."), "abandoned rumor death line must be preserved");
+assert(map.includes("보고도 그냥 두고 갔다더군."), "abandoned rumor must reflect the player's leave choice");
+assert(map.includes("산 자를 구하지 않는 괴물이라면… 그건 더 위험한 거 아냐?"), "abandoned rumor must escalate village fear");
+
 assert(mapHtml.includes('id="rumorStoryWhisperLayer"') && mapHtml.includes('id="rumorStoryTurnLayer"') && mapHtml.includes('id="rumorStoryNecromancerLayer"'), "rumor event must keep its three transparent actor layers");
 for (const asset of ["rumor-village-base.webp","rumor-villagers-whisper.webp","rumor-villagers-turn.webp","rumor-necromancer.webp"]) {
   const relative = `art/v2-style/map-test/events/${asset}`;

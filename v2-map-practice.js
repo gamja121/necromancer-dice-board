@@ -72,6 +72,10 @@
   const RUMOR_SAVED_CHILD_EVENT_FLAG = "event:rumor_saved_child_01:complete";
   const RUMOR_SAVED_CHILD_EVENT_SEEN_FALLBACK_KEY = "necromancer-event-rumor-saved-child-seen-v1";
   const RUMOR_SAVED_CHILD_EVENT_FALLBACK_KEY = "necromancer-event-rumor-saved-child-complete-v1";
+  const RUMOR_ABANDONED_CHILD_EVENT_SEEN_FLAG = "event:rumor_abandoned_child_01:seen";
+  const RUMOR_ABANDONED_CHILD_EVENT_FLAG = "event:rumor_abandoned_child_01:complete";
+  const RUMOR_ABANDONED_CHILD_EVENT_SEEN_FALLBACK_KEY = "necromancer-event-rumor-abandoned-child-seen-v1";
+  const RUMOR_ABANDONED_CHILD_EVENT_FALLBACK_KEY = "necromancer-event-rumor-abandoned-child-complete-v1";
   const MONSTER_CAPACITY = 10;
   const DICE_CONTROL_CAPACITY = 5;
   const STARTING_DICE_EXCLUDED_IDS = Object.freeze(new Set(["repeat", "echo"]));
@@ -350,6 +354,17 @@
     return false;
   }
 
+  function graveyardChildWasAbandoned() {
+    const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
+    if (eventFlags[GRAVEYARD_CHILD_ABANDONED_FLAG] === true) return true;
+    if (eventFlags[GRAVEYARD_CHILD_RESCUED_FLAG] === true) return false;
+    try {
+      if (sessionStorage.getItem(GRAVEYARD_CHILD_ABANDONED_FALLBACK_KEY) === "1") return true;
+      if (sessionStorage.getItem(GRAVEYARD_CHILD_RESCUED_FALLBACK_KEY) === "1") return false;
+    } catch (_) {}
+    return false;
+  }
+
   function rumorSavedChildEventConsumed() {
     const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
     if (eventFlags[RUMOR_SAVED_CHILD_EVENT_SEEN_FLAG] === true || eventFlags[RUMOR_SAVED_CHILD_EVENT_FLAG] === true) return true;
@@ -383,6 +398,45 @@
         if (!draft.eventFlags || typeof draft.eventFlags !== "object") draft.eventFlags = {};
         draft.eventFlags[RUMOR_SAVED_CHILD_EVENT_SEEN_FLAG] = true;
         draft.eventFlags[RUMOR_SAVED_CHILD_EVENT_FLAG] = true;
+      });
+      return Boolean(result?.ok);
+    }
+    return true;
+  }
+
+  function rumorAbandonedChildEventConsumed() {
+    const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
+    if (eventFlags[RUMOR_ABANDONED_CHILD_EVENT_SEEN_FLAG] === true || eventFlags[RUMOR_ABANDONED_CHILD_EVENT_FLAG] === true) return true;
+    try {
+      return sessionStorage.getItem(RUMOR_ABANDONED_CHILD_EVENT_SEEN_FALLBACK_KEY) === "1"
+        || sessionStorage.getItem(RUMOR_ABANDONED_CHILD_EVENT_FALLBACK_KEY) === "1";
+    } catch (_) {
+      return false;
+    }
+  }
+
+  async function markRumorAbandonedChildEventStarted() {
+    try { sessionStorage.setItem(RUMOR_ABANDONED_CHILD_EVENT_SEEN_FALLBACK_KEY, "1"); } catch (_) {}
+    if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
+      const result = await V2RunStateRuntime.commitExact("event-seen:rumor-abandoned-child", (draft) => {
+        if (!draft.eventFlags || typeof draft.eventFlags !== "object") draft.eventFlags = {};
+        draft.eventFlags[RUMOR_ABANDONED_CHILD_EVENT_SEEN_FLAG] = true;
+      });
+      return Boolean(result?.ok);
+    }
+    return true;
+  }
+
+  async function markRumorAbandonedChildEventComplete() {
+    try {
+      sessionStorage.setItem(RUMOR_ABANDONED_CHILD_EVENT_SEEN_FALLBACK_KEY, "1");
+      sessionStorage.setItem(RUMOR_ABANDONED_CHILD_EVENT_FALLBACK_KEY, "1");
+    } catch (_) {}
+    if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
+      const result = await V2RunStateRuntime.commitExact("event-complete:rumor-abandoned-child", (draft) => {
+        if (!draft.eventFlags || typeof draft.eventFlags !== "object") draft.eventFlags = {};
+        draft.eventFlags[RUMOR_ABANDONED_CHILD_EVENT_SEEN_FLAG] = true;
+        draft.eventFlags[RUMOR_ABANDONED_CHILD_EVENT_FLAG] = true;
       });
       return Boolean(result?.ok);
     }
@@ -472,6 +526,19 @@
     await markRumorSavedChildEventStarted();
     await openRumorSavedChildEvent();
     return true;
+  }
+
+  async function launchRumorAbandonedChildEventFromVillage() {
+    if (!graveyardChildWasAbandoned() || rumorAbandonedChildEventConsumed()) return false;
+    await markRumorAbandonedChildEventStarted();
+    await openRumorAbandonedChildEvent();
+    return true;
+  }
+
+  async function launchVillageRumorEventFromVillage() {
+    if (graveyardChildWasRescued()) return launchRumorSavedChildEventFromVillage();
+    if (graveyardChildWasAbandoned()) return launchRumorAbandonedChildEventFromVillage();
+    return false;
   }
 
   if (el.board && el.graveyardStoryEvent && el.graveyardStoryEvent.parentElement !== el.board) {
@@ -3953,7 +4020,7 @@
           if (launchedStory) return;
         }
         if (tile.id === "village") {
-          const launchedRumor = await launchRumorSavedChildEventFromVillage();
+          const launchedRumor = await launchVillageRumorEventFromVillage();
           if (launchedRumor) return;
         }
         if (openTileEvent(tile, index + 1)) return;
@@ -4273,7 +4340,7 @@
       }
     }
     if (currentTiles[heroIndex]?.id === "village") {
-      const launchedRumor = await launchRumorSavedChildEventFromVillage();
+      const launchedRumor = await launchVillageRumorEventFromVillage();
       if (launchedRumor) {
         rolling = false;
         return;
@@ -4645,11 +4712,12 @@
     activeStoryEventId = id || null;
     setRumorLayerVisibility({ animate: false });
     storyEvent.dataset.storyEvent = id || "";
-    storyEvent.classList.toggle("is-rumor-event", id === "rumor_saved_child_01");
-    storyEvent.setAttribute("aria-label", id === "rumor_saved_child_01" ? "마을 사건 · 소문" : "공동묘지 사건 · 습격받는 아이");
+    const isRumorEvent = id === "rumor_saved_child_01" || id === "rumor_abandoned_child_01";
+    storyEvent.classList.toggle("is-rumor-event", isRumorEvent);
+    storyEvent.setAttribute("aria-label", isRumorEvent ? "마을 사건 · 소문" : "공동묘지 사건 · 습격받는 아이");
     storyEvent.querySelector(".graveyard-story-stage")?.setAttribute(
       "aria-label",
-      id === "rumor_saved_child_01" ? "소문 사건" : "습격받는 아이 사건"
+      isRumorEvent ? "소문 사건" : "습격받는 아이 사건"
     );
     const effectTitle = storyEvent.querySelector(".graveyard-story-effect-inner > h2");
     const speakerName = storyEvent.querySelector(".graveyard-story-name");
@@ -4737,9 +4805,54 @@
       focus: "silence"
     })
   ]);
+  const RUMOR_ABANDONED_CHILD_BEATS = Object.freeze([
+    Object.freeze({
+      id: "arrival",
+      effect: "마을 어귀에 들어서자, 어두운 이야기들이 낮게 흘러다닌다.",
+      dialogue: "",
+      speaker: ""
+    }),
+    Object.freeze({
+      id: "death",
+      effect: "공동묘지에서 있었던 일이 이미 마을까지 퍼진 모양이다.",
+      dialogue: "아이 울음소리가 들렸는데… 결국 시체로 발견됐다더군.",
+      speaker: "주민",
+      focus: "gossip"
+    }),
+    Object.freeze({
+      id: "abandoned",
+      effect: "사람들은 사실보다 더 나쁜 형태로 이야기를 덧붙인다.",
+      dialogue: "그 자리에 이상한 괴물이 있었다고 했어. 보고도 그냥 두고 갔다더군.",
+      speaker: "주민",
+      focus: "detail"
+    }),
+    Object.freeze({
+      id: "fear",
+      effect: "소문은 점점 하나의 확신처럼 굳어진다.",
+      dialogue: "산 자를 구하지 않는 괴물이라면… 그건 더 위험한 거 아냐?",
+      speaker: "주민",
+      focus: "noticed"
+    }),
+    Object.freeze({
+      id: "noticed",
+      effect: "한 주민이 당신을 발견한다. 수군거림이 갑자기 멎는다.",
+      dialogue: "…쉿. 저자야.",
+      speaker: "주민",
+      focus: "noticed"
+    }),
+    Object.freeze({
+      id: "silence",
+      effect: "마을에는 아이를 버리고 지나간 괴물에 대한 소문만 남았다.",
+      dialogue: "",
+      speaker: "",
+      focus: "silence"
+    })
+  ]);
   let graveyardStoryBeatIndex = 0;
   let rumorStoryBeatIndex = 0;
   let rumorStoryCompleting = false;
+  let rumorAbandonedStoryBeatIndex = 0;
+  let rumorAbandonedStoryCompleting = false;
   let activeStoryEventId = null;
   let graveyardStoryBoardDropTimer = null;
 
@@ -4856,6 +4969,55 @@
     renderRumorSavedChildBeat(rumorStoryBeatIndex + 1);
   }
 
+  function renderRumorAbandonedChildBeat(index) {
+    if (!el.graveyardStoryEvent) return;
+    const beat = RUMOR_ABANDONED_CHILD_BEATS[Math.max(0, Math.min(index, RUMOR_ABANDONED_CHILD_BEATS.length - 1))];
+    rumorAbandonedStoryBeatIndex = RUMOR_ABANDONED_CHILD_BEATS.indexOf(beat);
+    el.graveyardStoryEvent.dataset.beat = `rumor-abandoned-${beat.id}`;
+    el.graveyardStoryEvent.classList.remove(
+      "beat-child-alone",
+      "beat-ghoul-appears",
+      "beat-child-frightened",
+      "beat-choice",
+      "is-rescued",
+      "is-child-fleeing"
+    );
+    if (el.graveyardStoryEffectText) el.graveyardStoryEffectText.textContent = beat.effect || "";
+    if (el.graveyardStoryText) el.graveyardStoryText.textContent = beat.dialogue || "";
+    const speakerName = el.graveyardStoryEvent.querySelector(".graveyard-story-name");
+    if (speakerName) speakerName.textContent = beat.speaker || "";
+    setGraveyardGhoulVisible(false, { animate: false });
+    setGraveyardStoryChoicePhase(false);
+
+    if (beat.id === "arrival") {
+      setRumorLayerVisibility({ animate: false });
+    } else if (beat.id === "death") {
+      setRumorLayerVisibility({ whisper: true });
+    } else if (beat.id === "abandoned") {
+      setRumorLayerVisibility({ whisper: true, turn: true });
+    } else {
+      setRumorLayerVisibility({ turn: true, necromancer: true });
+    }
+
+    el.graveyardStoryEvent.classList.toggle("has-dialogue", Boolean(beat.dialogue));
+    applyRumorStoryFocus(beat.focus || "");
+  }
+
+  async function advanceRumorAbandonedChildBeat() {
+    if (!el.graveyardStoryEvent || rumorAbandonedStoryCompleting) return;
+    if (rumorAbandonedStoryBeatIndex >= RUMOR_ABANDONED_CHILD_BEATS.length - 1) {
+      rumorAbandonedStoryCompleting = true;
+      try {
+        await markRumorAbandonedChildEventComplete();
+        closeGraveyardStoryEvent();
+      } finally {
+        rumorAbandonedStoryCompleting = false;
+      }
+      return;
+    }
+    renderRumorAbandonedChildBeat(rumorAbandonedStoryBeatIndex + 1);
+  }
+
   function closeGraveyardStoryEvent() {
     if (!el.graveyardStoryEvent) return;
     el.graveyardStoryEvent.hidden = true;
@@ -4874,7 +5036,11 @@
     el.board?.classList.remove("is-story-event-open");
     eventOpen = false;
     activeStoryEventId = null;
-    if (activeEventTileId === "graveyard" || activeEventTileId === "village-rumor") activeEventTileId = null;
+    if (
+      activeEventTileId === "graveyard"
+      || activeEventTileId === "village-rumor"
+      || activeEventTileId === "village-rumor-abandoned"
+    ) activeEventTileId = null;
     rolling = false;
     el.diceButton.disabled = false;
     el.regenerate.disabled = false;
@@ -4977,6 +5143,37 @@
     }
   }
 
+  async function openRumorAbandonedChildEvent() {
+    if (!el.graveyardStoryEvent) return;
+    eventOpen = true;
+    activeEventTileId = "village-rumor-abandoned";
+    rolling = false;
+    el.diceButton.disabled = true;
+    el.regenerate.disabled = true;
+    configureStoryEventShell({
+      id: "rumor_abandoned_child_01",
+      title: "사건 · 마을",
+      speaker: "",
+      artSrc: RUMOR_EVENT_BASE_ART,
+      backgroundSrc: RUMOR_EVENT_BASE_ART
+    });
+    ensureGraveyardDialogueFrame();
+    await ensureRumorStoryArt();
+    setGraveyardGhoulVisible(false, { animate: false });
+    setRumorLayerVisibility({ animate: false });
+    el.board?.classList.add("is-story-event-open");
+    el.graveyardStoryEvent.hidden = false;
+    el.graveyardStoryEvent.classList.remove("is-rescued", "is-child-fleeing");
+    setGraveyardStoryChoicePhase(false);
+    playGraveyardStoryBoardDrop();
+    rumorAbandonedStoryBeatIndex = 0;
+    renderRumorAbandonedChildBeat(0);
+    if (el.graveyardStoryAdvance) {
+      el.graveyardStoryAdvance.disabled = false;
+      el.graveyardStoryAdvance.onclick = () => { void advanceRumorAbandonedChildBeat(); };
+    }
+  }
+
   function installGraveyardStoryTapAdvance() {
     if (!el.graveyardStoryEvent || el.graveyardStoryEvent.dataset.tapAdvanceReady === "1") return;
     el.graveyardStoryEvent.dataset.tapAdvanceReady = "1";
@@ -4987,6 +5184,7 @@
       if (event.target.closest(".graveyard-story-choices")) return;
       if (event.target.closest("#graveyardStoryAdvance")) return;
       if (activeStoryEventId === "rumor_saved_child_01") void advanceRumorSavedChildBeat();
+      else if (activeStoryEventId === "rumor_abandoned_child_01") void advanceRumorAbandonedChildBeat();
       else advanceGraveyardStoryBeat();
     });
   }
@@ -5063,7 +5261,14 @@
     const previewOnly = mapLaunchParams.get("eventPreview") === "1";
     window.setTimeout(() => {
       if (previewOnly) void openRumorSavedChildEvent();
-      else void launchRumorSavedChildEventFromVillage();
+      else void launchVillageRumorEventFromVillage();
+    }, 0);
+  }
+  if (mapLaunchParams.get("storyEvent") === "rumor_abandoned_child_01") {
+    const previewOnly = mapLaunchParams.get("eventPreview") === "1";
+    window.setTimeout(() => {
+      if (previewOnly) void openRumorAbandonedChildEvent();
+      else void launchVillageRumorEventFromVillage();
     }, 0);
   }
 
