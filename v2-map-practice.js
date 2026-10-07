@@ -678,12 +678,29 @@
     return true;
   }
 
+  function storyEventTriggerMatches(tileId, designatedTileId) {
+    return tileId === designatedTileId || tileId === "event";
+  }
+
   async function launchStoryEventForTile(tileId) {
-    if (tileId === "village" || tileId === "event") {
+    // Universal story trigger rule:
+    // each story event belongs to one designated tile, and the generic
+    // event tile is its wildcard alternate. Whichever eligible tile is
+    // reached first fires the pending story event.
+    // Resolve in canonical story order so an event tile cannot skip ahead.
+    if (storyEventTriggerMatches(tileId, "graveyard")) {
+      const launchedGraveyard = await launchGraveyardChildEventFromMap();
+      if (launchedGraveyard) return true;
+    }
+
+    if (storyEventTriggerMatches(tileId, "village")) {
+      const launchedRumor = await launchVillageRumorEventFromVillage();
+      if (launchedRumor) return true;
+
       const launchedCommander = await launchKnightCommanderContaminationEventFromMap();
       if (launchedCommander) return true;
     }
-    if (tileId === "village") return launchVillageRumorEventFromVillage();
+
     return false;
   }
 
@@ -4174,13 +4191,11 @@
           el.regenerate.disabled = false;
           return;
         }
-        if (tile.id === "graveyard") {
-          heroIndex = index;
-          placeHero(true);
-          const launchedStory = await launchGraveyardChildEventFromMap();
-          if (launchedStory) return;
-        }
-        if (tile.id === "village" || tile.id === "event") {
+        if (tile.id === "graveyard" || tile.id === "village" || tile.id === "event") {
+          if (tile.id === "graveyard") {
+            heroIndex = index;
+            placeHero(true);
+          }
           const launchedStory = await launchStoryEventForTile(tile.id);
           if (launchedStory) return;
         }
@@ -4495,14 +4510,11 @@
       el.regenerate.disabled = false;
       return;
     }
-    if (currentTiles[heroIndex]?.id === "graveyard") {
-      const launchedStory = await launchGraveyardChildEventFromMap();
-      if (launchedStory) {
-        rolling = false;
-        return;
-      }
-    }
-    if (currentTiles[heroIndex]?.id === "village" || currentTiles[heroIndex]?.id === "event") {
+    if (
+      currentTiles[heroIndex]?.id === "graveyard"
+      || currentTiles[heroIndex]?.id === "village"
+      || currentTiles[heroIndex]?.id === "event"
+    ) {
       const launchedStory = await launchStoryEventForTile(currentTiles[heroIndex].id);
       if (launchedStory) {
         rolling = false;

@@ -143,7 +143,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261007-knight-player-reply-v1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261007-story-trigger-designated-or-event-v1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=138"));
 for (const required of [
@@ -161,7 +161,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261007-knight-player-reply-v1",
+  "./v2-map-practice.js?v=20261007-story-trigger-designated-or-event-v1",
   "./v2-auto-battle-practice.js?v=138",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -510,6 +510,14 @@ assert(map.includes("RUMOR_ABANDONED_CHILD_BEATS"), "abandoned-child rumor must 
 assert(map.includes("openRumorAbandonedChildEvent"), "abandoned-child rumor opener must exist");
 assert(map.includes("renderRumorAbandonedChildBeat") && map.includes("advanceRumorAbandonedChildBeat"), "abandoned-child rumor must have its own renderer and progression");
 assert(map.includes("launchVillageRumorEventFromVillage"), "village rumor must branch from the saved graveyard answer");
+assert(map.includes("function storyEventTriggerMatches(tileId, designatedTileId)"), "story events need a shared designated-tile trigger matcher");
+assert(map.includes('return tileId === designatedTileId || tileId === "event";'), "generic event tile must be the wildcard alternate for every story event");
+assert(map.includes('storyEventTriggerMatches(tileId, "graveyard")'), "graveyard story must trigger on graveyard or event tile");
+assert(map.includes('storyEventTriggerMatches(tileId, "village")'), "village stories must trigger on village or event tile");
+assert(map.indexOf('storyEventTriggerMatches(tileId, "graveyard")') < map.indexOf('storyEventTriggerMatches(tileId, "village")'), "event tile must resolve the earliest pending story event first");
+assert(map.includes('tile.id === "graveyard" || tile.id === "village" || tile.id === "event"'), "manual tile activation must use the shared story dispatcher");
+assert(map.includes('currentTiles[heroIndex]?.id === "graveyard"') && map.includes('|| currentTiles[heroIndex]?.id === "event"'), "dice landing must include graveyard, village and event in the shared story dispatcher");
+
 assert(map.includes('mapLaunchParams.get("storyEvent") === "rumor_abandoned_child_01"'), "abandoned-child rumor needs a direct preview route");
 assert(map.includes("graveyardChildWasRescued()) return launchRumorSavedChildEventFromVillage()"), "saved answer must still route to the original rumor");
 assert(map.includes("graveyardChildWasAbandoned()) return launchRumorAbandonedChildEventFromVillage()"), "abandoned answer must route to the new rumor");
@@ -522,7 +530,7 @@ assert(map.includes("KNIGHT_COMMANDER_CONTAMINATION_EVENT_FLAG"), "royal route m
 assert(map.includes("CONTAMINATION_HUNTER_QUEST_ACTIVE_FLAG"), "royal route must persist the contamination hunter quest");
 assert(map.includes("rumorSavedChildEventCompleted"), "commander encounter must wait until the saved-child rumor actually completes");
 assert(map.includes("launchKnightCommanderContaminationEventFromMap"), "commander encounter launcher must exist");
-assert(map.includes('tileId === "village" || tileId === "event"'), "commander encounter must be eligible on the next village or event tile");
+assert(map.includes('storyEventTriggerMatches(tileId, "village")'), "commander encounter must inherit the village-or-event trigger rule");
 assert(map.includes("KNIGHT_COMMANDER_CONTAMINATION_BEATS"), "commander encounter must have its own dialogue beats");
 assert(map.includes("여기 있었구만."), "commander must open with the approved recognition line");
 assert(map.includes("공동묘지에서 아이를 구한 게 당신인가?"), "commander must confirm the graveyard rescue");

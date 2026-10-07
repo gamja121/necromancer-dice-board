@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261007-knight-player-reply-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261007-story-trigger-designated-or-event-1";
 
 const CORE_ASSETS = [
   "./",
@@ -94,7 +94,7 @@ const CORE_ASSETS = [
   "./v2-altar-ritual.css?v=5",
   "./v2-auto-battle-practice.css?v=86",
   "./v2-asset-loader.js?v=1",
-  "./v2-map-practice.js?v=20261007-knight-player-reply-v1",
+  "./v2-map-practice.js?v=20261007-story-trigger-designated-or-event-v1",
   "./art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage26-atlas-edge-mask-1",
   "./art/v2-style/map-test/diorama/village-building-01.webp?v=20261005-graveyard-poster-stage17-1",
   "./art/v2-style/map-test/diorama/village-building-02.webp?v=20261005-graveyard-poster-stage17-1",
