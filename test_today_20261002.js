@@ -143,7 +143,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261007-knight-commander-day-village-final-v1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261007-tile-visit-single-use-v1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=138"));
 for (const required of [
@@ -161,7 +161,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261007-knight-commander-day-village-final-v1",
+  "./v2-map-practice.js?v=20261007-tile-visit-single-use-v1",
   "./v2-auto-battle-practice.js?v=138",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -236,11 +236,11 @@ assert(brandCardsSource.includes("function blessingOnly(brand)"));
 assert(homeInheritanceSource.includes('inheritedPart = "bless"'));
 assert(mapHtml.includes("v2-rules.js?v=9"));
 assert(mapHtml.includes("v2-brand-cards.js?v=6"));
-assert(mapHtml.includes("v2-home-inheritance.js?v=16"));
+assert(mapHtml.includes("v2-home-inheritance.js?v=17"));
 assert(battleHtml.includes("v2-rules.js?v=9"));
 assert(worker.includes("./v2-rules.js?v=9"));
 assert(worker.includes("./v2-brand-cards.js?v=6"));
-assert(worker.includes("./v2-home-inheritance.js?v=16"));
+assert(worker.includes("./v2-home-inheritance.js?v=17"));
 
 const runtimePolicySource = read("v2-run-state-runtime.js");
 assert(runtimePolicySource.includes("function normalizePolicyState(state)"));
@@ -251,9 +251,9 @@ assert(runtimePolicySource.includes("state.graveyardCorpses = state.graveyardCor
 assert(runtimePolicySource.includes("curse: []"));
 assert(mapHtml.includes("v2-run-state-runtime.js?v=8"));
 assert(battleHtml.includes("v2-run-state-runtime.js?v=8"));
-assert(mapHtml.includes("v2-altar-ritual.js?v=5"));
+assert(mapHtml.includes("v2-altar-ritual.js?v=6"));
 assert(worker.includes("./v2-run-state-runtime.js?v=8"));
-assert(worker.includes("./v2-altar-ritual.js?v=5"));
+assert(worker.includes("./v2-altar-ritual.js?v=6"));
 
 assert(rulesSource.includes("u.brands=normalizeUnitBrands(u)"));
 
