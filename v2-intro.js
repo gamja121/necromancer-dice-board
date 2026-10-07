@@ -51,7 +51,7 @@
   async function loadDialogueFrame(img) {
     if (!img) return;
     try {
-      img.src = "art/v2-style/ui/intro-dialogue-box-clean.svg?v=1";
+      img.src = "art/v2-style/ui/intro-dialogue-box.webp?v=7";
       if (!img.complete || !img.naturalWidth) await img.decode();
       img.dataset.assetReady = "frame-visible";
     } catch (error) {
