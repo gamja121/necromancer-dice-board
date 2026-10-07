@@ -84,6 +84,28 @@ async function activate(page, selector) {
       assert((await page.title()).startsWith("네크로멘서 앤드 다이스"));
       console.log("PASS: " + screen);
     }
+    await page.goto(new URL("v2-auto-battle-practice.html", base).href);
+    await page.waitForLoadState("domcontentloaded");
+    await page.waitForFunction(() => {
+      const img = document.querySelector(".legion-info-panel .legion-info-frame-art");
+      return img?.complete && img.naturalWidth > 0 && img.naturalHeight > 0;
+    }, null, { timeout: 15000 });
+    const cleanInfoFrame = await page.evaluate(() => {
+      const img = document.querySelector(".legion-info-panel .legion-info-frame-art");
+      const resultPanel = document.querySelector("#resultOverlay .overlay-panel");
+      return {
+        src: img?.getAttribute("src") || "",
+        width: img?.naturalWidth || 0,
+        height: img?.naturalHeight || 0,
+        resultBorderImage: resultPanel ? getComputedStyle(resultPanel).borderImageSource : ""
+      };
+    });
+    assert(cleanInfoFrame.src.includes("legion-info-window-hd-clean.webp?v=2"));
+    assert.equal(cleanInfoFrame.width, 643);
+    assert.equal(cleanInfoFrame.height, 470);
+    assert(cleanInfoFrame.resultBorderImage.includes("legion-info-window-hd-clean.webp?v=2"));
+    console.log("PASS: clean info-window asset loads in battle UI and result frame");
+
     await page.goto(new URL("v2-event-lab.html", base).href);
     await page.waitForSelector("#eventCard", { state: "visible", timeout: 15000 });
     await page.waitForFunction(() => {
