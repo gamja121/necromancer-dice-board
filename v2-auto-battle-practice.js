@@ -1140,9 +1140,9 @@
   function buildBrandReferenceTable() {
     brandReferenceRows.replaceChildren();
     const ordered = [
-      ...units.filter((unitState) => unitState.team === "ally" && !unitState.isSummon && unitState.slot < 4)
+      ...units.filter((unitState) => unitState.team === "ally" && unitState.alive && !unitState.isSummon && unitState.slot < 4)
         .sort((a, b) => b.slot - a.slot),
-      ...units.filter((unitState) => unitState.team === "enemy" && !unitState.isSummon && unitState.slot < 4)
+      ...units.filter((unitState) => unitState.team === "enemy" && unitState.alive && !unitState.isSummon && unitState.slot < 4)
         .sort((a, b) => b.slot - a.slot)
     ];
 
