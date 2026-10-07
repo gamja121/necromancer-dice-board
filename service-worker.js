@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261007-brand-reference-3";
+const CACHE_NAME = "necromancer-and-dice-v2-20261007-graveyard-base-hq-1";
 
 const CORE_ASSETS = [
   "./",
@@ -62,7 +62,7 @@ const CORE_ASSETS = [
   "./assets/event-lab/graveyard-child/base/part-001.txt",
   "./assets/event-lab/graveyard-child/ghoul/part-000.txt",
   "./assets/event-lab/graveyard-child/ghoul/part-001.txt",
-  "./art/v2-style/map-test/events/graveyard-child-base-v2.webp?v=2",
+  "./art/v2-style/map-test/events/graveyard-child-base-v3.webp?v=1",
   "./art/v2-style/map-test/events/graveyard-child-ghoul-event-v3.webp?v=1",
 
 

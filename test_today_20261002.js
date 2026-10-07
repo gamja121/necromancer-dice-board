@@ -451,7 +451,7 @@ assert(mapHtml.includes('class="graveyard-story-frame" src="art/v2-style/ui/intr
 assert(map.includes("ensureGraveyardStoryArt"));
 assert(map.includes('graveyardStoryGhoulLayer: document.getElementById("graveyardStoryGhoulLayer")'));
 assert(map.includes('const GRAVEYARD_EVENT_BASE_ART ='));
-assert(map.includes('"art/v2-style/map-test/events/graveyard-child-base-v2.webp?v=2"'));
+assert(map.includes('"art/v2-style/map-test/events/graveyard-child-base-v3.webp?v=1"'));
 assert(map.includes('const GRAVEYARD_EVENT_GHOUL_ART ='));
 assert(map.includes('"art/v2-style/map-test/events/graveyard-child-ghoul-event-v3.webp?v=1"'), "graveyard story must use the new lunging ghoul artwork");
 assert(!map.includes("GRAVEYARD_EVENT_GHOUL_CHUNKS"), "production story must not reconstruct the ghoul from text chunks");
@@ -477,7 +477,7 @@ assert(mapCss.includes("height:64%!important"), "new ghoul must retain its full 
 assert(mapCss.includes("image-rendering:auto!important"), "browser must use normal high-quality image resampling");
 assert(mapCss.includes("scale(.86)"), "ghoul reveal must begin slightly recessed before lunging into place");
 assert(mapCss.includes("top:39%!important"), "choice buttons must stay above the dialogue window");
-assert(worker.includes("./art/v2-style/map-test/events/graveyard-child-base-v2.webp?v=2"));
+assert(worker.includes("./art/v2-style/map-test/events/graveyard-child-base-v3.webp?v=1"));
 assert(worker.includes("./art/v2-style/map-test/events/graveyard-child-ghoul-event-v3.webp?v=1"), "new graveyard ghoul artwork must be cached");
 assert(!worker.includes("ghoul-hq/part-"), "obsolete reconstructed ghoul chunks must not be cached");
 assert(!worker.includes("graveyard-child-ghoul-v2.webp"), "old low-quality ghoul must not be cached");

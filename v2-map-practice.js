@@ -4424,7 +4424,7 @@
   const GRAVEYARD_EVENT_BATTLE_RESULT_KEY = "necromancer-event-battle-result-v1";
 
   const GRAVEYARD_EVENT_BASE_ART =
-    "art/v2-style/map-test/events/graveyard-child-base-v2.webp?v=2";
+    "art/v2-style/map-test/events/graveyard-child-base-v3.webp?v=1";
   const GRAVEYARD_EVENT_GHOUL_ART =
     "art/v2-style/map-test/events/graveyard-child-ghoul-event-v3.webp?v=1";
   let graveyardStoryArtReady = null;
