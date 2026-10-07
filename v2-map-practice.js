@@ -4507,29 +4507,20 @@
       }
     });
   }
-  const GRAVEYARD_DIALOGUE_FRAME_CHUNKS = Array.from({ length: 8 }, (_, i) =>
-    `assets/intro-data/frame-v2/part-${String(i).padStart(3, "0")}.txt`
-  );
   let graveyardDialogueFrameReady = null;
 
   async function loadGraveyardDialogueFrame() {
     const img = el.graveyardStoryFrameImg;
     if (!img) return false;
     try {
-      const parts = await Promise.all(GRAVEYARD_DIALOGUE_FRAME_CHUNKS.map(async (path) => {
-        const response = await fetch(path, { cache: "force-cache" });
-        if (!response.ok) throw new Error(`dialogue frame chunk failed: ${path}`);
-        return (await response.text()).trim();
-      }));
-      img.src = `data:image/webp;base64,${parts.join("")}`;
-      await img.decode();
+      img.src = "art/v2-style/ui/intro-dialogue-box-clean.svg?v=1";
+      if (!img.complete || !img.naturalWidth) await img.decode();
       img.hidden = false;
       img.dataset.assetReady = "frame-visible";
       return true;
     } catch (error) {
-      console.error("[graveyard-event] dialogue frame restore failed", error);
-      img.hidden = false;
-      img.src = "art/v2-style/ui/intro-dialogue-box.webp?v=6";
+      console.error("[graveyard-event] clean dialogue frame failed", error);
+      img.hidden = true;
       return false;
     }
   }
