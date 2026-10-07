@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261007-knight-commander-intro-hd-flip-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261007-battle-dice-mapmatch-1";
 
 const CORE_ASSETS = [
   "./",
@@ -90,7 +90,7 @@ const CORE_ASSETS = [
   "./art/v2-style/ui/graveyard-choice-parchment.webp?v=1",
   "./v2-home-inheritance.css?v=9",
   "./v2-altar-ritual.css?v=5",
-  "./v2-auto-battle-practice.css?v=84",
+  "./v2-auto-battle-practice.css?v=85",
   "./v2-asset-loader.js?v=1",
   "./v2-map-practice.js?v=20261007-knight-commander-intro-hd-flip-v1",
   "./art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage26-atlas-edge-mask-1",
@@ -103,7 +103,7 @@ const CORE_ASSETS = [
   "./art/v2-style/map-test/diorama/stone-tile-wall.svg?v=20261004-forest-user-wall-1",
   "./art/v2-style/map-test/events/fortune-prophecy-ui.png?v=1",
   "./art/v2-style/map-test/diorama/graveyard/graveyard-atlas.webp?v=20261005-graveyard-poster-stage17-1",
-  "./v2-auto-battle-practice.js?v=137",
+  "./v2-auto-battle-practice.js?v=138",
   "./v2-heal-effect.js?v=1",
   "./v2-landscape.js?v=3",
   "./v2-music.js?v=3",
