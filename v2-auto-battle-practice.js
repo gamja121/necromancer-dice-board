@@ -1361,7 +1361,7 @@
     battleDiceControlCards = battleDiceControlCards.filter((candidate) => candidate.instanceId !== instanceId);
     pendingBattleDiceCardInstanceId = null;
     renderBattleDiceControlHand();
-    syncBattleDiceControlButton();
+    battleDiceCardCount.textContent = `${battleDiceControlCards.length}/5`;
     return true;
   }
 
