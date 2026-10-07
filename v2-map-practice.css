@@ -1940,7 +1940,9 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   align-items:center!important;
   justify-content:center!important;
   padding:0!important;
-  background:rgba(5,4,3,.04)!important;
+  background:
+    linear-gradient(rgba(5,4,3,.18),rgba(5,4,3,.28)),
+    url("art/v2-style/map-test/events/graveyard.jpg?v=20260927-2") center/cover no-repeat!important;
   overflow:hidden!important;
   pointer-events:auto!important;
 }
