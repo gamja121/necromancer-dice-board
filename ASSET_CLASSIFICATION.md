@@ -70,8 +70,9 @@
 
 게임 실행에 직접 필요한 최종 자산보다는 제작 원본이나 참고 자료 성격이 강하다.
 
-- `art/v2-style/references/` — 47개
+- `art/v2-style/references/`
   - 화풍 기준, 업로드 원본, 카드 덱 레퍼런스
+  - `event-art/graveyard-child-master-reference.webp`는 **사건 원화 공식 기준본**이므로 일반 백업 후보와 달리 GitHub에 유지한다.
 - `art/v2-style/map-test/tiles-source/` — 14개
   - 타일 제작 원본 JPG
 - `art/v2-style/map-test/hero-source/` — 1개
@@ -81,7 +82,7 @@
 - `art/v2-style/processed/512/` — 12개
   - 고해상도 가공본. 현재 192 버전을 쓰는 화면이 많아 원본/백업 성격이 큼
 
-**원칙: C는 Google Drive 백업 후 GitHub에서 빼기 가장 좋은 후보.**
+**원칙: C는 Google Drive 백업 후 GitHub에서 빼기 좋은 후보이지만, 공식 기준 자산은 예외로 GitHub에 유지한다.**
 단, 삭제 전 개별 경로 참조 검사를 한 번 더 해야 한다.
 
 ## D. 중복·검토 필요
