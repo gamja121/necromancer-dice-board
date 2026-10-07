@@ -4595,7 +4595,8 @@
       return true;
     } catch (error) {
       console.error("[graveyard-event] dialogue frame restore failed", error);
-      img.hidden = true;
+      img.hidden = false;
+      img.src = "art/v2-style/ui/intro-dialogue-box.webp?v=6";
       return false;
     }
   }
