@@ -92,7 +92,7 @@ button{touch-action:manipulation}
   color:#2d1d11;cursor:pointer;pointer-events:auto;filter:drop-shadow(0 9px 12px #000b);
   animation:dialogue-rise .35s ease-out both
 }
-.event-dialogue-frame{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none;clip-path:polygon(26.953% 10.145%,31.641% 10.145%,31.641% 10.870%,70.833% 10.870%,70.833% 10.145%,75.391% 10.145%,75.586% 11.159%,75.456% 20.435%,75.260% 20.435%,75.391% 78.841%,75.586% 78.841%,75.586% 88.261%,75.326% 88.841%,71.354% 88.841%,71.354% 88.116%,31.771% 88.116%,31.771% 88.841%,27.018% 88.841%,26.888% 88.261%,26.888% 79.130%,27.083% 79.130%,27.083% 20.725%,26.888% 20.725%,26.888% 11.304%);-webkit-clip-path:polygon(26.953% 10.145%,31.641% 10.145%,31.641% 10.870%,70.833% 10.870%,70.833% 10.145%,75.391% 10.145%,75.586% 11.159%,75.456% 20.435%,75.260% 20.435%,75.391% 78.841%,75.586% 78.841%,75.586% 88.261%,75.326% 88.841%,71.354% 88.841%,71.354% 88.116%,31.771% 88.116%,31.771% 88.841%,27.018% 88.841%,26.888% 88.261%,26.888% 79.130%,27.083% 79.130%,27.083% 20.725%,26.888% 20.725%,26.888% 11.304%)}
+.event-dialogue-frame{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none}
 .event-dialogue-name{position:absolute;z-index:2;left:10%;top:17%;font-weight:1000;font-size:clamp(12px,1.4vw,19px)}
 .event-dialogue-text{position:absolute;z-index:2;left:10%;right:12%;top:44%;font-weight:1000;font-size:clamp(18px,2vw,29px);text-align:left}
 .event-dialogue-next{position:absolute;z-index:2;right:8%;bottom:14%;font-size:16px;animation:dialogue-next 900ms ease-in-out infinite}
@@ -504,8 +504,7 @@ button{touch-action:manipulation}
   object-fit:fill;
   display:block;
   opacity:1;
-  pointer-events:none;  clip-path:polygon(26.953% 10.145%,31.641% 10.145%,31.641% 10.870%,70.833% 10.870%,70.833% 10.145%,75.391% 10.145%,75.586% 11.159%,75.456% 20.435%,75.260% 20.435%,75.391% 78.841%,75.586% 78.841%,75.586% 88.261%,75.326% 88.841%,71.354% 88.841%,71.354% 88.116%,31.771% 88.116%,31.771% 88.841%,27.018% 88.841%,26.888% 88.261%,26.888% 79.130%,27.083% 79.130%,27.083% 20.725%,26.888% 20.725%,26.888% 11.304%);
-  -webkit-clip-path:polygon(26.953% 10.145%,31.641% 10.145%,31.641% 10.870%,70.833% 10.870%,70.833% 10.145%,75.391% 10.145%,75.586% 11.159%,75.456% 20.435%,75.260% 20.435%,75.391% 78.841%,75.586% 78.841%,75.586% 88.261%,75.326% 88.841%,71.354% 88.841%,71.354% 88.116%,31.771% 88.116%,31.771% 88.841%,27.018% 88.841%,26.888% 88.261%,26.888% 79.130%,27.083% 79.130%,27.083% 20.725%,26.888% 20.725%,26.888% 11.304%);
+  pointer-events:none;
 }
 .event-info-content{
   position:absolute;
