@@ -4727,11 +4727,13 @@
     void markGraveyardChildEventComplete();
   }
   if (mapLaunchParams.get("resumeGraveyardEvent") === "1") {
-    void resumeGraveyardEventAfterBattle();
+    await resumeGraveyardEventAfterBattle();
   }
   if (mapLaunchParams.get("storyEvent") === "graveyard_child_ambush_01") {
+    const previewOnly = mapLaunchParams.get("eventPreview") === "1";
     window.setTimeout(() => {
-      void openGraveyardStoryEvent();
+      if (previewOnly) void openGraveyardStoryEvent();
+      else if (!graveyardChildEventConsumed()) void launchGraveyardChildEventFromMap();
     }, 0);
   }
 
