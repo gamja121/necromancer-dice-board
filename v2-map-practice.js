@@ -4713,6 +4713,8 @@
     "art/v2-style/map-test/events/rumor-villagers-turn.webp?v=2";
   const RUMOR_EVENT_NECROMANCER_ART =
     "art/v2-style/map-test/events/rumor-necromancer.webp?v=2";
+  const KNIGHT_COMMANDER_EVENT_BASE_ART =
+    "art/v2-style/map-test/events/knight-commander-village-day.webp?v=1";
   const KNIGHT_COMMANDER_EVENT_FALLBACK_ART =
     "art/v2-style/event-portraits/knight-commander-upperbody-hd.webp?v=1";
   const KNIGHT_COMMANDER_EVENT_CHUNKS = Object.freeze([
@@ -4848,7 +4850,7 @@
   function ensureKnightCommanderStoryArt() {
     if (!knightCommanderStoryArtReady) {
       knightCommanderStoryArtReady = Promise.all([
-        decodeGraveyardStoryImage(el.graveyardStoryArtwork, RUMOR_EVENT_BASE_ART),
+        decodeGraveyardStoryImage(el.graveyardStoryArtwork, KNIGHT_COMMANDER_EVENT_BASE_ART),
         loadKnightCommanderIntroHdImage(el.knightCommanderStoryLayer)
       ]).then((ready) => ready.every(Boolean)).catch((error) => {
         console.error("[knight-commander-event] story art load failed", error);
@@ -5473,7 +5475,7 @@
       id: "knight_commander_contamination_01",
       title: "사건 · 기사단장",
       speaker: "기사단장",
-      artSrc: RUMOR_EVENT_BASE_ART,
+      artSrc: KNIGHT_COMMANDER_EVENT_BASE_ART,
       backgroundSrc: ""
     });
     ensureGraveyardDialogueFrame();

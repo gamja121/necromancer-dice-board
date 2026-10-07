@@ -2403,9 +2403,9 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   position:absolute!important;
   z-index:9!important;
   right:3%!important;
-  bottom:-1%!important;
-  width:58%!important;
-  height:86%!important;
+  bottom:25%!important;
+  width:52%!important;
+  height:74%!important;
   object-fit:contain!important;
   object-position:right bottom!important;
   pointer-events:none!important;
@@ -2427,4 +2427,14 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 }
 @media (prefers-reduced-motion:reduce){
   .commander-story-layer.is-entering{animation:none!important}
+}
+
+
+/* Final knight-commander quest composition:
+   preserve the approved smooth daytime village art and its own picture border. */
+.graveyard-story-event.is-commander-event .graveyard-story-artwork{
+  object-fit:contain!important;
+  object-position:center center!important;
+  background:#120d08!important;
+  image-rendering:auto!important;
 }
