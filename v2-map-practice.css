@@ -2316,13 +2316,40 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 }
 
 
-/* Rumor follow-up — uses the canonical story frame with separate transparent actors. */
+/* Rumor follow-up — a framed illustration resting on the live board.
+   The board remains visible outside the frame; only the artwork and actor layers live inside it. */
+.graveyard-story-event.is-rumor-event{
+  background:linear-gradient(rgba(5,4,3,.16),rgba(5,4,3,.24))!important;
+}
 .graveyard-story-event.is-rumor-event .graveyard-story-art-wrap{
-  background:#1b1713!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+  isolation:isolate!important;
+  background:#0b0806!important;
+  border:clamp(4px,.52vw,8px) solid #4d3827!important;
+  outline:1px solid rgba(211,181,132,.82)!important;
+  outline-offset:-2px!important;
+  box-shadow:
+    0 14px 26px rgba(0,0,0,.62),
+    inset 0 0 0 2px rgba(28,18,11,.96),
+    inset 0 0 0 5px rgba(180,145,96,.24)!important;
+}
+.graveyard-story-event.is-rumor-event .graveyard-story-art-wrap::after{
+  content:"";
+  position:absolute;
+  z-index:15;
+  inset:clamp(5px,.58vw,9px);
+  border:1px solid rgba(208,177,127,.56);
+  box-shadow:
+    inset 0 0 0 1px rgba(26,17,11,.9),
+    inset 0 0 12px rgba(0,0,0,.46);
+  pointer-events:none;
 }
 .graveyard-story-event.is-rumor-event .graveyard-story-artwork{
-  object-fit:contain!important;
+  object-fit:cover!important;
   object-position:center center!important;
+  background:#0b0806!important;
+  image-rendering:auto!important;
 }
 .rumor-story-layer{
   position:absolute!important;

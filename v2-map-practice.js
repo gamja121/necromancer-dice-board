@@ -4730,12 +4730,22 @@
       el.graveyardStoryArtwork.style.transform = "";
       el.graveyardStoryArtwork.style.filter = "";
     }
-    if (backgroundSrc) {
+    if (isRumorEvent) {
+      // Rumors are framed illustrations placed on the existing board.
+      // Never repeat the rumor painting as the full-screen outer background.
+      storyEvent.style.setProperty(
+        "background",
+        "linear-gradient(rgba(5,4,3,.16),rgba(5,4,3,.24))",
+        "important"
+      );
+    } else if (backgroundSrc) {
       storyEvent.style.setProperty(
         "background",
         `linear-gradient(rgba(5,4,3,.18),rgba(5,4,3,.28)), url("${backgroundSrc}") center/cover no-repeat`,
         "important"
       );
+    } else {
+      storyEvent.style.removeProperty("background");
     }
   }
 
@@ -5125,7 +5135,7 @@
       title: "사건 · 마을",
       speaker: "",
       artSrc: RUMOR_EVENT_BASE_ART,
-      backgroundSrc: RUMOR_EVENT_BASE_ART
+      backgroundSrc: ""
     });
     ensureGraveyardDialogueFrame();
     await ensureRumorStoryArt();
@@ -5156,7 +5166,7 @@
       title: "사건 · 마을",
       speaker: "",
       artSrc: RUMOR_EVENT_BASE_ART,
-      backgroundSrc: RUMOR_EVENT_BASE_ART
+      backgroundSrc: ""
     });
     ensureGraveyardDialogueFrame();
     await ensureRumorStoryArt();

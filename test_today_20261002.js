@@ -143,7 +143,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261007-rumor-choice-branches-v1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261007-rumor-framed-board-v1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=136"));
 for (const required of [
@@ -161,7 +161,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261007-rumor-choice-branches-v1",
+  "./v2-map-practice.js?v=20261007-rumor-framed-board-v1",
   "./v2-auto-battle-practice.js?v=136",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -180,8 +180,8 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!/(^|\\n)\\.map-options-button\\s*\\{\\s*visibility:\\s*hidden;\\s*\\}/.test(mapCss));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261007-rumor-layers-v1"));
-assert(worker.includes("./v2-map-practice.css?v=20261007-rumor-layers-v1"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261007-rumor-framed-board-v1"));
+assert(worker.includes("./v2-map-practice.css?v=20261007-rumor-framed-board-v1"));
 assert(mapHtml.includes('id="villageDioramaTestButton"'));
 assert(mapHtml.includes('id="villageDioramaTest"'));
 assert(mapHtml.includes("village-building-01.webp?v=20261005-graveyard-poster-stage17-1"));
@@ -526,6 +526,12 @@ for (const asset of ["rumor-village-base.webp","rumor-villagers-whisper.webp","r
 }
 assert(map.includes("ensureRumorStoryArt") && map.includes("setRumorLayerVisibility"), "rumor actor artwork must be loaded and revealed by story beats");
 assert(map.includes("artSrc: RUMOR_EVENT_BASE_ART") && !map.includes('artSrc: tileEventScenes.village.image,\n      backgroundSrc: tileEventScenes.village.image'), "rumor event must use its dedicated base artwork instead of the generic village tile image");
+assert(!map.includes("backgroundSrc: RUMOR_EVENT_BASE_ART"), "rumor painting must not be repeated as the full-screen outer background");
+assert(map.includes('"background",\n        "linear-gradient(rgba(5,4,3,.16),rgba(5,4,3,.24))"'), "rumor shell must leave the live board visible behind a translucent veil");
+assert(mapCss.includes(".graveyard-story-event.is-rumor-event .graveyard-story-art-wrap::after"), "rumor artwork must have a dedicated picture-frame inner edge");
+assert(mapCss.includes("border:clamp(4px,.52vw,8px) solid #4d3827!important"), "rumor artwork must read as a physical framed illustration");
+assert(mapCss.includes("object-fit:cover!important"), "rumor artwork must fill its frame without black letterbox bars");
+
 assert(mapCss.includes("rotate(-7deg)") && mapCss.includes("rotate(2.5deg)") && mapCss.includes("rotate(0)"), "event artwork entrance must wobble and finish aligned");
 assert(map.includes("function playGraveyardStoryBoardDrop()"), "production event must trigger the board-drop entrance");
 assert(map.includes('classList.contains("is-board-drop-entering")'), "event taps must be ignored while the artwork is landing");
