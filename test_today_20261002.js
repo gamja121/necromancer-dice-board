@@ -507,7 +507,7 @@ assert(map.includes('mapLaunchParams.get("storyEvent") === "rumor_saved_child_01
 assert(mapHtml.includes('id="rumorStoryWhisperLayer"') && mapHtml.includes('id="rumorStoryTurnLayer"') && mapHtml.includes('id="rumorStoryNecromancerLayer"'), "rumor event must keep its three transparent actor layers");
 for (const asset of ["rumor-village-base.webp","rumor-villagers-whisper.webp","rumor-villagers-turn.webp","rumor-necromancer.webp"]) {
   const relative = `art/v2-style/map-test/events/${asset}`;
-  assert(fs.existsSync(path.join(root, relative)), "Rumor artwork missing: " + relative);
+  assert(fs.existsSync(relative), "Rumor artwork missing: " + relative);
   assert(worker.includes("./" + relative + "?v=1"), "Rumor artwork not cached: " + relative);
 }
 assert(map.includes("ensureRumorStoryArt") && map.includes("setRumorLayerVisibility"), "rumor actor artwork must be loaded and revealed by story beats");
