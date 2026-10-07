@@ -4671,7 +4671,7 @@
     window.location.assign("v2-auto-battle-practice.html?" + params.toString());
   }
 
-  function resumeGraveyardEventAfterBattle() {
+  async function resumeGraveyardEventAfterBattle() {
     let result = null;
     try {
       const raw = sessionStorage.getItem(GRAVEYARD_EVENT_BATTLE_RESULT_KEY);
@@ -4681,8 +4681,8 @@
     if (!result || result.eventId !== "graveyard_child_ambush_01") return false;
 
     if (result.won === true) {
-      void markGraveyardChildEventComplete();
-      void openGraveyardStoryEvent({ rescued: true });
+      await markGraveyardChildEventComplete();
+      await openGraveyardStoryEvent({ rescued: true });
     }
     return true;
   }
@@ -4702,7 +4702,7 @@
     void markGraveyardChildEventComplete();
   }
   if (mapLaunchParams.get("resumeGraveyardEvent") === "1") {
-    resumeGraveyardEventAfterBattle();
+    void resumeGraveyardEventAfterBattle();
   }
   if (mapLaunchParams.get("storyEvent") === "graveyard_child_ambush_01") {
     window.setTimeout(() => {
