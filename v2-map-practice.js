@@ -4426,7 +4426,7 @@
   const GRAVEYARD_EVENT_BASE_ART =
     "art/v2-style/map-test/events/graveyard-child-base-v3.webp?v=1";
   const GRAVEYARD_EVENT_GHOUL_ART =
-    "art/v2-style/map-test/events/graveyard-child-ghoul-event-v3.webp?v=1";
+    "art/v2-style/map-test/events/graveyard-child-ghoul-event-v3.webp?v=2";
   let graveyardStoryArtReady = null;
 
   async function decodeGraveyardStoryImage(img, src) {
