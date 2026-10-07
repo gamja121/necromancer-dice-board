@@ -541,6 +541,11 @@ assert(map.includes('mapLaunchParams.get("storyEvent") === "graveyard_child_ambu
 
 assert(battleHtml.includes('id="brandReferenceOverlay"'), "Battle must include one integrated brand reference board");
 assert(battleHtml.includes('id="brandReferenceButton"'), "Battle must expose a manual pre-roll brand table button");
+for (let face = 1; face <= 6; face += 1) {
+  const file = `art/v2-style/dice-test/frames/result-${String(face).padStart(2, "0")}.png`;
+  assert(battleHtml.includes(file), `Brand reference header must use existing die face ${face}`);
+  assert(worker.includes("./" + file), `Die face ${face} must be cached`);
+}
 assert(battle.includes("buildBrandReferenceTable()"), "Battle must build the brand reference table from live units");
 assert(battle.includes("brandReferenceInitialPending = true"), "Brand reference board must open once before the first roll");
 assert(battle.includes("syncBrandReferenceButton()"), "Brand reference button visibility must follow pre-roll state");
