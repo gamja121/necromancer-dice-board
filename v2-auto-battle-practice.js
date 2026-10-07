@@ -411,6 +411,13 @@
   const turnDiceButton = document.getElementById("turnDiceButton");
   const turnDiceImage = document.getElementById("turnDiceImage");
   const brandReferenceButton = document.getElementById("brandReferenceButton");
+  const battleDiceControlButton = document.getElementById("battleDiceControlButton");
+  const battleDiceControlDeckImage = document.getElementById("battleDiceControlDeckImage");
+  const battleDiceCardCount = document.getElementById("battleDiceCardCount");
+  const battleDiceControlOverlay = document.getElementById("battleDiceControlOverlay");
+  const battleDiceControlBackdrop = document.getElementById("battleDiceControlBackdrop");
+  const battleDiceControlHand = document.getElementById("battleDiceControlHand");
+  const battleDiceControlGuideText = document.getElementById("battleDiceControlGuideText");
   const brandReferenceOverlay = document.getElementById("brandReferenceOverlay");
   const brandReferenceRows = document.getElementById("brandReferenceRows");
   const brandReferenceTooltip = document.getElementById("brandReferenceTooltip");
@@ -536,6 +543,10 @@
   let diceFrameIndex = 0;
   let introRunning = false;
   let brandReferenceInitialPending = false;
+  let battleDiceControlCards = [];
+  let pendingBattleDiceCardInstanceId = null;
+  let previousBattleRoll = null;
+  let previousBattleEffectiveCardId = null;
   let loadingLineup = false;
   let legionState = null;
   let rulesState = null;
@@ -622,6 +633,11 @@
       capture: phase.startsWith("capture-") ? captureCheckpointState() : null,
       phase,
       roll: lastDiceRoll,
+      diceControl: {
+        previousRoll: previousBattleRoll,
+        previousEffectiveCardId: previousBattleEffectiveCardId,
+        pendingCardInstanceId: pendingBattleDiceCardInstanceId
+      },
       actions: actionCount,
       queue: turnQueue.map((unitState) => units.indexOf(unitState))
     };
@@ -655,6 +671,10 @@
       }
       battleToken++;rulesState=restored;units=restored.units;legionState=restored.legions;turnNumber=restored.round;
       lastDiceRoll=saved.roll;actionCount=saved.actions||0;turnQueue=(saved.queue||[]).map(i=>units[i]).filter(Boolean);
+      previousBattleRoll = Number.isInteger(saved.diceControl?.previousRoll) ? saved.diceControl.previousRoll : saved.roll;
+      previousBattleEffectiveCardId = typeof saved.diceControl?.previousEffectiveCardId === "string" ? saved.diceControl.previousEffectiveCardId : null;
+      pendingBattleDiceCardInstanceId = typeof saved.diceControl?.pendingCardInstanceId === "string" ? saved.diceControl.pendingCardInstanceId : null;
+      loadBattleDiceControlCards();
       running=true;paused=false;actionBusy=false;awaitingRoll=false;diceRolling=false;introRunning=false;
       startOverlay.hidden=true;resultOverlay.hidden=true;renderTeams();
       for(const u of units){revealUnit(u);if(!u.alive)u.image.src=frame(u,'death',u.frames.death);}
@@ -812,6 +832,10 @@
     running = false;
     introRunning = false;
     brandReferenceInitialPending = false;
+    pendingBattleDiceCardInstanceId = null;
+    previousBattleRoll = null;
+    previousBattleEffectiveCardId = null;
+    battleDiceControlCards = [];
     paused = false;
     actionBusy = false;
     actionCount = 0;
@@ -846,6 +870,14 @@
     brandReferenceOverlay.hidden = true;
     brandReferenceButton.hidden = true;
     brandReferenceButton.disabled = true;
+    battleDiceControlOverlay.hidden = true;
+    battleDiceControlOverlay.classList.remove("is-open", "is-closing");
+    battleDiceControlButton.hidden = true;
+    battleDiceControlButton.disabled = true;
+    battleDiceControlButton.setAttribute("aria-expanded", "false");
+    battleDiceControlDeckImage.src = "art/v2-style/ui/map-card-deck.png";
+    battleDiceCardCount.textContent = "0/5";
+    battleDiceControlHand.replaceChildren();
     brandReferenceTooltip.hidden = true;
     battlefield.classList.remove("is-between-turns");
     if (!battlefield.classList.contains("is-background-loading")) {
@@ -1189,12 +1221,157 @@
     }
   }
 
+  const BATTLE_DICE_CONTROL_CARD_SLOTS = Object.freeze([
+    Object.freeze({ x: "4%", y: "-1%", rot: "10deg" }),
+    Object.freeze({ x: "-78%", y: "-6%", rot: "5deg" }),
+    Object.freeze({ x: "-160%", y: "-9%", rot: "0deg" }),
+    Object.freeze({ x: "-242%", y: "-7%", rot: "-5deg" }),
+    Object.freeze({ x: "-324%", y: "-3%", rot: "-10deg" })
+  ]);
+
+  function battleDiceControlContext() {
+    return { previousRoll: previousBattleRoll, previousCardId: previousBattleEffectiveCardId };
+  }
+
+  function loadBattleDiceControlCards() {
+    const stored = globalThis.V2RunStateRuntime?.snapshot?.()?.diceCards;
+    battleDiceControlCards = Array.isArray(stored)
+      ? stored.map((entry) => {
+          const card = globalThis.V2DiceControl?.cards?.find((candidate) => candidate.id === entry.cardId);
+          return card ? { instanceId: entry.instanceId, cardId: entry.cardId, card } : null;
+        }).filter(Boolean)
+      : [];
+    if (pendingBattleDiceCardInstanceId && !battleDiceControlCards.some((entry) => entry.instanceId === pendingBattleDiceCardInstanceId)) {
+      pendingBattleDiceCardInstanceId = null;
+    }
+    renderBattleDiceControlHand();
+    syncBattleDiceControlButton();
+    return battleDiceControlCards;
+  }
+
+  function renderBattleDiceControlHand() {
+    if (!battleDiceControlHand) return;
+    battleDiceControlHand.replaceChildren();
+    if (!battleDiceControlCards.length) {
+      const empty = document.createElement("p");
+      empty.className = "dice-control-empty";
+      empty.textContent = "보유한 주사위 컨트롤 카드가 없습니다.";
+      battleDiceControlHand.append(empty);
+      return;
+    }
+    for (const [index, entry] of battleDiceControlCards.entries()) {
+      const availability = V2DiceControl.canUse(entry.cardId, battleDiceControlContext());
+      const slot = BATTLE_DICE_CONTROL_CARD_SLOTS[Math.min(index, BATTLE_DICE_CONTROL_CARD_SLOTS.length - 1)];
+      const button = document.createElement("button");
+      const image = document.createElement("img");
+      button.type = "button";
+      button.className = "dice-control-card";
+      button.style.setProperty("--i", index + 1);
+      button.style.setProperty("--card-x", slot.x);
+      button.style.setProperty("--card-y", slot.y);
+      button.style.setProperty("--card-rot", slot.rot);
+      button.style.setProperty("--card-delay", `${index * 48}ms`);
+      button.style.zIndex = String(5 - index);
+      button.setAttribute("role", "option");
+      const selected = entry.instanceId === pendingBattleDiceCardInstanceId;
+      button.classList.toggle("is-selected", selected);
+      button.setAttribute("aria-selected", String(selected));
+      button.disabled = !availability.ok;
+      button.title = availability.ok
+        ? `${entry.card.label}: ${entry.card.description}`
+        : availability.reason;
+      image.src = V2DiceControl.imagePath(entry.card, "ko");
+      image.alt = `${entry.card.label}: ${entry.card.description}`;
+      button.append(image);
+      button.addEventListener("click", () => {
+        if (!canOpenBattleDiceControl() || button.disabled) return;
+        pendingBattleDiceCardInstanceId = selected ? null : entry.instanceId;
+        if (pendingBattleDiceCardInstanceId) {
+          message.textContent = `${entry.card.label} 선택 · 주사위를 굴리면 이 카드가 사용됩니다`;
+        } else {
+          message.textContent = "주사위 컨트롤 카드 선택 취소 · 일반 주사위를 굴립니다";
+        }
+        renderBattleDiceControlHand();
+        saveBattle("ready");
+        closeBattleDiceControlOverlay();
+      });
+      battleDiceControlHand.append(button);
+    }
+  }
+
+  function canOpenBattleDiceControl() {
+    return Boolean(
+      running &&
+      awaitingRoll &&
+      !diceRolling &&
+      !actionBusy &&
+      !battlefield.classList.contains("is-corpse-capture")
+    );
+  }
+
+  function openBattleDiceControlOverlay() {
+    if (!canOpenBattleDiceControl()) return;
+    if (!brandReferenceOverlay.hidden) closeBrandReference();
+    loadBattleDiceControlCards();
+    battleDiceControlOverlay.hidden = false;
+    battleDiceControlOverlay.classList.remove("is-closing");
+    void battleDiceControlOverlay.offsetWidth;
+    battleDiceControlOverlay.classList.add("is-open");
+    battleDiceControlButton.setAttribute("aria-expanded", "true");
+    battleDiceControlDeckImage.src = "art/v2-style/ui/map-card-deck-open.png";
+    battleDiceControlGuideText.textContent = pendingBattleDiceCardInstanceId
+      ? "선택된 카드를 바꾸거나 닫은 뒤 주사위를 굴리세요."
+      : "카드를 선택한 뒤 주사위를 굴리세요.";
+  }
+
+  function closeBattleDiceControlOverlay(immediate = false) {
+    if (battleDiceControlOverlay.hidden) return;
+    battleDiceControlOverlay.classList.remove("is-open");
+    battleDiceControlButton.setAttribute("aria-expanded", "false");
+    battleDiceControlDeckImage.src = "art/v2-style/ui/map-card-deck.png";
+    if (immediate) {
+      battleDiceControlOverlay.classList.remove("is-closing");
+      battleDiceControlOverlay.hidden = true;
+      return;
+    }
+    battleDiceControlOverlay.classList.add("is-closing");
+    window.setTimeout(() => {
+      battleDiceControlOverlay.hidden = true;
+      battleDiceControlOverlay.classList.remove("is-closing");
+    }, 220);
+  }
+
+  function syncBattleDiceControlButton() {
+    const available = canOpenBattleDiceControl();
+    battleDiceCardCount.textContent = `${battleDiceControlCards.length}/5`;
+    battleDiceControlButton.hidden = !available;
+    battleDiceControlButton.disabled = !available || battleDiceControlCards.length === 0;
+  }
+
+  async function consumeBattleDiceControlCard(instanceId) {
+    if (!instanceId) return true;
+    const entry = battleDiceControlCards.find((candidate) => candidate.instanceId === instanceId);
+    if (!entry) return false;
+    if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
+      const stored = await V2RunStateRuntime.commitExact(`battle-dice-card:${instanceId}`, (draft) => {
+        draft.diceCards = (draft.diceCards || []).filter((card) => card.instanceId !== instanceId);
+      });
+      if (!stored?.ok) return false;
+    }
+    battleDiceControlCards = battleDiceControlCards.filter((candidate) => candidate.instanceId !== instanceId);
+    pendingBattleDiceCardInstanceId = null;
+    renderBattleDiceControlHand();
+    syncBattleDiceControlButton();
+    return true;
+  }
+
   function canOpenBrandReference() {
     return Boolean(running && !diceRolling && !actionBusy && (awaitingRoll || brandReferenceInitialPending));
   }
 
   function openBrandReference(initial = false) {
     if (!initial && !canOpenBrandReference()) return;
+    closeBattleDiceControlOverlay(true);
     closeUnitInfo();
     buildBrandReferenceTable();
     brandReferenceTooltip.hidden = true;
@@ -1485,6 +1662,9 @@
     awaitingRoll = false;
     diceRolling = false;
     turnDice.hidden = true;
+    closeBattleDiceControlOverlay(true);
+    battleDiceControlButton.hidden = true;
+    battleDiceControlButton.disabled = true;
     brandReferenceButton.hidden = true;
     brandReferenceButton.disabled = true;
     battlefield.classList.remove("is-between-turns");
@@ -1559,17 +1739,58 @@
     turnDiceImage.alt = "굴리기 전 주사위";
     turnDiceButton.setAttribute("aria-label", `${turnNumber + 1}턴 주사위 굴리기`);
     battlefield.classList.add("is-between-turns");
-    message.textContent = initial ? "주사위를 굴리면 1턴이 시작됩니다" : `${turnNumber}턴 종료 · 낙인표 확인 또는 주사위 굴리기`;
+    loadBattleDiceControlCards();
+    message.textContent = initial ? "주사위를 굴리면 1턴이 시작됩니다" : `${turnNumber}턴 종료 · 카드/낙인표 확인 후 주사위 굴리기`;
     syncBrandReferenceButton();
+    syncBattleDiceControlButton();
     saveBattle('ready');
   }
 
   async function rollTurnDice() {
     if (!running || !awaitingRoll || diceRolling) return;
     closeUnitInfo();
+    closeBattleDiceControlOverlay(true);
     brandReferenceOverlay.hidden = true;
     brandReferenceButton.hidden = true;
     brandReferenceButton.disabled = true;
+    battleDiceControlButton.hidden = true;
+    battleDiceControlButton.disabled = true;
+
+    let controlledRoll = null;
+    let usedControlLabel = "";
+    if (pendingBattleDiceCardInstanceId) {
+      const pendingEntry = battleDiceControlCards.find((entry) => entry.instanceId === pendingBattleDiceCardInstanceId);
+      if (pendingEntry) {
+        const availability = V2DiceControl.canUse(pendingEntry.cardId, battleDiceControlContext());
+        if (!availability.ok) {
+          message.textContent = availability.reason;
+          pendingBattleDiceCardInstanceId = null;
+          renderBattleDiceControlHand();
+          syncBattleDiceControlButton();
+          return;
+        }
+        const controlled = V2DiceControl.resolve(pendingEntry.cardId, battleDiceControlContext(), battleRandom);
+        if (!controlled.ok) {
+          message.textContent = controlled.reason;
+          pendingBattleDiceCardInstanceId = null;
+          renderBattleDiceControlHand();
+          syncBattleDiceControlButton();
+          return;
+        }
+        const consumed = await consumeBattleDiceControlCard(pendingEntry.instanceId);
+        if (!consumed) {
+          message.textContent = "주사위 컨트롤 카드 저장에 실패했습니다. 카드는 사용되지 않았습니다.";
+          syncBattleDiceControlButton();
+          return;
+        }
+        controlledRoll = controlled.value;
+        usedControlLabel = controlled.label;
+        previousBattleEffectiveCardId = controlled.effectiveCardId;
+      } else {
+        pendingBattleDiceCardInstanceId = null;
+      }
+    }
+
     diceRolling = true;
     if (typeof V2UnitCards !== "undefined") V2UnitCards.setPhase("acting");
     showRolledBrands(null);
@@ -1587,7 +1808,8 @@
       await wait(42 + Math.round(progress * progress * 62));
     }
     if (token !== battleToken || !running || !awaitingRoll) return;
-    lastDiceRoll = Math.floor(battleRandom() * 6) + 1;
+    lastDiceRoll = controlledRoll ?? (Math.floor(battleRandom() * 6) + 1);
+    previousBattleRoll = lastDiceRoll;
     if (typeof V2Sfx !== "undefined") V2Sfx.play("diceLand", { rate: .94 + lastDiceRoll * .015 });
 
     await presentation.play({
@@ -1600,7 +1822,7 @@
       turnDiceImage.alt = `주사위 결과 ${lastDiceRoll}`;
       turnDiceButton.classList.remove("is-rolling");
       turnDiceButton.setAttribute("aria-label", `주사위 결과 ${lastDiceRoll}`);
-      message.textContent = `${turnNumber + 1}턴 공통 주사위 결과 ${lastDiceRoll}`;
+      message.textContent = `${turnNumber + 1}턴 공통 주사위 결과 ${lastDiceRoll}${usedControlLabel ? ` · ${usedControlLabel}` : ""}`;
     });
 
     const triggeredBrands = units.flatMap((unitState) =>
@@ -2065,6 +2287,9 @@
     brandReferenceOverlay.hidden = true;
     brandReferenceButton.hidden = true;
     brandReferenceButton.disabled = true;
+    closeBattleDiceControlOverlay(true);
+    battleDiceControlButton.hidden = true;
+    battleDiceControlButton.disabled = true;
     diceRolling = false;
     turnDice.hidden = true;
     battlefield.classList.remove("is-between-turns");
@@ -2511,6 +2736,11 @@
     if (battlefield.classList.contains("is-corpse-capture")) rollCorpseCapture();
     else rollTurnDice();
   });
+  battleDiceControlButton.addEventListener("click", () => {
+    if (battleDiceControlOverlay.hidden) openBattleDiceControlOverlay();
+    else closeBattleDiceControlOverlay();
+  });
+  battleDiceControlBackdrop.addEventListener("click", () => closeBattleDiceControlOverlay());
   brandReferenceButton.addEventListener("click", () => openBrandReference(false));
   document.getElementById("brandReferenceClose").addEventListener("click", closeBrandReference);
   document.getElementById("brandReferenceBackdrop").addEventListener("click", closeBrandReference);
