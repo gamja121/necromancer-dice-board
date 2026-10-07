@@ -143,7 +143,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261007-tile-visit-single-use-v1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261007-knight-player-reply-v1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=138"));
 for (const required of [
@@ -161,7 +161,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261007-tile-visit-single-use-v1",
+  "./v2-map-practice.js?v=20261007-knight-player-reply-v1",
   "./v2-auto-battle-practice.js?v=138",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -180,8 +180,8 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!/(^|\\n)\\.map-options-button\\s*\\{\\s*visibility:\\s*hidden;\\s*\\}/.test(mapCss));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261007-knight-commander-day-village-final-v1"));
-assert(worker.includes("./v2-map-practice.css?v=20261007-knight-commander-day-village-final-v1"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261007-knight-player-reply-v1"));
+assert(worker.includes("./v2-map-practice.css?v=20261007-knight-player-reply-v1"));
 assert(mapHtml.includes('id="villageDioramaTestButton"'));
 assert(mapHtml.includes('id="villageDioramaTest"'));
 assert(mapHtml.includes("village-building-01.webp?v=20261005-graveyard-poster-stage17-1"));
@@ -526,6 +526,16 @@ assert(map.includes('tileId === "village" || tileId === "event"'), "commander en
 assert(map.includes("KNIGHT_COMMANDER_CONTAMINATION_BEATS"), "commander encounter must have its own dialogue beats");
 assert(map.includes("여기 있었구만."), "commander must open with the approved recognition line");
 assert(map.includes("공동묘지에서 아이를 구한 게 당신인가?"), "commander must confirm the graveyard rescue");
+assert(map.includes('id: "player_reply"'), "commander question must be followed by the player reply beat");
+assert(map.includes('dialogue: "..."') && map.includes('speaker: "주인공"'), "player reply must be silent ellipsis");
+assert(map.includes("PLAYER_EVENT_CHUNKS") && map.includes("loadPlayerIntroHdImage"), "player reply must reuse the opening HD portrait source");
+assert(map.includes('img.dataset.assetReady = "player-intro-hd"'), "player opening HD portrait must be marked ready");
+assert(map.includes("setPlayerStoryVisible(isPlayerReply"), "player portrait must show only on the reply beat");
+assert(mapHtml.includes('id="playerStoryLayer"'), "player story layer must exist");
+assert(mapCss.includes(".player-story-layer") && mapCss.includes("left:4%!important") && mapCss.includes("bottom:25%!important"), "player upper body must sit above the dialogue window");
+assert(worker.includes("./assets/intro-data/hero/part-000.txt") && worker.includes("./assets/intro-data/hero/part-002.txt"), "opening hero HD chunks must remain precached");
+assert(worker.includes("./art/v2-style/event-portraits/necromancer-upperbody-hd.webp?v=1"), "player HD fallback must be precached");
+
 assert(map.includes("아이를 구한 일만큼은 인정하지."), "commander must explicitly recognize the player's action");
 assert(map.includes("마물 사냥꾼 하나가 오염에 대해 뭔가 알고 있는 눈치더군. 그자를 찾아가 봐라."), "commander must point the player toward the monster hunter");
 assert(map.includes("[오염에 대한 의뢰를 받았습니다.]"), "commander event must show the contamination quest acceptance message");

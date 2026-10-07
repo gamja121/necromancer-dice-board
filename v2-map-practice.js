@@ -184,6 +184,7 @@
     rumorStoryTurnLayer: document.getElementById("rumorStoryTurnLayer"),
     rumorStoryNecromancerLayer: document.getElementById("rumorStoryNecromancerLayer"),
     knightCommanderStoryLayer: document.getElementById("knightCommanderStoryLayer"),
+    playerStoryLayer: document.getElementById("playerStoryLayer"),
     graveyardStoryChoices: document.getElementById("graveyardStoryChoices"),
     graveyardStoryFrameImg: document.querySelector(".graveyard-story-frame"),
     mapName: document.getElementById("mapName"),
@@ -4795,6 +4796,13 @@
     "art/v2-style/map-test/events/knight-commander-village-day.webp?v=1";
   const KNIGHT_COMMANDER_EVENT_FALLBACK_ART =
     "art/v2-style/event-portraits/knight-commander-upperbody-hd.webp?v=1";
+  const PLAYER_EVENT_FALLBACK_ART =
+    "art/v2-style/event-portraits/necromancer-upperbody-hd.webp?v=1";
+  const PLAYER_EVENT_CHUNKS = Object.freeze([
+    Object.freeze({ path: "assets/intro-data/hero/part-000.txt", mode: "plain" }),
+    Object.freeze({ path: "assets/intro-data/hero/part-001.txt", mode: "plain" }),
+    Object.freeze({ path: "assets/intro-data/hero/part-002.txt", mode: "plain" })
+  ]);
   const KNIGHT_COMMANDER_EVENT_CHUNKS = Object.freeze([
     ...Array.from({ length: 8 }, (_, i) => Object.freeze({
       path: `assets/intro-data/commander/part-${String(i).padStart(3, "0")}.txt`,
@@ -4847,6 +4855,23 @@
     setRumorLayerVisible(el.rumorStoryNecromancerLayer, necromancer, { animate });
   }
 
+  function setPlayerStoryVisible(visible, { animate = true } = {}) {
+    const player = el.playerStoryLayer;
+    if (!player) return;
+    if (!visible) {
+      player.hidden = true;
+      player.classList.remove("is-visible", "is-entering");
+      return;
+    }
+    player.hidden = false;
+    player.classList.add("is-visible");
+    player.classList.remove("is-entering");
+    if (animate) {
+      void player.offsetWidth;
+      player.classList.add("is-entering");
+    }
+  }
+
   function setKnightCommanderStoryVisible(visible, { animate = true } = {}) {
     const commander = el.knightCommanderStoryLayer;
     if (!commander) return;
@@ -4896,6 +4921,32 @@
     return rumorStoryArtReady;
   }
 
+  async function loadPlayerIntroHdImage(img) {
+    if (!img) return false;
+    try {
+      const parts = await Promise.all(PLAYER_EVENT_CHUNKS.map(async ({ path }) => {
+        const response = await fetch(path, { cache: "force-cache" });
+        if (!response.ok) throw new Error(`Player HD chunk failed: ${path}`);
+        return (await response.text()).trim();
+      }));
+      img.src = `data:image/webp;base64,${parts.join("")}`;
+      await img.decode();
+      img.dataset.assetReady = "player-intro-hd";
+      return img.naturalWidth > 0 && img.naturalHeight > 0;
+    } catch (error) {
+      console.error("[knight-commander-event] opening player HD portrait load failed", error);
+      img.src = PLAYER_EVENT_FALLBACK_ART;
+      try {
+        await img.decode();
+        img.dataset.assetReady = "player-hd-fallback";
+        return img.naturalWidth > 0 && img.naturalHeight > 0;
+      } catch (fallbackError) {
+        console.error("[knight-commander-event] player fallback portrait load failed", fallbackError);
+        return false;
+      }
+    }
+  }
+
   async function loadKnightCommanderIntroHdImage(img) {
     if (!img) return false;
     try {
@@ -4929,7 +4980,8 @@
     if (!knightCommanderStoryArtReady) {
       knightCommanderStoryArtReady = Promise.all([
         decodeGraveyardStoryImage(el.graveyardStoryArtwork, KNIGHT_COMMANDER_EVENT_BASE_ART),
-        loadKnightCommanderIntroHdImage(el.knightCommanderStoryLayer)
+        loadKnightCommanderIntroHdImage(el.knightCommanderStoryLayer),
+        loadPlayerIntroHdImage(el.playerStoryLayer)
       ]).then((ready) => ready.every(Boolean)).catch((error) => {
         console.error("[knight-commander-event] story art load failed", error);
         return false;
@@ -4961,6 +5013,7 @@
     activeStoryEventId = id || null;
     setRumorLayerVisibility({ animate: false });
     setKnightCommanderStoryVisible(false, { animate: false });
+    setPlayerStoryVisible(false, { animate: false });
     storyEvent.dataset.storyEvent = id || "";
     const isRumorEvent = id === "rumor_saved_child_01" || id === "rumor_abandoned_child_01";
     const isCommanderEvent = id === "knight_commander_contamination_01";
@@ -5130,6 +5183,12 @@
       effect: "기사단장은 당신을 한동안 말없이 훑어본다.",
       dialogue: "공동묘지에서 아이를 구한 게 당신인가?",
       speaker: "기사단장"
+    }),
+    Object.freeze({
+      id: "player_reply",
+      effect: "당신은 대답 대신 잠시 그를 바라본다.",
+      dialogue: "...",
+      speaker: "주인공"
     }),
     Object.freeze({
       id: "recognition",
@@ -5350,7 +5409,11 @@
     if (speakerName) speakerName.textContent = beat.speaker || "";
     setGraveyardGhoulVisible(false, { animate: false });
     setRumorLayerVisibility({ animate: false });
-    setKnightCommanderStoryVisible(true, { animate: beat.id === "arrival" });
+    const isPlayerReply = beat.id === "player_reply";
+    setKnightCommanderStoryVisible(!isPlayerReply, {
+      animate: beat.id === "arrival" || beat.id === "recognition"
+    });
+    setPlayerStoryVisible(isPlayerReply, { animate: isPlayerReply });
     setGraveyardStoryChoicePhase(false);
     el.graveyardStoryEvent.classList.toggle("has-dialogue", Boolean(beat.dialogue));
   }
@@ -5395,6 +5458,7 @@
     setGraveyardGhoulVisible(false, { animate: false });
     setRumorLayerVisibility({ animate: false });
     setKnightCommanderStoryVisible(false, { animate: false });
+    setPlayerStoryVisible(false, { animate: false });
     setGraveyardStoryChoicePhase(false);
     if (el.graveyardStoryArtwork) {
       el.graveyardStoryArtwork.style.transform = "";
@@ -5561,6 +5625,7 @@
     setGraveyardGhoulVisible(false, { animate: false });
     setRumorLayerVisibility({ animate: false });
     setKnightCommanderStoryVisible(false, { animate: false });
+    setPlayerStoryVisible(false, { animate: false });
     el.board?.classList.add("is-story-event-open");
     el.graveyardStoryEvent.hidden = false;
     el.graveyardStoryEvent.classList.remove("is-rescued", "is-child-fleeing");
