@@ -53,7 +53,7 @@ assert(introJs.includes('location.href = "v2-map-practice.html"'));
 assert(introCss.includes(".dialogue-box"), "Dialogue UI must render over the parchment frame");
 assert(introHtml.includes('v2-landscape.js?v=3'), "Prologue should use the fullscreen gesture helper");
 assert(introJs.includes('loadChunkImage(commanderImg, commanderChunks'), "Prologue must reconstruct the commander HD portrait from chunk data");
-assert(introJs.includes('loadDialogueFrame(frameImg)'), "Prologue must load the cleaned parchment frame directly");
+assert(introJs.includes('loadDialogueFrame(frameImg)') && introJs.includes("frame-v2"), "Prologue must reconstruct the cleaned parchment frame from shared chunks");
 assert(introCss.includes("@media (orientation:portrait)"), "Prologue needs portrait-to-landscape CSS fallback");
 assert(introHtml.includes('class="intro-canvas"'), "Prologue must render inside a fixed landscape canvas");
 assert(!introHtml.includes('introLandscapeHint'), "Prologue must not show a rotate-device hint");
@@ -143,23 +143,25 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261007-clean-dialogue-frame-v1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261007-clean-dialogue-frame-v2"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=136"));
 for (const required of [
   "./v2-intro.html",
   "./v2-intro.css?v=16",
-  "./v2-intro.js?v=10",
+  "./v2-intro.js?v=11",
   "./art/v2-style/event-portraits/necromancer.png?v=2",
   "./assets/intro-data/hero/part-000.txt",
   "./assets/intro-data/hero/part-002.txt",
   "./assets/intro-data/frame/part-000.txt",
   "./assets/intro-data/frame/part-001.txt",
+  "./assets/intro-data/frame-v2/part-000.txt",
+  "./assets/intro-data/frame-v2/part-007.txt",
   "./art/v2-style/event-portraits/knight-commander.png?v=2",
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=7",
-  "./v2-map-practice.js?v=20261007-clean-dialogue-frame-v1",
+  "./v2-map-practice.js?v=20261007-clean-dialogue-frame-v2",
   "./v2-auto-battle-practice.js?v=136",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -401,7 +403,7 @@ assert(battle.includes('resumeGraveyardEvent: "1"'));
 // Empty Event Lab files must be available offline.
 assert(worker.includes("./v2-event-lab.html"));
 assert(worker.includes("./v2-event-lab.css?v=20261007-clean-frame-v1"));
-assert(worker.includes("./v2-event-lab.js?v=20261005-event-lab-map-link-stage7"));
+assert(worker.includes("./v2-event-lab.js?v=20261007-clean-frame-v1"));
 assert(worker.includes("./v2-event-lab-data.js?v=20261005-event-lab-map-link-stage7"));
 
 assert(worker.includes("./assets/event-lab/graveyard-child/base/part-000.txt"));
