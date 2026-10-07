@@ -76,6 +76,14 @@
   const RUMOR_ABANDONED_CHILD_EVENT_FLAG = "event:rumor_abandoned_child_01:complete";
   const RUMOR_ABANDONED_CHILD_EVENT_SEEN_FALLBACK_KEY = "necromancer-event-rumor-abandoned-child-seen-v1";
   const RUMOR_ABANDONED_CHILD_EVENT_FALLBACK_KEY = "necromancer-event-rumor-abandoned-child-complete-v1";
+  const KNIGHT_COMMANDER_CONTAMINATION_EVENT_SEEN_FLAG = "event:knight_commander_contamination_01:seen";
+  const KNIGHT_COMMANDER_CONTAMINATION_EVENT_FLAG = "event:knight_commander_contamination_01:complete";
+  const KNIGHT_COMMANDER_RECOGNIZED_FLAG = "story:knight_commander:recognizes_player";
+  const CONTAMINATION_HUNTER_QUEST_ACTIVE_FLAG = "quest:contamination_hunter_01:active";
+  const KNIGHT_COMMANDER_CONTAMINATION_EVENT_SEEN_FALLBACK_KEY = "necromancer-event-knight-commander-contamination-seen-v1";
+  const KNIGHT_COMMANDER_CONTAMINATION_EVENT_FALLBACK_KEY = "necromancer-event-knight-commander-contamination-complete-v1";
+  const KNIGHT_COMMANDER_RECOGNIZED_FALLBACK_KEY = "necromancer-story-knight-commander-recognized-v1";
+  const CONTAMINATION_HUNTER_QUEST_FALLBACK_KEY = "necromancer-quest-contamination-hunter-active-v1";
   const MONSTER_CAPACITY = 10;
   const DICE_CONTROL_CAPACITY = 5;
   const STARTING_DICE_EXCLUDED_IDS = Object.freeze(new Set(["repeat", "echo"]));
@@ -174,6 +182,7 @@
     rumorStoryWhisperLayer: document.getElementById("rumorStoryWhisperLayer"),
     rumorStoryTurnLayer: document.getElementById("rumorStoryTurnLayer"),
     rumorStoryNecromancerLayer: document.getElementById("rumorStoryNecromancerLayer"),
+    knightCommanderStoryLayer: document.getElementById("knightCommanderStoryLayer"),
     graveyardStoryChoices: document.getElementById("graveyardStoryChoices"),
     graveyardStoryFrameImg: document.querySelector(".graveyard-story-frame"),
     mapName: document.getElementById("mapName"),
@@ -376,6 +385,72 @@
     }
   }
 
+  function rumorSavedChildEventCompleted() {
+    const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
+    if (eventFlags[RUMOR_SAVED_CHILD_EVENT_FLAG] === true) return true;
+    try {
+      return sessionStorage.getItem(RUMOR_SAVED_CHILD_EVENT_FALLBACK_KEY) === "1";
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function knightCommanderContaminationEventConsumed() {
+    const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
+    if (
+      eventFlags[KNIGHT_COMMANDER_CONTAMINATION_EVENT_SEEN_FLAG] === true
+      || eventFlags[KNIGHT_COMMANDER_CONTAMINATION_EVENT_FLAG] === true
+    ) return true;
+    try {
+      return sessionStorage.getItem(KNIGHT_COMMANDER_CONTAMINATION_EVENT_SEEN_FALLBACK_KEY) === "1"
+        || sessionStorage.getItem(KNIGHT_COMMANDER_CONTAMINATION_EVENT_FALLBACK_KEY) === "1";
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function contaminationHunterQuestActive() {
+    const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
+    if (eventFlags[CONTAMINATION_HUNTER_QUEST_ACTIVE_FLAG] === true) return true;
+    try {
+      return sessionStorage.getItem(CONTAMINATION_HUNTER_QUEST_FALLBACK_KEY) === "1";
+    } catch (_) {
+      return false;
+    }
+  }
+
+  async function markKnightCommanderContaminationEventStarted() {
+    try { sessionStorage.setItem(KNIGHT_COMMANDER_CONTAMINATION_EVENT_SEEN_FALLBACK_KEY, "1"); } catch (_) {}
+    if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
+      const result = await V2RunStateRuntime.commitExact("event-seen:knight-commander-contamination", (draft) => {
+        if (!draft.eventFlags || typeof draft.eventFlags !== "object") draft.eventFlags = {};
+        draft.eventFlags[KNIGHT_COMMANDER_CONTAMINATION_EVENT_SEEN_FLAG] = true;
+      });
+      return Boolean(result?.ok);
+    }
+    return true;
+  }
+
+  async function markKnightCommanderContaminationEventComplete() {
+    try {
+      sessionStorage.setItem(KNIGHT_COMMANDER_CONTAMINATION_EVENT_SEEN_FALLBACK_KEY, "1");
+      sessionStorage.setItem(KNIGHT_COMMANDER_CONTAMINATION_EVENT_FALLBACK_KEY, "1");
+      sessionStorage.setItem(KNIGHT_COMMANDER_RECOGNIZED_FALLBACK_KEY, "1");
+      sessionStorage.setItem(CONTAMINATION_HUNTER_QUEST_FALLBACK_KEY, "1");
+    } catch (_) {}
+    if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
+      const result = await V2RunStateRuntime.commitExact("event-complete:knight-commander-contamination", (draft) => {
+        if (!draft.eventFlags || typeof draft.eventFlags !== "object") draft.eventFlags = {};
+        draft.eventFlags[KNIGHT_COMMANDER_CONTAMINATION_EVENT_SEEN_FLAG] = true;
+        draft.eventFlags[KNIGHT_COMMANDER_CONTAMINATION_EVENT_FLAG] = true;
+        draft.eventFlags[KNIGHT_COMMANDER_RECOGNIZED_FLAG] = true;
+        draft.eventFlags[CONTAMINATION_HUNTER_QUEST_ACTIVE_FLAG] = true;
+      });
+      return Boolean(result?.ok);
+    }
+    return true;
+  }
+
   async function markRumorSavedChildEventStarted() {
     try { sessionStorage.setItem(RUMOR_SAVED_CHILD_EVENT_SEEN_FALLBACK_KEY, "1"); } catch (_) {}
     if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
@@ -538,6 +613,24 @@
   async function launchVillageRumorEventFromVillage() {
     if (graveyardChildWasRescued()) return launchRumorSavedChildEventFromVillage();
     if (graveyardChildWasAbandoned()) return launchRumorAbandonedChildEventFromVillage();
+    return false;
+  }
+
+  async function launchKnightCommanderContaminationEventFromMap() {
+    if (!graveyardChildWasRescued()) return false;
+    if (!rumorSavedChildEventCompleted()) return false;
+    if (knightCommanderContaminationEventConsumed() || contaminationHunterQuestActive()) return false;
+    await markKnightCommanderContaminationEventStarted();
+    await openKnightCommanderContaminationEvent();
+    return true;
+  }
+
+  async function launchStoryEventForTile(tileId) {
+    if (tileId === "village" || tileId === "event") {
+      const launchedCommander = await launchKnightCommanderContaminationEventFromMap();
+      if (launchedCommander) return true;
+    }
+    if (tileId === "village") return launchVillageRumorEventFromVillage();
     return false;
   }
 
@@ -4019,9 +4112,9 @@
           const launchedStory = await launchGraveyardChildEventFromMap();
           if (launchedStory) return;
         }
-        if (tile.id === "village") {
-          const launchedRumor = await launchVillageRumorEventFromVillage();
-          if (launchedRumor) return;
+        if (tile.id === "village" || tile.id === "event") {
+          const launchedStory = await launchStoryEventForTile(tile.id);
+          if (launchedStory) return;
         }
         if (openTileEvent(tile, index + 1)) return;
         enterMonsterBattle(tile, index + 1);
@@ -4339,9 +4432,9 @@
         return;
       }
     }
-    if (currentTiles[heroIndex]?.id === "village") {
-      const launchedRumor = await launchVillageRumorEventFromVillage();
-      if (launchedRumor) {
+    if (currentTiles[heroIndex]?.id === "village" || currentTiles[heroIndex]?.id === "event") {
+      const launchedStory = await launchStoryEventForTile(currentTiles[heroIndex].id);
+      if (launchedStory) {
         rolling = false;
         return;
       }
@@ -4620,8 +4713,11 @@
     "art/v2-style/map-test/events/rumor-villagers-turn.webp?v=2";
   const RUMOR_EVENT_NECROMANCER_ART =
     "art/v2-style/map-test/events/rumor-necromancer.webp?v=2";
+  const KNIGHT_COMMANDER_EVENT_ART =
+    "art/v2-style/event-portraits/knight-commander.png?v=2";
   let graveyardStoryArtReady = null;
   let rumorStoryArtReady = null;
+  let knightCommanderStoryArtReady = null;
 
   async function decodeGraveyardStoryImage(img, src) {
     if (!img || !src) return false;
@@ -4658,6 +4754,23 @@
     setRumorLayerVisible(el.rumorStoryNecromancerLayer, necromancer, { animate });
   }
 
+  function setKnightCommanderStoryVisible(visible, { animate = true } = {}) {
+    const commander = el.knightCommanderStoryLayer;
+    if (!commander) return;
+    if (!visible) {
+      commander.hidden = true;
+      commander.classList.remove("is-visible", "is-entering");
+      return;
+    }
+    commander.hidden = false;
+    commander.classList.add("is-visible");
+    commander.classList.remove("is-entering");
+    if (animate) {
+      void commander.offsetWidth;
+      commander.classList.add("is-entering");
+    }
+  }
+
   function setGraveyardGhoulVisible(visible, { animate = true } = {}) {
     const ghoul = el.graveyardStoryGhoulLayer;
     if (!ghoul) return;
@@ -4690,6 +4803,19 @@
     return rumorStoryArtReady;
   }
 
+  function ensureKnightCommanderStoryArt() {
+    if (!knightCommanderStoryArtReady) {
+      knightCommanderStoryArtReady = Promise.all([
+        decodeGraveyardStoryImage(el.graveyardStoryArtwork, RUMOR_EVENT_BASE_ART),
+        decodeGraveyardStoryImage(el.knightCommanderStoryLayer, KNIGHT_COMMANDER_EVENT_ART)
+      ]).then((ready) => ready.every(Boolean)).catch((error) => {
+        console.error("[knight-commander-event] story art load failed", error);
+        return false;
+      });
+    }
+    return knightCommanderStoryArtReady;
+  }
+
   function ensureGraveyardStoryArt() {
     if (!graveyardStoryArtReady) {
       graveyardStoryArtReady = Promise.all([
@@ -4712,13 +4838,24 @@
     if (!storyEvent) return;
     activeStoryEventId = id || null;
     setRumorLayerVisibility({ animate: false });
+    setKnightCommanderStoryVisible(false, { animate: false });
     storyEvent.dataset.storyEvent = id || "";
     const isRumorEvent = id === "rumor_saved_child_01" || id === "rumor_abandoned_child_01";
+    const isCommanderEvent = id === "knight_commander_contamination_01";
+    const usesBoardFrame = isRumorEvent || isCommanderEvent;
     storyEvent.classList.toggle("is-rumor-event", isRumorEvent);
-    storyEvent.setAttribute("aria-label", isRumorEvent ? "마을 사건 · 소문" : "공동묘지 사건 · 습격받는 아이");
+    storyEvent.classList.toggle("is-commander-event", isCommanderEvent);
+    storyEvent.setAttribute(
+      "aria-label",
+      isCommanderEvent ? "기사단장 사건 · 오염 조사 의뢰"
+        : isRumorEvent ? "마을 사건 · 소문"
+          : "공동묘지 사건 · 습격받는 아이"
+    );
     storyEvent.querySelector(".graveyard-story-stage")?.setAttribute(
       "aria-label",
-      isRumorEvent ? "소문 사건" : "습격받는 아이 사건"
+      isCommanderEvent ? "기사단장 오염 조사 의뢰"
+        : isRumorEvent ? "소문 사건"
+          : "습격받는 아이 사건"
     );
     const effectTitle = storyEvent.querySelector(".graveyard-story-effect-inner > h2");
     const speakerName = storyEvent.querySelector(".graveyard-story-name");
@@ -4730,9 +4867,9 @@
       el.graveyardStoryArtwork.style.transform = "";
       el.graveyardStoryArtwork.style.filter = "";
     }
-    if (isRumorEvent) {
-      // Rumors are framed illustrations placed on the existing board.
-      // Never repeat the rumor painting as the full-screen outer background.
+    if (usesBoardFrame) {
+      // Rumors and royal-route dialogue scenes are framed illustrations
+      // placed on the existing board rather than replacing the board background.
       storyEvent.style.setProperty(
         "background",
         "linear-gradient(rgba(5,4,3,.16),rgba(5,4,3,.24))",
@@ -4859,11 +4996,52 @@
       focus: "silence"
     })
   ]);
+  const KNIGHT_COMMANDER_CONTAMINATION_BEATS = Object.freeze([
+    Object.freeze({
+      id: "arrival",
+      effect: "길목에서 무장한 기사가 당신을 기다리고 있었다.",
+      dialogue: "여기 있었구만.",
+      speaker: "기사단장"
+    }),
+    Object.freeze({
+      id: "confirm",
+      effect: "기사단장은 당신을 한동안 말없이 훑어본다.",
+      dialogue: "공동묘지에서 아이를 구한 게 당신인가?",
+      speaker: "기사단장"
+    }),
+    Object.freeze({
+      id: "recognition",
+      effect: "그의 경계가 조금 누그러진다.",
+      dialogue: "소문은 들었다. 네가 무엇을 거느리든, 아이를 구한 일만큼은 인정하지.",
+      speaker: "기사단장"
+    }),
+    Object.freeze({
+      id: "contamination",
+      effect: "기사단장은 목소리를 낮춘다.",
+      dialogue: "문제는 다른 곳에 있다. 성 밖의 오염이 점점 짙어지고 있어.",
+      speaker: "기사단장"
+    }),
+    Object.freeze({
+      id: "hunter",
+      effect: "그는 한 사람의 이름을 꺼낸다.",
+      dialogue: "마물 사냥꾼 하나가 오염에 대해 뭔가 알고 있는 눈치더군. 그자를 찾아가 봐라.",
+      speaker: "기사단장"
+    }),
+    Object.freeze({
+      id: "quest",
+      effect: "기사단장의 의뢰가 새로운 목적이 된다.",
+      dialogue: "[오염에 대한 의뢰를 받았습니다.]",
+      speaker: "시스템",
+      questAccepted: true
+    })
+  ]);
   let graveyardStoryBeatIndex = 0;
   let rumorStoryBeatIndex = 0;
   let rumorStoryCompleting = false;
   let rumorAbandonedStoryBeatIndex = 0;
   let rumorAbandonedStoryCompleting = false;
+  let knightCommanderStoryBeatIndex = 0;
+  let knightCommanderStoryCompleting = false;
   let activeStoryEventId = null;
   let graveyardStoryBoardDropTimer = null;
 
@@ -5029,6 +5207,53 @@
     renderRumorAbandonedChildBeat(rumorAbandonedStoryBeatIndex + 1);
   }
 
+  function renderKnightCommanderContaminationBeat(index) {
+    if (!el.graveyardStoryEvent) return;
+    const beat = KNIGHT_COMMANDER_CONTAMINATION_BEATS[
+      Math.max(0, Math.min(index, KNIGHT_COMMANDER_CONTAMINATION_BEATS.length - 1))
+    ];
+    knightCommanderStoryBeatIndex = KNIGHT_COMMANDER_CONTAMINATION_BEATS.indexOf(beat);
+    el.graveyardStoryEvent.dataset.beat = `commander-${beat.id}`;
+    el.graveyardStoryEvent.classList.remove(
+      "beat-child-alone",
+      "beat-ghoul-appears",
+      "beat-child-frightened",
+      "beat-choice",
+      "is-rescued",
+      "is-child-fleeing"
+    );
+    if (el.graveyardStoryEffectText) el.graveyardStoryEffectText.textContent = beat.effect || "";
+    if (el.graveyardStoryText) el.graveyardStoryText.textContent = beat.dialogue || "";
+    const speakerName = el.graveyardStoryEvent.querySelector(".graveyard-story-name");
+    if (speakerName) speakerName.textContent = beat.speaker || "";
+    setGraveyardGhoulVisible(false, { animate: false });
+    setRumorLayerVisibility({ animate: false });
+    setKnightCommanderStoryVisible(true, { animate: beat.id === "arrival" });
+    setGraveyardStoryChoicePhase(false);
+    el.graveyardStoryEvent.classList.toggle("has-dialogue", Boolean(beat.dialogue));
+  }
+
+  async function advanceKnightCommanderContaminationBeat() {
+    if (!el.graveyardStoryEvent || knightCommanderStoryCompleting) return;
+    if (knightCommanderStoryBeatIndex >= KNIGHT_COMMANDER_CONTAMINATION_BEATS.length - 1) {
+      closeGraveyardStoryEvent();
+      return;
+    }
+    const nextIndex = knightCommanderStoryBeatIndex + 1;
+    const nextBeat = KNIGHT_COMMANDER_CONTAMINATION_BEATS[nextIndex];
+    if (nextBeat?.questAccepted === true) {
+      knightCommanderStoryCompleting = true;
+      try {
+        await markKnightCommanderContaminationEventComplete();
+        renderKnightCommanderContaminationBeat(nextIndex);
+      } finally {
+        knightCommanderStoryCompleting = false;
+      }
+      return;
+    }
+    renderKnightCommanderContaminationBeat(nextIndex);
+  }
+
   function closeGraveyardStoryEvent() {
     if (!el.graveyardStoryEvent) return;
     el.graveyardStoryEvent.hidden = true;
@@ -5036,9 +5261,18 @@
       window.clearTimeout(graveyardStoryBoardDropTimer);
       graveyardStoryBoardDropTimer = null;
     }
-    el.graveyardStoryEvent.classList.remove("is-rescued", "is-child-fleeing", "has-dialogue", "is-choice-phase", "is-board-drop-entering", "is-rumor-event");
+    el.graveyardStoryEvent.classList.remove(
+      "is-rescued",
+      "is-child-fleeing",
+      "has-dialogue",
+      "is-choice-phase",
+      "is-board-drop-entering",
+      "is-rumor-event",
+      "is-commander-event"
+    );
     setGraveyardGhoulVisible(false, { animate: false });
     setRumorLayerVisibility({ animate: false });
+    setKnightCommanderStoryVisible(false, { animate: false });
     setGraveyardStoryChoicePhase(false);
     if (el.graveyardStoryArtwork) {
       el.graveyardStoryArtwork.style.transform = "";
@@ -5051,6 +5285,7 @@
       activeEventTileId === "graveyard"
       || activeEventTileId === "village-rumor"
       || activeEventTileId === "village-rumor-abandoned"
+      || activeEventTileId === "commander-contamination"
     ) activeEventTileId = null;
     rolling = false;
     el.diceButton.disabled = false;
@@ -5185,6 +5420,38 @@
     }
   }
 
+  async function openKnightCommanderContaminationEvent() {
+    if (!el.graveyardStoryEvent) return;
+    eventOpen = true;
+    activeEventTileId = "commander-contamination";
+    rolling = false;
+    el.diceButton.disabled = true;
+    el.regenerate.disabled = true;
+    configureStoryEventShell({
+      id: "knight_commander_contamination_01",
+      title: "사건 · 기사단장",
+      speaker: "기사단장",
+      artSrc: RUMOR_EVENT_BASE_ART,
+      backgroundSrc: ""
+    });
+    ensureGraveyardDialogueFrame();
+    await ensureKnightCommanderStoryArt();
+    setGraveyardGhoulVisible(false, { animate: false });
+    setRumorLayerVisibility({ animate: false });
+    setKnightCommanderStoryVisible(false, { animate: false });
+    el.board?.classList.add("is-story-event-open");
+    el.graveyardStoryEvent.hidden = false;
+    el.graveyardStoryEvent.classList.remove("is-rescued", "is-child-fleeing");
+    setGraveyardStoryChoicePhase(false);
+    playGraveyardStoryBoardDrop();
+    knightCommanderStoryBeatIndex = 0;
+    renderKnightCommanderContaminationBeat(0);
+    if (el.graveyardStoryAdvance) {
+      el.graveyardStoryAdvance.disabled = false;
+      el.graveyardStoryAdvance.onclick = () => { void advanceKnightCommanderContaminationBeat(); };
+    }
+  }
+
   function installGraveyardStoryTapAdvance() {
     if (!el.graveyardStoryEvent || el.graveyardStoryEvent.dataset.tapAdvanceReady === "1") return;
     el.graveyardStoryEvent.dataset.tapAdvanceReady = "1";
@@ -5196,6 +5463,7 @@
       if (event.target.closest("#graveyardStoryAdvance")) return;
       if (activeStoryEventId === "rumor_saved_child_01") void advanceRumorSavedChildBeat();
       else if (activeStoryEventId === "rumor_abandoned_child_01") void advanceRumorAbandonedChildBeat();
+      else if (activeStoryEventId === "knight_commander_contamination_01") void advanceKnightCommanderContaminationBeat();
       else advanceGraveyardStoryBeat();
     });
   }
@@ -5280,6 +5548,13 @@
     window.setTimeout(() => {
       if (previewOnly) void openRumorAbandonedChildEvent();
       else void launchVillageRumorEventFromVillage();
+    }, 0);
+  }
+  if (mapLaunchParams.get("storyEvent") === "knight_commander_contamination_01") {
+    const previewOnly = mapLaunchParams.get("eventPreview") === "1";
+    window.setTimeout(() => {
+      if (previewOnly) void openKnightCommanderContaminationEvent();
+      else void launchKnightCommanderContaminationEventFromMap();
     }, 0);
   }
 

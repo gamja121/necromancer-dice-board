@@ -2318,10 +2318,12 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 
 /* Rumor follow-up — a framed illustration resting on the live board.
    The board remains visible outside the frame; only the artwork and actor layers live inside it. */
-.graveyard-story-event.is-rumor-event{
+.graveyard-story-event.is-rumor-event,
+.graveyard-story-event.is-commander-event{
   background:linear-gradient(rgba(5,4,3,.16),rgba(5,4,3,.24))!important;
 }
-.graveyard-story-event.is-rumor-event .graveyard-story-art-wrap{
+.graveyard-story-event.is-rumor-event,
+.graveyard-story-event.is-commander-event .graveyard-story-art-wrap{
   box-sizing:border-box!important;
   overflow:hidden!important;
   isolation:isolate!important;
@@ -2334,7 +2336,8 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
     inset 0 0 0 2px rgba(28,18,11,.96),
     inset 0 0 0 5px rgba(180,145,96,.24)!important;
 }
-.graveyard-story-event.is-rumor-event .graveyard-story-art-wrap::after{
+.graveyard-story-event.is-rumor-event,
+.graveyard-story-event.is-commander-event .graveyard-story-art-wrap::after{
   content:"";
   position:absolute;
   z-index:15;
@@ -2345,7 +2348,8 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
     inset 0 0 12px rgba(0,0,0,.46);
   pointer-events:none;
 }
-.graveyard-story-event.is-rumor-event .graveyard-story-artwork{
+.graveyard-story-event.is-rumor-event,
+.graveyard-story-event.is-commander-event .graveyard-story-artwork{
   object-fit:cover!important;
   object-position:center center!important;
   background:#0b0806!important;
@@ -2391,4 +2395,35 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 }
 @media (prefers-reduced-motion:reduce){
   .rumor-story-layer.is-visible{animation:none!important}
+}
+
+
+/* Royal-route knight commander follow-up. */
+.commander-story-layer{
+  position:absolute!important;
+  z-index:9!important;
+  right:3%!important;
+  bottom:-1%!important;
+  width:58%!important;
+  height:86%!important;
+  object-fit:contain!important;
+  object-position:right bottom!important;
+  pointer-events:none!important;
+  user-select:none!important;
+  image-rendering:auto!important;
+  opacity:1;
+  transform-origin:72% 100%;
+  filter:brightness(.88) contrast(1.08) saturate(.78)
+         drop-shadow(0 12px 14px rgba(0,0,0,.68));
+}
+.commander-story-layer[hidden]{display:none!important}
+.commander-story-layer.is-entering{
+  animation:commander-story-enter .52s cubic-bezier(.18,.78,.2,1) both;
+}
+@keyframes commander-story-enter{
+  0%{opacity:0;transform:translate3d(7%,2%,0) scale(.96);filter:brightness(.62) contrast(1.02) saturate(.6) drop-shadow(0 6px 8px rgba(0,0,0,.42))}
+  100%{opacity:1;transform:translate3d(0,0,0) scale(1);filter:brightness(.88) contrast(1.08) saturate(.78) drop-shadow(0 12px 14px rgba(0,0,0,.68))}
+}
+@media (prefers-reduced-motion:reduce){
+  .commander-story-layer.is-entering{animation:none!important}
 }

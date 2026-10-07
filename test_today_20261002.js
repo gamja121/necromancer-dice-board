@@ -143,7 +143,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261007-rumor-missing-child-v1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261007-knight-commander-contamination-v1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=136"));
 for (const required of [
@@ -161,7 +161,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261007-rumor-missing-child-v1",
+  "./v2-map-practice.js?v=20261007-knight-commander-contamination-v1",
   "./v2-auto-battle-practice.js?v=136",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -180,8 +180,8 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!/(^|\\n)\\.map-options-button\\s*\\{\\s*visibility:\\s*hidden;\\s*\\}/.test(mapCss));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261007-rumor-framed-board-v1"));
-assert(worker.includes("./v2-map-practice.css?v=20261007-rumor-framed-board-v1"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261007-knight-commander-contamination-v1"));
+assert(worker.includes("./v2-map-practice.css?v=20261007-knight-commander-contamination-v1"));
 assert(mapHtml.includes('id="villageDioramaTestButton"'));
 assert(mapHtml.includes('id="villageDioramaTest"'));
 assert(mapHtml.includes("village-building-01.webp?v=20261005-graveyard-poster-stage17-1"));
@@ -518,6 +518,24 @@ assert(!map.includes("아이 울음소리가 들렸는데… 결국 시체로 �
 assert(map.includes('id: "missing"'), "abandoned rumor first gossip beat must use unresolved missing-child semantics");
 assert(map.includes("보고도 그냥 두고 갔다더군."), "abandoned rumor must reflect the player's leave choice");
 assert(map.includes("산 자를 구하지 않는 괴물이라면… 그건 더 위험한 거 아냐?"), "abandoned rumor must escalate village fear");
+assert(map.includes("KNIGHT_COMMANDER_CONTAMINATION_EVENT_FLAG"), "royal route must persist the knight commander encounter");
+assert(map.includes("CONTAMINATION_HUNTER_QUEST_ACTIVE_FLAG"), "royal route must persist the contamination hunter quest");
+assert(map.includes("rumorSavedChildEventCompleted"), "commander encounter must wait until the saved-child rumor actually completes");
+assert(map.includes("launchKnightCommanderContaminationEventFromMap"), "commander encounter launcher must exist");
+assert(map.includes('tileId === "village" || tileId === "event"'), "commander encounter must be eligible on the next village or event tile");
+assert(map.includes("KNIGHT_COMMANDER_CONTAMINATION_BEATS"), "commander encounter must have its own dialogue beats");
+assert(map.includes("여기 있었구만."), "commander must open with the approved recognition line");
+assert(map.includes("공동묘지에서 아이를 구한 게 당신인가?"), "commander must confirm the graveyard rescue");
+assert(map.includes("아이를 구한 일만큼은 인정하지."), "commander must explicitly recognize the player's action");
+assert(map.includes("마물 사냥꾼 하나가 오염에 대해 뭔가 알고 있는 눈치더군. 그자를 찾아가 봐라."), "commander must point the player toward the monster hunter");
+assert(map.includes("[오염에 대한 의뢰를 받았습니다.]"), "commander event must show the contamination quest acceptance message");
+assert(map.includes('mapLaunchParams.get("storyEvent") === "knight_commander_contamination_01"'), "commander event needs a direct preview route");
+assert(mapHtml.includes('id="knightCommanderStoryLayer"'), "commander portrait layer must exist in the story frame");
+assert(mapHtml.includes("art/v2-style/event-portraits/knight-commander.png?v=2"), "commander event must reuse the existing high-quality intro portrait");
+assert(mapCss.includes(".commander-story-layer"), "commander event portrait positioning CSS must exist");
+assert(mapCss.includes(".graveyard-story-event.is-commander-event"), "commander scene must reuse the framed board-event composition");
+assert(worker.includes("./art/v2-style/event-portraits/knight-commander.png?v=2"), "commander portrait must remain precached");
+
 
 assert(mapHtml.includes('id="rumorStoryWhisperLayer"') && mapHtml.includes('id="rumorStoryTurnLayer"') && mapHtml.includes('id="rumorStoryNecromancerLayer"'), "rumor event must keep its three transparent actor layers");
 for (const asset of ["rumor-village-base.webp","rumor-villagers-whisper.webp","rumor-villagers-turn.webp","rumor-necromancer.webp"]) {
