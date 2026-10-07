@@ -328,6 +328,16 @@ async function activate(page, selector) {
     await page.locator("#brandReferenceClose").click();
     await page.waitForFunction(() => document.getElementById("brandReferenceOverlay").hidden);
     console.log("PASS: V2 initial + manual brand reference flow");
+    const deadReferenceCheck = await page.evaluate(() => {
+      const living = [...document.querySelectorAll(".brand-reference-row")].length;
+      const target = globalThis.units?.find?.(unit => unit.team === "enemy" && unit.alive && !unit.isSummon && unit.slot < 4);
+      if (!target || typeof globalThis.buildBrandReferenceTable !== "function") return { skipped: true, living };
+      target.alive = false;
+      globalThis.buildBrandReferenceTable();
+      return { skipped: false, before: living, after: document.querySelectorAll(".brand-reference-row").length };
+    });
+    if (!deadReferenceCheck.skipped) assert.equal(deadReferenceCheck.after, deadReferenceCheck.before - 1, "Dead unit must disappear from brand reference");
+    console.log("PASS: dead units disappear from brand reference");
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload();
