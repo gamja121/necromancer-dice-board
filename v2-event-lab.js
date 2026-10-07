@@ -22,6 +22,9 @@
     "assets/event-lab/graveyard-child/ghoul/part-000.txt",
     "assets/event-lab/graveyard-child/ghoul/part-001.txt"
   ];
+  const DIALOGUE_FRAME_CHUNKS = Array.from({ length: 8 }, (_, i) =>
+    `assets/intro-data/frame-v2/part-${String(i).padStart(3, "0")}.txt`
+  );
 
   const el = {
     card: document.getElementById("eventCard"),
@@ -98,6 +101,26 @@
     return true;
   }
 
+  async function loadDialogueFrames() {
+    const targets = [
+      document.querySelector(".event-dialogue-frame"),
+      document.querySelector(".event-info-frame")
+    ].filter(Boolean);
+    if (!targets.length) return false;
+    const texts = await Promise.all(DIALOGUE_FRAME_CHUNKS.map(async (path) => {
+      const response = await fetch(path, { cache: "force-cache" });
+      if (!response.ok) throw new Error(`dialogue frame chunk failed: ${path}`);
+      return (await response.text()).trim();
+    }));
+    const src = `data:image/webp;base64,${texts.join("")}`;
+    await Promise.all(targets.map(async (img) => {
+      img.src = src;
+      try { await img.decode(); } catch (_) {}
+      img.dataset.assetReady = "frame-visible";
+    }));
+    return true;
+  }
+
   async function loadGhoulLayer() {
     const ready = await loadChunkImage(el.ghoulLayer, GHOUL_IMAGE_CHUNKS, "ghoul-source-ready");
     if (!ready) return false;
@@ -109,7 +132,8 @@
 
   const assetsReady = Promise.all([
     loadChunkImage(el.baseImage, BASE_IMAGE_CHUNKS, "base-ready"),
-    loadGhoulLayer()
+    loadGhoulLayer(),
+    loadDialogueFrames()
   ]).catch((error) => {
     console.error("Event Lab artwork failed to load", error);
     return [false, false];
