@@ -143,7 +143,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261008-hunter-encounter-v1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261008-hunter-layer-delay-user-portrait-v1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=138"));
 for (const required of [
@@ -161,7 +161,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261008-hunter-encounter-v1",
+  "./v2-map-practice.js?v=20261008-hunter-layer-delay-user-portrait-v1",
   "./v2-auto-battle-practice.js?v=138",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -180,8 +180,8 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!/(^|\\n)\\.map-options-button\\s*\\{\\s*visibility:\\s*hidden;\\s*\\}/.test(mapCss));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261008-hunter-encounter-v1"));
-assert(worker.includes("./v2-map-practice.css?v=20261008-hunter-encounter-v1"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261008-hunter-layer-delay-user-portrait-v1"));
+assert(worker.includes("./v2-map-practice.css?v=20261008-hunter-layer-delay-user-portrait-v1"));
 assert(mapHtml.includes('id="villageDioramaTestButton"'));
 assert(mapHtml.includes('id="villageDioramaTest"'));
 assert(mapHtml.includes("village-building-01.webp?v=20261005-graveyard-poster-stage17-1"));
@@ -548,13 +548,19 @@ assert(mapCss.includes(".hunter-story-scene-layer") && mapCss.includes(".hunter-
 assert(mapCss.includes(".graveyard-story-event.is-hunter-event"), "hunter event must reuse the framed board-event composition");
 for (const asset of [
   "art/v2-style/map-test/events/monster-hunter-worldtree-base.webp",
-  "art/v2-style/map-test/events/monster-hunter-corrupted-beast-scene.webp",
-  "art/v2-style/event-portraits/monster-hunter-hd.webp"
+  "art/v2-style/map-test/events/monster-hunter-corrupted-beast-scene.webp"
 ]) {
   assert(fs.existsSync(asset), "Monster hunter event artwork missing: " + asset);
   assert(worker.includes("./" + asset + "?v=1"), "Monster hunter artwork must be precached: " + asset);
-  assert(fs.statSync(asset).size >= 500000, "Monster hunter event art must stay high quality (>=500KB): " + asset);
+  assert(fs.statSync(asset).size >= 500000, "Monster hunter scene art must stay high quality (>=500KB): " + asset);
 }
+assert(map.includes('visual: "base"'), "hunter encounter must open on the clean world-tree background without the scene layer");
+assert(map.includes('id: "warning"') && map.includes('visual: "scene"'), "hunter scene layer must first appear on the next beat");
+assert(map.includes('beat.id === "warning" || beat.id === "unnatural" || beat.id === "clue"'), "hunter scene reveal animation must start on the second beat");
+assert(map.includes("data:image/webp;base64,UklGR"), "hunter dialogue portrait must use the user-supplied artwork embedded at moderate resolution");
+assert(!map.includes('MONSTER_HUNTER_EVENT_PORTRAIT_ART =\n    "art/v2-style/event-portraits/monster-hunter-hd.webp?v=1"'), "hunter dialogue must not use the generated ultra-HD portrait");
+assert(mapCss.includes("mix-blend-mode:multiply!important"), "user hunter portrait paper background must blend into the event artwork");
+assert(mapCss.includes("width:46%!important") && mapCss.includes("height:68%!important"), "hunter dialogue portrait must stay visually comparable to the other portraits");
 
 assert(map.includes('storyEventTriggerMatches(tileId, "village")'), "commander encounter must inherit the village-or-event trigger rule");
 assert(map.includes("KNIGHT_COMMANDER_CONTAMINATION_BEATS"), "commander encounter must have its own dialogue beats");
