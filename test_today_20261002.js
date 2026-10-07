@@ -416,7 +416,7 @@ assert(!map.includes("launchGraveyardChildEventFromMap(step)"));
 assert(map.includes('eventOpen = true;\n    activeEventTileId = "graveyard";'), "graveyard story must own interaction state");
 assert(map.includes('activeEventTileId === "village-rumor-abandoned"'), "shared story overlay must release both rumor branches");
 assert(map.includes('currentTiles[heroIndex]?.id === "graveyard"') && map.includes('|| currentTiles[heroIndex]?.id === "event"'), "graveyard story must be eligible from graveyard or generic event tile after movement");
-assert(map.includes('tile.id === "graveyard" || tile.id === "village" || tile.id === "event"'), "manual story dispatcher must cover designated story tiles and generic event");
+assert(map.includes('tile.id === "graveyard" || tile.id === "village" || tile.id === "unknown" || tile.id === "event"'), "manual story dispatcher must cover designated story tiles, world tree and generic event");
 assert(map.includes('if (tile.id === "graveyard") {\n            heroIndex = index;\n            placeHero(true);'), "graveyard direct click must still move the hero before story launch");
 assert(map.includes("function advanceMapLoop"));
 assert(!mapHtml.includes('id="graveyardPosterEvent"'));
