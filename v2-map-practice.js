@@ -4507,6 +4507,24 @@
     })
   ]);
   let graveyardStoryBeatIndex = 0;
+  let graveyardStoryBoardDropTimer = null;
+
+  function playGraveyardStoryBoardDrop() {
+    const storyEvent = el.graveyardStoryEvent;
+    const art = storyEvent?.querySelector(".graveyard-story-art-wrap");
+    if (!storyEvent || !art) return;
+    if (graveyardStoryBoardDropTimer) {
+      window.clearTimeout(graveyardStoryBoardDropTimer);
+      graveyardStoryBoardDropTimer = null;
+    }
+    storyEvent.classList.remove("is-board-drop-entering");
+    void art.offsetWidth;
+    storyEvent.classList.add("is-board-drop-entering");
+    graveyardStoryBoardDropTimer = window.setTimeout(() => {
+      storyEvent.classList.remove("is-board-drop-entering");
+      graveyardStoryBoardDropTimer = null;
+    }, 720);
+  }
 
   function setGraveyardStoryChoicePhase(enabled) {
     if (!el.graveyardStoryEvent || !el.graveyardStoryChoices) return;
@@ -4539,7 +4557,11 @@
   function closeGraveyardStoryEvent() {
     if (!el.graveyardStoryEvent) return;
     el.graveyardStoryEvent.hidden = true;
-    el.graveyardStoryEvent.classList.remove("is-rescued", "is-child-fleeing", "has-dialogue", "is-choice-phase");
+    if (graveyardStoryBoardDropTimer) {
+      window.clearTimeout(graveyardStoryBoardDropTimer);
+      graveyardStoryBoardDropTimer = null;
+    }
+    el.graveyardStoryEvent.classList.remove("is-rescued", "is-child-fleeing", "has-dialogue", "is-choice-phase", "is-board-drop-entering");
     setGraveyardGhoulVisible(false, { animate: false });
     el.board?.classList.remove("is-story-event-open");
     eventOpen = false;
@@ -4575,6 +4597,7 @@
     el.board?.classList.add("is-story-event-open");
     el.graveyardStoryEvent.hidden = false;
     el.graveyardStoryEvent.classList.toggle("is-rescued", rescued === true);
+    playGraveyardStoryBoardDrop();
 
     if (rescued) {
       el.graveyardStoryEvent.dataset.beat = "rescued";
@@ -4612,6 +4635,7 @@
     el.graveyardStoryEvent.dataset.tapAdvanceReady = "1";
     el.graveyardStoryEvent.addEventListener("click", (event) => {
       if (el.graveyardStoryEvent.hidden) return;
+      if (el.graveyardStoryEvent.classList.contains("is-board-drop-entering")) return;
       if (el.graveyardStoryEvent.classList.contains("is-choice-phase")) return;
       if (event.target.closest(".graveyard-story-choices")) return;
       if (event.target.closest("#graveyardStoryAdvance")) return;
