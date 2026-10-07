@@ -165,7 +165,7 @@ async function activate(page, selector) {
       };
     });
     assert(unifiedInfo.shellVisible);
-    assert(unifiedInfo.frameSrc.startsWith("data:image/webp;base64,"));
+    assert(unifiedInfo.frameSrc.includes("intro-dialogue-box.webp?v=6"));
     assert(unifiedInfo.copyBg === "rgba(0, 0, 0, 0)" || unifiedInfo.copyBg === "transparent");
     assert(unifiedInfo.actionsBg === "rgba(0, 0, 0, 0)" || unifiedInfo.actionsBg === "transparent");
     console.log("PASS: Event Lab unified info box");
