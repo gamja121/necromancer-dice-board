@@ -106,6 +106,15 @@ async function activate(page, selector) {
     assert(cleanInfoFrame.resultBorderImage.includes("legion-info-window-hd-clean.webp?v=2"));
     console.log("PASS: clean info-window asset loads in battle UI and result frame");
 
+    await page.goto(new URL("v2-tile-practice.html", base).href);
+    await page.waitForLoadState("domcontentloaded");
+    const inheritanceFrame = await page.evaluate(() => {
+      const panel = document.querySelector(".home-inheritance-brand-box");
+      return panel ? getComputedStyle(panel).borderImageSource : "";
+    });
+    assert(inheritanceFrame.includes("legion-info-window-hd-clean.webp?v=2"));
+    console.log("PASS: clean info-window asset is wired to inheritance brand panel");
+
     await page.goto(new URL("v2-event-lab.html", base).href);
     await page.waitForSelector("#eventCard", { state: "visible", timeout: 15000 });
     await page.waitForFunction(() => {
