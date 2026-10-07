@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261008-hunter-layer-delay-user-portrait-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261008-hunter-transparent-portrait-2";
 
 const CORE_ASSETS = [
   "./",

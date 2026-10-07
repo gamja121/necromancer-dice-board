@@ -2517,7 +2517,6 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   pointer-events:none!important;
   user-select:none!important;
   image-rendering:auto!important;
-  mix-blend-mode:multiply!important;
   opacity:.98;
   filter:brightness(.96) contrast(1.02) saturate(.78)
          drop-shadow(0 10px 12px rgba(0,0,0,.56));

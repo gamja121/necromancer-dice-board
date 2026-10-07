@@ -557,9 +557,8 @@ for (const asset of [
 assert(map.includes('visual: "base"'), "hunter encounter must open on the clean world-tree background without the scene layer");
 assert(map.includes('id: "warning"') && map.includes('visual: "scene"'), "hunter scene layer must first appear on the next beat");
 assert(map.includes('beat.id === "warning" || beat.id === "unnatural" || beat.id === "clue"'), "hunter scene reveal animation must start on the second beat");
-assert(map.includes("data:image/webp;base64,UklGR"), "hunter dialogue portrait must use the user-supplied artwork embedded at moderate resolution");
-assert(!map.includes('MONSTER_HUNTER_EVENT_PORTRAIT_ART =\n    "art/v2-style/event-portraits/monster-hunter-hd.webp?v=1"'), "hunter dialogue must not use the generated ultra-HD portrait");
-assert(mapCss.includes("mix-blend-mode:multiply!important"), "user hunter portrait paper background must blend into the event artwork");
+assert(map.includes('art/v2-style/event-portraits/monster-hunter-hd.webp?v=2'), "hunter dialogue portrait must use the transparent hunter portrait asset");
+assert(!mapCss.includes("mix-blend-mode:multiply!important"), "transparent hunter portrait must not use paper-background blending");
 assert(mapCss.includes("width:46%!important") && mapCss.includes("height:68%!important"), "hunter dialogue portrait must stay visually comparable to the other portraits");
 
 assert(map.includes('storyEventTriggerMatches(tileId, "village")'), "commander encounter must inherit the village-or-event trigger rule");
