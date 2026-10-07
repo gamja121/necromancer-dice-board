@@ -2322,7 +2322,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .graveyard-story-event.is-commander-event{
   background:linear-gradient(rgba(5,4,3,.16),rgba(5,4,3,.24))!important;
 }
-.graveyard-story-event.is-rumor-event,
+.graveyard-story-event.is-rumor-event .graveyard-story-art-wrap,
 .graveyard-story-event.is-commander-event .graveyard-story-art-wrap{
   box-sizing:border-box!important;
   overflow:hidden!important;
@@ -2336,7 +2336,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
     inset 0 0 0 2px rgba(28,18,11,.96),
     inset 0 0 0 5px rgba(180,145,96,.24)!important;
 }
-.graveyard-story-event.is-rumor-event,
+.graveyard-story-event.is-rumor-event .graveyard-story-art-wrap::after,
 .graveyard-story-event.is-commander-event .graveyard-story-art-wrap::after{
   content:"";
   position:absolute;
@@ -2348,7 +2348,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
     inset 0 0 12px rgba(0,0,0,.46);
   pointer-events:none;
 }
-.graveyard-story-event.is-rumor-event,
+.graveyard-story-event.is-rumor-event .graveyard-story-artwork,
 .graveyard-story-event.is-commander-event .graveyard-story-artwork{
   object-fit:cover!important;
   object-position:center center!important;
