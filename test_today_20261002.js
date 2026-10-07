@@ -544,8 +544,9 @@ assert(battleHtml.includes('id="brandReferenceButton"'), "Battle must expose a m
 for (let face = 1; face <= 6; face += 1) {
   const file = `art/v2-style/dice-test/frames/result-${String(face).padStart(2, "0")}.png`;
   assert(battleHtml.includes(file), `Brand reference header must use existing die face ${face}`);
-  assert(worker.includes("./" + file), `Die face ${face} must be cached`);
 }
+assert(worker.includes("for (let i = 1; i <= 6; i += 1)"), "Service worker must cache all six existing dice result faces");
+assert(worker.includes('result-${String(i).padStart(2, "0")}.png'), "Service worker dice result cache loop is missing");
 assert(battle.includes("buildBrandReferenceTable()"), "Battle must build the brand reference table from live units");
 assert(battle.includes("brandReferenceInitialPending = true"), "Brand reference board must open once before the first roll");
 assert(battle.includes("syncBrandReferenceButton()"), "Brand reference button visibility must follow pre-roll state");
