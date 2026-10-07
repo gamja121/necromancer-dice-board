@@ -143,7 +143,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261007-story-trigger-designated-or-event-v1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261008-hunter-encounter-v1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=138"));
 for (const required of [
@@ -161,7 +161,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261007-story-trigger-designated-or-event-v1",
+  "./v2-map-practice.js?v=20261008-hunter-encounter-v1",
   "./v2-auto-battle-practice.js?v=138",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -180,8 +180,8 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!/(^|\\n)\\.map-options-button\\s*\\{\\s*visibility:\\s*hidden;\\s*\\}/.test(mapCss));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261007-knight-player-reply-v1"));
-assert(worker.includes("./v2-map-practice.css?v=20261007-knight-player-reply-v1"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261008-hunter-encounter-v1"));
+assert(worker.includes("./v2-map-practice.css?v=20261008-hunter-encounter-v1"));
 assert(mapHtml.includes('id="villageDioramaTestButton"'));
 assert(mapHtml.includes('id="villageDioramaTest"'));
 assert(mapHtml.includes("village-building-01.webp?v=20261005-graveyard-poster-stage17-1"));
@@ -515,8 +515,8 @@ assert(map.includes('return tileId === designatedTileId || tileId === "event";')
 assert(map.includes('storyEventTriggerMatches(tileId, "graveyard")'), "graveyard story must trigger on graveyard or event tile");
 assert(map.includes('storyEventTriggerMatches(tileId, "village")'), "village stories must trigger on village or event tile");
 assert(map.indexOf('storyEventTriggerMatches(tileId, "graveyard")') < map.indexOf('storyEventTriggerMatches(tileId, "village")'), "event tile must resolve the earliest pending story event first");
-assert(map.includes('tile.id === "graveyard" || tile.id === "village" || tile.id === "event"'), "manual tile activation must use the shared story dispatcher");
-assert(map.includes('currentTiles[heroIndex]?.id === "graveyard"') && map.includes('|| currentTiles[heroIndex]?.id === "event"'), "dice landing must include graveyard, village and event in the shared story dispatcher");
+assert(map.includes('tile.id === "graveyard" || tile.id === "village" || tile.id === "unknown" || tile.id === "event"'), "manual tile activation must use the shared story dispatcher including world tree");
+assert(map.includes('currentTiles[heroIndex]?.id === "graveyard"') && map.includes('|| currentTiles[heroIndex]?.id === "unknown"') && map.includes('|| currentTiles[heroIndex]?.id === "event"'), "dice landing must include graveyard, village, world tree and event in the shared story dispatcher");
 
 assert(map.includes('mapLaunchParams.get("storyEvent") === "rumor_abandoned_child_01"'), "abandoned-child rumor needs a direct preview route");
 assert(map.includes("graveyardChildWasRescued()) return launchRumorSavedChildEventFromVillage()"), "saved answer must still route to the original rumor");
@@ -530,6 +530,32 @@ assert(map.includes("KNIGHT_COMMANDER_CONTAMINATION_EVENT_FLAG"), "royal route m
 assert(map.includes("CONTAMINATION_HUNTER_QUEST_ACTIVE_FLAG"), "royal route must persist the contamination hunter quest");
 assert(map.includes("rumorSavedChildEventCompleted"), "commander encounter must wait until the saved-child rumor actually completes");
 assert(map.includes("launchKnightCommanderContaminationEventFromMap"), "commander encounter launcher must exist");
+assert(map.includes("MONSTER_HUNTER_ENCOUNTER_SEEN_FLAG") && map.includes("MONSTER_HUNTER_ENCOUNTER_FLAG"), "monster hunter encounter must persist seen and complete state");
+assert(map.includes("CONTAMINATION_HUNTER_QUEST_COMPLETE_FLAG") && map.includes("CULTIST_HUMAN_CLUE_FLAG"), "hunter encounter must complete the quest and unlock the human-cultist clue");
+assert(map.includes("launchMonsterHunterEncounterEventFromMap"), "monster hunter encounter launcher must exist");
+assert(map.includes('storyEventTriggerMatches(tileId, "unknown")'), "monster hunter encounter must use world-tree-or-event trigger rule");
+assert(map.includes("MONSTER_HUNTER_ENCOUNTER_BEATS"), "monster hunter encounter must have dialogue beats");
+assert(map.includes("거기서 멈춰."), "monster hunter must open by stopping the player");
+assert(map.includes("죽은 것들을 끌고 다니는 놈이 있다는 소문은 들었는데… 네가 그놈이군."), "monster hunter must recognize the necromancer by rumor");
+assert(map.includes("기사단장이 보냈나? 오염에 대해 묻고 싶은 거겠지."), "monster hunter must connect the encounter to the commander quest");
+assert(map.includes("이건 자연스럽게 퍼지는 게 아니야."), "hunter must reveal that contamination is unnatural");
+assert(map.includes("누군가 오염된 마물들을 모으고 있다. 일부러 말이지."), "hunter must reveal deliberate gathering of contaminated monsters");
+assert(map.includes("사람들이야. 마물이 아니라."), "hunter must reveal human involvement");
+assert(map.includes("[오염을 퍼뜨리는 자들에 대한 단서를 얻었습니다.]"), "hunter encounter must award the next-story clue");
+assert(map.includes('mapLaunchParams.get("storyEvent") === "monster_hunter_encounter_01"'), "hunter encounter needs a direct preview route");
+assert(mapHtml.includes('id="monsterHunterSceneLayer"') && mapHtml.includes('id="monsterHunterPortraitLayer"'), "hunter scene and portrait layers must exist");
+assert(mapCss.includes(".hunter-story-scene-layer") && mapCss.includes(".hunter-story-portrait-layer"), "hunter event layer positioning CSS must exist");
+assert(mapCss.includes(".graveyard-story-event.is-hunter-event"), "hunter event must reuse the framed board-event composition");
+for (const asset of [
+  "art/v2-style/map-test/events/monster-hunter-worldtree-base.webp",
+  "art/v2-style/map-test/events/monster-hunter-corrupted-beast-scene.webp",
+  "art/v2-style/event-portraits/monster-hunter-hd.webp"
+]) {
+  assert(fs.existsSync(asset), "Monster hunter event artwork missing: " + asset);
+  assert(worker.includes("./" + asset + "?v=1"), "Monster hunter artwork must be precached: " + asset);
+  assert(fs.statSync(asset).size >= 500000, "Monster hunter event art must stay high quality (>=500KB): " + asset);
+}
+
 assert(map.includes('storyEventTriggerMatches(tileId, "village")'), "commander encounter must inherit the village-or-event trigger rule");
 assert(map.includes("KNIGHT_COMMANDER_CONTAMINATION_BEATS"), "commander encounter must have its own dialogue beats");
 assert(map.includes("여기 있었구만."), "commander must open with the approved recognition line");

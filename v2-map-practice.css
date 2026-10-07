@@ -2319,11 +2319,13 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 /* Rumor follow-up — a framed illustration resting on the live board.
    The board remains visible outside the frame; only the artwork and actor layers live inside it. */
 .graveyard-story-event.is-rumor-event,
-.graveyard-story-event.is-commander-event{
+.graveyard-story-event.is-commander-event,
+.graveyard-story-event.is-hunter-event{
   background:linear-gradient(rgba(5,4,3,.16),rgba(5,4,3,.24))!important;
 }
 .graveyard-story-event.is-rumor-event .graveyard-story-art-wrap,
-.graveyard-story-event.is-commander-event .graveyard-story-art-wrap{
+.graveyard-story-event.is-commander-event .graveyard-story-art-wrap,
+.graveyard-story-event.is-hunter-event .graveyard-story-art-wrap{
   box-sizing:border-box!important;
   overflow:hidden!important;
   isolation:isolate!important;
@@ -2337,7 +2339,8 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
     inset 0 0 0 5px rgba(180,145,96,.24)!important;
 }
 .graveyard-story-event.is-rumor-event .graveyard-story-art-wrap::after,
-.graveyard-story-event.is-commander-event .graveyard-story-art-wrap::after{
+.graveyard-story-event.is-commander-event .graveyard-story-art-wrap::after,
+.graveyard-story-event.is-hunter-event .graveyard-story-art-wrap::after{
   content:"";
   position:absolute;
   z-index:15;
@@ -2349,7 +2352,8 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   pointer-events:none;
 }
 .graveyard-story-event.is-rumor-event .graveyard-story-artwork,
-.graveyard-story-event.is-commander-event .graveyard-story-artwork{
+.graveyard-story-event.is-commander-event .graveyard-story-artwork,
+.graveyard-story-event.is-hunter-event .graveyard-story-artwork{
   object-fit:cover!important;
   object-position:center center!important;
   background:#0b0806!important;
@@ -2468,4 +2472,64 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 }
 @media (prefers-reduced-motion:reduce){
   .player-story-layer.is-entering{animation:none!important}
+}
+
+
+/* Monster-hunter world-tree encounter layers. */
+.graveyard-story-event.is-hunter-event .graveyard-story-artwork{
+  object-fit:contain!important;
+  object-position:center center!important;
+  background:#182013!important;
+  image-rendering:auto!important;
+}
+.hunter-story-scene-layer{
+  position:absolute!important;
+  z-index:8!important;
+  left:13%!important;
+  bottom:2%!important;
+  width:74%!important;
+  height:92%!important;
+  object-fit:contain!important;
+  object-position:center bottom!important;
+  pointer-events:none!important;
+  user-select:none!important;
+  image-rendering:auto!important;
+  opacity:1;
+  filter:drop-shadow(0 12px 14px rgba(0,0,0,.56));
+}
+.hunter-story-scene-layer[hidden]{display:none!important}
+.hunter-story-scene-layer.is-entering{
+  animation:hunter-scene-enter .52s cubic-bezier(.18,.78,.2,1) both;
+}
+@keyframes hunter-scene-enter{
+  0%{opacity:0;transform:translate3d(0,3%,0) scale(.965);filter:brightness(.72) saturate(.78) drop-shadow(0 6px 8px rgba(0,0,0,.38))}
+  100%{opacity:1;transform:translate3d(0,0,0) scale(1);filter:brightness(1) saturate(1) drop-shadow(0 12px 14px rgba(0,0,0,.56))}
+}
+.hunter-story-portrait-layer{
+  position:absolute!important;
+  z-index:10!important;
+  right:2%!important;
+  bottom:25%!important;
+  width:49%!important;
+  height:74%!important;
+  object-fit:contain!important;
+  object-position:right bottom!important;
+  pointer-events:none!important;
+  user-select:none!important;
+  image-rendering:auto!important;
+  opacity:1;
+  filter:brightness(.91) contrast(1.05) saturate(.86)
+         drop-shadow(0 12px 14px rgba(0,0,0,.68));
+}
+.hunter-story-portrait-layer[hidden]{display:none!important}
+.hunter-story-portrait-layer.is-entering{
+  animation:hunter-portrait-enter .48s cubic-bezier(.18,.78,.2,1) both;
+}
+@keyframes hunter-portrait-enter{
+  0%{opacity:0;transform:translate3d(7%,2%,0) scale(.96);filter:brightness(.67) contrast(1.02) saturate(.68) drop-shadow(0 6px 8px rgba(0,0,0,.42))}
+  100%{opacity:1;transform:translate3d(0,0,0) scale(1);filter:brightness(.91) contrast(1.05) saturate(.86) drop-shadow(0 12px 14px rgba(0,0,0,.68))}
+}
+@media (prefers-reduced-motion:reduce){
+  .hunter-story-scene-layer.is-entering,
+  .hunter-story-portrait-layer.is-entering{animation:none!important}
 }
