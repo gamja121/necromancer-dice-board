@@ -469,16 +469,13 @@
   }
 
   function graveyardChildEventConsumed() {
-    const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
-    if (eventFlags[GRAVEYARD_CHILD_EVENT_SEEN_FLAG] === true || eventFlags[GRAVEYARD_CHILD_EVENT_FLAG] === true) return true;
-    try {
-      return sessionStorage.getItem(GRAVEYARD_CHILD_EVENT_SEEN_FALLBACK_KEY) === "1"
-        || sessionStorage.getItem(GRAVEYARD_CHILD_EVENT_FALLBACK_KEY) === "1";
-    } catch (_) {
-      return false;
-    }
+    // "seen" is only a journal marker. Reloading an unfinished scene must
+    // allow the same event to resume at its eligible tile, never skip the story.
+    const runtime = globalThis.V2RunStateRuntime;
+    if (runtime?.available) return runtime.snapshot()?.eventFlags?.[GRAVEYARD_CHILD_EVENT_FLAG] === true;
+    try { return sessionStorage.getItem(GRAVEYARD_CHILD_EVENT_FALLBACK_KEY) === "1"; }
+    catch (_) { return false; }
   }
-
   function graveyardChildWasRescued() {
     const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
     if (eventFlags[GRAVEYARD_CHILD_RESCUED_FLAG] === true) return true;
@@ -502,16 +499,13 @@
   }
 
   function rumorSavedChildEventConsumed() {
-    const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
-    if (eventFlags[RUMOR_SAVED_CHILD_EVENT_SEEN_FLAG] === true || eventFlags[RUMOR_SAVED_CHILD_EVENT_FLAG] === true) return true;
-    try {
-      return sessionStorage.getItem(RUMOR_SAVED_CHILD_EVENT_SEEN_FALLBACK_KEY) === "1"
-        || sessionStorage.getItem(RUMOR_SAVED_CHILD_EVENT_FALLBACK_KEY) === "1";
-    } catch (_) {
-      return false;
-    }
+    // "seen" is only a journal marker. Reloading an unfinished scene must
+    // allow the same event to resume at its eligible tile, never skip the story.
+    const runtime = globalThis.V2RunStateRuntime;
+    if (runtime?.available) return runtime.snapshot()?.eventFlags?.[RUMOR_SAVED_CHILD_EVENT_FLAG] === true;
+    try { return sessionStorage.getItem(RUMOR_SAVED_CHILD_EVENT_FALLBACK_KEY) === "1"; }
+    catch (_) { return false; }
   }
-
   function rumorSavedChildEventCompleted() {
     const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
     if (eventFlags[RUMOR_SAVED_CHILD_EVENT_FLAG] === true) return true;
@@ -523,19 +517,13 @@
   }
 
   function knightCommanderContaminationEventConsumed() {
-    const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
-    if (
-      eventFlags[KNIGHT_COMMANDER_CONTAMINATION_EVENT_SEEN_FLAG] === true
-      || eventFlags[KNIGHT_COMMANDER_CONTAMINATION_EVENT_FLAG] === true
-    ) return true;
-    try {
-      return sessionStorage.getItem(KNIGHT_COMMANDER_CONTAMINATION_EVENT_SEEN_FALLBACK_KEY) === "1"
-        || sessionStorage.getItem(KNIGHT_COMMANDER_CONTAMINATION_EVENT_FALLBACK_KEY) === "1";
-    } catch (_) {
-      return false;
-    }
+    // "seen" is only a journal marker. Reloading an unfinished scene must
+    // allow the same event to resume at its eligible tile, never skip the story.
+    const runtime = globalThis.V2RunStateRuntime;
+    if (runtime?.available) return runtime.snapshot()?.eventFlags?.[KNIGHT_COMMANDER_CONTAMINATION_EVENT_FLAG] === true;
+    try { return sessionStorage.getItem(KNIGHT_COMMANDER_CONTAMINATION_EVENT_FALLBACK_KEY) === "1"; }
+    catch (_) { return false; }
   }
-
   function contaminationHunterQuestActive() {
     const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
     if (eventFlags[CONTAMINATION_HUNTER_QUEST_COMPLETE_FLAG] === true) return false;
@@ -549,19 +537,13 @@
   }
 
   function monsterHunterEncounterConsumed() {
-    const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
-    if (
-      eventFlags[MONSTER_HUNTER_ENCOUNTER_SEEN_FLAG] === true
-      || eventFlags[MONSTER_HUNTER_ENCOUNTER_FLAG] === true
-    ) return true;
-    try {
-      return sessionStorage.getItem(MONSTER_HUNTER_ENCOUNTER_SEEN_FALLBACK_KEY) === "1"
-        || sessionStorage.getItem(MONSTER_HUNTER_ENCOUNTER_FALLBACK_KEY) === "1";
-    } catch (_) {
-      return false;
-    }
+    // "seen" is only a journal marker. Reloading an unfinished scene must
+    // allow the same event to resume at its eligible tile, never skip the story.
+    const runtime = globalThis.V2RunStateRuntime;
+    if (runtime?.available) return runtime.snapshot()?.eventFlags?.[MONSTER_HUNTER_ENCOUNTER_FLAG] === true;
+    try { return sessionStorage.getItem(MONSTER_HUNTER_ENCOUNTER_FALLBACK_KEY) === "1"; }
+    catch (_) { return false; }
   }
-
   function monsterHunterEncounterCompleted() {
     const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
     if (eventFlags[MONSTER_HUNTER_ENCOUNTER_FLAG] === true) return true;
@@ -577,14 +559,13 @@
   }
 
   function cultistRumorEventConsumed() {
-    const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
-    if (eventFlags[CULTIST_RUMOR_EVENT_SEEN_FLAG] === true || eventFlags[CULTIST_RUMOR_EVENT_FLAG] === true) return true;
-    try {
-      return sessionStorage.getItem(CULTIST_RUMOR_EVENT_SEEN_FALLBACK_KEY) === "1"
-        || sessionStorage.getItem(CULTIST_RUMOR_EVENT_FALLBACK_KEY) === "1";
-    } catch (_) { return false; }
+    // "seen" is only a journal marker. Reloading an unfinished scene must
+    // allow the same event to resume at its eligible tile, never skip the story.
+    const runtime = globalThis.V2RunStateRuntime;
+    if (runtime?.available) return runtime.snapshot()?.eventFlags?.[CULTIST_RUMOR_EVENT_FLAG] === true;
+    try { return sessionStorage.getItem(CULTIST_RUMOR_EVENT_FALLBACK_KEY) === "1"; }
+    catch (_) { return false; }
   }
-
   function cultistRumorEventCompleted() {
     const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
     if (eventFlags[CULTIST_RUMOR_EVENT_FLAG] === true) return true;
@@ -600,14 +581,13 @@
   }
 
   function cultistAltarEncounterConsumed() {
-    const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
-    if (eventFlags[CULTIST_ALTAR_EVENT_SEEN_FLAG] === true || eventFlags[CULTIST_ALTAR_EVENT_FLAG] === true) return true;
-    try {
-      return sessionStorage.getItem(CULTIST_ALTAR_EVENT_SEEN_FALLBACK_KEY) === "1"
-        || sessionStorage.getItem(CULTIST_ALTAR_EVENT_FALLBACK_KEY) === "1";
-    } catch (_) { return false; }
+    // "seen" is only a journal marker. Reloading an unfinished scene must
+    // allow the same event to resume at its eligible tile, never skip the story.
+    const runtime = globalThis.V2RunStateRuntime;
+    if (runtime?.available) return runtime.snapshot()?.eventFlags?.[CULTIST_ALTAR_EVENT_FLAG] === true;
+    try { return sessionStorage.getItem(CULTIST_ALTAR_EVENT_FALLBACK_KEY) === "1"; }
+    catch (_) { return false; }
   }
-
   function cultistAltarEncounterCompleted() {
     const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
     if (eventFlags[CULTIST_ALTAR_EVENT_FLAG] === true) return true;
@@ -623,14 +603,13 @@
   }
 
   function ritualPortalEventConsumed() {
-    const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
-    if (eventFlags[RITUAL_PORTAL_EVENT_SEEN_FLAG] === true || eventFlags[RITUAL_PORTAL_EVENT_FLAG] === true) return true;
-    try {
-      return sessionStorage.getItem(RITUAL_PORTAL_EVENT_SEEN_FALLBACK_KEY) === "1"
-        || sessionStorage.getItem(RITUAL_PORTAL_EVENT_FALLBACK_KEY) === "1";
-    } catch (_) { return false; }
+    // "seen" is only a journal marker. Reloading an unfinished scene must
+    // allow the same event to resume at its eligible tile, never skip the story.
+    const runtime = globalThis.V2RunStateRuntime;
+    if (runtime?.available) return runtime.snapshot()?.eventFlags?.[RITUAL_PORTAL_EVENT_FLAG] === true;
+    try { return sessionStorage.getItem(RITUAL_PORTAL_EVENT_FALLBACK_KEY) === "1"; }
+    catch (_) { return false; }
   }
-
   // A restored RunState flag is authoritative: stale session fallback must
   // never override an explicit true/false value from another run.
   function monsterKingHuntStoryFlag(flag, fallbackKey) {
@@ -923,16 +902,13 @@
   }
 
   function rumorAbandonedChildEventConsumed() {
-    const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
-    if (eventFlags[RUMOR_ABANDONED_CHILD_EVENT_SEEN_FLAG] === true || eventFlags[RUMOR_ABANDONED_CHILD_EVENT_FLAG] === true) return true;
-    try {
-      return sessionStorage.getItem(RUMOR_ABANDONED_CHILD_EVENT_SEEN_FALLBACK_KEY) === "1"
-        || sessionStorage.getItem(RUMOR_ABANDONED_CHILD_EVENT_FALLBACK_KEY) === "1";
-    } catch (_) {
-      return false;
-    }
+    // "seen" is only a journal marker. Reloading an unfinished scene must
+    // allow the same event to resume at its eligible tile, never skip the story.
+    const runtime = globalThis.V2RunStateRuntime;
+    if (runtime?.available) return runtime.snapshot()?.eventFlags?.[RUMOR_ABANDONED_CHILD_EVENT_FLAG] === true;
+    try { return sessionStorage.getItem(RUMOR_ABANDONED_CHILD_EVENT_FALLBACK_KEY) === "1"; }
+    catch (_) { return false; }
   }
-
   async function markRumorAbandonedChildEventStarted() {
     try { sessionStorage.setItem(RUMOR_ABANDONED_CHILD_EVENT_SEEN_FALLBACK_KEY, "1"); } catch (_) {}
     if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
