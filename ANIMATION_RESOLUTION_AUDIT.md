@@ -35,6 +35,11 @@
 | Forest Fairy | `art/v2-style/animation-sheets/green-raw/forest-fairy-animation-sheet.jpg` | 1280×633 | 런타임 분해 프레임 280×250px | 높음 | 세로 250px라 PC 확대 시 한계 |
 | Skeleton Cavalry | `art/v2-style/animation-sheets/green-raw/skeleton-cavalry-animation-sheet.jpg` | 1280×714 | 런타임 분해 프레임 320×250px | 높음 | 세로 해상도 250px 기준 |
 | Soul Reaper | `art/v2-style/animation-sheets/green-raw/soul-reaper-animation-sheet.jpg` | 1280×714 | 런타임 분해 프레임 320×250px | 높음 | 세로 해상도 250px 기준 |
+| Mummy Guardian | `art/v2-style/animation-sheets/green-raw/mummy-guardian-animation-sheet.jpg` | 1280×714 | 런타임 분해 프레임 250×250px | 매우 높음 | 400px 이상 표시 시 확대율이 큼 |
+| Ice Lord | `art/v2-style/animation-sheets/green-raw/ice-lord-animation-sheet.jpg` | 1280×957 | 런타임 분해 프레임 250×250px | 매우 높음 | 원본 시트는 크지만 전투 프레임은 250×250 |
+| Kraken | `art/v2-style/animation-sheets/green-raw/kraken-animation-sheet.jpg` | 1280×575 | 런타임 분해 프레임 280×250px | 높음 | PC 확대 시 선명도 저하 가능 |
+| Mimic | `art/v2-style/animation-sheets/green-raw/mimic-animation-sheet.jpg` | 1280×576 | 런타임 분해 프레임 320×250px | 높음 | 세로 250px 기준이라 확대 시 한계 |
+| Mushroom Soldier | `art/v2-style/animation-sheets/green-raw/mushroom-soldier-animation-sheet.jpg` | 1280×576 | 런타임 분해 프레임 280×250px | 높음 | 세로 250px 기준이라 확대 시 한계 |
 
 ## 현재 판단
 
