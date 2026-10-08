@@ -101,6 +101,12 @@
   const RITUAL_SITE_LOCATION_KNOWN_FLAG = "story:monster_king:ritual_site_location_known";
   const RITUAL_SITE_TRACKING_COMPLETE_FLAG = "quest:ritual_site_tracking:complete";
   const RITUAL_INTERVENTION_ACTIVE_FLAG = "quest:ritual_intervention:active";
+  const RITUAL_PORTAL_BATTLE_WON_FLAG = "battle:ritual_portal_trace_01:won";
+  const RITUAL_PORTAL_BATTLE_LOST_FLAG = "battle:ritual_portal_trace_01:lost";
+  const MONSTER_KING_REVIVED_FLAG = "story:monster_king:revived";
+  const MONSTER_KING_WEAKENED_REVIVAL_FLAG = "story:monster_king:revival_weakened";
+  const MONSTER_KING_FULL_REVIVAL_FLAG = "story:monster_king:revival_complete";
+  const MONSTER_KING_HUNT_ACTIVE_FLAG = "quest:monster_king_hunt:active";
   const KNIGHT_COMMANDER_CONTAMINATION_EVENT_SEEN_FALLBACK_KEY = "necromancer-event-knight-commander-contamination-seen-v1";
   const KNIGHT_COMMANDER_CONTAMINATION_EVENT_FALLBACK_KEY = "necromancer-event-knight-commander-contamination-complete-v1";
   const KNIGHT_COMMANDER_RECOGNIZED_FALLBACK_KEY = "necromancer-story-knight-commander-recognized-v1";
@@ -126,6 +132,12 @@
   const RITUAL_SITE_LOCATION_KNOWN_FALLBACK_KEY = "necromancer-story-ritual-site-location-known-v1";
   const RITUAL_SITE_TRACKING_COMPLETE_FALLBACK_KEY = "necromancer-quest-ritual-site-tracking-complete-v1";
   const RITUAL_INTERVENTION_ACTIVE_FALLBACK_KEY = "necromancer-quest-ritual-intervention-active-v1";
+  const RITUAL_PORTAL_BATTLE_WON_FALLBACK_KEY = "necromancer-event-ritual-portal-battle-won-v1";
+  const RITUAL_PORTAL_BATTLE_LOST_FALLBACK_KEY = "necromancer-event-ritual-portal-battle-lost-v1";
+  const MONSTER_KING_REVIVED_FALLBACK_KEY = "necromancer-story-monster-king-revived-v1";
+  const MONSTER_KING_WEAKENED_REVIVAL_FALLBACK_KEY = "necromancer-story-monster-king-revival-weakened-v1";
+  const MONSTER_KING_FULL_REVIVAL_FALLBACK_KEY = "necromancer-story-monster-king-revival-complete-v1";
+  const MONSTER_KING_HUNT_ACTIVE_FALLBACK_KEY = "necromancer-quest-monster-king-hunt-active-v1";
   const MONSTER_CAPACITY = 10;
   const DICE_CONTROL_CAPACITY = 5;
   const STARTING_DICE_EXCLUDED_IDS = Object.freeze(new Set(["repeat", "echo"]));
@@ -759,18 +771,31 @@
     return true;
   }
 
-  async function markRitualPortalEventComplete() {
+  async function markRitualPortalEventComplete(battleWon = false) {
     try {
       sessionStorage.setItem(RITUAL_PORTAL_EVENT_SEEN_FALLBACK_KEY, "1");
       sessionStorage.setItem(RITUAL_PORTAL_EVENT_FALLBACK_KEY, "1");
       sessionStorage.setItem(RITUAL_PORTAL_FOUND_FALLBACK_KEY, "1");
       sessionStorage.setItem(RITUAL_SITE_LOCATION_KNOWN_FALLBACK_KEY, "1");
       sessionStorage.setItem(RITUAL_SITE_TRACKING_COMPLETE_FALLBACK_KEY, "1");
-      sessionStorage.setItem(RITUAL_INTERVENTION_ACTIVE_FALLBACK_KEY, "1");
+      sessionStorage.setItem(MONSTER_KING_REVIVED_FALLBACK_KEY, "1");
+      sessionStorage.setItem(MONSTER_KING_HUNT_ACTIVE_FALLBACK_KEY, "1");
       sessionStorage.removeItem(RITUAL_SITE_TRACKING_ACTIVE_FALLBACK_KEY);
+      sessionStorage.removeItem(RITUAL_INTERVENTION_ACTIVE_FALLBACK_KEY);
+      if (battleWon) {
+        sessionStorage.setItem(RITUAL_PORTAL_BATTLE_WON_FALLBACK_KEY, "1");
+        sessionStorage.setItem(MONSTER_KING_WEAKENED_REVIVAL_FALLBACK_KEY, "1");
+        sessionStorage.removeItem(RITUAL_PORTAL_BATTLE_LOST_FALLBACK_KEY);
+        sessionStorage.removeItem(MONSTER_KING_FULL_REVIVAL_FALLBACK_KEY);
+      } else {
+        sessionStorage.setItem(RITUAL_PORTAL_BATTLE_LOST_FALLBACK_KEY, "1");
+        sessionStorage.setItem(MONSTER_KING_FULL_REVIVAL_FALLBACK_KEY, "1");
+        sessionStorage.removeItem(RITUAL_PORTAL_BATTLE_WON_FALLBACK_KEY);
+        sessionStorage.removeItem(MONSTER_KING_WEAKENED_REVIVAL_FALLBACK_KEY);
+      }
     } catch (_) {}
     if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
-      const result = await V2RunStateRuntime.commitExact("event-complete:ritual-portal-trace", (draft) => {
+      const result = await V2RunStateRuntime.commitExact("event-complete:ritual-portal-revival", (draft) => {
         if (!draft.eventFlags || typeof draft.eventFlags !== "object") draft.eventFlags = {};
         draft.eventFlags[RITUAL_PORTAL_EVENT_SEEN_FLAG] = true;
         draft.eventFlags[RITUAL_PORTAL_EVENT_FLAG] = true;
@@ -778,7 +803,13 @@
         draft.eventFlags[RITUAL_SITE_LOCATION_KNOWN_FLAG] = true;
         draft.eventFlags[RITUAL_SITE_TRACKING_ACTIVE_FLAG] = false;
         draft.eventFlags[RITUAL_SITE_TRACKING_COMPLETE_FLAG] = true;
-        draft.eventFlags[RITUAL_INTERVENTION_ACTIVE_FLAG] = true;
+        draft.eventFlags[RITUAL_INTERVENTION_ACTIVE_FLAG] = false;
+        draft.eventFlags[RITUAL_PORTAL_BATTLE_WON_FLAG] = battleWon;
+        draft.eventFlags[RITUAL_PORTAL_BATTLE_LOST_FLAG] = !battleWon;
+        draft.eventFlags[MONSTER_KING_REVIVED_FLAG] = true;
+        draft.eventFlags[MONSTER_KING_WEAKENED_REVIVAL_FLAG] = battleWon;
+        draft.eventFlags[MONSTER_KING_FULL_REVIVAL_FLAG] = !battleWon;
+        draft.eventFlags[MONSTER_KING_HUNT_ACTIVE_FLAG] = true;
       });
       return Boolean(result?.ok);
     }
@@ -5564,7 +5595,7 @@
       isHunterEvent ? "세계수 사건 · 마물 사냥꾼 조우"
         : isCommanderEvent ? "기사단장 사건 · 오염 조사 의뢰"
           : isCultistAltarEvent ? "제단 사건 · 광신도의 의식"
-            : isRitualPortalEvent ? "숲 사건 · 전이문의 흔적"
+            : isRitualPortalEvent ? "숲 사건 · 마물의 왕 부활 의식"
             : isCultistRumorEvent ? "마을 사건 · 같은 문양"
             : isRumorEvent ? "마을 사건 · 소문"
             : "공동묘지 사건 · 습격받는 아이"
@@ -5574,7 +5605,7 @@
       isHunterEvent ? "마물 사냥꾼과의 조우"
         : isCommanderEvent ? "기사단장 오염 조사 의뢰"
           : isCultistAltarEvent ? "광신도의 의식"
-            : isRitualPortalEvent ? "전이문의 흔적"
+            : isRitualPortalEvent ? "마물의 왕 부활 의식"
             : isCultistRumorEvent ? "같은 문양"
             : isRumorEvent ? "소문 사건"
             : "습격받는 아이 사건"
@@ -5853,9 +5884,9 @@
   const RITUAL_PORTAL_BEATS = Object.freeze([
     Object.freeze({ id: "arrival", effect: "제단에서 이어진 흔적을 따라가자 숲 깊은 폐허에서 거대한 전이문을 발견한다.", dialogue: "", speaker: "", visual: "base" }),
     Object.freeze({ id: "portal_reveal", effect: "제단에서 보았던 문양과 같은 빛이 석문 전체를 타고 흐르며 전이문이 거세게 요동친다.", dialogue: "", speaker: "", visual: "energy" }),
-    Object.freeze({ id: "crossing", effect: "의식 재료를 짊어진 광신도들이 차례로 전이문 안으로 사라진다. 이 길이 그들의 이동 통로다.", dialogue: "", speaker: "", visual: "cultists" }),
-    Object.freeze({ id: "omen", effect: "마지막 광신도가 넘어간 순간, 문 너머에서 거대한 그림자가 잠시 모습을 드러낸다.", dialogue: "", speaker: "", visual: "omen" }),
-    Object.freeze({ id: "location", effect: "광신도들이 향한 곳과 부활 의식의 본거지로 이어지는 경로를 특정했다.", dialogue: "[부활 의식 장소로 이어지는 전이문을 발견했습니다.]", speaker: "시스템", visual: "omen", locationKnown: true })
+    Object.freeze({ id: "final_ritual", effect: "광신도들이 의식 재료를 문 앞에 쏟아 놓고 마지막 부활 의식을 시작한다. 전이문은 이동 통로가 아니라 왕을 불러내는 문이었다.", dialogue: "", speaker: "", visual: "cultists" }),
+    Object.freeze({ id: "omen", effect: "문 너머에서 거대한 형체가 몸을 일으킨다. 마물의 왕의 존재가 이미 현세와 맞닿기 시작했다.", dialogue: "", speaker: "", visual: "omen" }),
+    Object.freeze({ id: "intervene", effect: "의식은 마지막 단계다. 지금 광신도들을 쓰러뜨리면 완전한 부활만큼은 막을 수 있다.", dialogue: "[마물의 왕 부활 의식을 저지합니다.]", speaker: "시스템", visual: "omen", battleReady: true })
   ]);
 
   const CULTIST_RUMOR_BEATS = Object.freeze([
@@ -6229,22 +6260,10 @@
   async function advanceRitualPortalBeat() {
     if (!el.graveyardStoryEvent || ritualPortalStoryCompleting) return;
     if (ritualPortalStoryBeatIndex >= RITUAL_PORTAL_BEATS.length - 1) {
-      continueAfterRitualPortalStory();
+      await startRitualPortalEventBattle();
       return;
     }
-    const nextIndex = ritualPortalStoryBeatIndex + 1;
-    const nextBeat = RITUAL_PORTAL_BEATS[nextIndex];
-    if (nextBeat?.locationKnown === true) {
-      ritualPortalStoryCompleting = true;
-      try {
-        await markRitualPortalEventComplete();
-        renderRitualPortalBeat(nextIndex);
-      } finally {
-        ritualPortalStoryCompleting = false;
-      }
-      return;
-    }
-    renderRitualPortalBeat(nextIndex);
+    renderRitualPortalBeat(ritualPortalStoryBeatIndex + 1);
   }
 
   function renderCultistRumorBeat(index) {
@@ -6607,7 +6626,7 @@
     }
   }
 
-  async function openRitualPortalTraceEvent() {
+  async function openRitualPortalTraceEvent({ battleResult = null } = {}) {
     if (!el.graveyardStoryEvent) return;
     eventOpen = true;
     activeEventTileId = "ritual-portal";
@@ -6616,7 +6635,7 @@
     el.regenerate.disabled = true;
     configureStoryEventShell({
       id: "ritual_portal_trace_01",
-      title: "사건 · 전이문의 흔적",
+      title: "사건 · 마물의 왕 부활 의식",
       speaker: "",
       artSrc: RITUAL_PORTAL_EVENT_BASE_ART,
       backgroundSrc: ""
@@ -6637,6 +6656,30 @@
     el.graveyardStoryEvent.classList.remove("is-rescued", "is-child-fleeing");
     setGraveyardStoryChoicePhase(false);
     playGraveyardStoryBoardDrop();
+
+    if (battleResult) {
+      el.graveyardStoryEvent.dataset.beat = "ritual-portal-after-battle";
+      setRitualPortalLayerVisibility({ omen: true, animate: false });
+      if (el.graveyardStoryEffectText) {
+        el.graveyardStoryEffectText.textContent = battleResult.won
+          ? "의식의 핵심을 파괴했다. 하지만 이미 넘어온 왕의 존재까지 되돌리지는 못했다. 불완전한 육체로 현세에 떨어진 마물의 왕이 어둠 속으로 사라진다."
+          : "저지선이 무너지자 전이문이 완전히 열린다. 마물의 왕은 온전한 힘을 되찾은 채 현세에 모습을 드러내고, 곧 어둠 속으로 사라진다.";
+      }
+      if (el.graveyardStoryText) {
+        el.graveyardStoryText.textContent = battleResult.won
+          ? "[불완전하게 부활한 마물의 왕을 추적합니다.]"
+          : "[완전히 부활한 마물의 왕을 추적합니다.]";
+      }
+      const speakerName = el.graveyardStoryEvent.querySelector(".graveyard-story-name");
+      if (speakerName) speakerName.textContent = "시스템";
+      el.graveyardStoryEvent.classList.add("has-dialogue");
+      if (el.graveyardStoryAdvance) {
+        el.graveyardStoryAdvance.disabled = false;
+        el.graveyardStoryAdvance.onclick = continueAfterRitualPortalStory;
+      }
+      return;
+    }
+
     ritualPortalStoryBeatIndex = 0;
     renderRitualPortalBeat(0);
     if (el.graveyardStoryAdvance) {
@@ -6813,6 +6856,92 @@
     return true;
   }
 
+  function ritualPortalEnemySlugs() {
+    const units = Object.values(globalThis.V2DesignData?.units || {})
+      .filter((unit) => unit && ["normal", "advanced", "hero"].includes(unit.grade))
+      .filter((unit) => TEST_DECK.some((entry) => entry.slug === unit.slug));
+    const heroes = units.filter((unit) => unit.grade === "hero");
+    const advanced = units.filter((unit) => unit.grade === "advanced");
+    if (units.length < 4) return ["death-knight", "doom-executor", "plague-doctor", "hydra"];
+    const chosen = [];
+    const anchorPool = heroes.length ? heroes : advanced;
+    const anchor = anchorPool[Math.floor(Math.random() * anchorPool.length)];
+    if (anchor) chosen.push(anchor.slug);
+    const remaining = units.filter((unit) => !chosen.includes(unit.slug));
+    while (chosen.length < 4 && remaining.length) {
+      const index = Math.floor(Math.random() * remaining.length);
+      chosen.push(remaining.splice(index, 1)[0].slug);
+    }
+    return chosen.slice(0, 4);
+  }
+
+  async function startRitualPortalEventBattle() {
+    if (ritualPortalStoryCompleting) return;
+    ritualPortalStoryCompleting = true;
+    try {
+      setGraveyardStoryChoicePhase(false);
+      setRitualPortalLayerVisibility({ omen: true, animate: true });
+      if (el.graveyardStoryEffectText) el.graveyardStoryEffectText.textContent = "광신도들이 남은 힘을 전이문에 쏟아붓는다. 완전한 부활을 막기 위한 마지막 저지전이 시작된다.";
+      if (el.graveyardStoryText) el.graveyardStoryText.textContent = "";
+      el.graveyardStoryEvent?.classList.remove("has-dialogue");
+      await wait(760);
+
+      const partyUnits = currentPartyUnits();
+      const enemies = ritualPortalEnemySlugs();
+      if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
+        await V2RunStateRuntime.commitExact("party:event-ritual-portal", (draft) => {
+          draft.party = partyUnits.map((unit) => unit.instanceId);
+        });
+        await V2RunStateRuntime.setMapProgress({
+          heroIndex,
+          lapReadyForRefresh,
+          worldTreePrayed,
+          previousRoll: previousDiceRoll,
+          previousEffectiveCardId: previousDiceControlId,
+          pendingCardInstanceId: null,
+          prefix: "ritual-portal-battle-entry"
+        });
+        await V2RunStateRuntime.flush();
+      }
+      await saveMapLayout(currentTiles, "ritual-portal-battle-entry");
+      const context = {
+        eventId: "ritual_portal_trace_01",
+        choiceId: "intervene",
+        enemies,
+        encounterType: "event-ritual-portal",
+        startedAt: Date.now()
+      };
+      try { sessionStorage.setItem("necromancer-event-battle-context-v1", JSON.stringify(context)); } catch (_) {}
+      const params = new URLSearchParams({
+        from: "event",
+        event: "ritual_portal_trace_01",
+        encounterType: "event-ritual-portal",
+        enemies: enemies.join(","),
+        eventReturn: "map-ritual-portal",
+        map: activeMapId,
+        tile: String(heroIndex + 1),
+        allies: partyUnits.map((unit) => unit.slug).join(","),
+        allyIds: partyUnits.map((unit) => unit.instanceId).join(",")
+      });
+      window.location.assign("v2-auto-battle-practice.html?" + params.toString());
+    } finally {
+      ritualPortalStoryCompleting = false;
+    }
+  }
+
+  async function resumeRitualPortalEventAfterBattle() {
+    let result = null;
+    try {
+      const raw = sessionStorage.getItem(GRAVEYARD_EVENT_BATTLE_RESULT_KEY);
+      if (raw) result = JSON.parse(raw);
+      sessionStorage.removeItem(GRAVEYARD_EVENT_BATTLE_RESULT_KEY);
+    } catch (_) {}
+    if (!result || result.eventId !== "ritual_portal_trace_01") return false;
+    await markRitualPortalEventComplete(result.won === true);
+    await openRitualPortalTraceEvent({ battleResult: result });
+    return true;
+  }
+
   function startGraveyardEventBattle() {
     const partyUnits = currentPartyUnits();
     const context = {
@@ -6884,6 +7013,9 @@
   }
   if (mapLaunchParams.get("resumeCultistAltarEvent") === "1") {
     await resumeCultistAltarEventAfterBattle();
+  }
+  if (mapLaunchParams.get("resumeRitualPortalEvent") === "1") {
+    await resumeRitualPortalEventAfterBattle();
   }
   if (mapLaunchParams.get("storyEvent") === "graveyard_child_ambush_01") {
     const previewOnly = mapLaunchParams.get("eventPreview") === "1";

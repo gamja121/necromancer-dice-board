@@ -2425,16 +2425,23 @@
       try { sessionStorage.setItem(EVENT_BATTLE_RESULT_KEY, JSON.stringify(result)); } catch (_) {}
       saveBattle("complete");
       const cultistAltarBattle = eventSourceId === "cultist_altar_encounter_01";
-      resultTitle.textContent = cultistAltarBattle
-        ? (won ? "소환 마물 격퇴" : "전투 패배")
-        : (won ? "아이를 지켜냈다" : "구조 실패");
-      resultBody.textContent = cultistAltarBattle
+      const ritualPortalBattle = eventSourceId === "ritual_portal_trace_01";
+      resultTitle.textContent = ritualPortalBattle
+        ? (won ? "완전한 부활 저지" : "부활 의식 저지 실패")
+        : cultistAltarBattle
+          ? (won ? "소환 마물 격퇴" : "전투 패배")
+          : (won ? "아이를 지켜냈다" : "구조 실패");
+      resultBody.textContent = ritualPortalBattle
         ? (won
-          ? "광신도들이 불러낸 마물을 쓰러뜨렸다. 제단 사건으로 돌아간다."
-          : "소환된 마물들에게 밀려났다. 제단 사건으로 돌아가 확인한 단서를 정리한다.")
-        : (won
-          ? "구울을 쓰러뜨렸다. 사건으로 돌아가 아이의 상태를 확인한다."
-          : "구울을 막아내지 못했다. 사건으로 돌아가 결과를 확인한다.");
+          ? "광신도들의 의식을 무너뜨렸다. 마물의 왕은 불완전한 상태로 부활한다. 사건으로 돌아가 결과를 확인한다."
+          : "광신도들의 의식을 막지 못했다. 마물의 왕이 완전한 상태로 부활한다. 사건으로 돌아가 결과를 확인한다.")
+        : cultistAltarBattle
+          ? (won
+            ? "광신도들이 불러낸 마물을 쓰러뜨렸다. 제단 사건으로 돌아간다."
+            : "소환된 마물들에게 밀려났다. 제단 사건으로 돌아가 확인한 단서를 정리한다.")
+          : (won
+            ? "구울을 쓰러뜨렸다. 사건으로 돌아가 아이의 상태를 확인한다."
+            : "구울을 막아내지 못했다. 사건으로 돌아가 결과를 확인한다.");
       capturePanel.hidden = true;
       battlefield.classList.remove("is-corpse-capture");
       resultOverlay.hidden = false;
@@ -2688,6 +2695,15 @@
     if (eventReturnTarget === "map-cultist-altar") {
       const params = new URLSearchParams({
         resumeCultistAltarEvent: "1",
+        map: battleQuery.get("map") || "default",
+        resume: String(Math.max(1, Math.min(24, Number(battleQuery.get("tile")) || 1)))
+      });
+      window.location.assign(`v2-map-practice.html?${params.toString()}`);
+      return;
+    }
+    if (eventReturnTarget === "map-ritual-portal") {
+      const params = new URLSearchParams({
+        resumeRitualPortalEvent: "1",
         map: battleQuery.get("map") || "default",
         resume: String(Math.max(1, Math.min(24, Number(battleQuery.get("tile")) || 1)))
       });

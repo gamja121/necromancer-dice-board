@@ -143,9 +143,9 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261009-ritual-portal-event-v1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261009-ritual-portal-revival-v2"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
-assert(battleHtml.includes("v2-auto-battle-practice.js?v=139"));
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=140"));
 for (const required of [
   "./v2-intro.html",
   "./v2-intro.css?v=15",
@@ -161,8 +161,8 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261009-ritual-portal-event-v1",
-  "./v2-auto-battle-practice.js?v=139",
+  "./v2-map-practice.js?v=20261009-ritual-portal-revival-v2",
+  "./v2-auto-battle-practice.js?v=140",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
   "./v2-sfx.js?v=4",
@@ -223,8 +223,8 @@ assert(map.includes('building.style.bottom = "auto"'));
 
 assert(battle.includes('makeState(data, "enemy", 3 - index)'));
 assert(!battle.includes('makeState(data, "enemy", index)'));
-assert(battleHtml.includes("v2-auto-battle-practice.js?v=139"));
-assert(worker.includes("./v2-auto-battle-practice.js?v=139"));
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=140"));
+assert(worker.includes("./v2-auto-battle-practice.js?v=140"));
 
 const rulesSource = read("v2-rules.js");
 const brandCardsSource = read("v2-brand-cards.js");
@@ -392,7 +392,7 @@ assert(battle.includes('fromEvent && team === "enemy"'));
 assert(battle.includes('EVENT_BATTLE_RESULT_KEY'));
 assert(battle.includes('function returnToEvent'));
 assert(battle.includes('if (fromEvent) {'));
-assert(battleHtml.includes('v2-auto-battle-practice.js?v=139'));
+assert(battleHtml.includes('v2-auto-battle-practice.js?v=140'));
 
 assert(map.includes("void openGraveyardStoryEvent();"));
 assert(map.includes("function startGraveyardEventBattle"));
@@ -604,7 +604,14 @@ assert(map.includes("RITUAL_PORTAL_BEATS"), "ritual portal event must define its
 assert(map.includes('storyEventTriggerMatches(tileId, "forest")'), "ritual portal event must trigger from forest or generic event");
 assert(map.includes("cultistAltarEncounterCompleted()") && map.includes("ritualSiteTrackingActive()"), "ritual portal event must require the completed altar encounter and active ritual-site tracking");
 assert(map.includes('mapLaunchParams.get("storyEvent") === "ritual_portal_trace_01"'), "ritual portal event needs a direct preview route");
-assert(map.includes("RITUAL_SITE_LOCATION_KNOWN_FLAG") && map.includes("RITUAL_INTERVENTION_ACTIVE_FLAG"), "ritual portal completion must remember the location and activate the intervention follow-up");
+assert(map.includes('battleReady: true') && map.includes("startRitualPortalEventBattle"), "ritual portal sequence must flow directly into the revival-prevention battle");
+assert(map.includes("function ritualPortalEnemySlugs()") && map.includes('unit.grade === "hero"'), "final ritual battle must field four random enemies with a hero-grade anchor when available");
+assert(map.includes('eventReturn: "map-ritual-portal"'), "final ritual battle must return to the production portal event");
+assert(battle.includes('eventReturnTarget === "map-ritual-portal"'), "battle screen must support returning to the final ritual event");
+assert(battle.includes('resumeRitualPortalEvent: "1"'), "final ritual battle return must request portal-story resume");
+assert(map.includes('mapLaunchParams.get("resumeRitualPortalEvent") === "1"'), "map must resume the final ritual story after battle");
+assert(map.includes("MONSTER_KING_REVIVED_FLAG") && map.includes("MONSTER_KING_WEAKENED_REVIVAL_FLAG") && map.includes("MONSTER_KING_FULL_REVIVAL_FLAG") && map.includes("MONSTER_KING_HUNT_ACTIVE_FLAG"), "ritual result must always revive the king, remember weakened/full state, and activate the hunt");
+assert(map.includes("[불완전하게 부활한 마물의 왕을 추적합니다.]") && map.includes("[완전히 부활한 마물의 왕을 추적합니다.]"), "both ritual battle outcomes must continue into the monster-king hunt");
 assert(map.includes("continueAfterRitualPortalStory") && map.includes('tile?.id === "forest"'), "forest-native functionality must remain available after the portal story closes");
 assert(mapHtml.includes('id="ritualPortalEnergyLayer"') && mapHtml.includes('id="ritualPortalCultistsLayer"') && mapHtml.includes('id="ritualPortalOmenLayer"'), "ritual portal event must keep all three approved layered images");
 assert(mapCss.includes(".ritual-portal-layer") && mapCss.includes("left:2%!important") && mapCss.includes("bottom:22%!important") && mapCss.includes("width:75%!important") && mapCss.includes("height:75%!important"), "ritual portal layers must use the tested 75% alignment over the approved base art");
