@@ -418,6 +418,7 @@ assert(map.includes('activeEventTileId === "village-rumor-abandoned"'), "shared 
 assert(map.includes('currentTiles[heroIndex]?.id === "graveyard"') && map.includes('|| currentTiles[heroIndex]?.id === "event"'), "graveyard story must be eligible from graveyard or generic event tile after movement");
 assert(map.includes('tile.id === "graveyard" || tile.id === "village" || tile.id === "unknown" || tile.id === "altar" || tile.id === "forest" || tile.id === "event"'), "manual story dispatcher must cover designated story tiles, altar, world tree and generic event");
 assert(map.includes('if (tile.id === "graveyard") {\n            heroIndex = index;\n            placeHero(true);'), "graveyard direct click must still move the hero before story launch");
+assert(map.includes('if (tile.id === "altar" || tile.id === "forest") {\n            heroIndex = index;\n            placeHero(true);'), "altar and forest direct clicks must move the hero before their story launchers run");
 assert(map.includes("function advanceMapLoop"));
 assert(!mapHtml.includes('id="graveyardPosterEvent"'));
 assert(!mapHtml.includes('id="tileStoryEventPanel"'));

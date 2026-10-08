@@ -4523,7 +4523,11 @@
           return;
         }
         if (tile.id === "graveyard" || tile.id === "village" || tile.id === "unknown" || tile.id === "altar" || tile.id === "forest" || tile.id === "event") {
-          if (tile.id === "graveyard" || tile.id === "altar" || tile.id === "forest") {
+          if (tile.id === "graveyard") {
+            heroIndex = index;
+            placeHero(true);
+          }
+          if (tile.id === "altar" || tile.id === "forest") {
             heroIndex = index;
             placeHero(true);
           }
