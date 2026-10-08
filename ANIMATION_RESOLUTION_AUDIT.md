@@ -50,6 +50,11 @@
 | Flesh Golem | `art/v2-style/animation-sheets/green-raw/flesh-golem-animation-sheet.jpg` | 1280×575 | 런타임 분해 프레임 260×250px | 매우 높음 | 400px 이상 표시 시 확대율이 큼 |
 | Grave Worm | `art/v2-style/animation-sheets/green-raw/grave-worm-animation-sheet.jpg` | 1280×714 | 런타임 분해 프레임 280×250px | 높음 | 세로 250px 기준이라 확대 시 한계 |
 | Yeti | `art/v2-style/animation-sheets/green-raw/yeti-animation-sheet.jpg` | 1280×698 | 런타임 분해 프레임 250×250px | 매우 높음 | 400px 이상 표시 시 확대율이 큼 |
+| Abyss Eye | `art/v2-style/animation-sheets/green-raw/abyss-eye-animation-sheet.jpg` | 1280×576 | 런타임 분해 프레임 280×250px | 높음 | 세로 250px 기준이라 확대 시 한계 |
+| Cerberus | `art/v2-style/animation-sheets/green-raw/cerberus-animation-sheet.jpg` | 1280×714 | 런타임 분해 프레임 260×250px | 매우 높음 | 400px 이상 표시 시 확대율이 큼 |
+| Goblin Commoner | `art/v2-style/animation-sheets/green-raw/goblin-commoner-animation-sheet.png` | 1280×575 | 런타임 분해 프레임 250×250px | 매우 높음 | 400px 이상 표시 시 확대율이 큼 |
+| Minotaur | `art/v2-style/animation-sheets/green-raw/minotaur-animation-sheet.jpg` | 1280×714 | 런타임 분해 프레임 300×270px | 높음 | PC 확대 시 선명도 저하 가능 |
+| Skeleton Archer | `art/v2-style/animation-sheets/green-raw/skeleton-archer-animation-sheet.jpg` | 1280×575 | 런타임 분해 프레임 280×250px | 높음 | 세로 250px 기준이라 확대 시 한계 |
 
 ## 현재 판단
 
