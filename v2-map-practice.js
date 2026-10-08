@@ -632,8 +632,9 @@
   // A restored RunState flag is authoritative: stale session fallback must
   // never override an explicit true/false value from another run.
   function monsterKingHuntStoryFlag(flag, fallbackKey) {
-    const flags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
-    if (Object.prototype.hasOwnProperty.call(flags, flag)) return flags[flag] === true;
+    const runtime = globalThis.V2RunStateRuntime;
+    const flags = runtime?.snapshot?.()?.eventFlags || {};
+    if (runtime?.available) return flags[flag] === true;
     try { return sessionStorage.getItem(fallbackKey) === "1"; }
     catch (_) { return false; }
   }
