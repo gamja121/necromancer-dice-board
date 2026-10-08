@@ -143,9 +143,9 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261008-cultist-rumor-v1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261008-cultist-altar-event-v1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
-assert(battleHtml.includes("v2-auto-battle-practice.js?v=138"));
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=139"));
 for (const required of [
   "./v2-intro.html",
   "./v2-intro.css?v=15",
@@ -161,8 +161,8 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261008-cultist-rumor-v1",
-  "./v2-auto-battle-practice.js?v=138",
+  "./v2-map-practice.js?v=20261008-cultist-altar-event-v1",
+  "./v2-auto-battle-practice.js?v=139",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
   "./v2-sfx.js?v=4",
@@ -180,8 +180,8 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!/(^|\\n)\\.map-options-button\\s*\\{\\s*visibility:\\s*hidden;\\s*\\}/.test(mapCss));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261008-cultist-rumor-size80-v1"));
-assert(worker.includes("./v2-map-practice.css?v=20261008-cultist-rumor-size80-v1"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261008-cultist-altar-event-v1"));
+assert(worker.includes("./v2-map-practice.css?v=20261008-cultist-altar-event-v1"));
 assert(mapHtml.includes('id="villageDioramaTestButton"'));
 assert(mapHtml.includes('id="villageDioramaTest"'));
 assert(mapHtml.includes("village-building-01.webp?v=20261005-graveyard-poster-stage17-1"));
@@ -223,8 +223,8 @@ assert(map.includes('building.style.bottom = "auto"'));
 
 assert(battle.includes('makeState(data, "enemy", 3 - index)'));
 assert(!battle.includes('makeState(data, "enemy", index)'));
-assert(battleHtml.includes("v2-auto-battle-practice.js?v=138"));
-assert(worker.includes("./v2-auto-battle-practice.js?v=138"));
+assert(battleHtml.includes("v2-auto-battle-practice.js?v=139"));
+assert(worker.includes("./v2-auto-battle-practice.js?v=139"));
 
 const rulesSource = read("v2-rules.js");
 const brandCardsSource = read("v2-brand-cards.js");
@@ -392,7 +392,7 @@ assert(battle.includes('fromEvent && team === "enemy"'));
 assert(battle.includes('EVENT_BATTLE_RESULT_KEY'));
 assert(battle.includes('function returnToEvent'));
 assert(battle.includes('if (fromEvent) {'));
-assert(battleHtml.includes('v2-auto-battle-practice.js?v=138'));
+assert(battleHtml.includes('v2-auto-battle-practice.js?v=139'));
 
 assert(map.includes("void openGraveyardStoryEvent();"));
 assert(map.includes("function startGraveyardEventBattle"));
@@ -416,7 +416,7 @@ assert(!map.includes("launchGraveyardChildEventFromMap(step)"));
 assert(map.includes('eventOpen = true;\n    activeEventTileId = "graveyard";'), "graveyard story must own interaction state");
 assert(map.includes('activeEventTileId === "village-rumor-abandoned"'), "shared story overlay must release both rumor branches");
 assert(map.includes('currentTiles[heroIndex]?.id === "graveyard"') && map.includes('|| currentTiles[heroIndex]?.id === "event"'), "graveyard story must be eligible from graveyard or generic event tile after movement");
-assert(map.includes('tile.id === "graveyard" || tile.id === "village" || tile.id === "unknown" || tile.id === "event"'), "manual story dispatcher must cover designated story tiles, world tree and generic event");
+assert(map.includes('tile.id === "graveyard" || tile.id === "village" || tile.id === "unknown" || tile.id === "altar" || tile.id === "event"'), "manual story dispatcher must cover designated story tiles, altar, world tree and generic event");
 assert(map.includes('if (tile.id === "graveyard") {\n            heroIndex = index;\n            placeHero(true);'), "graveyard direct click must still move the hero before story launch");
 assert(map.includes("function advanceMapLoop"));
 assert(!mapHtml.includes('id="graveyardPosterEvent"'));
@@ -575,6 +575,27 @@ assert(mapCss.includes("left:10%!important") && mapCss.includes("bottom:0!import
 assert(fs.existsSync("art/v2-style/map-test/events/cultist-rumor-procession.webp"), "Cultist rumor layered artwork missing");
 assert(worker.includes("./art/v2-style/map-test/events/cultist-rumor-procession.webp?v=1"), "Cultist rumor layered artwork must be precached");
 assert(fs.statSync("art/v2-style/map-test/events/cultist-rumor-procession.webp").size >= 500000, "Cultist rumor layered artwork must stay high quality (>=500KB)");
+
+assert(map.includes("CULTIST_ALTAR_BEATS"), "cultist altar encounter must define its own story beats");
+assert(map.includes('storyEventTriggerMatches(tileId, "altar")'), "cultist altar encounter must trigger from altar or generic event");
+assert(map.includes("cultistRumorEventCompleted()") && map.includes("cultistTrackingActive()"), "cultist altar trigger must require prior rumor completion and active tracking");
+assert(map.includes('setStoryChoiceLabels("싸운다", "지나간다")'), "cultist altar encounter must present fight/pass choices");
+assert(map.includes("function cultistAltarEnemySlugs()"), "cultist altar encounter must build a dedicated random enemy team");
+assert(map.includes('unit.grade === "advanced" || unit.grade === "hero"'), "cultist altar battle must guarantee at least one advanced-or-higher enemy");
+assert(map.includes("while (chosen.length < 4"), "cultist altar battle must fill four enemy slots");
+assert(map.includes('eventReturn: "map-cultist-altar"'), "cultist altar battle must return to the production map event");
+assert(battle.includes('eventReturnTarget === "map-cultist-altar"'), "battle screen must support returning to the cultist altar event");
+assert(battle.includes('resumeCultistAltarEvent: "1"'), "cultist altar battle return must request story resume");
+assert(map.includes('mapLaunchParams.get("resumeCultistAltarEvent") === "1"'), "map must resume the cultist altar story after battle");
+assert(map.includes('mapLaunchParams.get("storyEvent") === "cultist_altar_encounter_01"'), "cultist altar encounter needs a direct preview route");
+assert(mapHtml.includes('id="cultistAltarRitualLayer"') && mapHtml.includes('id="cultistAltarSummonLayer"'), "cultist altar event must keep both approved layered images");
+assert(mapCss.includes(".cultist-altar-layer") && mapCss.includes(".cultist-altar-summon-layer"), "cultist altar event layers must have dedicated composition CSS");
+for (const asset of ["cultist-altar-night-base.webp","cultist-altar-ritual-layer.webp","cultist-altar-summon-layer.webp"]) {
+  const relative = `art/v2-style/map-test/events/${asset}`;
+  assert(fs.existsSync(relative), "Cultist altar artwork missing: " + relative);
+  assert(worker.includes("./" + relative + "?v=1"), "Cultist altar artwork must be precached: " + relative);
+  assert(fs.statSync(relative).size >= 500000, "Cultist altar artwork must keep production-quality source size (>=500KB): " + relative);
+}
 
 assert(map.includes('storyEventTriggerMatches(tileId, "village")'), "commander encounter must inherit the village-or-event trigger rule");
 assert(map.includes("KNIGHT_COMMANDER_CONTAMINATION_BEATS"), "commander encounter must have its own dialogue beats");

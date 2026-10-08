@@ -2424,10 +2424,17 @@
       };
       try { sessionStorage.setItem(EVENT_BATTLE_RESULT_KEY, JSON.stringify(result)); } catch (_) {}
       saveBattle("complete");
-      resultTitle.textContent = won ? "아이를 지켜냈다" : "구조 실패";
-      resultBody.textContent = won
-        ? "구울을 쓰러뜨렸다. 사건으로 돌아가 아이의 상태를 확인한다."
-        : "구울을 막아내지 못했다. 사건으로 돌아가 결과를 확인한다.";
+      const cultistAltarBattle = eventSourceId === "cultist_altar_encounter_01";
+      resultTitle.textContent = cultistAltarBattle
+        ? (won ? "소환 마물 격퇴" : "전투 패배")
+        : (won ? "아이를 지켜냈다" : "구조 실패");
+      resultBody.textContent = cultistAltarBattle
+        ? (won
+          ? "광신도들이 불러낸 마물을 쓰러뜨렸다. 제단 사건으로 돌아간다."
+          : "소환된 마물들에게 밀려났다. 제단 사건으로 돌아가 확인한 단서를 정리한다.")
+        : (won
+          ? "구울을 쓰러뜨렸다. 사건으로 돌아가 아이의 상태를 확인한다."
+          : "구울을 막아내지 못했다. 사건으로 돌아가 결과를 확인한다.");
       capturePanel.hidden = true;
       battlefield.classList.remove("is-corpse-capture");
       resultOverlay.hidden = false;
@@ -2675,6 +2682,15 @@
     }
     if (eventReturnTarget === "map-graveyard") {
       const params = new URLSearchParams({ resumeGraveyardEvent: "1" });
+      window.location.assign(`v2-map-practice.html?${params.toString()}`);
+      return;
+    }
+    if (eventReturnTarget === "map-cultist-altar") {
+      const params = new URLSearchParams({
+        resumeCultistAltarEvent: "1",
+        map: battleQuery.get("map") || "default",
+        resume: String(Math.max(1, Math.min(24, Number(battleQuery.get("tile")) || 1)))
+      });
       window.location.assign(`v2-map-practice.html?${params.toString()}`);
       return;
     }
