@@ -143,7 +143,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261008-hunter-pen-clean-v1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261008-hunter-layer-reveal-v1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=138"));
 for (const required of [
@@ -161,7 +161,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261008-hunter-pen-clean-v1",
+  "./v2-map-practice.js?v=20261008-hunter-layer-reveal-v1",
   "./v2-auto-battle-practice.js?v=138",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -555,8 +555,9 @@ for (const asset of [
   assert(fs.statSync(asset).size >= 500000, "Monster hunter scene art must stay high quality (>=500KB): " + asset);
 }
 assert(map.includes('visual: "base"'), "hunter encounter must open on the clean world-tree background without the scene layer");
-assert(map.includes('id: "warning"') && map.includes('visual: "scene"'), "hunter scene layer must first appear on the next beat");
-assert(map.includes('beat.id === "warning" || beat.id === "unnatural" || beat.id === "clue"'), "hunter scene reveal animation must start on the second beat");
+assert(map.includes('id: "warning_reveal"') && map.includes('visual: "scene"'), "hunter scene layer must first appear without dialogue so the full layered art can be seen");
+assert(map.indexOf('id: "warning_reveal"') < map.indexOf('id: "warning"'), "hunter full-scene reveal must precede the first hunter dialogue");
+assert(map.includes('beat.id === "warning_reveal" || beat.id === "unnatural" || beat.id === "clue"'), "hunter scene reveal animation must start before the first dialogue");
 assert(map.includes('art/v2-style/event-portraits/monster-hunter-pen-clean.webp?v=1'), "hunter dialogue portrait must use the transparent hunter portrait asset");
 assert(!mapCss.includes("mix-blend-mode:multiply!important"), "transparent hunter portrait must not use paper-background blending");
 assert(mapCss.includes("width:58%!important") && mapCss.includes("height:78%!important"), "hunter dialogue portrait must stay enlarged to visually match the protagonist");

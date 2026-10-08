@@ -5373,8 +5373,15 @@
       visual: "base"
     }),
     Object.freeze({
-      id: "warning",
+      id: "warning_reveal",
       effect: "다음 순간, 오염된 마물의 사체를 조사하던 노인이 당신의 기척을 알아챈다.",
+      dialogue: "",
+      speaker: "",
+      visual: "scene"
+    }),
+    Object.freeze({
+      id: "warning",
+      effect: "노인이 천천히 당신 쪽으로 고개를 돌린다.",
       dialogue: "거기서 멈춰.",
       speaker: "마물 사냥꾼",
       visual: "scene"
@@ -5690,7 +5697,7 @@
     const showPortrait = beat.visual === "portrait";
     const showPlayer = beat.visual === "player";
     setMonsterHunterSceneVisible(showScene, {
-      animate: showScene && (beat.id === "warning" || beat.id === "unnatural" || beat.id === "clue")
+      animate: showScene && (beat.id === "warning_reveal" || beat.id === "unnatural" || beat.id === "clue")
     });
     setMonsterHunterPortraitVisible(showPortrait, {
       animate: showPortrait && (beat.id === "identify" || beat.id === "sent_by_commander")
