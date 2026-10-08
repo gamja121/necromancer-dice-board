@@ -107,6 +107,11 @@
   const MONSTER_KING_WEAKENED_REVIVAL_FLAG = "story:monster_king:revival_weakened";
   const MONSTER_KING_FULL_REVIVAL_FLAG = "story:monster_king:revival_complete";
   const MONSTER_KING_HUNT_ACTIVE_FLAG = "quest:monster_king_hunt:active";
+  const MONSTER_KING_HUNT_EVENT_SEEN_FLAG = "event:monster_king_hunt_trace_01:seen";
+  const MONSTER_KING_HUNT_EVENT_FLAG = "event:monster_king_hunt_trace_01:complete";
+  const MONSTER_KING_HUNT_COMPLETE_FLAG = "quest:monster_king_hunt:complete";
+  const MONSTER_KING_SEALED_RUINS_KNOWN_FLAG = "story:monster_king:sealed_ruins_location_known";
+  const MONSTER_KING_FINAL_BATTLE_ACTIVE_FLAG = "quest:monster_king_final_battle:active";
   const KNIGHT_COMMANDER_CONTAMINATION_EVENT_SEEN_FALLBACK_KEY = "necromancer-event-knight-commander-contamination-seen-v1";
   const KNIGHT_COMMANDER_CONTAMINATION_EVENT_FALLBACK_KEY = "necromancer-event-knight-commander-contamination-complete-v1";
   const KNIGHT_COMMANDER_RECOGNIZED_FALLBACK_KEY = "necromancer-story-knight-commander-recognized-v1";
@@ -138,6 +143,11 @@
   const MONSTER_KING_WEAKENED_REVIVAL_FALLBACK_KEY = "necromancer-story-monster-king-revival-weakened-v1";
   const MONSTER_KING_FULL_REVIVAL_FALLBACK_KEY = "necromancer-story-monster-king-revival-complete-v1";
   const MONSTER_KING_HUNT_ACTIVE_FALLBACK_KEY = "necromancer-quest-monster-king-hunt-active-v1";
+  const MONSTER_KING_HUNT_EVENT_SEEN_FALLBACK_KEY = "necromancer-event-monster-king-hunt-seen-v1";
+  const MONSTER_KING_HUNT_EVENT_FALLBACK_KEY = "necromancer-event-monster-king-hunt-complete-v1";
+  const MONSTER_KING_HUNT_COMPLETE_FALLBACK_KEY = "necromancer-quest-monster-king-hunt-complete-v1";
+  const MONSTER_KING_SEALED_RUINS_KNOWN_FALLBACK_KEY = "necromancer-story-monster-king-sealed-ruins-known-v1";
+  const MONSTER_KING_FINAL_BATTLE_ACTIVE_FALLBACK_KEY = "necromancer-quest-monster-king-final-battle-active-v1";
   const MONSTER_CAPACITY = 10;
   const DICE_CONTROL_CAPACITY = 5;
   const STARTING_DICE_EXCLUDED_IDS = Object.freeze(new Set(["repeat", "echo"]));
@@ -619,6 +629,31 @@
     } catch (_) { return false; }
   }
 
+  // A restored RunState flag is authoritative: stale session fallback must
+  // never override an explicit true/false value from another run.
+  function monsterKingHuntStoryFlag(flag, fallbackKey) {
+    const runtime = globalThis.V2RunStateRuntime;
+    const flags = runtime?.snapshot?.()?.eventFlags || {};
+    if (runtime?.available) return flags[flag] === true;
+    try { return sessionStorage.getItem(fallbackKey) === "1"; }
+    catch (_) { return false; }
+  }
+
+  function monsterKingRevivalState() {
+    const weakened = monsterKingHuntStoryFlag(MONSTER_KING_WEAKENED_REVIVAL_FLAG, MONSTER_KING_WEAKENED_REVIVAL_FALLBACK_KEY);
+    const full = monsterKingHuntStoryFlag(MONSTER_KING_FULL_REVIVAL_FLAG, MONSTER_KING_FULL_REVIVAL_FALLBACK_KEY);
+    if (weakened === full) return null; // Missing or contradictory revival state.
+    return weakened ? "weakened" : "full";
+  }
+
+  function monsterKingHuntEligible() {
+    return monsterKingHuntStoryFlag(RITUAL_PORTAL_EVENT_FLAG, RITUAL_PORTAL_EVENT_FALLBACK_KEY)
+      && monsterKingHuntStoryFlag(MONSTER_KING_REVIVED_FLAG, MONSTER_KING_REVIVED_FALLBACK_KEY)
+      && monsterKingHuntStoryFlag(MONSTER_KING_HUNT_ACTIVE_FLAG, MONSTER_KING_HUNT_ACTIVE_FALLBACK_KEY)
+      && !monsterKingHuntStoryFlag(MONSTER_KING_HUNT_EVENT_FLAG, MONSTER_KING_HUNT_EVENT_FALLBACK_KEY)
+      && monsterKingRevivalState() !== null;
+  }
+
   async function markKnightCommanderContaminationEventStarted() {
     try { sessionStorage.setItem(KNIGHT_COMMANDER_CONTAMINATION_EVENT_SEEN_FALLBACK_KEY, "1"); } catch (_) {}
     if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
@@ -813,6 +848,47 @@
       });
       return Boolean(result?.ok);
     }
+    return true;
+  }
+
+  async function markMonsterKingHuntEventStarted() {
+    if (!monsterKingHuntEligible()) return false;
+    if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
+      const result = await V2RunStateRuntime.commitExact("event-seen:monster-king-hunt", (draft) => {
+        if (!draft.eventFlags || typeof draft.eventFlags !== "object") draft.eventFlags = {};
+        draft.eventFlags[MONSTER_KING_HUNT_EVENT_SEEN_FLAG] = true;
+      });
+      if (!result?.ok) return false;
+      await V2RunStateRuntime.flush();
+    }
+    try { sessionStorage.setItem(MONSTER_KING_HUNT_EVENT_SEEN_FALLBACK_KEY, "1"); } catch (_) {}
+    return true;
+  }
+
+  async function markMonsterKingHuntEventComplete() {
+    if (!monsterKingHuntEligible()) return false;
+    // Atomic quest transition; do not change either ritual revival branch.
+    if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
+      const result = await V2RunStateRuntime.commitExact("event-complete:monster-king-hunt", (draft) => {
+        if (!draft.eventFlags || typeof draft.eventFlags !== "object") draft.eventFlags = {};
+        draft.eventFlags[MONSTER_KING_HUNT_EVENT_SEEN_FLAG] = true;
+        draft.eventFlags[MONSTER_KING_HUNT_EVENT_FLAG] = true;
+        draft.eventFlags[MONSTER_KING_HUNT_ACTIVE_FLAG] = false;
+        draft.eventFlags[MONSTER_KING_HUNT_COMPLETE_FLAG] = true;
+        draft.eventFlags[MONSTER_KING_SEALED_RUINS_KNOWN_FLAG] = true;
+        draft.eventFlags[MONSTER_KING_FINAL_BATTLE_ACTIVE_FLAG] = true;
+      });
+      if (!result?.ok) return false;
+      await V2RunStateRuntime.flush();
+    }
+    try {
+      sessionStorage.setItem(MONSTER_KING_HUNT_EVENT_SEEN_FALLBACK_KEY, "1");
+      sessionStorage.setItem(MONSTER_KING_HUNT_EVENT_FALLBACK_KEY, "1");
+      sessionStorage.setItem(MONSTER_KING_HUNT_COMPLETE_FALLBACK_KEY, "1");
+      sessionStorage.setItem(MONSTER_KING_SEALED_RUINS_KNOWN_FALLBACK_KEY, "1");
+      sessionStorage.setItem(MONSTER_KING_FINAL_BATTLE_ACTIVE_FALLBACK_KEY, "1");
+      sessionStorage.removeItem(MONSTER_KING_HUNT_ACTIVE_FALLBACK_KEY);
+    } catch (_) {}
     return true;
   }
 
@@ -1022,6 +1098,13 @@
     return true;
   }
 
+  async function launchMonsterKingHuntEventFromMap() {
+    if (eventOpen || !monsterKingHuntEligible()) return false;
+    if (!await markMonsterKingHuntEventStarted()) return false;
+    await openMonsterKingHuntEvent();
+    return true;
+  }
+
   function storyEventTriggerMatches(tileId, designatedTileId) {
     return tileId === designatedTileId || tileId === "event";
   }
@@ -1061,6 +1144,13 @@
     if (storyEventTriggerMatches(tileId, "forest")) {
       const launchedRitualPortal = await launchRitualPortalEventFromMap();
       if (launchedRitualPortal) return true;
+    }
+
+    // Hunt begins only after the ritual portal's completed revival branch.
+    // It never takes over the corruption >=80 boss tile.
+    if (storyEventTriggerMatches(tileId, "unknown")) {
+      const launchedHunt = await launchMonsterKingHuntEventFromMap();
+      if (launchedHunt) return true;
     }
 
     return false;
@@ -4562,6 +4652,10 @@
             heroIndex = index;
             placeHero(true);
           }
+          if (tile.id === "unknown" || tile.id === "event") {
+            heroIndex = index;
+            placeHero(true);
+          }
           const launchedStory = await launchStoryEventForTile(tile.id);
           if (launchedStory) return;
         }
@@ -5583,7 +5677,8 @@
     const isCultistRumorEvent = id === "cultist_rumor_01";
     const isRumorEvent = id === "rumor_saved_child_01" || id === "rumor_abandoned_child_01" || isCultistRumorEvent;
     const isCommanderEvent = id === "knight_commander_contamination_01";
-    const isHunterEvent = id === "monster_hunter_encounter_01";
+    const isHuntEvent = id === "monster_king_hunt_trace_01";
+    const isHunterEvent = id === "monster_hunter_encounter_01" || isHuntEvent;
     const usesBoardFrame = isRumorEvent || isCommanderEvent || isHunterEvent || isCultistAltarEvent || isRitualPortalEvent;
     storyEvent.classList.toggle("is-rumor-event", isRumorEvent);
     storyEvent.classList.toggle("is-commander-event", isCommanderEvent);
@@ -5592,7 +5687,8 @@
     storyEvent.classList.toggle("is-ritual-portal-event", isRitualPortalEvent);
     storyEvent.setAttribute(
       "aria-label",
-      isHunterEvent ? "세계수 사건 · 마물 사냥꾼 조우"
+      isHuntEvent ? "세계수 사건 · 왕의 흔적"
+        : isHunterEvent ? "세계수 사건 · 마물 사냥꾼 조우"
         : isCommanderEvent ? "기사단장 사건 · 오염 조사 의뢰"
           : isCultistAltarEvent ? "제단 사건 · 광신도의 의식"
             : isRitualPortalEvent ? "숲 사건 · 마물의 왕 부활 의식"
@@ -5602,7 +5698,8 @@
     );
     storyEvent.querySelector(".graveyard-story-stage")?.setAttribute(
       "aria-label",
-      isHunterEvent ? "마물 사냥꾼과의 조우"
+      isHuntEvent ? "마물의 왕 추적 · 왕의 흔적"
+        : isHunterEvent ? "마물 사냥꾼과의 조우"
         : isCommanderEvent ? "기사단장 오염 조사 의뢰"
           : isCultistAltarEvent ? "광신도의 의식"
             : isRitualPortalEvent ? "마물의 왕 부활 의식"
@@ -5889,6 +5986,19 @@
     Object.freeze({ id: "intervene", effect: "의식은 마지막 단계다. 지금 광신도들을 쓰러뜨리면 완전한 부활만큼은 막을 수 있다.", dialogue: "[마물의 왕 부활 의식을 저지합니다.]", speaker: "시스템", visual: "omen", battleReady: true })
   ]);
 
+  function createMonsterKingHuntBeats(revivalMode) {
+    const weakened = revivalMode === "weakened";
+    return Object.freeze([
+      Object.freeze({ id: "arrival", effect: "세계수의 뿌리 부근. 의식이 끝난 뒤에도 검은 흔적이 땅을 타고 뻗어 있다.", dialogue: "", speaker: "", visual: "base" }),
+      Object.freeze({ id: "trace", effect: "검게 변한 뿌리 곁에 오염된 마물의 사체가 있다. 흔적을 따라가던 마물 사냥꾼이 그 앞에 서 있다.", dialogue: "", speaker: "", visual: "scene" }),
+      Object.freeze(weakened
+        ? { id: "revival", effect: "마물 사냥꾼이 끊겼다 이어진 흔적을 가리킨다.", dialogue: "몸이 아직 온전하지 않아. 하지만 멀리 가진 못했어.", speaker: "마물 사냥꾼", visual: "portrait" }
+        : { id: "revival", effect: "세계수의 뿌리까지 죽어 가고 있다. 사냥꾼은 주변의 오염을 살핀다.", dialogue: "뿌리 깊은 곳까지 죽었군. 저 힘으로 놈을 상대해야 한다니.", speaker: "마물 사냥꾼", visual: "portrait" }),
+      Object.freeze({ id: "destination", effect: "오염된 흔적이 숲 너머의 오래된 봉인 폐허를 향해 이어진다.", dialogue: "왕은 그 폐허로 향했어. 봉인이 남아 있던 곳이지.", speaker: "마물 사냥꾼", visual: "portrait" }),
+      Object.freeze({ id: "located", effect: "숲속 봉인 폐허의 위치를 파악했다. 추적은 끝났지만 왕과의 싸움은 아직 시작되지 않았다.", dialogue: "[마물의 왕이 향한 봉인 폐허의 위치를 알아냈습니다.]", speaker: "시스템", visual: "scene", locationKnown: true })
+    ]);
+  }
+
   const CULTIST_RUMOR_BEATS = Object.freeze([
     Object.freeze({ id: "arrival", effect: "밤이 깊은 마을. 평소보다 일찍 문을 닫은 집들 사이로 인기척이 드물다.", dialogue: "", speaker: "", visual: "base" }),
     Object.freeze({ id: "procession", effect: "골목 너머로 두건을 쓴 인간들이 오염된 마물의 사체와 정체를 알 수 없는 짐을 옮기고 있다.", dialogue: "", speaker: "", visual: "procession" }),
@@ -5913,6 +6023,11 @@
   let cultistAltarStoryCompleting = false;
   let ritualPortalStoryBeatIndex = 0;
   let ritualPortalStoryCompleting = false;
+  let monsterKingHuntBeatIndex = 0;
+  let monsterKingHuntStoryCompleting = false;
+  let monsterKingHuntRevivalMode = null;
+  let monsterKingHuntPreviewOnly = false;
+  let monsterKingHuntBeats = Object.freeze([]);
   let activeStoryEventId = null;
   let graveyardStoryBoardDropTimer = null;
 
@@ -6266,6 +6381,53 @@
     renderRitualPortalBeat(ritualPortalStoryBeatIndex + 1);
   }
 
+  function renderMonsterKingHuntBeat(index) {
+    if (!el.graveyardStoryEvent || !monsterKingHuntBeats.length) return;
+    const beat = monsterKingHuntBeats[Math.max(0, Math.min(index, monsterKingHuntBeats.length - 1))];
+    monsterKingHuntBeatIndex = monsterKingHuntBeats.indexOf(beat);
+    el.graveyardStoryEvent.dataset.beat = `monster-king-hunt-${beat.id}`;
+    el.graveyardStoryEvent.classList.remove("beat-child-alone", "beat-ghoul-appears", "beat-child-frightened", "beat-choice", "is-rescued", "is-child-fleeing");
+    if (el.graveyardStoryEffectText) el.graveyardStoryEffectText.textContent = beat.effect;
+    if (el.graveyardStoryText) el.graveyardStoryText.textContent = beat.dialogue;
+    const speakerName = el.graveyardStoryEvent.querySelector(".graveyard-story-name");
+    if (speakerName) speakerName.textContent = beat.speaker;
+    setGraveyardGhoulVisible(false, { animate: false });
+    setRumorLayerVisibility({ animate: false });
+    setKnightCommanderStoryVisible(false, { animate: false });
+    setPlayerStoryVisible(false, { animate: false });
+    setCultistRumorLayerVisible(false, { animate: false });
+    setCultistAltarLayerVisibility({ animate: false });
+    setRitualPortalLayerVisibility({ animate: false });
+    setMonsterHunterSceneVisible(beat.visual === "scene", { animate: beat.id === "trace" });
+    setMonsterHunterPortraitVisible(beat.visual === "portrait", { animate: beat.id === "revival" });
+    setGraveyardStoryChoicePhase(false);
+    el.graveyardStoryEvent.classList.toggle("has-dialogue", Boolean(beat.dialogue));
+  }
+
+  async function advanceMonsterKingHuntBeat() {
+    if (!el.graveyardStoryEvent || monsterKingHuntStoryCompleting) return;
+    if (monsterKingHuntBeatIndex >= monsterKingHuntBeats.length - 1) {
+      continueAfterMonsterKingHunt();
+      return;
+    }
+    const nextIndex = monsterKingHuntBeatIndex + 1;
+    monsterKingHuntStoryCompleting = true;
+    try {
+      if (monsterKingHuntBeats[nextIndex]?.locationKnown && !monsterKingHuntPreviewOnly) {
+        let stored = false;
+        try { stored = await markMonsterKingHuntEventComplete(); }
+        catch (error) { console.error("[monster-king-hunt] completion failed", error); }
+        if (!stored) {
+          if (el.graveyardStoryEffectText) el.graveyardStoryEffectText.textContent = "추적 결과 저장에 실패했습니다. 다시 눌러 저장을 재시도하세요.";
+          return;
+        }
+      }
+      renderMonsterKingHuntBeat(nextIndex);
+    } finally {
+      monsterKingHuntStoryCompleting = false;
+    }
+  }
+
   function renderCultistRumorBeat(index) {
     if (!el.graveyardStoryEvent) return;
     const beat = CULTIST_RUMOR_BEATS[Math.max(0, Math.min(index, CULTIST_RUMOR_BEATS.length - 1))];
@@ -6354,6 +6516,7 @@
       || activeEventTileId === "cultist-rumor"
       || activeEventTileId === "cultist-altar"
       || activeEventTileId === "ritual-portal"
+      || activeEventTileId === "monster-king-hunt"
     ) activeEventTileId = null;
     rolling = false;
     el.diceButton.disabled = false;
@@ -6693,6 +6856,55 @@
     const shouldOpenForest = tile?.id === "forest";
     closeGraveyardStoryEvent();
     if (shouldOpenForest) {
+      window.setTimeout(() => {
+        if (!eventOpen) openTileEvent(tile, heroIndex + 1);
+      }, 0);
+    }
+  }
+
+  async function openMonsterKingHuntEvent({ previewOnly = false } = {}) {
+    if (!el.graveyardStoryEvent) return false;
+    const revivalMode = monsterKingRevivalState();
+    if (!revivalMode && !previewOnly) return false;
+    monsterKingHuntRevivalMode = revivalMode || "weakened";
+    monsterKingHuntPreviewOnly = previewOnly;
+    monsterKingHuntBeats = createMonsterKingHuntBeats(monsterKingHuntRevivalMode);
+    eventOpen = true;
+    activeEventTileId = "monster-king-hunt";
+    rolling = false;
+    el.diceButton.disabled = true;
+    el.regenerate.disabled = true;
+    configureStoryEventShell({
+      id: "monster_king_hunt_trace_01",
+      title: "사건 · 왕의 흔적",
+      speaker: "",
+      artSrc: MONSTER_HUNTER_EVENT_BASE_ART,
+      backgroundSrc: ""
+    });
+    ensureGraveyardDialogueFrame();
+    await ensureMonsterHunterStoryArt();
+    setGraveyardGhoulVisible(false, { animate: false });
+    setMonsterHunterSceneVisible(false, { animate: false });
+    setMonsterHunterPortraitVisible(false, { animate: false });
+    el.board?.classList.add("is-story-event-open");
+    el.graveyardStoryEvent.hidden = false;
+    el.graveyardStoryEvent.classList.remove("is-rescued", "is-child-fleeing");
+    setGraveyardStoryChoicePhase(false);
+    playGraveyardStoryBoardDrop();
+    monsterKingHuntBeatIndex = 0;
+    renderMonsterKingHuntBeat(0);
+    if (el.graveyardStoryAdvance) {
+      el.graveyardStoryAdvance.disabled = false;
+      el.graveyardStoryAdvance.onclick = () => { void advanceMonsterKingHuntBeat(); };
+    }
+    return true;
+  }
+
+  function continueAfterMonsterKingHunt() {
+    const tile = currentTiles[heroIndex];
+    const shouldOpenWorldTree = tile?.id === "unknown";
+    closeGraveyardStoryEvent();
+    if (shouldOpenWorldTree) {
       window.setTimeout(() => {
         if (!eventOpen) openTileEvent(tile, heroIndex + 1);
       }, 0);
@@ -7072,6 +7284,13 @@
     window.setTimeout(() => {
       if (previewOnly) void openRitualPortalTraceEvent();
       else void launchRitualPortalEventFromMap();
+    }, 0);
+  }
+  if (mapLaunchParams.get("storyEvent") === "monster_king_hunt_trace_01") {
+    const previewOnly = mapLaunchParams.get("eventPreview") === "1";
+    window.setTimeout(() => {
+      if (previewOnly) void openMonsterKingHuntEvent({ previewOnly: true });
+      else if (monsterKingHuntEligible()) void launchMonsterKingHuntEventFromMap();
     }, 0);
   }
 
