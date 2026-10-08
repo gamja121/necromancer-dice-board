@@ -4651,6 +4651,10 @@
             heroIndex = index;
             placeHero(true);
           }
+          if (tile.id === "unknown" || tile.id === "event") {
+            heroIndex = index;
+            placeHero(true);
+          }
           const launchedStory = await launchStoryEventForTile(tile.id);
           if (launchedStory) return;
         }
