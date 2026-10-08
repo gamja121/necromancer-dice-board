@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261008-summon-depth-fix-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261009-ritual-portal-event-1";
 
 const CORE_ASSETS = [
   "./",
@@ -75,6 +75,10 @@ const CORE_ASSETS = [
   "./art/v2-style/map-test/events/cultist-altar-night-base.webp?v=1",
   "./art/v2-style/map-test/events/cultist-altar-ritual-layer.webp?v=1",
   "./art/v2-style/map-test/events/cultist-altar-summon-layer.webp?v=1",
+  "./art/v2-style/map-test/events/ritual-portal-ruins-base.webp?v=1",
+  "./art/v2-style/map-test/events/ritual-portal-energy-layer.webp?v=1",
+  "./art/v2-style/map-test/events/ritual-portal-cultists-layer.webp?v=1",
+  "./art/v2-style/map-test/events/ritual-portal-omen-layer.webp?v=1",
   "./art/v2-style/map-test/events/knight-commander-village-day.webp?v=1",
   "./art/v2-style/event-portraits/monster-hunter-pen-clean.webp?v=1",
   "./art/v2-style/map-test/events/monster-hunter-corrupted-beast-scene.webp?v=1",
@@ -91,7 +95,7 @@ const CORE_ASSETS = [
   "./v2-tile-practice.html",
   "./v2-tile-practice.css?v=1",
   "./v2-tile-practice.js?v=2",
-  "./v2-map-practice.css?v=20261008-cultist-altar-layer60-ground-v1",
+  "./v2-map-practice.css?v=20261009-ritual-portal-event-v1",
   "./art/v2-style/ui/parchment-button-variant-01.png",
   "./art/v2-style/ui/parchment-button-variant-02.png",
   "./art/v2-style/ui/parchment-button-variant-03.png",
@@ -102,7 +106,7 @@ const CORE_ASSETS = [
   "./v2-altar-ritual.css?v=5",
   "./v2-auto-battle-practice.css?v=88",
   "./v2-asset-loader.js?v=1",
-  "./v2-map-practice.js?v=20261008-cultist-altar-event-v1",
+  "./v2-map-practice.js?v=20261009-ritual-portal-event-v1",
   "./art/v2-style/map-test/diorama/forest-tree-atlas.webp?v=20261004-forest-stage26-atlas-edge-mask-1",
   "./art/v2-style/map-test/diorama/village-building-01.webp?v=20261005-graveyard-poster-stage17-1",
   "./art/v2-style/map-test/diorama/village-building-02.webp?v=20261005-graveyard-poster-stage17-1",

@@ -143,7 +143,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261008-cultist-altar-event-v1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261009-ritual-portal-event-v1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=139"));
 for (const required of [
@@ -161,7 +161,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261008-cultist-altar-event-v1",
+  "./v2-map-practice.js?v=20261009-ritual-portal-event-v1",
   "./v2-auto-battle-practice.js?v=139",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -180,8 +180,8 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!/(^|\\n)\\.map-options-button\\s*\\{\\s*visibility:\\s*hidden;\\s*\\}/.test(mapCss));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261008-cultist-altar-layer60-ground-v1"));
-assert(worker.includes("./v2-map-practice.css?v=20261008-cultist-altar-layer60-ground-v1"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261009-ritual-portal-event-v1"));
+assert(worker.includes("./v2-map-practice.css?v=20261009-ritual-portal-event-v1"));
 assert(mapHtml.includes('id="villageDioramaTestButton"'));
 assert(mapHtml.includes('id="villageDioramaTest"'));
 assert(mapHtml.includes("village-building-01.webp?v=20261005-graveyard-poster-stage17-1"));
@@ -416,7 +416,7 @@ assert(!map.includes("launchGraveyardChildEventFromMap(step)"));
 assert(map.includes('eventOpen = true;\n    activeEventTileId = "graveyard";'), "graveyard story must own interaction state");
 assert(map.includes('activeEventTileId === "village-rumor-abandoned"'), "shared story overlay must release both rumor branches");
 assert(map.includes('currentTiles[heroIndex]?.id === "graveyard"') && map.includes('|| currentTiles[heroIndex]?.id === "event"'), "graveyard story must be eligible from graveyard or generic event tile after movement");
-assert(map.includes('tile.id === "graveyard" || tile.id === "village" || tile.id === "unknown" || tile.id === "altar" || tile.id === "event"'), "manual story dispatcher must cover designated story tiles, altar, world tree and generic event");
+assert(map.includes('tile.id === "graveyard" || tile.id === "village" || tile.id === "unknown" || tile.id === "altar" || tile.id === "forest" || tile.id === "event"'), "manual story dispatcher must cover designated story tiles, altar, world tree and generic event");
 assert(map.includes('if (tile.id === "graveyard") {\n            heroIndex = index;\n            placeHero(true);'), "graveyard direct click must still move the hero before story launch");
 assert(map.includes("function advanceMapLoop"));
 assert(!mapHtml.includes('id="graveyardPosterEvent"'));
@@ -515,7 +515,7 @@ assert(map.includes('return tileId === designatedTileId || tileId === "event";')
 assert(map.includes('storyEventTriggerMatches(tileId, "graveyard")'), "graveyard story must trigger on graveyard or event tile");
 assert(map.includes('storyEventTriggerMatches(tileId, "village")'), "village stories must trigger on village or event tile");
 assert(map.indexOf('storyEventTriggerMatches(tileId, "graveyard")') < map.indexOf('storyEventTriggerMatches(tileId, "village")'), "event tile must resolve the earliest pending story event first");
-assert(map.includes('tile.id === "graveyard" || tile.id === "village" || tile.id === "unknown" || tile.id === "altar" || tile.id === "event"'), "manual tile activation must use the shared story dispatcher including altar and world tree");
+assert(map.includes('tile.id === "graveyard" || tile.id === "village" || tile.id === "unknown" || tile.id === "altar" || tile.id === "forest" || tile.id === "event"'), "manual tile activation must use the shared story dispatcher including altar and world tree");
 assert(map.includes('currentTiles[heroIndex]?.id === "graveyard"') && map.includes('|| currentTiles[heroIndex]?.id === "unknown"') && map.includes('|| currentTiles[heroIndex]?.id === "event"'), "dice landing must include graveyard, village, world tree and event in the shared story dispatcher");
 
 assert(map.includes('mapLaunchParams.get("storyEvent") === "rumor_abandoned_child_01"'), "abandoned-child rumor needs a direct preview route");
@@ -596,6 +596,22 @@ for (const asset of ["cultist-altar-night-base.webp","cultist-altar-ritual-layer
   assert(fs.existsSync(relative), "Cultist altar artwork missing: " + relative);
   assert(worker.includes("./" + relative + "?v=1"), "Cultist altar artwork must be precached: " + relative);
   assert(fs.statSync(relative).size >= 500000, "Cultist altar artwork must keep production-quality source size (>=500KB): " + relative);
+}
+
+
+assert(map.includes("RITUAL_PORTAL_BEATS"), "ritual portal event must define its own story beats");
+assert(map.includes('storyEventTriggerMatches(tileId, "forest")'), "ritual portal event must trigger from forest or generic event");
+assert(map.includes("cultistAltarEncounterCompleted()") && map.includes("ritualSiteTrackingActive()"), "ritual portal event must require the completed altar encounter and active ritual-site tracking");
+assert(map.includes('mapLaunchParams.get("storyEvent") === "ritual_portal_trace_01"'), "ritual portal event needs a direct preview route");
+assert(map.includes("RITUAL_SITE_LOCATION_KNOWN_FLAG") && map.includes("RITUAL_INTERVENTION_ACTIVE_FLAG"), "ritual portal completion must remember the location and activate the intervention follow-up");
+assert(map.includes("continueAfterRitualPortalStory") && map.includes('tile?.id === "forest"'), "forest-native functionality must remain available after the portal story closes");
+assert(mapHtml.includes('id="ritualPortalEnergyLayer"') && mapHtml.includes('id="ritualPortalCultistsLayer"') && mapHtml.includes('id="ritualPortalOmenLayer"'), "ritual portal event must keep all three approved layered images");
+assert(mapCss.includes(".ritual-portal-layer") && mapCss.includes("left:2%!important") && mapCss.includes("bottom:22%!important") && mapCss.includes("width:75%!important") && mapCss.includes("height:75%!important"), "ritual portal layers must use the tested 75% alignment over the approved base art");
+for (const asset of ["ritual-portal-ruins-base.webp","ritual-portal-energy-layer.webp","ritual-portal-cultists-layer.webp","ritual-portal-omen-layer.webp"]) {
+  const relative = `art/v2-style/map-test/events/${asset}`;
+  assert(fs.existsSync(relative), "Ritual portal artwork missing: " + relative);
+  assert(worker.includes("./" + relative + "?v=1"), "Ritual portal artwork must be precached: " + relative);
+  assert(fs.statSync(relative).size >= 500000, "Ritual portal artwork must keep production-quality source size (>=500KB): " + relative);
 }
 
 assert(map.includes('storyEventTriggerMatches(tileId, "village")'), "commander encounter must inherit the village-or-event trigger rule");

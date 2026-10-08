@@ -95,6 +95,12 @@
   const CULTIST_ALTAR_BATTLE_WON_FLAG = "battle:cultist_altar_encounter_01:won";
   const MONSTER_KING_RITUAL_CONFIRMED_FLAG = "story:monster_king:ritual_confirmed";
   const RITUAL_SITE_TRACKING_ACTIVE_FLAG = "quest:ritual_site_tracking:active";
+  const RITUAL_PORTAL_EVENT_SEEN_FLAG = "event:ritual_portal_trace_01:seen";
+  const RITUAL_PORTAL_EVENT_FLAG = "event:ritual_portal_trace_01:complete";
+  const RITUAL_PORTAL_FOUND_FLAG = "story:ritual_portal:found";
+  const RITUAL_SITE_LOCATION_KNOWN_FLAG = "story:monster_king:ritual_site_location_known";
+  const RITUAL_SITE_TRACKING_COMPLETE_FLAG = "quest:ritual_site_tracking:complete";
+  const RITUAL_INTERVENTION_ACTIVE_FLAG = "quest:ritual_intervention:active";
   const KNIGHT_COMMANDER_CONTAMINATION_EVENT_SEEN_FALLBACK_KEY = "necromancer-event-knight-commander-contamination-seen-v1";
   const KNIGHT_COMMANDER_CONTAMINATION_EVENT_FALLBACK_KEY = "necromancer-event-knight-commander-contamination-complete-v1";
   const KNIGHT_COMMANDER_RECOGNIZED_FALLBACK_KEY = "necromancer-story-knight-commander-recognized-v1";
@@ -114,6 +120,12 @@
   const CULTIST_ALTAR_BATTLE_WON_FALLBACK_KEY = "necromancer-event-cultist-altar-battle-won-v1";
   const MONSTER_KING_RITUAL_CONFIRMED_FALLBACK_KEY = "necromancer-story-monster-king-ritual-confirmed-v1";
   const RITUAL_SITE_TRACKING_ACTIVE_FALLBACK_KEY = "necromancer-quest-ritual-site-tracking-active-v1";
+  const RITUAL_PORTAL_EVENT_SEEN_FALLBACK_KEY = "necromancer-event-ritual-portal-seen-v1";
+  const RITUAL_PORTAL_EVENT_FALLBACK_KEY = "necromancer-event-ritual-portal-complete-v1";
+  const RITUAL_PORTAL_FOUND_FALLBACK_KEY = "necromancer-story-ritual-portal-found-v1";
+  const RITUAL_SITE_LOCATION_KNOWN_FALLBACK_KEY = "necromancer-story-ritual-site-location-known-v1";
+  const RITUAL_SITE_TRACKING_COMPLETE_FALLBACK_KEY = "necromancer-quest-ritual-site-tracking-complete-v1";
+  const RITUAL_INTERVENTION_ACTIVE_FALLBACK_KEY = "necromancer-quest-ritual-intervention-active-v1";
   const MONSTER_CAPACITY = 10;
   const DICE_CONTROL_CAPACITY = 5;
   const STARTING_DICE_EXCLUDED_IDS = Object.freeze(new Set(["repeat", "echo"]));
@@ -220,6 +232,9 @@
     cultistRumorLayer: document.getElementById("cultistRumorLayer"),
     cultistAltarRitualLayer: document.getElementById("cultistAltarRitualLayer"),
     cultistAltarSummonLayer: document.getElementById("cultistAltarSummonLayer"),
+    ritualPortalEnergyLayer: document.getElementById("ritualPortalEnergyLayer"),
+    ritualPortalCultistsLayer: document.getElementById("ritualPortalCultistsLayer"),
+    ritualPortalOmenLayer: document.getElementById("ritualPortalOmenLayer"),
     graveyardStoryChoices: document.getElementById("graveyardStoryChoices"),
     graveyardStoryFrameImg: document.querySelector(".graveyard-story-frame"),
     mapName: document.getElementById("mapName"),
@@ -569,6 +584,29 @@
     } catch (_) { return false; }
   }
 
+  function cultistAltarEncounterCompleted() {
+    const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
+    if (eventFlags[CULTIST_ALTAR_EVENT_FLAG] === true) return true;
+    try { return sessionStorage.getItem(CULTIST_ALTAR_EVENT_FALLBACK_KEY) === "1"; }
+    catch (_) { return false; }
+  }
+
+  function ritualSiteTrackingActive() {
+    const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
+    if (eventFlags[RITUAL_SITE_TRACKING_ACTIVE_FLAG] === true) return true;
+    try { return sessionStorage.getItem(RITUAL_SITE_TRACKING_ACTIVE_FALLBACK_KEY) === "1"; }
+    catch (_) { return false; }
+  }
+
+  function ritualPortalEventConsumed() {
+    const eventFlags = globalThis.V2RunStateRuntime?.snapshot?.()?.eventFlags || {};
+    if (eventFlags[RITUAL_PORTAL_EVENT_SEEN_FLAG] === true || eventFlags[RITUAL_PORTAL_EVENT_FLAG] === true) return true;
+    try {
+      return sessionStorage.getItem(RITUAL_PORTAL_EVENT_SEEN_FALLBACK_KEY) === "1"
+        || sessionStorage.getItem(RITUAL_PORTAL_EVENT_FALLBACK_KEY) === "1";
+    } catch (_) { return false; }
+  }
+
   async function markKnightCommanderContaminationEventStarted() {
     try { sessionStorage.setItem(KNIGHT_COMMANDER_CONTAMINATION_EVENT_SEEN_FALLBACK_KEY, "1"); } catch (_) {}
     if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
@@ -703,6 +741,44 @@
         draft.eventFlags[MONSTER_KING_RITUAL_CONFIRMED_FLAG] = true;
         draft.eventFlags[CULTIST_TRACKING_ACTIVE_FLAG] = false;
         draft.eventFlags[RITUAL_SITE_TRACKING_ACTIVE_FLAG] = true;
+      });
+      return Boolean(result?.ok);
+    }
+    return true;
+  }
+
+  async function markRitualPortalEventStarted() {
+    try { sessionStorage.setItem(RITUAL_PORTAL_EVENT_SEEN_FALLBACK_KEY, "1"); } catch (_) {}
+    if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
+      const result = await V2RunStateRuntime.commitExact("event-seen:ritual-portal-trace", (draft) => {
+        if (!draft.eventFlags || typeof draft.eventFlags !== "object") draft.eventFlags = {};
+        draft.eventFlags[RITUAL_PORTAL_EVENT_SEEN_FLAG] = true;
+      });
+      return Boolean(result?.ok);
+    }
+    return true;
+  }
+
+  async function markRitualPortalEventComplete() {
+    try {
+      sessionStorage.setItem(RITUAL_PORTAL_EVENT_SEEN_FALLBACK_KEY, "1");
+      sessionStorage.setItem(RITUAL_PORTAL_EVENT_FALLBACK_KEY, "1");
+      sessionStorage.setItem(RITUAL_PORTAL_FOUND_FALLBACK_KEY, "1");
+      sessionStorage.setItem(RITUAL_SITE_LOCATION_KNOWN_FALLBACK_KEY, "1");
+      sessionStorage.setItem(RITUAL_SITE_TRACKING_COMPLETE_FALLBACK_KEY, "1");
+      sessionStorage.setItem(RITUAL_INTERVENTION_ACTIVE_FALLBACK_KEY, "1");
+      sessionStorage.removeItem(RITUAL_SITE_TRACKING_ACTIVE_FALLBACK_KEY);
+    } catch (_) {}
+    if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
+      const result = await V2RunStateRuntime.commitExact("event-complete:ritual-portal-trace", (draft) => {
+        if (!draft.eventFlags || typeof draft.eventFlags !== "object") draft.eventFlags = {};
+        draft.eventFlags[RITUAL_PORTAL_EVENT_SEEN_FLAG] = true;
+        draft.eventFlags[RITUAL_PORTAL_EVENT_FLAG] = true;
+        draft.eventFlags[RITUAL_PORTAL_FOUND_FLAG] = true;
+        draft.eventFlags[RITUAL_SITE_LOCATION_KNOWN_FLAG] = true;
+        draft.eventFlags[RITUAL_SITE_TRACKING_ACTIVE_FLAG] = false;
+        draft.eventFlags[RITUAL_SITE_TRACKING_COMPLETE_FLAG] = true;
+        draft.eventFlags[RITUAL_INTERVENTION_ACTIVE_FLAG] = true;
       });
       return Boolean(result?.ok);
     }
@@ -907,6 +983,14 @@
     return true;
   }
 
+  async function launchRitualPortalEventFromMap() {
+    if (!cultistAltarEncounterCompleted() || !ritualSiteTrackingActive()) return false;
+    if (ritualPortalEventConsumed()) return false;
+    await markRitualPortalEventStarted();
+    await openRitualPortalTraceEvent();
+    return true;
+  }
+
   function storyEventTriggerMatches(tileId, designatedTileId) {
     return tileId === designatedTileId || tileId === "event";
   }
@@ -941,6 +1025,11 @@
     if (storyEventTriggerMatches(tileId, "altar")) {
       const launchedCultistAltar = await launchCultistAltarEncounterFromMap();
       if (launchedCultistAltar) return true;
+    }
+
+    if (storyEventTriggerMatches(tileId, "forest")) {
+      const launchedRitualPortal = await launchRitualPortalEventFromMap();
+      if (launchedRitualPortal) return true;
     }
 
     return false;
@@ -4433,12 +4522,8 @@
           el.regenerate.disabled = false;
           return;
         }
-        if (tile.id === "graveyard" || tile.id === "village" || tile.id === "unknown" || tile.id === "altar" || tile.id === "event") {
-          if (tile.id === "graveyard") {
-            heroIndex = index;
-            placeHero(true);
-          }
-          if (tile.id === "altar") {
+        if (tile.id === "graveyard" || tile.id === "village" || tile.id === "unknown" || tile.id === "altar" || tile.id === "forest" || tile.id === "event") {
+          if (tile.id === "graveyard" || tile.id === "altar" || tile.id === "forest") {
             heroIndex = index;
             placeHero(true);
           }
@@ -4761,6 +4846,7 @@
       || currentTiles[heroIndex]?.id === "village"
       || currentTiles[heroIndex]?.id === "unknown"
       || currentTiles[heroIndex]?.id === "altar"
+      || currentTiles[heroIndex]?.id === "forest"
       || currentTiles[heroIndex]?.id === "event"
     ) {
       const launchedStory = await launchStoryEventForTile(currentTiles[heroIndex].id);
@@ -5068,6 +5154,14 @@
     "art/v2-style/map-test/events/cultist-altar-ritual-layer.webp?v=1";
   const CULTIST_ALTAR_SUMMON_LAYER_ART =
     "art/v2-style/map-test/events/cultist-altar-summon-layer.webp?v=1";
+  const RITUAL_PORTAL_EVENT_BASE_ART =
+    "art/v2-style/map-test/events/ritual-portal-ruins-base.webp?v=1";
+  const RITUAL_PORTAL_ENERGY_LAYER_ART =
+    "art/v2-style/map-test/events/ritual-portal-energy-layer.webp?v=1";
+  const RITUAL_PORTAL_CULTISTS_LAYER_ART =
+    "art/v2-style/map-test/events/ritual-portal-cultists-layer.webp?v=1";
+  const RITUAL_PORTAL_OMEN_LAYER_ART =
+    "art/v2-style/map-test/events/ritual-portal-omen-layer.webp?v=1";
   const KNIGHT_COMMANDER_EVENT_FALLBACK_ART =
     "art/v2-style/event-portraits/knight-commander-upperbody-hd.webp?v=1";
   const PLAYER_EVENT_FALLBACK_ART =
@@ -5096,6 +5190,7 @@
   let monsterHunterStoryArtReady = null;
   let cultistRumorStoryArtReady = null;
   let cultistAltarStoryArtReady = null;
+  let ritualPortalStoryArtReady = null;
 
   async function decodeGraveyardStoryImage(img, src) {
     if (!img || !src) return false;
@@ -5168,6 +5263,28 @@
   function setCultistAltarLayerVisibility({ ritual = false, summon = false, animate = true } = {}) {
     setCultistAltarLayerVisible(el.cultistAltarRitualLayer, ritual, { animate });
     setCultistAltarLayerVisible(el.cultistAltarSummonLayer, summon, { animate });
+  }
+
+  function setRitualPortalLayerVisible(layer, visible, { animate = true } = {}) {
+    if (!layer) return;
+    if (!visible) {
+      layer.hidden = true;
+      layer.classList.remove("is-visible", "is-entering");
+      return;
+    }
+    layer.hidden = false;
+    layer.classList.add("is-visible");
+    layer.classList.remove("is-entering");
+    if (animate) {
+      void layer.offsetWidth;
+      layer.classList.add("is-entering");
+    }
+  }
+
+  function setRitualPortalLayerVisibility({ energy = false, cultists = false, omen = false, animate = true } = {}) {
+    setRitualPortalLayerVisible(el.ritualPortalEnergyLayer, energy, { animate });
+    setRitualPortalLayerVisible(el.ritualPortalCultistsLayer, cultists, { animate });
+    setRitualPortalLayerVisible(el.ritualPortalOmenLayer, omen, { animate });
   }
 
   function setMonsterHunterSceneVisible(visible, { animate = true } = {}) {
@@ -5297,6 +5414,21 @@
     return cultistAltarStoryArtReady;
   }
 
+  function ensureRitualPortalStoryArt() {
+    if (!ritualPortalStoryArtReady) {
+      ritualPortalStoryArtReady = Promise.all([
+        decodeGraveyardStoryImage(el.graveyardStoryArtwork, RITUAL_PORTAL_EVENT_BASE_ART),
+        decodeGraveyardStoryImage(el.ritualPortalEnergyLayer, RITUAL_PORTAL_ENERGY_LAYER_ART),
+        decodeGraveyardStoryImage(el.ritualPortalCultistsLayer, RITUAL_PORTAL_CULTISTS_LAYER_ART),
+        decodeGraveyardStoryImage(el.ritualPortalOmenLayer, RITUAL_PORTAL_OMEN_LAYER_ART)
+      ]).then((ready) => ready.every(Boolean)).catch((error) => {
+        console.error("[ritual-portal-event] story art load failed", error);
+        return false;
+      });
+    }
+    return ritualPortalStoryArtReady;
+  }
+
   async function loadPlayerIntroHdImage(img) {
     if (!img) return false;
     try {
@@ -5409,22 +5541,26 @@
     setMonsterHunterPortraitVisible(false, { animate: false });
     setCultistRumorLayerVisible(false, { animate: false });
     setCultistAltarLayerVisibility({ animate: false });
+    setRitualPortalLayerVisibility({ animate: false });
     storyEvent.dataset.storyEvent = id || "";
     const isCultistAltarEvent = id === "cultist_altar_encounter_01";
+    const isRitualPortalEvent = id === "ritual_portal_trace_01";
     const isCultistRumorEvent = id === "cultist_rumor_01";
     const isRumorEvent = id === "rumor_saved_child_01" || id === "rumor_abandoned_child_01" || isCultistRumorEvent;
     const isCommanderEvent = id === "knight_commander_contamination_01";
     const isHunterEvent = id === "monster_hunter_encounter_01";
-    const usesBoardFrame = isRumorEvent || isCommanderEvent || isHunterEvent || isCultistAltarEvent;
+    const usesBoardFrame = isRumorEvent || isCommanderEvent || isHunterEvent || isCultistAltarEvent || isRitualPortalEvent;
     storyEvent.classList.toggle("is-rumor-event", isRumorEvent);
     storyEvent.classList.toggle("is-commander-event", isCommanderEvent);
     storyEvent.classList.toggle("is-hunter-event", isHunterEvent);
     storyEvent.classList.toggle("is-cultist-altar-event", isCultistAltarEvent);
+    storyEvent.classList.toggle("is-ritual-portal-event", isRitualPortalEvent);
     storyEvent.setAttribute(
       "aria-label",
       isHunterEvent ? "세계수 사건 · 마물 사냥꾼 조우"
         : isCommanderEvent ? "기사단장 사건 · 오염 조사 의뢰"
           : isCultistAltarEvent ? "제단 사건 · 광신도의 의식"
+            : isRitualPortalEvent ? "숲 사건 · 전이문의 흔적"
             : isCultistRumorEvent ? "마을 사건 · 같은 문양"
             : isRumorEvent ? "마을 사건 · 소문"
             : "공동묘지 사건 · 습격받는 아이"
@@ -5434,6 +5570,7 @@
       isHunterEvent ? "마물 사냥꾼과의 조우"
         : isCommanderEvent ? "기사단장 오염 조사 의뢰"
           : isCultistAltarEvent ? "광신도의 의식"
+            : isRitualPortalEvent ? "전이문의 흔적"
             : isCultistRumorEvent ? "같은 문양"
             : isRumorEvent ? "소문 사건"
             : "습격받는 아이 사건"
@@ -5709,6 +5846,14 @@
     Object.freeze({ id: "choice", effect: "아직 그들은 당신을 눈치채지 못했다.", dialogue: "", speaker: "", visual: "ritual", choice: true })
   ]);
 
+  const RITUAL_PORTAL_BEATS = Object.freeze([
+    Object.freeze({ id: "arrival", effect: "제단에서 이어진 흔적을 따라가자 숲 깊은 폐허에서 거대한 전이문을 발견한다.", dialogue: "", speaker: "", visual: "base" }),
+    Object.freeze({ id: "portal_reveal", effect: "제단에서 보았던 문양과 같은 빛이 석문 전체를 타고 흐르며 전이문이 거세게 요동친다.", dialogue: "", speaker: "", visual: "energy" }),
+    Object.freeze({ id: "crossing", effect: "의식 재료를 짊어진 광신도들이 차례로 전이문 안으로 사라진다. 이 길이 그들의 이동 통로다.", dialogue: "", speaker: "", visual: "cultists" }),
+    Object.freeze({ id: "omen", effect: "마지막 광신도가 넘어간 순간, 문 너머에서 거대한 그림자가 잠시 모습을 드러낸다.", dialogue: "", speaker: "", visual: "omen" }),
+    Object.freeze({ id: "location", effect: "광신도들이 향한 곳과 부활 의식의 본거지로 이어지는 경로를 특정했다.", dialogue: "[부활 의식 장소로 이어지는 전이문을 발견했습니다.]", speaker: "시스템", visual: "omen", locationKnown: true })
+  ]);
+
   const CULTIST_RUMOR_BEATS = Object.freeze([
     Object.freeze({ id: "arrival", effect: "밤이 깊은 마을. 평소보다 일찍 문을 닫은 집들 사이로 인기척이 드물다.", dialogue: "", speaker: "", visual: "base" }),
     Object.freeze({ id: "procession", effect: "골목 너머로 두건을 쓴 인간들이 오염된 마물의 사체와 정체를 알 수 없는 짐을 옮기고 있다.", dialogue: "", speaker: "", visual: "procession" }),
@@ -5731,6 +5876,8 @@
   let cultistRumorStoryCompleting = false;
   let cultistAltarStoryBeatIndex = 0;
   let cultistAltarStoryCompleting = false;
+  let ritualPortalStoryBeatIndex = 0;
+  let ritualPortalStoryCompleting = false;
   let activeStoryEventId = null;
   let graveyardStoryBoardDropTimer = null;
 
@@ -6047,6 +6194,55 @@
     renderCultistAltarBeat(cultistAltarStoryBeatIndex + 1);
   }
 
+  function renderRitualPortalBeat(index) {
+    if (!el.graveyardStoryEvent) return;
+    const beat = RITUAL_PORTAL_BEATS[Math.max(0, Math.min(index, RITUAL_PORTAL_BEATS.length - 1))];
+    ritualPortalStoryBeatIndex = RITUAL_PORTAL_BEATS.indexOf(beat);
+    el.graveyardStoryEvent.dataset.beat = `ritual-portal-${beat.id}`;
+    el.graveyardStoryEvent.classList.remove("beat-child-alone","beat-ghoul-appears","beat-child-frightened","beat-choice","is-rescued","is-child-fleeing");
+    if (el.graveyardStoryEffectText) el.graveyardStoryEffectText.textContent = beat.effect || "";
+    if (el.graveyardStoryText) el.graveyardStoryText.textContent = beat.dialogue || "";
+    const speakerName = el.graveyardStoryEvent.querySelector(".graveyard-story-name");
+    if (speakerName) speakerName.textContent = beat.speaker || "";
+    setGraveyardGhoulVisible(false, { animate: false });
+    setRumorLayerVisibility({ animate: false });
+    setKnightCommanderStoryVisible(false, { animate: false });
+    setPlayerStoryVisible(false, { animate: false });
+    setMonsterHunterSceneVisible(false, { animate: false });
+    setMonsterHunterPortraitVisible(false, { animate: false });
+    setCultistRumorLayerVisible(false, { animate: false });
+    setCultistAltarLayerVisibility({ animate: false });
+    setRitualPortalLayerVisibility({
+      energy: beat.visual === "energy",
+      cultists: beat.visual === "cultists",
+      omen: beat.visual === "omen",
+      animate: beat.id === "portal_reveal" || beat.id === "crossing" || beat.id === "omen"
+    });
+    setGraveyardStoryChoicePhase(false);
+    el.graveyardStoryEvent.classList.toggle("has-dialogue", Boolean(beat.dialogue));
+  }
+
+  async function advanceRitualPortalBeat() {
+    if (!el.graveyardStoryEvent || ritualPortalStoryCompleting) return;
+    if (ritualPortalStoryBeatIndex >= RITUAL_PORTAL_BEATS.length - 1) {
+      continueAfterRitualPortalStory();
+      return;
+    }
+    const nextIndex = ritualPortalStoryBeatIndex + 1;
+    const nextBeat = RITUAL_PORTAL_BEATS[nextIndex];
+    if (nextBeat?.locationKnown === true) {
+      ritualPortalStoryCompleting = true;
+      try {
+        await markRitualPortalEventComplete();
+        renderRitualPortalBeat(nextIndex);
+      } finally {
+        ritualPortalStoryCompleting = false;
+      }
+      return;
+    }
+    renderRitualPortalBeat(nextIndex);
+  }
+
   function renderCultistRumorBeat(index) {
     if (!el.graveyardStoryEvent) return;
     const beat = CULTIST_RUMOR_BEATS[Math.max(0, Math.min(index, CULTIST_RUMOR_BEATS.length - 1))];
@@ -6106,7 +6302,8 @@
       "is-rumor-event",
       "is-commander-event",
       "is-hunter-event",
-      "is-cultist-altar-event"
+      "is-cultist-altar-event",
+      "is-ritual-portal-event"
     );
     setGraveyardGhoulVisible(false, { animate: false });
     setRumorLayerVisibility({ animate: false });
@@ -6116,6 +6313,7 @@
     setMonsterHunterPortraitVisible(false, { animate: false });
     setCultistRumorLayerVisible(false, { animate: false });
     setCultistAltarLayerVisibility({ animate: false });
+    setRitualPortalLayerVisibility({ animate: false });
     setGraveyardStoryChoicePhase(false);
     if (el.graveyardStoryArtwork) {
       el.graveyardStoryArtwork.style.transform = "";
@@ -6132,6 +6330,7 @@
       || activeEventTileId === "monster-hunter-encounter"
       || activeEventTileId === "cultist-rumor"
       || activeEventTileId === "cultist-altar"
+      || activeEventTileId === "ritual-portal"
     ) activeEventTileId = null;
     rolling = false;
     el.diceButton.disabled = false;
@@ -6404,6 +6603,55 @@
     }
   }
 
+  async function openRitualPortalTraceEvent() {
+    if (!el.graveyardStoryEvent) return;
+    eventOpen = true;
+    activeEventTileId = "ritual-portal";
+    rolling = false;
+    el.diceButton.disabled = true;
+    el.regenerate.disabled = true;
+    configureStoryEventShell({
+      id: "ritual_portal_trace_01",
+      title: "사건 · 전이문의 흔적",
+      speaker: "",
+      artSrc: RITUAL_PORTAL_EVENT_BASE_ART,
+      backgroundSrc: ""
+    });
+    ensureGraveyardDialogueFrame();
+    await ensureRitualPortalStoryArt();
+    setGraveyardGhoulVisible(false, { animate: false });
+    setRumorLayerVisibility({ animate: false });
+    setKnightCommanderStoryVisible(false, { animate: false });
+    setPlayerStoryVisible(false, { animate: false });
+    setMonsterHunterSceneVisible(false, { animate: false });
+    setMonsterHunterPortraitVisible(false, { animate: false });
+    setCultistRumorLayerVisible(false, { animate: false });
+    setCultistAltarLayerVisibility({ animate: false });
+    setRitualPortalLayerVisibility({ animate: false });
+    el.board?.classList.add("is-story-event-open");
+    el.graveyardStoryEvent.hidden = false;
+    el.graveyardStoryEvent.classList.remove("is-rescued", "is-child-fleeing");
+    setGraveyardStoryChoicePhase(false);
+    playGraveyardStoryBoardDrop();
+    ritualPortalStoryBeatIndex = 0;
+    renderRitualPortalBeat(0);
+    if (el.graveyardStoryAdvance) {
+      el.graveyardStoryAdvance.disabled = false;
+      el.graveyardStoryAdvance.onclick = () => { void advanceRitualPortalBeat(); };
+    }
+  }
+
+  function continueAfterRitualPortalStory() {
+    const tile = currentTiles[heroIndex];
+    const shouldOpenForest = tile?.id === "forest";
+    closeGraveyardStoryEvent();
+    if (shouldOpenForest) {
+      window.setTimeout(() => {
+        if (!eventOpen) openTileEvent(tile, heroIndex + 1);
+      }, 0);
+    }
+  }
+
   async function openCultistRumorEvent() {
     if (!el.graveyardStoryEvent) return;
     eventOpen = true;
@@ -6449,6 +6697,7 @@
       else if (activeStoryEventId === "monster_hunter_encounter_01") void advanceMonsterHunterEncounterBeat();
       else if (activeStoryEventId === "cultist_rumor_01") void advanceCultistRumorBeat();
       else if (activeStoryEventId === "cultist_altar_encounter_01") advanceCultistAltarBeat();
+      else if (activeStoryEventId === "ritual_portal_trace_01") void advanceRitualPortalBeat();
       else advanceGraveyardStoryBeat();
     });
   }
@@ -6679,6 +6928,14 @@
     window.setTimeout(() => {
       if (previewOnly) void openCultistAltarEncounterEvent();
       else void launchCultistAltarEncounterFromMap();
+    }, 0);
+  }
+
+  if (mapLaunchParams.get("storyEvent") === "ritual_portal_trace_01") {
+    const previewOnly = mapLaunchParams.get("eventPreview") === "1";
+    window.setTimeout(() => {
+      if (previewOnly) void openRitualPortalTraceEvent();
+      else void launchRitualPortalEventFromMap();
     }, 0);
   }
 
