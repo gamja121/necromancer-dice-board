@@ -57,7 +57,7 @@ const CORE_ASSETS = [
   "./v2-animation-practice.css?v=7",
   "./v2-animation-practice.js?v=82",
   "./v2-event-lab.html",
-  "./v2-event-lab.css?v=20261005-event-lab-map-link-stage7",
+  "./v2-event-lab.css?v=20261008-choice-visual-fix1",
   "./v2-event-lab.js?v=20261005-event-lab-map-link-stage7",
   "./v2-event-lab-data.js?v=20261005-event-lab-map-link-stage7",
   "./assets/event-lab/graveyard-child/base/part-000.txt",

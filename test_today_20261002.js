@@ -402,7 +402,7 @@ assert(battle.includes('resumeGraveyardEvent: "1"'));
 
 // Empty Event Lab files must be available offline.
 assert(worker.includes("./v2-event-lab.html"));
-assert(worker.includes("./v2-event-lab.css?v=20261005-event-lab-map-link-stage7"));
+assert(worker.includes("./v2-event-lab.css?v=20261008-choice-visual-fix1"));
 assert(worker.includes("./v2-event-lab.js?v=20261005-event-lab-map-link-stage7"));
 assert(worker.includes("./v2-event-lab-data.js?v=20261005-event-lab-map-link-stage7"));
 
