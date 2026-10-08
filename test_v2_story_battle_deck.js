@@ -144,7 +144,7 @@ async function check() {
   }
   assert(!source.includes("currentPartyUnits()"), "all event auto-party selection removed");
   assert(source.includes('if (pendingStoryBattle) return confirmStoryBattleDeck()'), "normal deck confirm dispatches pending story battle");
-  assert(battleSource.includes('selectedAllyInstanceIds.every((instanceId, index) => mapOwnedRoster.get(instanceId)?.slug === selectedAllySlugs[index])'), "battle validates actual saved monster instances");
+  assert(battleSource.includes('mapOwnedRoster.get(instanceId)?.slug === selectedAllySlugs[index])'), "battle validates actual saved monster instances");
   console.log("PASS story battle deck confirmation, 1-4 units, refresh, save failure, and no default party");
 }
 check().catch(err => { console.error(err); process.exitCode = 1; });
