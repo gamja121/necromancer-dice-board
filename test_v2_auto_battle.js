@@ -18,6 +18,9 @@ require('./test_v2_rules_ui');
     "Ally battlefield visual order must match the deck-selection screen order");
   assert(css.includes('.enemy-team .unit[data-slot="3"] { grid-column: 5;'),
     "Enemy first occupied slot must be the far/right edge position");
+  assert(css.includes('.ally-team .summon-slot { grid-column: 5; --depth-scale: .94; --depth-y: -3%; --unit-layer: 14;') &&
+         css.includes('.enemy-team .summon-slot { grid-column: 1; --depth-scale: .94; --depth-y: -3%; --unit-layer: 14;'),
+    "Summoned units must share the nearest regular formation depth instead of rendering behind the team");
   assert(js.includes('makeState(data, "ally", 3 - index)'),
     "Allies must fill from the right/near side outward");
   assert(js.includes('makeState(data, "enemy", 3 - index)'),

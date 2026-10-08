@@ -114,14 +114,14 @@ button, a { font: inherit; }
 .ally-team .unit[data-slot="2"] { grid-column: 2; --depth-scale: 1.08; --depth-y: 7%; --unit-layer: 17; --action-shift-x: 128%; }
 .ally-team .unit[data-slot="3"] { grid-column: 1; --depth-scale: 1.14; --depth-y: 11%; --unit-layer: 18; --action-shift-x: 192%; }
 .ally-team .unit[data-slot="4"],
-.ally-team .summon-slot { grid-column: 5; --depth-scale: .88; --depth-y: -6%; --action-shift-x: -64%; }
+.ally-team .summon-slot { grid-column: 5; --depth-scale: .94; --depth-y: -3%; --unit-layer: 14; --action-shift-x: -64%; }
 
 .enemy-team .unit[data-slot="0"] { grid-column: 2; --depth-scale: .94; --depth-y: -3%; --unit-layer: 13; --action-shift-x: 0%; }
 .enemy-team .unit[data-slot="1"] { grid-column: 3; --depth-scale: 1.01; --depth-y: 2%; --unit-layer: 15; --action-shift-x: -64%; }
 .enemy-team .unit[data-slot="2"] { grid-column: 4; --depth-scale: 1.08; --depth-y: 7%; --unit-layer: 17; --action-shift-x: -128%; }
 .enemy-team .unit[data-slot="3"] { grid-column: 5; --depth-scale: 1.14; --depth-y: 11%; --unit-layer: 18; --action-shift-x: -192%; }
 .enemy-team .unit[data-slot="4"],
-.enemy-team .summon-slot { grid-column: 1; --depth-scale: .88; --depth-y: -6%; --action-shift-x: 64%; }
+.enemy-team .summon-slot { grid-column: 1; --depth-scale: .94; --depth-y: -3%; --unit-layer: 14; --action-shift-x: 64%; }
 .bar { position: absolute; z-index: 5; left: 7%; right: 7%; height: 4px; overflow: hidden; border-radius: 3px; background: #050404dd; }
 .hp-bar { top: 12%; height: 5px; }
 .brand-indicator { position: absolute; z-index: 8; left: 50%; bottom: calc(88% + 7px); display: flex; flex-direction: column; align-items: center; gap: 3px; width: max-content; max-width: 150%; pointer-events: none; transform: translateX(-50%); }
