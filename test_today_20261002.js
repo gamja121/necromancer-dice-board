@@ -180,8 +180,8 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!/(^|\\n)\\.map-options-button\\s*\\{\\s*visibility:\\s*hidden;\\s*\\}/.test(mapCss));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261008-cultist-rumor-v1"));
-assert(worker.includes("./v2-map-practice.css?v=20261008-cultist-rumor-v1"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261008-cultist-rumor-size80-v1"));
+assert(worker.includes("./v2-map-practice.css?v=20261008-cultist-rumor-size80-v1"));
 assert(mapHtml.includes('id="villageDioramaTestButton"'));
 assert(mapHtml.includes('id="villageDioramaTest"'));
 assert(mapHtml.includes("village-building-01.webp?v=20261005-graveyard-poster-stage17-1"));
@@ -571,6 +571,7 @@ assert(map.includes("launchCultistRumorEventFromVillage"), "cultist rumor launch
 assert(map.includes('mapLaunchParams.get("storyEvent") === "cultist_rumor_01"'), "cultist rumor needs a direct preview route");
 assert(mapHtml.includes('id="cultistRumorLayer"'), "cultist rumor layered image element must exist");
 assert(mapCss.includes(".cultist-rumor-layer"), "cultist rumor layered image positioning CSS must exist");
+assert(mapCss.includes("left:10%!important") && mapCss.includes("bottom:0!important") && mapCss.includes("width:80%!important") && mapCss.includes("height:80%!important"), "cultist layered image must stay at 80% scale and remain bottom-anchored");
 assert(fs.existsSync("art/v2-style/map-test/events/cultist-rumor-procession.webp"), "Cultist rumor layered artwork missing");
 assert(worker.includes("./art/v2-style/map-test/events/cultist-rumor-procession.webp?v=1"), "Cultist rumor layered artwork must be precached");
 assert(fs.statSync("art/v2-style/map-test/events/cultist-rumor-procession.webp").size >= 500000, "Cultist rumor layered artwork must stay high quality (>=500KB)");

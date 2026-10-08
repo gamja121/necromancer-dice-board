@@ -2538,10 +2538,10 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .cultist-rumor-layer{
   position:absolute!important;
   z-index:9!important;
-  left:1%!important;
+  left:10%!important;
   bottom:0!important;
-  width:98%!important;
-  height:100%!important;
+  width:80%!important;
+  height:80%!important;
   object-fit:contain!important;
   object-position:center bottom!important;
   pointer-events:none!important;

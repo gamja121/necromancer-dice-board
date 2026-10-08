@@ -1,4 +1,4 @@
-const CACHE_NAME = "necromancer-and-dice-v2-20261008-cultist-rumor-1";
+const CACHE_NAME = "necromancer-and-dice-v2-20261008-cultist-rumor-size80-1";
 
 const CORE_ASSETS = [
   "./",
@@ -88,7 +88,7 @@ const CORE_ASSETS = [
   "./v2-tile-practice.html",
   "./v2-tile-practice.css?v=1",
   "./v2-tile-practice.js?v=2",
-  "./v2-map-practice.css?v=20261008-cultist-rumor-v1",
+  "./v2-map-practice.css?v=20261008-cultist-rumor-size80-v1",
   "./art/v2-style/ui/parchment-button-variant-01.png",
   "./art/v2-style/ui/parchment-button-variant-02.png",
   "./art/v2-style/ui/parchment-button-variant-03.png",
