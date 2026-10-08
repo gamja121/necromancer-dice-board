@@ -501,7 +501,7 @@ assert(map.includes("if (graveyardChildEventConsumed()) return false;"), "seen o
 assert(map.includes("await markGraveyardChildEventStarted();"), "graveyard story must persist seen state before it opens");
 assert(map.includes("draft.eventFlags[GRAVEYARD_CHILD_EVENT_SEEN_FLAG] = true;"), "graveyard story start must persist run-level seen state");
 assert(map.includes("draft.eventFlags[GRAVEYARD_CHILD_EVENT_FLAG] = true;"), "graveyard story completion must persist in run eventFlags");
-assert(map.includes('await markGraveyardChildEventComplete("rescued");') && map.includes("await openGraveyardStoryEvent({ rescued: true });"), "battle return must persist the rescued branch before showing the epilogue");
+assert(map.includes('if (!await markGraveyardChildEventComplete("rescued")) return false;') && map.includes("await openGraveyardStoryEvent({ rescued: true });"), "battle return must persist rescued state successfully before showing the epilogue");
 assert(map.includes('await markGraveyardChildEventComplete("abandoned");'), "leaving the child must persist the abandoned branch");
 assert(map.includes("RUMOR_SAVED_CHILD_EVENT_FLAG") && map.includes("launchRumorSavedChildEventFromVillage"), "rescued-child rumor follow-up must be wired into the village");
 assert(map.includes('mapLaunchParams.get("storyEvent") === "rumor_saved_child_01"'), "rumor event needs a direct preview route");
