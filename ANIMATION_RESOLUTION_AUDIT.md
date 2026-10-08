@@ -17,25 +17,19 @@
 | Bone Golem | `art/v2-style/animation-sheets/green-raw/bone-golem-animation-sheet.jpg` | 1280×1280 | 약 230~280 × 258~270px | 중~높음 | 시트는 크지만 개별 프레임은 300px 미만 |
 | Ice Princess | `art/v2-style/animation-sheets/green-raw/ice-princess-animation-sheet.jpg` | 1280×576 | 약 162~210 × 178~200px | 매우 높음 | 현재 확인군 중 가장 작은 축에 속함 |
 | Goblin Soldier | `art/v2-style/animation-sheets/green-raw/goblin-soldier-1.jpg` | 1280×575 | 공격 178~248 × 204px, 사망 178~188 × 155px | 매우 높음 | 사망 프레임 높이 155px |
-| Goblin Soldier | `art/v2-style/animation-sheets/green-raw/goblin-soldier-2.jpg` | 1280×575 | 피격 154~216 × 190px, 사망 190 × 113px | 최우선 | 현재 측정 중 가장 작은 프레임이 포함됨 |
-
-## 추가 확인 필요
-
-아래 파일은 위 시트와 한 세트로 실제 런타임에서 사용되지만 아직 이 문서 작성 시점에는 전체 해상도/프레임 크기 측정을 완료하지 않았다.
-
-- `art/v2-style/animation-sheets/green-raw/hydra-2.jpg`
-- `art/v2-style/animation-sheets/green-raw/goblin-soldier-3.jpg`
+| Goblin Soldier | `art/v2-style/animation-sheets/green-raw/goblin-soldier-2.jpg` | 1280×575 | 피격 154~216 × 190px, 사망 190 × 113px | 최우선 | 매우 작은 사망 프레임 포함 |
+| Hydra | `art/v2-style/animation-sheets/green-raw/hydra-2.jpg` | 1280×576 | 약 174~212 × 86px | 최우선 | 현재 확인된 프레임 중 세로 해상도가 가장 낮음 |
+| Goblin Soldier | `art/v2-style/animation-sheets/green-raw/goblin-soldier-3.jpg` | 1280×575 | 약 190 × 113px | 최우선 | 마지막 사망 프레임용 보조 시트 |
 
 ## 현재 판단
 
 - 시트 전체가 1280px이어도 한 시트 안에 여러 프레임을 배치하기 때문에 실제 한 프레임은 대부분 약 180~280px 수준이다.
 - 모바일에서는 표시 크기가 작아 문제가 잘 드러나지 않지만, Godot에서 전투 마물을 400~600px 이상으로 확대하면 원본 디테일 부족이 눈에 띌 수 있다.
-- 우선 교체 후보는 `goblin-soldier-2`, `ice-princess`, `hydra-1`, `bone-hound` 순으로 본다.
+- 우선 교체 후보는 `hydra-2`, `goblin-soldier-2/3`, `ice-princess`, `hydra-1`, `bone-hound` 순으로 본다.
 - 고해상도 교체 시 한 프레임 기준 최소 512px급, 가능하면 768~1024px급 원본을 확보하고 Godot에서 축소 표시하는 방향이 안전하다.
 
 ## 다음 조사 순서
 
-1. `hydra-2.jpg`, `goblin-soldier-3.jpg` 측정
-2. 나머지 직접 참조 시트 2개 단위로 계속 측정
-3. 위험 시트 전체 목록 확정
-4. 가장 심한 시트부터 고해상도 원본/재생성 여부 결정
+1. 나머지 직접 참조 시트를 2~5개 단위로 계속 측정
+2. 위험 시트 전체 목록 확정
+3. 가장 심한 시트부터 고해상도 원본/재생성 여부 결정
