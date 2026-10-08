@@ -7033,7 +7033,8 @@
       else if (activeStoryEventId === "cultist_rumor_01") void advanceCultistRumorBeat();
       else if (activeStoryEventId === "cultist_altar_encounter_01") advanceCultistAltarBeat();
       else if (activeStoryEventId === "ritual_portal_trace_01") void advanceRitualPortalBeat();
-      else advanceGraveyardStoryBeat();
+      else if (activeStoryEventId === "monster_king_hunt_trace_01") void advanceMonsterKingHuntBeat();
+      else if (activeStoryEventId === "graveyard_child_ambush_01") advanceGraveyardStoryBeat();
     });
   }
 
