@@ -209,13 +209,16 @@ async function activate(page, selector) {
 
     await page.locator("#eventDialogueAdvance").click();
     await page.waitForSelector("#eventChoices", { state:"visible" });
-    await page.waitForTimeout(520);
+    await page.waitForTimeout(700);
     const choiceVisual = await page.evaluate(() => ({
       isChoice: document.getElementById("eventCard")?.classList.contains("is-choice"),
       filter: getComputedStyle(document.getElementById("eventBaseImage")).filter
     }));
     assert.equal(choiceVisual.isChoice, true);
-    assert(choiceVisual.filter.includes("brightness(0.58)"));
+    const brightnessMatch = choiceVisual.filter.match(/brightness\\(([-\\d.]+)(%)?\\)/);
+    assert(brightnessMatch, `choice filter must include brightness(): ${choiceVisual.filter}`);
+    const brightness = Number(brightnessMatch[1]) / (brightnessMatch[2] ? 100 : 1);
+    assert(Math.abs(brightness - 0.58) < 0.03, `choice brightness must settle near 0.58: ${choiceVisual.filter}`);
     console.log("PASS: Event Lab gaze-directed beats");
 
     const unifiedInfo = await page.evaluate(() => {
