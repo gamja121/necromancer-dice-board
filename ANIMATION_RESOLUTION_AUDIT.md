@@ -45,6 +45,11 @@
 | Spider Knight | `art/v2-style/animation-sheets/green-raw/spider-knight-animation-sheet.jpg` | 1280×576 | 런타임 분해 프레임 280×250px | 높음 | PC 확대 시 선명도 저하 가능 |
 | Spiderling | `art/v2-style/animation-sheets/green-raw/spiderling-animation-sheet.jpg` | 1280×698 | 런타임 분해 프레임 260×250px | 매우 높음 | 이번 확인군 중 가장 작은 프레임 폭 |
 | Raging Treant | `art/v2-style/animation-sheets/green-raw/raging-treant-animation-sheet.jpg` | 1280×575 | 런타임 분해 프레임 300×250px | 높음 | 세로 250px 기준이라 확대 시 한계 |
+| Corpse Slime | `art/v2-style/animation-sheets/green-raw/corpse-slime-animation-sheet.jpg` | 1280×575 | 런타임 분해 프레임 280×270px | 높음 | PC 확대 시 선명도 저하 가능 |
+| Crystal Devourer | `art/v2-style/animation-sheets/green-raw/crystal-devourer-animation-sheet.jpg` | 1280×575 | 런타임 분해 프레임 280×250px | 높음 | 세로 250px 기준이라 확대 시 한계 |
+| Flesh Golem | `art/v2-style/animation-sheets/green-raw/flesh-golem-animation-sheet.jpg` | 1280×575 | 런타임 분해 프레임 260×250px | 매우 높음 | 400px 이상 표시 시 확대율이 큼 |
+| Grave Worm | `art/v2-style/animation-sheets/green-raw/grave-worm-animation-sheet.jpg` | 1280×714 | 런타임 분해 프레임 280×250px | 높음 | 세로 250px 기준이라 확대 시 한계 |
+| Yeti | `art/v2-style/animation-sheets/green-raw/yeti-animation-sheet.jpg` | 1280×698 | 런타임 분해 프레임 250×250px | 매우 높음 | 400px 이상 표시 시 확대율이 큼 |
 
 ## 현재 판단
 
