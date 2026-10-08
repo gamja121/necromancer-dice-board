@@ -215,7 +215,7 @@ async function activate(page, selector) {
       filter: getComputedStyle(document.getElementById("eventBaseImage")).filter
     }));
     assert.equal(choiceVisual.isChoice, true);
-    const brightnessMatch = choiceVisual.filter.match(/brightness\\(([-\\d.]+)(%)?\\)/);
+    const brightnessMatch = choiceVisual.filter.match(/brightness\(([-\d.]+)(%)?\)/);
     assert(brightnessMatch, `choice filter must include brightness(): ${choiceVisual.filter}`);
     const brightness = Number(brightnessMatch[1]) / (brightnessMatch[2] ? 100 : 1);
     assert(Math.abs(brightness - 0.58) < 0.03, `choice brightness must settle near 0.58: ${choiceVisual.filter}`);
