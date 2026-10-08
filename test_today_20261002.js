@@ -515,7 +515,7 @@ assert(map.includes('return tileId === designatedTileId || tileId === "event";')
 assert(map.includes('storyEventTriggerMatches(tileId, "graveyard")'), "graveyard story must trigger on graveyard or event tile");
 assert(map.includes('storyEventTriggerMatches(tileId, "village")'), "village stories must trigger on village or event tile");
 assert(map.indexOf('storyEventTriggerMatches(tileId, "graveyard")') < map.indexOf('storyEventTriggerMatches(tileId, "village")'), "event tile must resolve the earliest pending story event first");
-assert(map.includes('tile.id === "graveyard" || tile.id === "village" || tile.id === "unknown" || tile.id === "event"'), "manual tile activation must use the shared story dispatcher including world tree");
+assert(map.includes('tile.id === "graveyard" || tile.id === "village" || tile.id === "unknown" || tile.id === "altar" || tile.id === "event"'), "manual tile activation must use the shared story dispatcher including altar and world tree");
 assert(map.includes('currentTiles[heroIndex]?.id === "graveyard"') && map.includes('|| currentTiles[heroIndex]?.id === "unknown"') && map.includes('|| currentTiles[heroIndex]?.id === "event"'), "dice landing must include graveyard, village, world tree and event in the shared story dispatcher");
 
 assert(map.includes('mapLaunchParams.get("storyEvent") === "rumor_abandoned_child_01"'), "abandoned-child rumor needs a direct preview route");
