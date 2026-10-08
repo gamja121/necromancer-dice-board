@@ -564,7 +564,8 @@ assert(mapCss.includes("width:58%!important") && mapCss.includes("height:78%!imp
 
 assert(map.includes("CULTIST_RUMOR_BEATS"), "cultist rumor must have its own story beats");
 assert(map.includes('id: "procession"') && map.includes('visual: "procession"'), "cultist rumor must reveal the event-background layered image before dialogue");
-assert(map.indexOf('id: "procession"') < map.indexOf('id: "gossip"'), "cultist layered image must be shown before the first rumor dialogue");
+const cultistBeatStart = map.indexOf("CULTIST_RUMOR_BEATS");
+assert(map.indexOf('id: "procession"', cultistBeatStart) < map.indexOf('id: "gossip"', cultistBeatStart), "cultist layered image must be shown before the first rumor dialogue");
 assert(map.includes("마물의 왕을 다시 불러내려는 자들이 있다는 말도 있어."), "cultist rumor must seed the monster-king revival lead");
 assert(map.includes("launchCultistRumorEventFromVillage"), "cultist rumor launcher must exist");
 assert(map.includes('mapLaunchParams.get("storyEvent") === "cultist_rumor_01"'), "cultist rumor needs a direct preview route");
