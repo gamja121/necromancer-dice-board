@@ -2508,18 +2508,18 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .hunter-story-portrait-layer{
   position:absolute!important;
   z-index:10!important;
-  right:2%!important;
+  right:3%!important;
   bottom:25%!important;
-  width:46%!important;
-  height:68%!important;
+  width:43%!important;
+  height:64%!important;
   object-fit:cover!important;
   object-position:right center!important;
   pointer-events:none!important;
   user-select:none!important;
   image-rendering:auto!important;
-  opacity:.98;
-  filter:brightness(.96) contrast(1.02) saturate(.78)
-         drop-shadow(0 10px 12px rgba(0,0,0,.56));
+  opacity:.94;
+  filter:brightness(.88) contrast(.92) saturate(.64) blur(.35px)
+         drop-shadow(0 8px 10px rgba(0,0,0,.46));
 }
 .hunter-story-portrait-layer[hidden]{display:none!important}
 .hunter-story-portrait-layer.is-entering{
@@ -2527,7 +2527,7 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 }
 @keyframes hunter-portrait-enter{
   0%{opacity:0;transform:translate3d(7%,2%,0) scale(.96);filter:brightness(.67) contrast(1.02) saturate(.68) drop-shadow(0 6px 8px rgba(0,0,0,.42))}
-  100%{opacity:.98;transform:translate3d(0,0,0) scale(1);filter:brightness(.96) contrast(1.02) saturate(.78) drop-shadow(0 10px 12px rgba(0,0,0,.56))}
+  100%{opacity:.94;transform:translate3d(0,0,0) scale(1);filter:brightness(.88) contrast(.92) saturate(.64) blur(.35px) drop-shadow(0 8px 10px rgba(0,0,0,.46))}
 }
 @media (prefers-reduced-motion:reduce){
   .hunter-story-scene-layer.is-entering,
