@@ -1201,7 +1201,6 @@
   }
 
   let forestDioramaTimers = [];
-  let forestDioramaFromTile = false;
 
   function clearForestDioramaTimers() {
     forestDioramaTimers.forEach((timer) => window.clearTimeout(timer));
@@ -1832,14 +1831,13 @@
     document.querySelector(".map-lab")?.classList.remove("is-village-diorama-open");
   }
 
-  function openForestDioramaTest(options = {}){
+  function openForestDioramaTest(){
     if (!el.forestDioramaTest || !el.board) return;
     closeAudioOptions();
     if (el.villageDioramaTest && !el.villageDioramaTest.hidden) closeVillageDioramaTest();
     clearForestDioramaTimers();
 
-    forestDioramaFromTile = options.fromTile === true;
-    if (el.forestLayerDebug) el.forestLayerDebug.hidden = forestDioramaFromTile;
+    if (el.forestLayerDebug) el.forestLayerDebug.hidden = false;
     document.querySelector(".map-lab")?.classList.add("is-forest-diorama-open");
     el.board.classList.remove("is-forest-zooming", "is-forest-tilted", "is-forest-trees");
     el.forestDioramaTest.classList.remove("is-zooming", "is-tilted", "is-playing");
@@ -1874,29 +1872,6 @@
     resetForestTreeDebug();
     document.querySelector(".map-lab")?.classList.remove("is-forest-diorama-open");
 
-    if (forestDioramaFromTile) {
-      eventOpen = false;
-      activeEventTileId = null;
-      rolling = false;
-      el.diceButton.disabled = false;
-      el.regenerate.disabled = false;
-      el.diceButton.focus();
-    }
-    forestDioramaFromTile = false;
-  }
-
-  function openForestTileEvent(tile, step) {
-    if (!tile || tile.id !== "forest" || enteringBattle || eventOpen) return false;
-    beginTileVisit(step);
-    eventOpen = true;
-    activeEventTileId = "forest";
-    activeEventRatio = tileEventRatios.forest || WORLD_TREE_EVENT_RATIO;
-    el.diceButton.disabled = true;
-    el.regenerate.disabled = true;
-    el.eventOverlay.hidden = true;
-    el.board.classList.remove("is-tile-event-open");
-    openForestDioramaTest({ fromTile: true });
-    return true;
   }
 
   function wait(milliseconds) {
@@ -4007,7 +3982,6 @@
   }
 
   function openTileEvent(tile, step) {
-    if (tile?.id === "forest") return openForestTileEvent(tile, step);
     const scene = tileEventScenes[tile?.id];
     if (!scene || enteringBattle) return false;
     beginTileVisit(step);
@@ -5220,7 +5194,7 @@
     V2Sfx.setEnabled(!V2Sfx.isEnabled());
     renderAudioOptions();
   });
-  el.forestDioramaTestButton?.addEventListener("click", () => openForestDioramaTest({ fromTile: false }));
+  el.forestDioramaTestButton?.addEventListener("click", openForestDioramaTest);
   el.villageDioramaTestButton?.addEventListener("click", openVillageDioramaTest);
   el.graveyardDioramaTestButton?.addEventListener("click", openGraveyardDioramaTest);
   el.graveyardLayerDebug?.addEventListener("click",(event)=>{
