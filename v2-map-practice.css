@@ -2508,10 +2508,10 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .hunter-story-portrait-layer{
   position:absolute!important;
   z-index:10!important;
-  right:3%!important;
+  right:2%!important;
   bottom:25%!important;
-  width:46%!important;
-  height:68%!important;
+  width:58%!important;
+  height:78%!important;
   object-fit:contain!important;
   object-position:right bottom!important;
   pointer-events:none!important;
