@@ -220,3 +220,137 @@
 
 그리고 현재 저장소의 수백 MB 차이는 브랜치 수만으로 설명되지 않는다.
 안전을 최우선으로 하면, 지금은 rollback과 열린 PR을 남기고 **명백히 대체된 26개 작업 브랜치만 별도 승인 후 정리**하는 것이 맞다.
+
+
+---
+
+# 3차 최종 삭제 목록 재점검 — 2026-10-08
+
+사용자 요청에 따라 **삭제 대상으로 잡아둔 브랜치만 다시 검사**했다. 이번 검사는 삭제 직전 확인 수준으로 진행했으며, 아직 실제 삭제는 하지 않았다.
+
+## 추가 검증 항목
+
+- 현재 전체 Pull Request 28개(open/closed/merged)를 다시 조회
+- 삭제 후보가 현재 OPEN PR의 head인지 재확인
+- 삭제 후보 중 merged PR 브랜치는 실제 `merged_at`까지 확인
+- 미병합/PR 없음 브랜치는 고유 커밋과 고유 파일을 다시 확인
+- 현재 main의 4개 GitHub Actions workflow가 옛 브랜치 이름에 의존하는지 확인
+- 주요 타이틀/늪/상점 바이너리 SHA를 main과 비교
+- 현재 main HEAD `6e6ab7e2a6965f1f8ab900cbe830d541c79891ac`의 `Verify and deploy` 실행 성공 확인
+
+## 삭제 목록에서 제외 상태 재확인
+
+다음은 **삭제 금지** 상태를 그대로 유지한다.
+
+- rollback 22개
+- OPEN PR head 5개
+  - `chatgpt/title-fullscreen-landscape-on-start-20260930` — PR #22
+  - `chatgpt/title-visibility-contrast-20260930` — PR #20
+  - `chatgpt/ci-asset-pipeline-tests-20260929` — PR #11
+  - `chatgpt/title-screen-clean-20260929` — PR #10
+  - `codex/run-state-design-20260929` — PR #1
+
+이 27개는 최종 삭제 목록에 포함하지 않는다.
+
+## 최종 삭제 가능 — 28개
+
+### 1) 이미 Pull Request가 merge된 브랜치 — 21개
+
+아래 브랜치는 GitHub에서 PR의 `merged_at`을 직접 확인했다. 소스 브랜치를 지워도 merge된 main 내용과 PR 기록은 유지된다.
+
+- `codex/restore-ci-gates-20261003` — PR #28 merged
+- `chatgpt/shop-counter-ui-20260930` — PR #26 merged
+- `chatgpt/fix-swamp-transparency-20260930` — PR #25 merged
+- `chatgpt/all-monsters-encounters-20260930` — PR #24 merged
+- `chatgpt/add-polluted-swamp-20260930` — PR #23 merged
+- `chatgpt/force-landscape-launch-20260930` — PR #21 merged
+- `chatgpt/title-structural-fix-cache-20260930` — PR #19 merged
+- `chatgpt/title-remove-portrait-fix-overlap-20260930` — PR #18 merged
+- `chatgpt/title-layout-fix-20260930` — PR #17 merged
+- `chatgpt/title-logo-up-exit-tone-20260930` — PR #16 merged
+- `chatgpt/title-remove-rotate-guide-20260930` — PR #15 merged
+- `chatgpt/title-menu-layout-select-20260930` — PR #14 merged
+- `chatgpt/title-video-final-20260930` — PR #13 merged
+- `chatgpt/title-complete-20260930` — PR #12 merged
+- `chatgpt/cache-followup-20260929` — PR #8 merged
+- `chatgpt/cache-cleanup-20260929` — PR #7 merged
+- `chatgpt/capture-resume-20260929` — PR #6 merged
+- `chatgpt/battle-rng-state-20260929` — PR #5 merged
+- `chatgpt/battle-checkpoint-20260929` — PR #4 merged
+- `chatgpt/run-state-runtime-20260929` — PR #3 merged
+- `chatgpt/run-state-adapter-20260929` — PR #2 merged
+
+### 2) 임시 백업 실행 브랜치 — 1개
+
+- `backup-sync-temp-20261003`
+  - PR #27은 closed / unmerged.
+  - 고유 커밋 2개는 "Temporary PR trigger for backup export", "Run temporary backup artifact".
+  - 실제 diff는 `.github/workflows/drive-backup-export.yml`에 임시 `pull_request:` 트리거와 주석을 추가한 3줄뿐.
+  - 현재 main의 backup workflow는 `main` push + `workflow_dispatch` 구조로 정상 존재.
+  - 최종 판정: **삭제 안전**.
+
+### 3) 현행 타이틀로 완전히 대체된 옛 실험 브랜치 — 4개
+
+- `chatgpt/title-deploy-20260929`
+- `chatgpt/title-screen-20260929`
+- `chatgpt/title-screen-deploy-20260929`
+- `chatgpt/title-screen-final-20260929`
+
+재검증 결과:
+- 네 브랜치 모두 현재 OPEN PR의 head가 아니다.
+- `title-screen-deploy`의 PR #9는 이미 closed / unmerged다.
+- 옛 `index.html / launch.css / launch.js`는 이후 merge된 title 브랜치들과 현재 main 구현으로 대체됐다.
+- `assemble-title-media.yml`은 옛 `.title-upload/*.b64`를 합치기 위한 일회성 업로드 workflow이며 main에 없고 현재 배포도 의존하지 않는다.
+- 옛 `test_title_screen.js`는 main의 현재 캐시 버전과 맞지 않는 역사적 테스트이고 현재 CI에서 실행되지 않는다.
+- 현재 main의 browser smoke는 title unlock, New Game, Continue를 실제 브라우저로 검사한다.
+- 최종 타이틀 7개 미디어 파일은 `chatgpt/title-video-final-20260930`과 현재 main의 Git blob SHA가 모두 동일하다.
+- 최종 판정: **삭제 안전**.
+
+### 4) main의 과거 커밋만 가리키는 정리용 브랜치 — 2개
+
+- `asset-stage-hunter` — ahead 0
+- `tmp-forest-hq-upload` — ahead 0
+
+둘 다:
+- 브랜치 고유 커밋 없음
+- OPEN PR 없음
+- 현재 main workflow에서 브랜치명 참조 없음
+
+최종 판정: **삭제 안전**. 단 저장소 용량 절감 효과는 거의 없다.
+
+## 현재 workflow 의존성 확인
+
+main에 있는 workflow는 다음과 같다.
+
+- `drive-backup-export.yml`
+- `image-backup.yml`
+- `stage-clean-info-window.yml`
+- `verify-and-deploy.yml`
+
+확인 결과:
+- 배포/검증은 `main` 기준
+- 백업 workflow도 `main` 기준
+- `stage-clean-info-window.yml`의 `.asset-stage/**`는 **파일 경로 조건**이며 `asset-stage-hunter` 브랜치 의존이 아니다.
+- 삭제 예정 브랜치 이름을 직접 요구하는 현행 workflow는 없다.
+
+## 삭제 직전 기준선
+
+- main HEAD: `6e6ab7e2a6965f1f8ab900cbe830d541c79891ac`
+- GitHub Actions: **Verify and deploy = success**
+- 삭제 작업은 main 파일을 수정하지 않고 branch ref만 제거해야 한다.
+- rollback 22개와 OPEN PR head 5개는 건드리지 않는다.
+
+## 최종 결론
+
+**삭제 목록 28개는 현재 상태 기준으로 실제 삭제해도 된다.**
+
+위험도가 가장 낮은 근거:
+1. 21개는 이미 PR merge 완료
+2. 2개는 고유 커밋이 아예 없음
+3. 1개는 임시 backup 실행용 3줄 diff뿐
+4. 나머지 4개 옛 title 실험은 현재 main과 merge된 후속 title 구현으로 대체됨
+5. 삭제 후보 중 OPEN PR head는 0개
+6. 현재 workflow 의존 브랜치는 0개
+7. main 최신 CI/배포 검증 성공
+
+단, 이번 검사는 **브랜치 삭제 안전성**에 대한 최종 판정이다. 브랜치를 삭제한다고 저장소 용량이 크게 줄어든다는 뜻은 아니다.
