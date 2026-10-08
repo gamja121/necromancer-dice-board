@@ -2518,16 +2518,15 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   user-select:none!important;
   image-rendering:auto!important;
   opacity:.94;
-  filter:brightness(.88) contrast(.92) saturate(.64) blur(.35px)
-         drop-shadow(0 8px 10px rgba(0,0,0,.46));
+  filter:drop-shadow(0 8px 10px rgba(0,0,0,.46));
 }
 .hunter-story-portrait-layer[hidden]{display:none!important}
 .hunter-story-portrait-layer.is-entering{
   animation:hunter-portrait-enter .48s cubic-bezier(.18,.78,.2,1) both;
 }
 @keyframes hunter-portrait-enter{
-  0%{opacity:0;transform:translate3d(7%,2%,0) scale(.96);filter:brightness(.67) contrast(1.02) saturate(.68) drop-shadow(0 6px 8px rgba(0,0,0,.42))}
-  100%{opacity:.94;transform:translate3d(0,0,0) scale(1);filter:brightness(.88) contrast(.92) saturate(.64) blur(.35px) drop-shadow(0 8px 10px rgba(0,0,0,.46))}
+  0%{opacity:0;transform:translate3d(7%,2%,0) scale(.96);filter:drop-shadow(0 6px 8px rgba(0,0,0,.42))}
+  100%{opacity:.94;transform:translate3d(0,0,0) scale(1);filter:drop-shadow(0 8px 10px rgba(0,0,0,.46))}
 }
 @media (prefers-reduced-motion:reduce){
   .hunter-story-scene-layer.is-entering,
