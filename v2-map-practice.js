@@ -3566,10 +3566,6 @@
         }
         await V2RunStateRuntime.flush();
       }
-      if (pending.eventId === "cultist_altar_encounter_01") {
-        const stored = await markCultistAltarEncounterComplete("fight", false);
-        if (!stored) throw new Error("Cultist fight choice save rejected");
-      }
       const context = {
         eventId: pending.eventId,
         choiceId: pending.choiceId,
@@ -7104,11 +7100,14 @@
     try {
       const raw = sessionStorage.getItem(GRAVEYARD_EVENT_BATTLE_RESULT_KEY);
       if (raw) result = JSON.parse(raw);
-      sessionStorage.removeItem(GRAVEYARD_EVENT_BATTLE_RESULT_KEY);
     } catch (_) {}
     if (!result || result.eventId !== "cultist_altar_encounter_01") return false;
-    await markCultistAltarEncounterComplete("fight", result.won === true);
+    // A fight is complete only when its outcome has been received and saved.
+    // Keep the result until both persistence and the return scene succeed so
+    // a refresh after a save failure can retry instead of skipping the event.
+    if (!await markCultistAltarEncounterComplete("fight", result.won === true)) return false;
     await openCultistAltarEncounterEvent({ battleResult: result });
+    try { sessionStorage.removeItem(GRAVEYARD_EVENT_BATTLE_RESULT_KEY); } catch (_) {}
     return true;
   }
 
