@@ -25,6 +25,11 @@
 | Stone Golem | `art/v2-style/animation-sheets/green-raw/stone-golem-animation-sheet.jpg` | 1280×698 | 런타임 분해 프레임 280×270px | 높음 | Godot 확대 시 원본 한계 노출 가능 |
 | Doom Executor | `art/v2-style/animation-sheets/green-raw/doom-executor-animation-sheet.jpg` | 1280×575 | 런타임 분해 프레임 250×250px | 매우 높음 | 400px 이상 표시 시 확대율이 큼 |
 | Plague Doctor | `art/v2-style/animation-sheets/green-raw/plague-doctor-animation-sheet.jpg` | 1280×575 | 런타임 분해 프레임 250×250px | 매우 높음 | 400px 이상 표시 시 확대율이 큼 |
+| Death Knight | `art/v2-style/animation-sheets/green-raw/death-knight-animation-sheet.jpg` | 1280×796 | 런타임 분해 프레임 320×270px | 높음 | 세로 270px 기준이라 큰 화면 확대 시 한계 |
+| Goblin Rider | `art/v2-style/animation-sheets/green-raw/goblin-rider-animation-sheet.jpg` | 1280×575 | 런타임 분해 프레임 280×270px | 높음 | PC 확대 시 선명도 저하 가능 |
+| Orc Warrior | `art/v2-style/animation-sheets/green-raw/orc-warrior-animation-sheet.jpg` | 1280×698 | 런타임 분해 프레임 250×250px | 매우 높음 | 400px 이상 표시 시 확대율이 큼 |
+| Boulder Ogre | `art/v2-style/animation-sheets/green-raw/boulder-ogre-animation-sheet.jpg` | 1280×714 | 런타임 분해 프레임 250×250px | 매우 높음 | 400px 이상 표시 시 확대율이 큼 |
+| Plague Frog | `art/v2-style/animation-sheets/green-raw/plague-frog-animation-sheet.jpg` | 1280×575 | 런타임 분해 프레임 250×250px | 매우 높음 | 400px 이상 표시 시 확대율이 큼 |
 
 ## 현재 판단
 
