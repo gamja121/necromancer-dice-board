@@ -4885,7 +4885,7 @@
   const MONSTER_HUNTER_EVENT_SCENE_ART =
     "art/v2-style/map-test/events/monster-hunter-corrupted-beast-scene.webp?v=1";
   const MONSTER_HUNTER_EVENT_PORTRAIT_ART =
-    "art/v2-style/event-portraits/monster-hunter-hd.webp?v=2";
+    "art/v2-style/event-portraits/monster-hunter-user-cutout.webp?v=1";
   const KNIGHT_COMMANDER_EVENT_FALLBACK_ART =
     "art/v2-style/event-portraits/knight-commander-upperbody-hd.webp?v=1";
   const PLAYER_EVENT_FALLBACK_ART =

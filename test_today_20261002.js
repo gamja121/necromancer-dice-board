@@ -557,7 +557,7 @@ for (const asset of [
 assert(map.includes('visual: "base"'), "hunter encounter must open on the clean world-tree background without the scene layer");
 assert(map.includes('id: "warning"') && map.includes('visual: "scene"'), "hunter scene layer must first appear on the next beat");
 assert(map.includes('beat.id === "warning" || beat.id === "unnatural" || beat.id === "clue"'), "hunter scene reveal animation must start on the second beat");
-assert(map.includes('art/v2-style/event-portraits/monster-hunter-hd.webp?v=2'), "hunter dialogue portrait must use the transparent hunter portrait asset");
+assert(map.includes('art/v2-style/event-portraits/monster-hunter-user-cutout.webp?v=1'), "hunter dialogue portrait must use the transparent hunter portrait asset");
 assert(!mapCss.includes("mix-blend-mode:multiply!important"), "transparent hunter portrait must not use paper-background blending");
 assert(mapCss.includes("width:46%!important") && mapCss.includes("height:68%!important"), "hunter dialogue portrait must stay visually comparable to the other portraits");
 

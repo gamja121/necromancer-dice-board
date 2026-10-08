@@ -72,7 +72,7 @@ const CORE_ASSETS = [
   "./art/v2-style/map-test/events/rumor-villagers-turn.webp?v=2",
   "./art/v2-style/map-test/events/rumor-necromancer.webp?v=2",
   "./art/v2-style/map-test/events/knight-commander-village-day.webp?v=1",
-  "./art/v2-style/event-portraits/monster-hunter-hd.webp?v=2",
+  "./art/v2-style/event-portraits/monster-hunter-user-cutout.webp?v=1",
   "./art/v2-style/map-test/events/monster-hunter-corrupted-beast-scene.webp?v=1",
   "./art/v2-style/map-test/events/monster-hunter-worldtree-base.webp?v=1",
 
