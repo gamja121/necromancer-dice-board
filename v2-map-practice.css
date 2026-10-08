@@ -2512,8 +2512,8 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   bottom:25%!important;
   width:46%!important;
   height:68%!important;
-  object-fit:cover!important;
-  object-position:right center!important;
+  object-fit:contain!important;
+  object-position:right bottom!important;
   pointer-events:none!important;
   user-select:none!important;
   image-rendering:auto!important;
