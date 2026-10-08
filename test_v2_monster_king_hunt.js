@@ -135,8 +135,8 @@ async function main() {
   assert(source.includes('if (!eventOpen) openTileEvent(tile, heroIndex + 1)'));
   assert(source.includes('mapLaunchParams.get("storyEvent") === "monster_king_hunt_trace_01"'));
   assert(!source.includes('eventReturn: "map-monster-king-hunt"'), "hunt must never trigger boss battle");
-  assert(html.includes("v2-map-practice.js?v=20261009-story-deck-select-v1"));
-  assert(worker.includes("./v2-map-practice.js?v=20261009-story-deck-select-v1"));
+  assert(html.includes("v2-map-practice.js?v=20261009-hill-standard-art-v1"));
+  assert(worker.includes("./v2-map-practice.js?v=20261009-hill-standard-art-v1"));
   console.log("PASS: monster king hunt eligibility, both branches, atomic save, recovery, fallback, scene and boss isolation");
 }
 
