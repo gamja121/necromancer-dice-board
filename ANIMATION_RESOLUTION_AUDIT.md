@@ -20,12 +20,17 @@
 | Goblin Soldier | `art/v2-style/animation-sheets/green-raw/goblin-soldier-2.jpg` | 1280×575 | 피격 154~216 × 190px, 사망 190 × 113px | 최우선 | 매우 작은 사망 프레임 포함 |
 | Hydra | `art/v2-style/animation-sheets/green-raw/hydra-2.jpg` | 1280×576 | 약 174~212 × 86px | 최우선 | 현재 확인된 프레임 중 세로 해상도가 가장 낮음 |
 | Goblin Soldier | `art/v2-style/animation-sheets/green-raw/goblin-soldier-3.jpg` | 1280×575 | 약 190 × 113px | 최우선 | 마지막 사망 프레임용 보조 시트 |
+| Skeleton Spear | `art/v2-style/animation-sheets/green-raw/skeleton-spear-animation-sheet.jpg` | 1280×714 | 런타임 분해 프레임 280×270px | 높음 | 웹 전투는 `animation-test-frames/skeleton-spear/` 사용 |
+| Ancient Treant | `art/v2-style/animation-sheets/green-raw/ancient-treant-animation-sheet.jpg` | 1280×575 | 런타임 분해 프레임 280×270px | 높음 | Godot 확대 시 원본 한계 노출 가능 |
+| Stone Golem | `art/v2-style/animation-sheets/green-raw/stone-golem-animation-sheet.jpg` | 1280×698 | 런타임 분해 프레임 280×270px | 높음 | Godot 확대 시 원본 한계 노출 가능 |
+| Doom Executor | `art/v2-style/animation-sheets/green-raw/doom-executor-animation-sheet.jpg` | 1280×575 | 런타임 분해 프레임 250×250px | 매우 높음 | 400px 이상 표시 시 확대율이 큼 |
+| Plague Doctor | `art/v2-style/animation-sheets/green-raw/plague-doctor-animation-sheet.jpg` | 1280×575 | 런타임 분해 프레임 250×250px | 매우 높음 | 400px 이상 표시 시 확대율이 큼 |
 
 ## 현재 판단
 
 - 시트 전체가 1280px이어도 한 시트 안에 여러 프레임을 배치하기 때문에 실제 한 프레임은 대부분 약 180~280px 수준이다.
 - 모바일에서는 표시 크기가 작아 문제가 잘 드러나지 않지만, Godot에서 전투 마물을 400~600px 이상으로 확대하면 원본 디테일 부족이 눈에 띌 수 있다.
-- 우선 교체 후보는 `hydra-2`, `goblin-soldier-2/3`, `ice-princess`, `hydra-1`, `bone-hound` 순으로 본다.
+- 우선 교체 후보는 `hydra-2`, `goblin-soldier-2/3`, `ice-princess`, `hydra-1`, `bone-hound`, `doom-executor`, `plague-doctor` 순으로 본다.
 - 고해상도 교체 시 한 프레임 기준 최소 512px급, 가능하면 768~1024px급 원본을 확보하고 Godot에서 축소 표시하는 방향이 안전하다.
 
 ## 다음 조사 순서
