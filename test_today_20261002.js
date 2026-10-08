@@ -143,7 +143,7 @@ assert(battle.includes("const count = constrainedMapEnemyCount(rolledCount);"));
 assert(battle.includes("constrainedMapEnemyCount(mimicCount)"));
 
 // Current cache/version wiring.
-assert(mapHtml.includes("v2-map-practice.js?v=20261008-hunter-layer-reveal-v1"));
+assert(mapHtml.includes("v2-map-practice.js?v=20261008-cultist-rumor-v1"));
 assert(mapCss.includes("z-index:120"), "Map options button must stay above map UI");
 assert(battleHtml.includes("v2-auto-battle-practice.js?v=138"));
 for (const required of [
@@ -161,7 +161,7 @@ for (const required of [
   "./assets/intro-data/commander/part-000.txt",
   "./assets/intro-data/commander/part-014.rev.txt",
   "./art/v2-style/ui/intro-dialogue-box.webp?v=6",
-  "./v2-map-practice.js?v=20261008-hunter-layer-reveal-v1",
+  "./v2-map-practice.js?v=20261008-cultist-rumor-v1",
   "./v2-auto-battle-practice.js?v=138",
   "./v2-heal-effect.js?v=1",
   "./v2-music.js?v=3",
@@ -180,8 +180,8 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!/(^|\\n)\\.map-options-button\\s*\\{\\s*visibility:\\s*hidden;\\s*\\}/.test(mapCss));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261008-hunter-pen-clean-v1"));
-assert(worker.includes("./v2-map-practice.css?v=20261008-hunter-pen-clean-v1"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261008-cultist-rumor-v1"));
+assert(worker.includes("./v2-map-practice.css?v=20261008-cultist-rumor-v1"));
 assert(mapHtml.includes('id="villageDioramaTestButton"'));
 assert(mapHtml.includes('id="villageDioramaTest"'));
 assert(mapHtml.includes("village-building-01.webp?v=20261005-graveyard-poster-stage17-1"));
@@ -561,6 +561,18 @@ assert(map.includes('beat.id === "warning_reveal" || beat.id === "unnatural" || 
 assert(map.includes('art/v2-style/event-portraits/monster-hunter-pen-clean.webp?v=1'), "hunter dialogue portrait must use the transparent hunter portrait asset");
 assert(!mapCss.includes("mix-blend-mode:multiply!important"), "transparent hunter portrait must not use paper-background blending");
 assert(mapCss.includes("width:58%!important") && mapCss.includes("height:78%!important"), "hunter dialogue portrait must stay enlarged to visually match the protagonist");
+
+assert(map.includes("CULTIST_RUMOR_BEATS"), "cultist rumor must have its own story beats");
+assert(map.includes('id: "procession"') && map.includes('visual: "procession"'), "cultist rumor must reveal the event-background layered image before dialogue");
+assert(map.indexOf('id: "procession"') < map.indexOf('id: "gossip"'), "cultist layered image must be shown before the first rumor dialogue");
+assert(map.includes("마물의 왕을 다시 불러내려는 자들이 있다는 말도 있어."), "cultist rumor must seed the monster-king revival lead");
+assert(map.includes("launchCultistRumorEventFromVillage"), "cultist rumor launcher must exist");
+assert(map.includes('mapLaunchParams.get("storyEvent") === "cultist_rumor_01"'), "cultist rumor needs a direct preview route");
+assert(mapHtml.includes('id="cultistRumorLayer"'), "cultist rumor layered image element must exist");
+assert(mapCss.includes(".cultist-rumor-layer"), "cultist rumor layered image positioning CSS must exist");
+assert(fs.existsSync("art/v2-style/map-test/events/cultist-rumor-procession.webp"), "Cultist rumor layered artwork missing");
+assert(worker.includes("./art/v2-style/map-test/events/cultist-rumor-procession.webp?v=1"), "Cultist rumor layered artwork must be precached");
+assert(fs.statSync("art/v2-style/map-test/events/cultist-rumor-procession.webp").size >= 500000, "Cultist rumor layered artwork must stay high quality (>=500KB)");
 
 assert(map.includes('storyEventTriggerMatches(tileId, "village")'), "commander encounter must inherit the village-or-event trigger rule");
 assert(map.includes("KNIGHT_COMMANDER_CONTAMINATION_BEATS"), "commander encounter must have its own dialogue beats");

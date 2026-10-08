@@ -2532,3 +2532,28 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
   .hunter-story-scene-layer.is-entering,
   .hunter-story-portrait-layer.is-entering{animation:none!important}
 }
+
+
+/* Cultist rumor: event-background layered image over the approved night-village painting. */
+.cultist-rumor-layer{
+  position:absolute!important;
+  z-index:9!important;
+  left:1%!important;
+  bottom:0!important;
+  width:98%!important;
+  height:100%!important;
+  object-fit:contain!important;
+  object-position:center bottom!important;
+  pointer-events:none!important;
+  user-select:none!important;
+  image-rendering:auto!important;
+  opacity:1;
+  filter:drop-shadow(0 10px 13px rgba(0,0,0,.52));
+}
+.cultist-rumor-layer[hidden]{display:none!important}
+.cultist-rumor-layer.is-entering{animation:cultist-rumor-enter .5s cubic-bezier(.18,.78,.2,1) both}
+@keyframes cultist-rumor-enter{
+  0%{opacity:0;transform:translate3d(0,2%,0) scale(.985);filter:drop-shadow(0 5px 7px rgba(0,0,0,.35))}
+  100%{opacity:1;transform:translate3d(0,0,0) scale(1);filter:drop-shadow(0 10px 13px rgba(0,0,0,.52))}
+}
+@media (prefers-reduced-motion:reduce){.cultist-rumor-layer.is-entering{animation:none!important}}
