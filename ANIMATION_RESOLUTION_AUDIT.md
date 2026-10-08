@@ -40,6 +40,11 @@
 | Kraken | `art/v2-style/animation-sheets/green-raw/kraken-animation-sheet.jpg` | 1280×575 | 런타임 분해 프레임 280×250px | 높음 | PC 확대 시 선명도 저하 가능 |
 | Mimic | `art/v2-style/animation-sheets/green-raw/mimic-animation-sheet.jpg` | 1280×576 | 런타임 분해 프레임 320×250px | 높음 | 세로 250px 기준이라 확대 시 한계 |
 | Mushroom Soldier | `art/v2-style/animation-sheets/green-raw/mushroom-soldier-animation-sheet.jpg` | 1280×576 | 런타임 분해 프레임 280×250px | 높음 | 세로 250px 기준이라 확대 시 한계 |
+| Sea Wolf | `art/v2-style/animation-sheets/green-raw/sea-wolf-animation-sheet.jpg` | 1280×576 | 런타임 분해 프레임 280×250px | 높음 | PC 확대 시 선명도 저하 가능 |
+| Siren | `art/v2-style/animation-sheets/green-raw/siren-animation-sheet.jpg` | 1280×698 | 런타임 분해 프레임 280×250px | 높음 | 세로 250px 기준이라 확대 시 한계 |
+| Spider Knight | `art/v2-style/animation-sheets/green-raw/spider-knight-animation-sheet.jpg` | 1280×576 | 런타임 분해 프레임 280×250px | 높음 | PC 확대 시 선명도 저하 가능 |
+| Spiderling | `art/v2-style/animation-sheets/green-raw/spiderling-animation-sheet.jpg` | 1280×698 | 런타임 분해 프레임 260×250px | 매우 높음 | 이번 확인군 중 가장 작은 프레임 폭 |
+| Raging Treant | `art/v2-style/animation-sheets/green-raw/raging-treant-animation-sheet.jpg` | 1280×575 | 런타임 분해 프레임 300×250px | 높음 | 세로 250px 기준이라 확대 시 한계 |
 
 ## 현재 판단
 
