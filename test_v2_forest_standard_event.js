@@ -92,6 +92,6 @@ assert.equal(worldTree.nodes.eventImage.alt, "세계수 풍경");
 assert.equal(worldTree.nodes.eventPray.hidden, false, "World-tree action must remain intact");
 assert.equal(worldTree.nodes.eventHillScout.hidden, true, "Scouting is exclusive to hills");
 
-assert(html.includes("v2-map-practice.js?v=20261009-hill-standard-art-v1"));
-assert(sw.includes("./v2-map-practice.js?v=20261009-hill-standard-art-v1"));
+assert(html.includes("v2-map-practice.js?v=20261009-story-resume-safe-v1"));
+assert(sw.includes("./v2-map-practice.js?v=20261009-story-resume-safe-v1"));
 console.log("PASS: forest original illustration, scouting, revisit guard, story handoff, and other tiles");

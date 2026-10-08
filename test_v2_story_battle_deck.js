@@ -108,7 +108,7 @@ async function check() {
     assert.equal(url.searchParams.get("allies"), "hydra,ghoul,plague-doctor,death-knight");
     assert.deepEqual(t.savedParty(), ["monster-3","monster-0","monster-2","monster-1"]);
     assert.equal(t.session.has(t.context.STORY_BATTLE_DECK_PENDING_KEY), false);
-    assert.equal(t.altarCommits(), event.eventId === "cultist_altar_encounter_01" ? 1 : 0);
+    assert.equal(t.altarCommits(), 0, "entering any fight must not mark its story complete before a real outcome");
     console.log("PASS selected four actual monsters for " + event.eventId);
   }
   const single = scenario();
