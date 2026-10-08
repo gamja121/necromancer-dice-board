@@ -2477,9 +2477,9 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 
 /* Monster-hunter world-tree encounter layers. */
 .graveyard-story-event.is-hunter-event .graveyard-story-artwork{
-  object-fit:contain!important;
+  object-fit:cover!important;
   object-position:center center!important;
-  background:#182013!important;
+  background:transparent!important;
   image-rendering:auto!important;
 }
 .hunter-story-scene-layer{
