@@ -7157,11 +7157,11 @@
     try {
       const raw = sessionStorage.getItem(GRAVEYARD_EVENT_BATTLE_RESULT_KEY);
       if (raw) result = JSON.parse(raw);
-      sessionStorage.removeItem(GRAVEYARD_EVENT_BATTLE_RESULT_KEY);
     } catch (_) {}
     if (!result || result.eventId !== "ritual_portal_trace_01") return false;
-    await markRitualPortalEventComplete(result.won === true);
+    if (!await markRitualPortalEventComplete(result.won === true)) return false;
     await openRitualPortalTraceEvent({ battleResult: result });
+    try { sessionStorage.removeItem(GRAVEYARD_EVENT_BATTLE_RESULT_KEY); } catch (_) {}
     return true;
   }
 
@@ -7180,14 +7180,15 @@
     try {
       const raw = sessionStorage.getItem(GRAVEYARD_EVENT_BATTLE_RESULT_KEY);
       if (raw) result = JSON.parse(raw);
-      sessionStorage.removeItem(GRAVEYARD_EVENT_BATTLE_RESULT_KEY);
     } catch (_) {}
     if (!result || result.eventId !== "graveyard_child_ambush_01") return false;
-
     if (result.won === true) {
-      await markGraveyardChildEventComplete("rescued");
+      if (!await markGraveyardChildEventComplete("rescued")) return false;
       await openGraveyardStoryEvent({ rescued: true });
     }
+    // A failed rescue does not count as having saved or abandoned the child.
+    // Retain successful battle results until the story outcome is durable.
+    try { sessionStorage.removeItem(GRAVEYARD_EVENT_BATTLE_RESULT_KEY); } catch (_) {}
     return true;
   }
 
