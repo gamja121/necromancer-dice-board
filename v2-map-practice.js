@@ -397,6 +397,8 @@
   let activeTileVisitStep = null;
   let usedTileVisitActions = new Set();
   let selectedDeck = [];
+  let pendingStoryBattle = null;
+  const STORY_BATTLE_DECK_PENDING_KEY = "necromancer-story-battle-deck-pending-v1";
   let bookOpen = false;
   let bookAnimating = false;
   let bookMotions = [];
@@ -1001,24 +1003,11 @@
     return true;
   }
 
-  function currentPartyUnits() {
-    const runParty = globalThis.V2RunStateRuntime?.snapshot?.()?.party;
-    const candidateIds = Array.isArray(runParty) && runParty.length
-      ? runParty
-      : (selectedDeck.length ? selectedDeck : [...ownedUnits.keys()].slice(0, 4));
-    return candidateIds.map((instanceId) => ownedUnits.get(instanceId)).filter(Boolean).slice(0, 4);
-  }
-
   async function launchGraveyardChildEventFromMap() {
     if (graveyardChildEventConsumed()) return false;
-    const partyUnits = currentPartyUnits();
-    if (!partyUnits.length) return false;
-    if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
-      await V2RunStateRuntime.commitExact("party:event-graveyard-child", (draft) => {
-        draft.party = partyUnits.map((unit) => unit.instanceId);
-      });
-      await V2RunStateRuntime.flush();
-    }
+    if (ownedUnits.size < 1) return false;
+    // A story encounter must not freeze the previous party at event entry.
+    // Its deck is chosen when the player explicitly starts the fight.
     await saveMapLayout(currentTiles, "event-entry-map");
     if (globalThis.V2RunStateRuntime?.available) {
       await V2RunStateRuntime.setMapProgress({
@@ -2989,6 +2978,82 @@
     el.tileName.textContent = `${step}번 · ${tile.name}`;
   }
 
+  function storyBattleDefinitionValid(pending) {
+    const specs = {
+      graveyard_child_ambush_01: { returnTarget: "map-graveyard", type: "event-graveyard-child" },
+      cultist_altar_encounter_01: { returnTarget: "map-cultist-altar", type: "event-cultist-altar" },
+      ritual_portal_trace_01: { returnTarget: "map-ritual-portal", type: "event-ritual-portal" }
+    };
+    const spec = pending && specs[pending.eventId];
+    return Boolean(spec
+      && pending.eventReturn === spec.returnTarget
+      && pending.encounterType === spec.type
+      && Array.isArray(pending.enemies)
+      && pending.enemies.length >= 1
+      && pending.enemies.length <= 4
+      && pending.enemies.every((slug) => TEST_DECK.some((unit) => unit.slug === slug))
+      && typeof pending.choiceId === "string");
+  }
+
+  function showStoryBattleDeckSelection() {
+    if (!pendingStoryBattle || !storyBattleDefinitionValid(pendingStoryBattle)) return false;
+    forceCloseBookRoster();
+    enteringBattle = true;
+    battleStep = heroIndex + 1;
+    battleTileType = pendingStoryBattle.encounterType;
+    selectedDeck = [];
+    el.diceButton.disabled = true;
+    el.regenerate.disabled = true;
+    el.tileName.textContent = `${battleStep}번 · 사건 전투 · 출전 마물 선택`;
+    el.diceResult.textContent = "출전할 보유 마물 1~4마리를 선택하세요.";
+    el.board.classList.add("is-deck-selecting");
+    el.deckOverlay.classList.remove("is-preview");
+    el.deckClose.hidden = true;
+    renderDeckSelection();
+    el.deckOverlay.hidden = false;
+    el.deckOverlay.classList.remove("is-open");
+    void el.deckOverlay.offsetWidth;
+    el.deckOverlay.classList.add("is-open");
+    return true;
+  }
+
+  function prepareStoryBattleDeckSelection(pending) {
+    if (!storyBattleDefinitionValid(pending) || ownedUnits.size < 1) return false;
+    const runId = globalThis.V2RunStateRuntime?.snapshot?.()?.runId || null;
+    pendingStoryBattle = { ...pending, runId };
+    try {
+      sessionStorage.setItem(STORY_BATTLE_DECK_PENDING_KEY, JSON.stringify(pendingStoryBattle));
+    } catch (_) { /* In-memory selection still works until reload. */ }
+    // Reuse the same battle-deck picker used by ordinary and mimic encounters.
+    closeGraveyardStoryEvent();
+    return showStoryBattleDeckSelection();
+  }
+
+  function restorePendingStoryBattleDeck() {
+    if (eventOpen || enteringBattle) return false;
+    let saved = null;
+    try { saved = JSON.parse(sessionStorage.getItem(STORY_BATTLE_DECK_PENDING_KEY) || "null"); }
+    catch (_) { return false; }
+    const run = globalThis.V2RunStateRuntime?.snapshot?.();
+    const runId = run?.runId || null;
+    const seenFlags = {
+      graveyard_child_ambush_01: [GRAVEYARD_CHILD_EVENT_SEEN_FLAG, GRAVEYARD_CHILD_EVENT_SEEN_FALLBACK_KEY],
+      cultist_altar_encounter_01: [CULTIST_ALTAR_EVENT_SEEN_FLAG, CULTIST_ALTAR_EVENT_SEEN_FALLBACK_KEY],
+      ritual_portal_trace_01: [RITUAL_PORTAL_EVENT_SEEN_FLAG, RITUAL_PORTAL_EVENT_SEEN_FALLBACK_KEY]
+    };
+    const seen = seenFlags[saved?.eventId];
+    const flagSeen = seen && (run?.eventFlags?.[seen[0]] === true
+      || (!globalThis.V2RunStateRuntime?.available && sessionStorage.getItem(seen[1]) === "1"));
+    const valid = storyBattleDefinitionValid(saved) && saved.runId === runId
+      && flagSeen && ownedUnits.size > 0;
+    if (!valid) {
+      try { sessionStorage.removeItem(STORY_BATTLE_DECK_PENDING_KEY); } catch (_) {}
+      return false;
+    }
+    pendingStoryBattle = saved;
+    return showStoryBattleDeckSelection();
+  }
+
   function enterMonsterBattle(tile, step) {
     if (!isMonsterBattleTile(tile) || enteringBattle) return false;
     if (isMonsterTileCleared(step)) {
@@ -3523,8 +3588,69 @@
     bookAnimating = false;
   }
 
+  async function confirmStoryBattleDeck() {
+    const pending = pendingStoryBattle;
+    if (!storyBattleDefinitionValid(pending) || selectedDeck.length < 1 || selectedDeck.length > 4) return;
+    const selectedUnits = selectedDeck.map((instanceId) => ownedUnits.get(instanceId)).filter(Boolean);
+    if (selectedUnits.length !== selectedDeck.length || new Set(selectedDeck).size !== selectedDeck.length) return;
+    el.deckConfirm.disabled = true;
+    el.deckStatus.textContent = "사건 전투 편성 저장 중…";
+    try {
+      await saveMapLayout(currentTiles, "story-battle-entry-map");
+      if (globalThis.V2RunStateRuntime?.available) {
+        await V2RunStateRuntime.setMapProgress({
+          heroIndex,
+          lapReadyForRefresh,
+          worldTreePrayed,
+          previousRoll: previousDiceRoll,
+          previousEffectiveCardId: previousDiceControlId,
+          pendingCardInstanceId: null,
+          prefix: "story-battle-entry-progress"
+        });
+        if (typeof V2RunStateRuntime.commitExact === "function") {
+          const saved = await V2RunStateRuntime.commitExact("party:story-battle-entry", (draft) => {
+            draft.party = selectedUnits.map((unit) => unit.instanceId);
+          });
+          if (!saved?.ok) throw new Error("Story battle party save rejected");
+        }
+        await V2RunStateRuntime.flush();
+      }
+      if (pending.eventId === "cultist_altar_encounter_01") {
+        const stored = await markCultistAltarEncounterComplete("fight", false);
+        if (!stored) throw new Error("Cultist fight choice save rejected");
+      }
+      const context = {
+        eventId: pending.eventId,
+        choiceId: pending.choiceId,
+        enemies: [...pending.enemies],
+        encounterType: pending.encounterType,
+        startedAt: Date.now()
+      };
+      try { sessionStorage.setItem("necromancer-event-battle-context-v1", JSON.stringify(context)); } catch (_) {}
+      const params = new URLSearchParams({
+        from: "event",
+        event: pending.eventId,
+        encounterType: pending.encounterType,
+        enemies: pending.enemies.join(","),
+        eventReturn: pending.eventReturn,
+        map: activeMapId,
+        tile: String(heroIndex + 1),
+        allies: selectedUnits.map((unit) => unit.slug).join(","),
+        allyIds: selectedUnits.map((unit) => unit.instanceId).join(",")
+      });
+      try { sessionStorage.removeItem(STORY_BATTLE_DECK_PENDING_KEY); } catch (_) {}
+      if (typeof V2Music !== "undefined") V2Music.handoff("battle");
+      window.location.assign("v2-auto-battle-practice.html?" + params.toString());
+    } catch (error) {
+      console.error("[story-battle] selected deck could not be persisted", error);
+      el.deckStatus.textContent = "출전 편성 저장 실패 · 다시 확인하세요.";
+      el.deckConfirm.disabled = false;
+    }
+  }
+
   async function confirmMonsterBattle() {
     if (selectedDeck.length < 1 || selectedDeck.length > 4) return;
+    if (pendingStoryBattle) return confirmStoryBattleDeck();
     el.deckConfirm.disabled = true;
     el.deckStatus.textContent = "전장으로 이동 중…";
     const encounterId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -6985,51 +7111,18 @@
     cultistAltarStoryCompleting = true;
     try {
       setGraveyardStoryChoicePhase(false);
-      await markCultistAltarEncounterComplete("fight", false);
       setCultistAltarLayerVisibility({ summon: true, animate: true });
       if (el.graveyardStoryEffectText) el.graveyardStoryEffectText.textContent = "당신의 개입을 알아챈 광신도들이 의식을 비틀어 마물들을 불러낸다.";
       if (el.graveyardStoryText) el.graveyardStoryText.textContent = "";
       el.graveyardStoryEvent?.classList.remove("has-dialogue");
       await wait(760);
-
-      const partyUnits = currentPartyUnits();
-      const enemies = cultistAltarEnemySlugs();
-      if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
-        await V2RunStateRuntime.commitExact("party:event-cultist-altar", (draft) => {
-          draft.party = partyUnits.map((unit) => unit.instanceId);
-        });
-        await V2RunStateRuntime.setMapProgress({
-          heroIndex,
-          lapReadyForRefresh,
-          worldTreePrayed,
-          previousRoll: previousDiceRoll,
-          previousEffectiveCardId: previousDiceControlId,
-          pendingCardInstanceId: null,
-          prefix: "cultist-altar-battle-entry"
-        });
-        await V2RunStateRuntime.flush();
-      }
-      await saveMapLayout(currentTiles, "cultist-altar-battle-entry");
-      const context = {
+      prepareStoryBattleDeckSelection({
         eventId: "cultist_altar_encounter_01",
         choiceId: "fight",
-        enemies,
+        enemies: cultistAltarEnemySlugs(),
         encounterType: "event-cultist-altar",
-        startedAt: Date.now()
-      };
-      try { sessionStorage.setItem("necromancer-event-battle-context-v1", JSON.stringify(context)); } catch (_) {}
-      const params = new URLSearchParams({
-        from: "event",
-        event: "cultist_altar_encounter_01",
-        encounterType: "event-cultist-altar",
-        enemies: enemies.join(","),
-        eventReturn: "map-cultist-altar",
-        map: activeMapId,
-        tile: String(heroIndex + 1),
-        allies: partyUnits.map((unit) => unit.slug).join(","),
-        allyIds: partyUnits.map((unit) => unit.instanceId).join(",")
+        eventReturn: "map-cultist-altar"
       });
-      window.location.assign("v2-auto-battle-practice.html?" + params.toString());
     } finally {
       cultistAltarStoryCompleting = false;
     }
@@ -7097,45 +7190,13 @@
       if (el.graveyardStoryText) el.graveyardStoryText.textContent = "";
       el.graveyardStoryEvent?.classList.remove("has-dialogue");
       await wait(760);
-
-      const partyUnits = currentPartyUnits();
-      const enemies = ritualPortalEnemySlugs();
-      if (globalThis.V2RunStateRuntime?.available && typeof V2RunStateRuntime.commitExact === "function") {
-        await V2RunStateRuntime.commitExact("party:event-ritual-portal", (draft) => {
-          draft.party = partyUnits.map((unit) => unit.instanceId);
-        });
-        await V2RunStateRuntime.setMapProgress({
-          heroIndex,
-          lapReadyForRefresh,
-          worldTreePrayed,
-          previousRoll: previousDiceRoll,
-          previousEffectiveCardId: previousDiceControlId,
-          pendingCardInstanceId: null,
-          prefix: "ritual-portal-battle-entry"
-        });
-        await V2RunStateRuntime.flush();
-      }
-      await saveMapLayout(currentTiles, "ritual-portal-battle-entry");
-      const context = {
+      prepareStoryBattleDeckSelection({
         eventId: "ritual_portal_trace_01",
         choiceId: "intervene",
-        enemies,
+        enemies: ritualPortalEnemySlugs(),
         encounterType: "event-ritual-portal",
-        startedAt: Date.now()
-      };
-      try { sessionStorage.setItem("necromancer-event-battle-context-v1", JSON.stringify(context)); } catch (_) {}
-      const params = new URLSearchParams({
-        from: "event",
-        event: "ritual_portal_trace_01",
-        encounterType: "event-ritual-portal",
-        enemies: enemies.join(","),
-        eventReturn: "map-ritual-portal",
-        map: activeMapId,
-        tile: String(heroIndex + 1),
-        allies: partyUnits.map((unit) => unit.slug).join(","),
-        allyIds: partyUnits.map((unit) => unit.instanceId).join(",")
+        eventReturn: "map-ritual-portal"
       });
-      window.location.assign("v2-auto-battle-practice.html?" + params.toString());
     } finally {
       ritualPortalStoryCompleting = false;
     }
@@ -7155,29 +7216,13 @@
   }
 
   function startGraveyardEventBattle() {
-    const partyUnits = currentPartyUnits();
-    const context = {
+    return prepareStoryBattleDeckSelection({
       eventId: "graveyard_child_ambush_01",
       choiceId: "protect_child",
       enemies: ["ghoul"],
       encounterType: "event-graveyard-child",
-      startedAt: Date.now()
-    };
-    try {
-      sessionStorage.setItem("necromancer-event-battle-context-v1", JSON.stringify(context));
-    } catch (_) {}
-    const params = new URLSearchParams({
-      from: "event",
-      event: "graveyard_child_ambush_01",
-      encounterType: "event-graveyard-child",
-      enemies: "ghoul",
-      eventReturn: "map-graveyard",
-      map: activeMapId,
-      tile: String(heroIndex + 1),
-      allies: partyUnits.map((unit) => unit.slug).join(","),
-      allyIds: partyUnits.map((unit) => unit.instanceId).join(",")
+      eventReturn: "map-graveyard"
     });
-    window.location.assign("v2-auto-battle-practice.html?" + params.toString());
   }
 
   async function resumeGraveyardEventAfterBattle() {
@@ -7292,6 +7337,10 @@
       if (previewOnly) void openMonsterKingHuntEvent({ previewOnly: true });
       else if (monsterKingHuntEligible()) void launchMonsterKingHuntEventFromMap();
     }, 0);
+  }
+
+  if (!mapLaunchParams.has("storyEvent") && !mapLaunchParams.has("resumeGraveyardEvent") && !mapLaunchParams.has("resumeCultistAltarEvent") && !mapLaunchParams.has("resumeRitualPortalEvent")) {
+    restorePendingStoryBattleDeck();
   }
 
 })();
