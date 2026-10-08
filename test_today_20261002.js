@@ -559,7 +559,7 @@ assert(map.includes('id: "warning"') && map.includes('visual: "scene"'), "hunter
 assert(map.includes('beat.id === "warning" || beat.id === "unnatural" || beat.id === "clue"'), "hunter scene reveal animation must start on the second beat");
 assert(map.includes('art/v2-style/event-portraits/monster-hunter-user-cutout.webp?v=1'), "hunter dialogue portrait must use the transparent hunter portrait asset");
 assert(!mapCss.includes("mix-blend-mode:multiply!important"), "transparent hunter portrait must not use paper-background blending");
-assert(mapCss.includes("width:46%!important") && mapCss.includes("height:68%!important"), "hunter dialogue portrait must stay visually comparable to the other portraits");
+assert(mapCss.includes("width:58%!important") && mapCss.includes("height:78%!important"), "hunter dialogue portrait must stay enlarged to visually match the protagonist");
 
 assert(map.includes('storyEventTriggerMatches(tileId, "village")'), "commander encounter must inherit the village-or-event trigger rule");
 assert(map.includes("KNIGHT_COMMANDER_CONTAMINATION_BEATS"), "commander encounter must have its own dialogue beats");
