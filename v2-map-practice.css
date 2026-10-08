@@ -2576,9 +2576,12 @@ body { background: radial-gradient(circle, #2d2119, #070504 72%); }
 .cultist-altar-layer{
   position:absolute!important;
   z-index:8!important;
-  inset:0!important;
-  width:100%!important;
-  height:100%!important;
+  left:20%!important;
+  right:auto!important;
+  top:auto!important;
+  bottom:0!important;
+  width:60%!important;
+  height:60%!important;
   object-fit:contain!important;
   object-position:center bottom!important;
   pointer-events:none!important;

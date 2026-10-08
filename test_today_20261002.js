@@ -180,8 +180,8 @@ console.log("PASS: 2026-10-02 current regression checks.");
 
 assert(!/(^|\\n)\\.map-options-button\\s*\\{\\s*visibility:\\s*hidden;\\s*\\}/.test(mapCss));
 assert(mapCss.includes(".map-board.is-tile-event-open .map-options-button { visibility: hidden; }"));
-assert(mapHtml.includes("v2-map-practice.css?v=20261008-cultist-altar-event-v1"));
-assert(worker.includes("./v2-map-practice.css?v=20261008-cultist-altar-event-v1"));
+assert(mapHtml.includes("v2-map-practice.css?v=20261008-cultist-altar-layer60-v1"));
+assert(worker.includes("./v2-map-practice.css?v=20261008-cultist-altar-layer60-v1"));
 assert(mapHtml.includes('id="villageDioramaTestButton"'));
 assert(mapHtml.includes('id="villageDioramaTest"'));
 assert(mapHtml.includes("village-building-01.webp?v=20261005-graveyard-poster-stage17-1"));
@@ -590,6 +590,7 @@ assert(map.includes('mapLaunchParams.get("resumeCultistAltarEvent") === "1"'), "
 assert(map.includes('mapLaunchParams.get("storyEvent") === "cultist_altar_encounter_01"'), "cultist altar encounter needs a direct preview route");
 assert(mapHtml.includes('id="cultistAltarRitualLayer"') && mapHtml.includes('id="cultistAltarSummonLayer"'), "cultist altar event must keep both approved layered images");
 assert(mapCss.includes(".cultist-altar-layer") && mapCss.includes(".cultist-altar-summon-layer"), "cultist altar event layers must have dedicated composition CSS");
+assert(mapCss.includes("left:20%!important") && mapCss.includes("bottom:0!important") && mapCss.includes("width:60%!important") && mapCss.includes("height:60%!important"), "both cultist altar event layers must render at 60% size and stay bottom-anchored");
 for (const asset of ["cultist-altar-night-base.webp","cultist-altar-ritual-layer.webp","cultist-altar-summon-layer.webp"]) {
   const relative = `art/v2-style/map-test/events/${asset}`;
   assert(fs.existsSync(relative), "Cultist altar artwork missing: " + relative);
