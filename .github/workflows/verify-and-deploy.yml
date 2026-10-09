@@ -1,11 +1,12 @@
 name: Deploy Godot Web to existing Pages
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/verify-and-deploy.yml"
   workflow_dispatch:
+    inputs:
+      artifact_url:
+        description: "Temporary ZIP URL for a verified Godot Web build"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -26,9 +27,11 @@ jobs:
     steps:
       - name: Download verified Godot Web build
         shell: bash
+        env:
+          ARTIFACT_URL: ${{ inputs.artifact_url }}
         run: |
           set -euo pipefail
-          curl --fail --location --retry 3 --retry-delay 2             --output /tmp/necromancer-godot-web.zip             'https://sdmntprindiasocentral.oaiusercontent.com/files/00000000-d530-8211-890e-9d38d75f991b/raw?se=2026-10-09T03%3A32%3A13Z&sp=r&sv=2026-02-06&sr=b&scid=25609d46-ac38-55d4-b208-c1e9e4a587d8&skoid=bb372dd6-3b2a-4af2-b355-c26497ba23cd&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-10-09T01%3A26%3A42Z&ske=2026-10-10T01%3A26%3A42Z&sks=b&skv=2026-02-06&sig=sgxB2Mvs9T9bW%2BNZWsCJrWObU2GqOouARhgXc38XItY%3D'
+          curl --fail --location --retry 3 --retry-delay 2             --output /tmp/necromancer-godot-web.zip             "$ARTIFACT_URL"
 
       - name: Prepare Pages artifact
         shell: bash
@@ -41,9 +44,7 @@ jobs:
           test -s _site/index.html
           test -s _site/index.pck
           test -s _site/index.wasm
-          echo "Godot Web build prepared:"
           du -sh _site
-          ls -lh _site/index.html _site/index.pck _site/index.wasm
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
