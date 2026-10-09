@@ -1,12 +1,10 @@
 name: Deploy Godot Web to existing Pages
 
 on:
-  workflow_dispatch:
-    inputs:
-      artifact_url:
-        description: "Temporary ZIP URL for a verified Godot Web build"
-        required: true
-        type: string
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/verify-and-deploy.yml"
 
 permissions:
   contents: read
@@ -28,7 +26,7 @@ jobs:
       - name: Download verified Godot Web build
         shell: bash
         env:
-          ARTIFACT_URL: ${{ inputs.artifact_url }}
+          ARTIFACT_URL: "https://sdmntprjapaneast.oaiusercontent.com/files/00000000-0368-8209-84c2-7431d291c2da/raw?se=2026-10-09T10%3A31%3A18Z&sp=r&sv=2026-02-06&sr=b&scid=5aded588-d312-519c-846c-bf56f0daa6f6&skoid=bb372dd6-3b2a-4af2-b355-c26497ba23cd&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-10-09T01%3A28%3A34Z&ske=2026-10-10T01%3A28%3A34Z&sks=b&skv=2026-02-06&sig=cKvcnygGWlDwIgpNcKA%2BIlFcEb%2B%2BLW7R7mGWKLyB1Fs%3D"
         run: |
           set -euo pipefail
           curl --fail --location --retry 3 --retry-delay 2             --output /tmp/necromancer-godot-web.zip             "$ARTIFACT_URL"
