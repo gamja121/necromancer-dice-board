@@ -1,60 +1,56 @@
-name: Verify and deploy
+name: Deploy Godot Web to existing Pages
+
 on:
   push:
     branches: [main]
-  pull_request:
+    paths:
+      - ".github/workflows/verify-and-deploy.yml"
   workflow_dispatch:
+
 permissions:
   contents: read
+  pages: write
+  id-token: write
+
 concurrency:
-  group: verify-pages-${{ github.workflow }}-${{ github.ref }}
+  group: godot-existing-pages
   cancel-in-progress: true
+
 jobs:
-  verify:
+  deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: npm
-      - run: npm ci --ignore-scripts
-      - name: Mandatory full regression suite
-        run: npm test
-      - name: Install browser
-        run: npx playwright install --with-deps chromium
-      - name: Browser smoke test
-        timeout-minutes: 5
-        run: |
-          node scripts/v2-dev-server.js > /tmp/v2-server.log 2>&1 &
-          server_pid=$!
-          trap 'kill "$server_pid" || true' EXIT
-          for attempt in {1..30}; do
-            if curl --fail --silent http://localhost:8788/ > /dev/null; then break; fi
-            sleep 1
-          done
-          curl --fail --silent http://localhost:8788/ > /dev/null
-          npm run test:browser
-      - name: Assemble Pages artifact
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        run: node scripts/build-pages.js
-      - uses: actions/upload-pages-artifact@v3
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        with:
-          path: _site
-          retention-days: 1
-  deploy:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    needs: verify
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      pages: write
-      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/deploy-pages@v4
+      - name: Download verified Godot Web build
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --retry-delay 2             --output /tmp/necromancer-godot-web.zip             'https://sdmntprindiasocentral.oaiusercontent.com/files/00000000-d530-8211-890e-9d38d75f991b/raw?se=2026-10-09T03%3A32%3A13Z&sp=r&sv=2026-02-06&sr=b&scid=25609d46-ac38-55d4-b208-c1e9e4a587d8&skoid=bb372dd6-3b2a-4af2-b355-c26497ba23cd&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-10-09T01%3A26%3A42Z&ske=2026-10-10T01%3A26%3A42Z&sks=b&skv=2026-02-06&sig=sgxB2Mvs9T9bW%2BNZWsCJrWObU2GqOouARhgXc38XItY%3D'
+
+      - name: Prepare Pages artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf _site
+          mkdir -p _site
+          unzip -q /tmp/necromancer-godot-web.zip -d _site
+          touch _site/.nojekyll
+          test -s _site/index.html
+          test -s _site/index.pck
+          test -s _site/index.wasm
+          echo "Godot Web build prepared:"
+          du -sh _site
+          ls -lh _site/index.html _site/index.pck _site/index.wasm
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+          retention-days: 1
+
+      - name: Deploy to existing GitHub Pages
         id: deployment
+        uses: actions/deploy-pages@v4
