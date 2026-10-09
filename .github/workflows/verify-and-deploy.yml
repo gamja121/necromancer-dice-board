@@ -1,10 +1,14 @@
-name: Deploy Godot Web to existing Pages
+name: Deploy Latest Godot Build
 
 on:
   workflow_dispatch:
     inputs:
       artifact_url:
-        description: "Temporary ZIP URL for a verified Godot Web build"
+        description: "Temporary ZIP URL from the latest successful Godot build"
+        required: true
+        type: string
+      source_sha:
+        description: "Godot source commit SHA being published"
         required: true
         type: string
 
@@ -14,7 +18,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: godot-existing-pages
+  group: canonical-godot-pages
   cancel-in-progress: true
 
 jobs:
@@ -25,29 +29,30 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Download verified Godot Web build
+      - name: Download latest verified Godot build
         shell: bash
         env:
           ARTIFACT_URL: ${{ inputs.artifact_url }}
         run: |
           set -euo pipefail
-          curl --fail --location --retry 3 --retry-delay 2             --output /tmp/necromancer-godot-web.zip             "$ARTIFACT_URL"
+          curl --fail --location --retry 3 --retry-delay 2             --output /tmp/godot-web.zip             "$ARTIFACT_URL"
 
-      - name: Prepare Pages artifact
+      - name: Prepare canonical site
         shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
         run: |
           set -euo pipefail
           rm -rf _site
           mkdir -p _site
-          unzip -q /tmp/necromancer-godot-web.zip -d _site
+          unzip -q /tmp/godot-web.zip -d _site
           touch _site/.nojekyll
           test -s _site/index.html
           test -s _site/index.pck
           test -s _site/index.wasm
           test -s _site/landscape-lock.css
           test -s _site/landscape-lock.js
-          grep -q 'landscape-lock.css' _site/index.html
-          grep -q 'landscape-lock.js' _site/index.html
+          printf '%s\n' "$SOURCE_SHA" > _site/DEPLOYED_SOURCE_SHA.txt
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
@@ -55,6 +60,6 @@ jobs:
           path: _site
           retention-days: 1
 
-      - name: Deploy to existing GitHub Pages
+      - name: Deploy canonical latest site
         id: deployment
         uses: actions/deploy-pages@v4
