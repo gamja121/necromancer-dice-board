@@ -38,6 +38,7 @@ jobs:
           for file in index.* landscape-lock.css landscape-lock.js SOURCE_SHA.txt DEPLOYED_SOURCE_SHA.txt; do
             cp "$file" _site/
           done
+          if [ -f FONT_LICENSE.txt ]; then cp FONT_LICENSE.txt _site/; fi
           touch _site/.nojekyll
 
       - name: Configure Pages
