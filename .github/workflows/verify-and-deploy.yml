@@ -1,16 +1,9 @@
 name: Deploy Latest Godot Build
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
-    inputs:
-      artifact_url:
-        description: "Temporary ZIP URL from the latest successful Godot build"
-        required: true
-        type: string
-      source_sha:
-        description: "Godot source commit SHA being published"
-        required: true
-        type: string
 
 permissions:
   contents: read
@@ -29,37 +22,32 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Download latest verified Godot build
-        shell: bash
-        env:
-          ARTIFACT_URL: ${{ inputs.artifact_url }}
-        run: |
-          set -euo pipefail
-          curl --fail --location --retry 3 --retry-delay 2             --output /tmp/godot-web.zip             "$ARTIFACT_URL"
+      - name: Checkout deployment files
+        uses: actions/checkout@v4
 
-      - name: Prepare canonical site
+      - name: Validate and prepare Godot site
         shell: bash
-        env:
-          SOURCE_SHA: ${{ inputs.source_sha }}
         run: |
           set -euo pipefail
-          rm -rf _site
+          test "$(cat SOURCE_SHA.txt)" = "$(cat DEPLOYED_SOURCE_SHA.txt)"
+          grep -Eq '^[0-9a-f]{40}$' DEPLOYED_SOURCE_SHA.txt
           mkdir -p _site
-          unzip -q /tmp/godot-web.zip -d _site
+          for file in index.html index.js index.pck index.wasm landscape-lock.css landscape-lock.js; do
+            test -s "$file"
+          done
+          for file in index.* landscape-lock.css landscape-lock.js SOURCE_SHA.txt DEPLOYED_SOURCE_SHA.txt; do
+            cp "$file" _site/
+          done
           touch _site/.nojekyll
-          test -s _site/index.html
-          test -s _site/index.pck
-          test -s _site/index.wasm
-          test -s _site/landscape-lock.css
-          test -s _site/landscape-lock.js
-          printf '%s\n' "$SOURCE_SHA" > _site/DEPLOYED_SOURCE_SHA.txt
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: _site
-          retention-days: 1
 
-      - name: Deploy canonical latest site
+      - name: Deploy canonical site
         id: deployment
         uses: actions/deploy-pages@v4
