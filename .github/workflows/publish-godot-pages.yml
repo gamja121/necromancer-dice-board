@@ -15,6 +15,7 @@ name: Publish Godot to Existing Pages
 # Story state P1-02B: event stage and immutable choice save API, Godot source c8bd5388.
 # Graveyard child P1-03B: ghoul reveal and rescue/abandon choice, Godot source 25b083c3.
 # Graveyard child P1-03C: selected 1-4 monster cards vs ghoul, Godot source 9e9f2c77.
+# Graveyard child P1-03D: persisted post-battle outcome modal, Godot source 0cb8fc31.
 on:
   push:
     branches: [main]
