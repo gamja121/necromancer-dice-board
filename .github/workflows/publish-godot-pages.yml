@@ -10,6 +10,7 @@ name: Publish Godot to Existing Pages
 # Event illustration release: deploy ink-hatched fortune-teller camp and home interior backgrounds from Godot main e9a36afe.
 # Ink opening pilot release: one fortune-teller-camp illustration only, source 98040e0c.
 # All-location ink reveal release: 8 exterior/location scenes; home interior excluded. Godot 8f7747ea.
+# Wax seal selection pilot: cemetery action first-click marker, Godot source 6ca00892.
 on:
   push:
     branches: [main]
