@@ -11,6 +11,7 @@ name: Publish Godot to Existing Pages
 # Ink opening pilot release: one fortune-teller-camp illustration only, source 98040e0c.
 # All-location ink reveal release: 8 exterior/location scenes; home interior excluded. Godot 8f7747ea.
 # Wax seal glow release: cemetery first-click skull marker and gentle red halo, Godot source 42ac87ca.
+# Story state P1-02B: event stage and immutable choice save API, Godot source c8bd5388.
 on:
   push:
     branches: [main]
