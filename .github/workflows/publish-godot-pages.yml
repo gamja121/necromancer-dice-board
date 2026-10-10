@@ -27,6 +27,7 @@ name: Publish Godot to Existing Pages
 # Knight commander P1-05D: seven dialogue beats and atomic hunter quest, Godot source 7564ce7b.
 # Monster hunter P1-05E: guarded world-tree first arrival, Godot source 6caf3261.
 # P1-05E integrated web sync: retain latest monster-card altar badge update, source a6a1db23.
+# Hunter P1-05F: 11 original beats, atomic investigation and clue completion, Godot source 820f5913.
 on:
   push:
     branches: [main]
