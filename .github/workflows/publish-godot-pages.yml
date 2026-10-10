@@ -8,6 +8,7 @@ name: Publish Godot to Existing Pages
 # Title-interaction release: publish fixed title UI and menu hover/press wiggle from current Godot main.
 # HD title release: deploy verified 2172x724 logo and four 1086x295 transparent menu assets.
 # Event illustration release: deploy ink-hatched fortune-teller camp and home interior backgrounds from Godot main e9a36afe.
+# Ink opening pilot release: one fortune-teller-camp illustration only, source 98040e0c.
 on:
   push:
     branches: [main]
