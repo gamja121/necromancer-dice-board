@@ -4,6 +4,7 @@ name: Publish Godot to Existing Pages
 # Godot source directly; no cross-repository write token or Pages site creation
 # in the Godot source repository is required.
 # Font fix release: use bundled Nanum Gothic on title, intro, map and battle UI.
+# Title-art release: rebuild the canonical Godot Pages preview with the new gothic logo and four menu buttons.
 on:
   push:
     branches: [main]
