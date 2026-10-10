@@ -1,0 +1,120 @@
+name: Publish Godot to Existing Pages
+
+# The public Pages repository owns deployment. It builds the latest public
+# Godot source directly; no cross-repository write token or Pages site creation
+# in the Godot source repository is required.
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-godot-pages.yml"
+  workflow_dispatch:
+  schedule:
+    - cron: "17 * * * *"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: canonical-godot-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout latest public Godot source
+        uses: actions/checkout@v4
+        with:
+          repository: gamja121/necromancer-and-dice-godot
+          ref: main
+          path: godot-game
+          persist-credentials: false
+
+      - name: Setup Godot 4.7.2
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.7.2
+          use-dotnet: false
+          include-templates: true
+
+      - name: Import project
+        working-directory: godot-game
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot --headless --path . --editor --quit 2>&1 | tee import.log
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed loading resource' import.log; then
+            exit 1
+          fi
+
+      - name: Startup check
+        working-directory: godot-game
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot --headless --path . --quit-after 120 2>&1 | tee runtime.log
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed loading resource' runtime.log; then
+            exit 1
+          fi
+
+      - name: Export latest Godot Web build
+        working-directory: godot-game
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/web
+          godot --headless --path . --export-release "Web" build/web/index.html 2>&1 | tee export.log
+          test -s build/web/index.html
+          test -s build/web/index.js
+          test -s build/web/index.pck
+          test -s build/web/index.wasm
+
+      - name: Prepare phone-friendly Pages site
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p _site
+          cp godot-game/build/web/index.* _site/
+          cp godot-game/web/landscape-lock.css _site/landscape-lock.css
+          cp godot-game/web/landscape-lock.js _site/landscape-lock.js
+          if [ -f godot-game/assets/fonts/OFL.txt ]; then
+            cp godot-game/assets/fonts/OFL.txt _site/FONT_LICENSE.txt
+          fi
+          python3 - <<'PY'
+          from pathlib import Path
+          html = Path("_site/index.html")
+          content = html.read_text(encoding="utf-8")
+          css = '<link rel="stylesheet" href="landscape-lock.css">'
+          js = '<script src="landscape-lock.js" defer></script>'
+          if css not in content:
+              content = content.replace("</head>", f"  {css}\n</head>")
+          if js not in content:
+              content = content.replace("</body>", f"  {js}\n</body>")
+          html.write_text(content, encoding="utf-8")
+          PY
+          git -C godot-game rev-parse HEAD > _site/SOURCE_SHA.txt
+          cp _site/SOURCE_SHA.txt _site/DEPLOYED_SOURCE_SHA.txt
+          grep -Eq '^[0-9a-f]{40}$' _site/DEPLOYED_SOURCE_SHA.txt
+          for file in index.html index.js index.pck index.wasm landscape-lock.css landscape-lock.js; do
+            test -s "_site/$file"
+          done
+          touch _site/.nojekyll
+
+      - name: Configure existing Pages site
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy latest Godot build to existing Pages site
+        id: deployment
+        uses: actions/deploy-pages@v4
