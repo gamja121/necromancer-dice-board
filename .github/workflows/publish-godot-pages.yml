@@ -17,6 +17,7 @@ name: Publish Godot to Existing Pages
 # Graveyard child P1-03C: selected 1-4 monster cards vs ghoul, Godot source 9e9f2c77.
 # Graveyard child P1-03D: persisted post-battle outcome modal, Godot source 0cb8fc31.
 # Shared story battle contract P1-04A: reusable fail-closed registry, Godot source bb37bb4d.
+# Shared story battle outcomes P1-04B: common victory/defeat flags and return modal, Godot source 9b3f2ef8.
 on:
   push:
     branches: [main]
