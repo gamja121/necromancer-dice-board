@@ -21,6 +21,7 @@ name: Publish Godot to Existing Pages
 # Story battle resume P1-04C: phase guards and acknowledged outcome retries, Godot source 3bd5162d.
 # Village rumors P1-05A: rescue/abandon first discovery, Godot source c8ce8b0e.
 # Village rumors P1-05B: both complete scenes and persisted beats, Godot source 600d1612.
+# Knight commander P1-05C: arrival after saved-child rumor, Godot source 7f26e2bf.
 on:
   push:
     branches: [main]
