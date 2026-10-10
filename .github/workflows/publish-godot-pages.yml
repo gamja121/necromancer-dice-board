@@ -3,6 +3,7 @@ name: Publish Godot to Existing Pages
 # The public Pages repository owns deployment. It builds the latest public
 # Godot source directly; no cross-repository write token or Pages site creation
 # in the Godot source repository is required.
+# Font fix release: use bundled Nanum Gothic on title, intro, map and battle UI.
 on:
   push:
     branches: [main]
