@@ -23,6 +23,7 @@ name: Publish Godot to Existing Pages
 # Village rumors P1-05A: rescue/abandon first discovery, Godot source c8ce8b0e.
 # Village rumors P1-05B: both complete scenes and persisted beats, Godot source 600d1612.
 # Knight commander P1-05C: arrival after saved-child rumor, Godot source 7f26e2bf.
+# Knight commander P1-05D: seven dialogue beats and atomic hunter quest, Godot source 7564ce7b.
 on:
   push:
     branches: [main]
