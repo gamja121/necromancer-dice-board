@@ -33,6 +33,7 @@ name: Publish Godot to Existing Pages
 # Hunter P1-05F: 11 original beats, atomic investigation and clue completion, Godot source 820f5913.
 # Cultist rumor P1-05G: night-village first scene after hunter clue, Godot source cd3745ae.
 # Cultist rumor P1-05H: six complete scenes and tracking quest, Godot source d1ca3a77.
+# P1-05H integrated web refresh: cultist tracking and latest card badges, Godot 6da769ee.
 on:
   push:
     branches: [main]
