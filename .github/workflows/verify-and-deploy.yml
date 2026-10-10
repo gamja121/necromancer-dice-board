@@ -1,16 +1,10 @@
-name: Deploy Latest Godot Build
+name: Legacy Manual Godot Pages Deploy
 
 # The public Pages repository owns deployment. It builds the latest public
 # Godot source directly; no cross-repository write token or Pages site creation
 # in the Godot source repository is required.
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/verify-and-deploy.yml"
   workflow_dispatch:
-  schedule:
-    - cron: "17 * * * *"
 
 permissions:
   contents: read
