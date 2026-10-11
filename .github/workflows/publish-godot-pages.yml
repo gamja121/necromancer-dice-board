@@ -1,4 +1,5 @@
 name: Publish Godot to Existing Pages
+# Map-shuffle visual transition release 2026-10-11: Godot source bedbe33cf6a98950bfc7771cda3f8267a95206a6.
 # Inheritance details material-first fix 2026-10-11: hide material curses, source 5c4ba2f94836.
 # Altar badge all-card sync refresh 2026-10-11: line-fit and all monster card views, source 4ffda32b9c4e.
 # Three-brand iron frame alignment refresh 2026-10-11: match wood rect, Godot 17597eb4a12c.
